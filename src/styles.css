@@ -377,6 +377,31 @@ select:focus {
   font-family: "Inter", sans-serif;
 }
 
+.lang-selector-relative {
+  position: relative;
+  z-index: 2000;
+  font-family: "Inter", sans-serif;
+}
+
+.brand-logo-top {
+  position: absolute;
+  top: 24px;
+  left: 40px;
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--accent-dark);
+  letter-spacing: 1px;
+  z-index: 2000;
+}
+
+@media (max-width: 720px) {
+  .brand-logo-top {
+    top: 14px;
+    left: 14px;
+    font-size: 1.25rem;
+  }
+}
+
 .lang-selector-trigger {
   background: var(--panel-strong);
   border: 1px solid var(--line);

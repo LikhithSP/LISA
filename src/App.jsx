@@ -25,7 +25,7 @@ const translations = {
     createProfile: "Create your learner profile",
     fullName: "Full Name",
     age: "Age",
-    preferredLanguage: "Language to learn or improve",
+    preferredLanguage: "Target Language",
     selectLanguage: "Select language",
     educationLevel: "Education Level",
     selectEducation: "Select education level",
@@ -93,7 +93,7 @@ const translations = {
     createProfile: "अपना शिक्षार्थी प्रोफ़ाइल बनाएं",
     fullName: "पूरा नाम",
     age: "उम्र",
-    preferredLanguage: "सीखने या सुधारने की भाषा",
+    preferredLanguage: "लक्ष्य भाषा",
     selectLanguage: "भाषा चुनें",
     educationLevel: "शिक्षा का स्तर",
     selectEducation: "शिक्षा का स्तर चुनें",
@@ -161,7 +161,7 @@ const translations = {
     createProfile: "ನಿಮ್ಮ ಕಲಿಯುವವರ ಪ್ರೊಫೈಲ್ ರಚಿಸಿ",
     fullName: "ಪೂರ್ಣ ಹೆಸರು",
     age: "ವಯಸ್ಸು",
-    preferredLanguage: "ಕಲಿಯಲು ಅಥವಾ ಸುಧಾರಿಸಲು ಭಾಷೆ",
+    preferredLanguage: "ಕಲಿಯಲು ಬಯಸುವ ಭಾಷೆ",
     selectLanguage: "ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ",
     educationLevel: "ಶಿಕ್ಷಣದ ಮಟ್ಟ",
     selectEducation: "ಶಿಕ್ಷಣದ ಮಟ್ಟವನ್ನು ಆಯ್ಕೆಮಾಡಿ",
@@ -229,7 +229,7 @@ const translations = {
     createProfile: "మీ అభ్యాస ప్రొఫైల్‌ను సృష్టించండి",
     fullName: "పూర్తి పేరు",
     age: "వయస్సు",
-    preferredLanguage: "నేర్చుకోవడానికి లేదా మెరుగుపరచడానికి భాష",
+    preferredLanguage: "లక్ష్య భాష",
     selectLanguage: "భాషను ఎంచుకోండి",
     educationLevel: "విద్యా స్థాయి",
     selectEducation: "విద్యా స్థాయిని ఎంచుకోండి",
@@ -297,7 +297,7 @@ const translations = {
     createProfile: "உங்கள் கற்றல் சுயவிவரத்தை உருவாக்கவும்",
     fullName: "முழு பெயர்",
     age: "வயது",
-    preferredLanguage: "கற்க அல்லது மேம்படுத்த வேண்டிய மொழி",
+    preferredLanguage: "இலக்கு மொழி",
     selectLanguage: "மொழியைத் தேர்ந்தெடுக்கவும்",
     educationLevel: "கல்வி நிலை",
     selectEducation: "கல்வி நிலையைத் தேர்ந்தெடுக்கவும்",
@@ -604,8 +604,8 @@ function App() {
   }
 
   // Language Dropdown Selector Component
-  const renderLanguageDropdown = () => (
-    <div className="lang-selector-container">
+  const renderLanguageDropdown = (isRelative = false) => (
+    <div className={isRelative ? "lang-selector-relative" : "lang-selector-container"}>
       <button
         className="lang-selector-trigger"
         onClick={() => setLangDropdownOpen(!langDropdownOpen)}
@@ -646,6 +646,7 @@ function App() {
   if (recoveryMode) {
     return (
       <main className="shell">
+        <div className="brand-logo-top">LISA</div>
         {renderLanguageDropdown()}
         <section className="hero-panel">
           <h1>{t("resetAccountPassword")}</h1>
@@ -685,10 +686,9 @@ function App() {
   if (session) {
     return (
       <div className="dashboard-container">
-        {renderLanguageDropdown()}
         <header className="dashboard-header">
           <div className="dashboard-logo">LISA</div>
-          <div className="dashboard-user" style={{ paddingRight: "70px" }}>
+          <div className="dashboard-user">
             <span style={{ fontWeight: 600 }}>
               {t("hello")}, {profile?.full_name || session.user.email}
             </span>
@@ -700,6 +700,7 @@ function App() {
             >
               {submitting ? t("signingOut") : t("logout")}
             </button>
+            {renderLanguageDropdown(true)}
           </div>
         </header>
         <main className="dashboard-main">
@@ -715,6 +716,7 @@ function App() {
   // 5. Login / Register / Forgot Password Forms
   return (
     <main className="shell">
+      <div className="brand-logo-top">LISA</div>
       {renderLanguageDropdown()}
       <section className="hero-panel">
         <h1>{t("heroTitle")}</h1>
