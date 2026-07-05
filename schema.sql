@@ -42,3 +42,8 @@ drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
+
+-- Recommendations for Literacy Level Tracking:
+-- Execute the following SQL statement in the Supabase SQL Editor to track diagnosed literacy levels:
+-- ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS literacy_level integer DEFAULT 1 CHECK (literacy_level >= 1 AND literacy_level <= 5);
+
