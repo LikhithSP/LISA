@@ -1,91 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "./supabaseClient";
+import { levelDefinitions, initialAssessmentPool, getRandomAssessment } from "./curriculumData";
 
-const languages = ["English", "Hindi", "Kannada", "Telugu", "Tamil", "Other"];
-const levelNames = {
-  English: [
-    "Level 1: Cannot read letters.",
-    "Level 2: Can read letters but not words.",
-    "Level 3: Can read words but not sentences.",
-    "Level 4: Can read sentences but struggles with understanding.",
-    "Level 5: Can read and understand basic content."
-  ],
-  Hindi: [
-    "स्तर 1: अक्षरों को नहीं पढ़ सकते।",
-    "स्तर 2: अक्षर पढ़ सकते हैं लेकिन शब्द नहीं।",
-    "स्तर 3: शब्द पढ़ सकते हैं लेकिन वाक्य नहीं।",
-    "स्तर 4: वाक्य पढ़ सकते हैं लेकिन समझने में कठिनाई होती है।",
-    "स्तर 5: बुनियादी सामग्री को पढ़ और समझ सकते हैं।"
-  ],
-  Kannada: [
-    "ಹಂತ 1: ಅಕ್ಷರಗಳನ್ನು ಓದಲು ಸಾಧ್ಯವಿಲ್ಲ.",
-    "ಹಂತ 2: ಅಕ್ಷರಗಳನ್ನು ಓದಬಹುದು ಆದರೆ ಪದಗಳಲ್ಲ.",
-    "ಹಂತ 3: ಪದಗಳನ್ನು ಓದಬಹುದು ಆದರೆ ವಾಕ್ಯಗಳಲ್ಲ.",
-    "ಹಂತ 4: ವಾಕ್ಯಗಳನ್ನು ಓದಬಹುದು ಆದರೆ ಅರ್ಥಮಾಡಿಕೊಳ್ಳಲು ಕಷ್ಟಪಡುತ್ತಾರೆ.",
-    "ಹಂತ 5: ಮೂಲ ವಿಷಯವನ್ನು ಓದಬಹುದು ಮತ್ತು ಅರ್ಥಮಾಡಿಕೊಳ್ಳಬಹುದು."
-  ],
-  Telugu: [
-    "స్థాయి 1: అక్షరాలు చదవలేరు.",
-    "స్థాయి 2: అక్షరాలు చదవగలరు కానీ పదాలు చదవలేరు.",
-    "స్థాయి 3: పదాలు చదవగలరు కానీ వాక్యాలు చదవలేరు.",
-    "స్థాయి 4: వాక్యాలు చదవగలరు కానీ అర్థం చేసుకోవడంలో ఇబ్బంది పడతారు.",
-    "స్థాయి 5: ప్రాథమిక విషయాలను చదవగలరు మరియు అర్థం చేసుకోగలరు."
-  ],
-  Tamil: [
-    "நிலை 1: எழுத்துக்களைப் படிக்க முடியாது.",
-    "நிலை 2: எழுத்துக்களைப் படிக்க முடியும் ஆனால் சொற்களை அல்ல.",
-    "நிலை 3: சொற்களைப் படிக்க முடியும் ஆனால் வாக்கியங்களை அல்ல.",
-    "நிலை 4: வாக்கியங்களைப் படிக்க முடியும் ஆனால் புரிந்து கொள்ளக் கடினப்படும்.",
-    "நிலை 5: அடிப்படை உள்ளடக்கத்தைப் படித்துப் புரிந்து கொள்ள முடியும்."
-  ]
-};
+const languages = ["English", "Hindi", "Kannada", "Telugu", "Tamil"];
+const educationLevels = ["No formal education", "Primary", "Secondary", "Higher secondary"];
 
-const getLocalizedLevelName = (level, lang) => {
-  const currentLang = lang || "English";
-  const list = levelNames[currentLang] || levelNames["English"];
-  return list[level - 1] || `Level ${level}`;
-};
-
-const getLevelCategoryAndDescription = (level, lang) => {
-  const currentLang = lang || "English";
-  const list = levelNames[currentLang] || levelNames["English"];
-  const fullStr = list[level - 1] || `Level ${level}`;
-  const parts = fullStr.split(":");
-  if (parts.length >= 2) {
-    const category = parts[0].trim();
-    const description = parts.slice(1).join(":").trim();
-    return { category, description };
-  }
-  return { category: `Level ${level}`, description: "" };
-};
-
-
-
-const getLiteracyLevel = (userProfile) => {
-  if (userProfile?.literacy_level) return Number(userProfile.literacy_level);
-  const ed = userProfile?.education_level;
-  if (ed) {
-    if (ed.includes("Level 1")) return 1;
-    if (ed.includes("Level 2")) return 2;
-    if (ed.includes("Level 3")) return 3;
-    if (ed.includes("Level 4")) return 4;
-    if (ed.includes("Level 5")) return 5;
-  }
-  return null;
-};
-
-const educationLevels = [
-  "No formal education",
-  "Primary",
-  "Secondary",
-  "Higher secondary",
-];
-
+// Translation dictionary for regional languages
 const translations = {
   English: {
-    initialAssessmentDesc: "Welcome to your personalized learning space! Let's start with a quick 15-question initial assessment. This helps us customize future material.",
-    heroTitle: "Your AI companion for personalized literacy learning.",
-    heroCopy: "Built for first-generation learners, senior citizens, and regional language users. The assistant adapts learning, gives simple feedback, and supports voice-based interaction.",
+    heroTitle: "LISA: AI-Powered Literacy Companion",
+    heroCopy: "Personalized reading, writing, and comprehension diagnostic assessment in regional languages, featuring speech analysis and dynamic feedback.",
     login: "Login",
     register: "Register",
     welcomeBack: "Welcome back",
@@ -101,13 +25,13 @@ const translations = {
     selectLanguage: "Select language",
     educationLevel: "Education Level",
     selectEducation: "Select education level",
-    personalizationHelp: "This information helps the assistant personalize content, voice, and feedback.",
+    personalizationHelp: "This profile data helps LISA customize assessment difficulty and voice interactions.",
     resetPasswordTitle: "Reset Password",
     enterEmailForLink: "Enter your email to receive a password reset link.",
     sendResetLink: "Send Reset Link",
     backToLogin: "Back to Login",
     resetAccountPassword: "Reset your account password.",
-    regainAccessCopy: "Please enter your new password to regain access to your learning dashboard.",
+    regainAccessCopy: "Please enter your new password to regain access to your dashboard.",
     createNewPassword: "Create New Password",
     typeSecurePassword: "Type in your secure new password.",
     newPassword: "New Password",
@@ -115,7 +39,6 @@ const translations = {
     hello: "Hello",
     logout: "Log Out",
     welcomeToLisa: "Welcome to LISA",
-    dashboardUnderConstruction: "Your personalized literacy learning dashboard is under construction.",
     loadingMessage: "Loading your learning experience...",
     signingIn: "Signing In...",
     creatingAccount: "Creating Account...",
@@ -129,7 +52,6 @@ const translations = {
     successAccountCreated: "Account created successfully!",
     checkEmailConfirm: "Registration successful! Please check your email to confirm your account.",
     successSignOut: "Signed out successfully.",
-    // Placeholders
     emailPlaceholder: "Enter your Email Address",
     passwordPlaceholder: "Enter your password",
     fullNamePlaceholder: "Your name",
@@ -137,45 +59,60 @@ const translations = {
     emailRegisterPlaceholder: "Example: ramesh@gmail.com",
     passwordRegisterPlaceholder: "Create a password",
     newPasswordPlaceholder: "Enter new password",
-    // Language Dropdown Options
     EnglishOption: "English",
-    HindiOption: "Hindi",
-    KannadaOption: "Kannada",
-    TeluguOption: "Telugu",
-    TamilOption: "Tamil",
-    OtherOption: "Other",
-    // Education Dropdown Options
+    HindiOption: "Hindi (हिन्दी)",
+    KannadaOption: "Kannada (ಕನ್ನಡ)",
+    TeluguOption: "Telugu (తెలుగు)",
+    TamilOption: "Tamil (தமிழ்)",
     "No formal educationOption": "No formal education",
     PrimaryOption: "Primary education",
     SecondaryOption: "Secondary education",
     "Higher secondaryOption": "Higher secondary education",
-    "Senior citizenOption": "Senior citizen",
-    assessmentHistory: "Assessment History",
-    noAttemptsYet: "No assessment attempts completed yet.",
-    takeAssessmentBtn: "Take Assessment",
-    retakeAssessmentBtn: "Retake Assessment",
-    questionProgress: "Question {current} of {total}",
-    submitAssessmentBtn: "Submit Assessment",
-    submittingAssessment: "Submitting assessment...",
-    resultsTitle: "Assessment Results",
-    correctAnswers: "Correct Answers",
-    percentageScore: "Percentage Score",
-    summaryLabel: "Summary",
-    backToDashboardBtn: "Back to Dashboard",
-    categoryLabel: "Category",
-    dateLabel: "Date",
-    answerAllPrompt: "Please answer all questions before submitting.",
-    passwordWeak: "Weak",
-    passwordMedium: "Medium",
-    passwordStrong: "Strong",
     confirmPassword: "Confirm Password",
     confirmPasswordPlaceholder: "Confirm your password",
     passwordsDoNotMatch: "Passwords do not match.",
+    
+    // Assessment Flow
+    initialAssessmentDesc: "Welcome! To diagnose your reading, writing, and comprehension skills, please start the randomized Initial Assessment.",
+    takeAssessmentBtn: "Start Initial Assessment",
+    stepTitle: "Step {current} of {total}",
+    readingSecTitle: "Reading & Speaking Section",
+    compSecTitle: "Comprehension Section",
+    writingSecTitle: "Writing Section",
+    micBtnStart: "Start Reading Aloud",
+    micBtnListening: "Listening... Read now!",
+    micBtnStopped: "Speech Stopped",
+    monkeyTypeTip: "Instructions: Click the button and read the sentence below clearly. Correct words turn green, incorrect words turn red.",
+    nextQuestion: "Next Question",
+    submitAssessmentBtn: "Submit Assessment",
+    resultsTitle: "Assessment Completed!",
+    overallScore: "Overall Score",
+    diagnosedLevelTitle: "Diagnosed Literacy Level",
+    readingSkill: "Reading Skill",
+    writingSkill: "Writing Skill",
+    compSkill: "Comprehension Skill",
+    diagnosticPassed: "Assessment analyzed! Based on your performance, you are diagnosed at:",
+    continueToDashboard: "Go to Dashboard",
+    skipVoiceBtn: "Skip / Manual Match",
+    skipVoicePrompt: "Voice recognition issue? Type the exact text instead:",
+
+    // Dashboard tabs
+    tabProgress: "📊 My Performance",
+    tabProfile: "👤 Profile Settings",
+
+    // Progress Dashboard
+    overallLevel: "Diagnosed Literacy Level",
+    skillBreakdown: "Core Skills Proficiency",
+    badgesEarned: "Achievement Badges",
+    attemptHistory: "Assessment Result Details",
+    historyDate: "Date",
+    historyScore: "Score",
+    historyType: "Type",
+    historyStatus: "Result"
   },
   Hindi: {
-    initialAssessmentDesc: "आपके व्यक्तिगत शिक्षण क्षेत्र में आपका स्वागत है! आइए एक त्वरित 15-प्रश्नों के प्रारंभिक आकलन के साथ शुरुआत करें। यह हमें भविष्य की सामग्री को अनुकूलित करने में मदद करता है।",
-    heroTitle: "व्यक्तिगत साक्षरता सीखने के लिए आपका एआई साथी।",
-    heroCopy: "पहली पीढ़ी के शिक्षार्थियों, वरिष्ठ नागरिकों और क्षेत्रीय भाषा उपयोगकर्ताओं के लिए निर्मित। सहायक सीखने को अनुकूलित करता है, सरल प्रतिक्रिया देता है, और आवाज-आधारित बातचीत का समर्थन करता है।",
+    heroTitle: "लिसा: एआई-संचालित साक्षरता साथी",
+    heroCopy: "क्षेत्रीय भाषाओं में व्यक्तिगत रूप से पढ़ने, लिखने और समझने का विकास। तत्काल ध्वनि विश्लेषण और प्रतिक्रिया के साथ।",
     login: "लॉगिन",
     register: "पंजीकरण",
     welcomeBack: "आपका स्वागत है",
@@ -191,22 +128,21 @@ const translations = {
     selectLanguage: "भाषा चुनें",
     educationLevel: "शिक्षा का स्तर",
     selectEducation: "शिक्षा का स्तर चुनें",
-    personalizationHelp: "यह जानकारी सहायक को सामग्री, आवाज़ और प्रतिक्रिया को व्यक्तिगत बनाने में मदद करती है।",
+    personalizationHelp: "यह जानकारी लिसा को आकलन कठिनाई और आवाज़ को अनुकूलित करने में मदद करती है।",
     resetPasswordTitle: "पासवर्ड रीसेट करें",
     enterEmailForLink: "पासवर्ड रीसेट लिंक प्राप्त करने के लिए अपना ईमेल दर्ज करें।",
     sendResetLink: "रीसेट लिंक भेजें",
     backToLogin: "लॉगिन पर वापस जाएं",
     resetAccountPassword: "अपने खाते का पासवर्ड रीसेट करें।",
-    regainAccessCopy: "अपने सीखने के डैशबोर्ड तक पहुंच पुनः प्राप्त करने के लिए कृपया अपना नया पासवर्ड दर्ज करें।",
+    regainAccessCopy: "डैशबोर्ड तक पहुंच पुनः प्राप्त करने के लिए कृपया अपना नया पासवर्ड दर्ज करें।",
     createNewPassword: "नया पासवर्ड बनाएं",
     typeSecurePassword: "अपना सुरक्षित नया पासवर्ड टाइप करें।",
     newPassword: "नया पासवर्ड",
     updatePassword: "पासवर्ड अपडेट करें",
     hello: "नमस्ते",
     logout: "लॉग आउट",
-    welcomeToLisa: "LISA में आपका स्वागत है",
-    dashboardUnderConstruction: "आपका व्यक्तिगत साक्षरता शिक्षण डैशबोर्ड अभी निर्माणाधीन है।",
-    loadingMessage: "आपके सीखने के अनुभव को लोड किया जा रहा है...",
+    welcomeToLisa: "लिसा में आपका स्वागत है",
+    loadingMessage: "लोड हो रहा है...",
     signingIn: "लॉगिन किया जा रहा है...",
     creatingAccount: "खाता बनाया जा रहा है...",
     sendingLink: "लिंक भेजा जा रहा है...",
@@ -217,152 +153,179 @@ const translations = {
     changeLanguageBtn: "भाषा बदलें",
     successLogin: "लॉगिन सफल रहा!",
     successAccountCreated: "खाता सफलतापूर्वक बन गया!",
-    checkEmailConfirm: "पंजीकरण सफल! अपने खाते की पुष्टि करने के लिए कृपया अपना ईमेल जांचें।",
+    checkEmailConfirm: "पंजीकरण सफल! पुष्टि करने के लिए अपना ईमेल जांचें।",
     successSignOut: "सफलतापूर्वक लॉग आउट हो गया।",
-    // Placeholders
-    emailPlaceholder: "अपना ईमेल पता दर्ज करें",
-    passwordPlaceholder: "अपना पासवर्ड दर्ज करें",
+    emailPlaceholder: "ईमेल पता दर्ज करें",
+    passwordPlaceholder: "पासवर्ड दर्ज करें",
     fullNamePlaceholder: "आपका नाम",
     agePlaceholder: "उम्र",
-    emailRegisterPlaceholder: "उदाहरण: ramesh@gmail.com",
+    emailRegisterPlaceholder: "रमेश@gmail.com",
     passwordRegisterPlaceholder: "एक पासवर्ड बनाएं",
     newPasswordPlaceholder: "नया पासवर्ड दर्ज करें",
-    // Language Dropdown Options
     EnglishOption: "अंग्रेज़ी",
     HindiOption: "हिन्दी",
     KannadaOption: "कन्नड़",
     TeluguOption: "तेलुगु",
     TamilOption: "तमिल",
-    OtherOption: "अन्य",
-    // Education Dropdown Options
     "No formal educationOption": "कोई औपचारिक शिक्षा नहीं",
     PrimaryOption: "प्राथमिक शिक्षा",
     SecondaryOption: "माध्यमिक शिक्षा",
     "Higher secondaryOption": "उच्चतर माध्यमिक शिक्षा",
-    "Senior citizenOption": "वरिष्ठ नागरिक",
-    assessmentHistory: "आकलन इतिहास",
-    noAttemptsYet: "अभी तक कोई आकलन पूरा नहीं किया गया है।",
-    takeAssessmentBtn: "आकलन शुरू करें",
-    retakeAssessmentBtn: "फिर से आकलन लें",
-    questionProgress: "प्रश्न {current} का {total}",
-    submitAssessmentBtn: "आकलन सबमिट करें",
-    submittingAssessment: "आकलन सबमिट किया जा रहा है...",
-    resultsTitle: "आकलन के परिणाम",
-    correctAnswers: "सही उत्तर",
-    percentageScore: "प्रतिशत स्कोर",
-    summaryLabel: "सारांश",
-    backToDashboardBtn: "डैशबोर्ड पर वापस जाएं",
-    categoryLabel: "श्रेणी",
-    dateLabel: "तिथि",
-    answerAllPrompt: "कृपया सबमिट करने से पहले सभी प्रश्नों के उत्तर दें।",
-    passwordWeak: "कमज़ोर",
-    passwordMedium: "मध्यम",
-    passwordStrong: "मजबूत",
     confirmPassword: "पासवर्ड की पुष्टि करें",
-    confirmPasswordPlaceholder: "अपने पासवर्ड की पुष्टि करें",
+    confirmPasswordPlaceholder: "पासवर्ड की पुष्टि करें",
     passwordsDoNotMatch: "पासवर्ड मेल नहीं खाते हैं।",
+
+    // Initial Assessment Flow
+    initialAssessmentDesc: "नमस्ते! आपके पढ़ने, लिखने और समझने के कौशल का आकलन करने के लिए कृपया यह प्रारंभिक आकलन शुरू करें।",
+    takeAssessmentBtn: "प्रारंभिक आकलन शुरू करें",
+    stepTitle: "कदम {current} का {total}",
+    readingSecTitle: "पठन और वाचन खंड",
+    compSecTitle: "समझ (एमसीक्यू) खंड",
+    writingSecTitle: "लेखन खंड",
+    micBtnStart: "जोर से पढ़ना शुरू करें",
+    micBtnListening: "सुन रहा है... अब पढ़ें!",
+    micBtnStopped: "बोलना बंद हुआ",
+    monkeyTypeTip: "निर्देश: बटन दबाएं और नीचे लिखे वाक्य को स्पष्ट रूप से पढ़ें। सही शब्द हरे और गलत शब्द लाल हो जाएंगे।",
+    nextQuestion: "अगला प्रश्न",
+    submitAssessmentBtn: "आकलन सबमिट करें",
+    resultsTitle: "आकलन पूरा हुआ!",
+    overallScore: "कुल स्कोर",
+    diagnosedLevelTitle: "निर्धारित साक्षरता स्तर",
+    readingSkill: "पढ़ने का कौशल",
+    writingSkill: "लिखने का कौशल",
+    compSkill: "समझने का कौशल",
+    diagnosticPassed: "मूल्यांकन पूरा! आपके प्रदर्शन के आधार पर, आपका स्तर है:",
+    continueToDashboard: "डैशबोर्ड पर जाएं",
+    skipVoiceBtn: "छोड़ें / मैनुअल मिलान",
+    skipVoicePrompt: "आवाज़ पहचानने में समस्या? इसके बजाय टेक्स्ट टाइप करें:",
+
+    // Dashboard tabs
+    tabProgress: "📊 मेरा प्रदर्शन",
+    tabProfile: "👤 प्रोफ़ाइल सेटिंग्स",
+
+    // Progress Dashboard
+    overallLevel: "निर्धारित साक्षरता स्तर",
+    skillBreakdown: "मुख्य कौशल दक्षता",
+    badgesEarned: "उपलब्धि बैज",
+    attemptHistory: "आकलन परिणाम विवरण",
+    historyDate: "तिथि",
+    historyScore: "स्कोर",
+    historyType: "प्रकार",
+    historyStatus: "परिणाम"
   },
   Kannada: {
-    initialAssessmentDesc: "ನಿಮ್ಮ ವೈಯಕ್ತೀಕರಿಸಿದ ಕಲಿಕಾ ಜಾಗಕ್ಕೆ ಸುಸ್ವಾಗತ! 15-ಪ್ರಶ್ನೆಗಳ ತ್ವರಿತ ಆರಂಭಿಕ ಮೌಲ್ಯಮಾಪನದೊಂದಿಗೆ ಪ್ರಾರಂಭಿಸೋಣ. ಇದು ಭವಿಷ್ಯದ ವಿಷಯವನ್ನು ಕಸ್ಟಮೈಸ್ ಮಾಡಲು ನಮಗೆ ಸಹಾಯ ಮಾಡುತ್ತದೆ।",
-    heroTitle: "ವೈಯಕ್ತಿಕಗೊಳಿಸಿದ ಸಾಕ್ಷರತಾ ಕಲಿಕೆಗಾಗಿ ನಿಮ್ಮ AI ಒಡನಾಡಿ.",
-    heroCopy: "ಮೊದಲ ತಲೆಮಾರಿನ ಕಲಿಯುವವರು, ಹಿರಿಯ ನಾಗರಿಕರು ಮತ್ತು ಪ್ರಾದೇಶಿಕ ಭಾಷಾ ಬಳಕೆದಾರರಿಗಾಗಿ ನಿರ್ಮಿಸಲಾಗಿದೆ. ಕಲಿಕೆಯನ್ನು ಅಸಿಸ್ಟೆಂಟ್ ಹೊಂದಿಸುತ್ತದೆ, ಸರಳ ಪ್ರತಿಕ್ರಿಯೆ ನೀಡುತ್ತದೆ ಮತ್ತು ಧ್ವನಿ ಆಧಾರಿತ ಸಂವಹನವನ್ನು ಬೆಂಬಲಿಸುತ್ತದೆ.",
+    heroTitle: "ಲಿಸಾ: ವೈಯಕ್ತೀಕರಿಸಿದ ಸಾಕ್ಷರತಾ ಸಹಾಯಕಿ",
+    heroCopy: "ಪ್ರಾದೇಶಿಕ ಭಾಷೆಗಳಲ್ಲಿ ಓದುವಿಕೆ, ಬರೆಯುವಿಕೆ ಮತ್ತು ಗ್ರಹಿಕೆಯ ಮೌಲ್ಯಮಾಪನ. ತಕ್ಷಣದ ಧ್ವನಿ ವಿಶ್ಲೇಷಣೆ ಮತ್ತು ಪ್ರತಿಕ್ರಿಯೆಯೊಂದಿಗೆ.",
     login: "ಲಾಗಿನ್",
     register: "ನೋಂದಣಿ",
     welcomeBack: "ಸ್ವಾಗತ",
-    signInToContinue: "ನಿಮ್ಮ ಕಲಿಕೆಯ ಪ್ರಯಾಣವನ್ನು ಮುಂದುವರಿಸಲು ಸೈನ್ ಇನ್ ಮಾಡಿ.",
+    signInToContinue: "ಕಲಿಕೆಯನ್ನು ಮುಂದುವರಿಸಲು ಸೈನ್ ಇನ್ ಮಾಡಿ.",
     email: "ಇಮೇಲ್",
     password: "ಪಾಸ್‌ವರ್ಡ್",
     forgotPasswordLink: "ಪಾಸ್‌ವರ್ಡ್ ಮರೆತಿರಾ?",
     newLearnerPrompt: "ಹೊಸ ಕಲಿಯುವವರೇ? ಪ್ರೊಫೈಲ್ ರಚಿಸಲು ನೋಂದಣಿಗೆ ಬದಲಿಸಿ.",
-    createProfile: "ನಿಮ್ಮ ಕಲಿಯುವವರ ಪ್ರೊಫೈಲ್ ರಚಿಸಿ",
+    createProfile: "ಕಲಿಯುವವರ ಪ್ರೊಫೈಲ್ ರಚಿಸಿ",
     fullName: "ಪೂರ್ಣ ಹೆಸರು",
     age: "ವಯಸ್ಸು",
     preferredLanguage: "ಆದ್ಯತೆಯ ಭಾಷೆ",
-    selectLanguage: "ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+    selectLanguage: "ಭಾಷೆ ಆಯ್ಕೆಮಾಡಿ",
     educationLevel: "ಶಿಕ್ಷಣದ ಮಟ್ಟ",
-    selectEducation: "ಶಿಕ್ಷಣದ ಮಟ್ಟವನ್ನು ಆಯ್ಕೆಮಾಡಿ",
-    personalizationHelp: "ಈ ಮಾಹಿತಿಯು ವಿಷಯ, ಧ್ವನಿ ಮತ್ತು ಪ್ರತಿಕ್ರಿಯೆಯನ್ನು ವೈಯಕ್ತಿಕಗೊಳಿಸಲು ಅಸಿಸ್ಟೆಂಟ್‌ಗೆ ಸಹಾಯ ಮಾಡುತ್ತದೆ.",
+    selectEducation: "ಶಿಕ್ಷಣದ ಮಟ್ಟ ಆಯ್ಕೆಮಾಡಿ",
+    personalizationHelp: "ಈ ಮಾಹಿತಿಯು ಮೌಲ್ಯಮಾಪನ ಮತ್ತು ಧ್ವನಿ ಸಂವಹನಗಳನ್ನು ಕಸ್ಟಮೈಸ್ ಮಾಡಲು ಸಹಾಯ ಮಾಡುತ್ತದೆ.",
     resetPasswordTitle: "ಪಾಸ್‌ವರ್ಡ್ ಮರುಹೊಂದಿಸಿ",
-    enterEmailForLink: "ಪಾಸ್‌ವರ್ಡ್ ಮರುಹೊಂದಿಸುವ ಲಿಂಕ್ ಪಡೆಯಲು ಇಮೇಲ್ ನಮೂದಿಸಿ.",
+    enterEmailForLink: "ಇಮೇಲ್ ಲಿಂಕ್ ಪಡೆಯಲು ಇಮೇಲ್ ನಮೂದಿಸಿ.",
     sendResetLink: "ಮರುಹೊಂದಿಸುವ ಲಿಂಕ್ ಕಳುಹಿಸಿ",
     backToLogin: "ಲಾಗಿನ್‌ಗೆ ಹಿಂತಿರುಗಿ",
     resetAccountPassword: "ನಿಮ್ಮ ಖಾತೆಯ ಪಾಸ್‌ವರ್ಡ್ ಮರುಹೊಂದಿಸಿ.",
-    regainAccessCopy: "ನಿಮ್ಮ ಕಲಿಕೆಯ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗೆ ಪ್ರವೇಶವನ್ನು ಪಡೆಯಲು ದಯವಿಟ್ಟು ಹೊಸ ಪಾಸ್‌ವರ್ಡ್ ನಮೂದಿಸಿ.",
+    regainAccessCopy: "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗೆ ಪ್ರವೇಶ ಪಡೆಯಲು ದಯವಿಟ್ಟು ಹೊಸ ಪಾಸ್‌ವರ್ಡ್ ನಮೂದಿಸಿ.",
     createNewPassword: "ಹೊಸ ಪಾಸ್‌ವರ್ಡ್ ರಚಿಸಿ",
     typeSecurePassword: "ನಿಮ್ಮ ಸುರಕ್ಷಿತ ಹೊಸ ಪಾಸ್‌ವರ್ಡ್ ನಮೂದಿಸಿ.",
     newPassword: "ಹೊಸ ಪಾಸ್‌ವರ್ಡ್",
     updatePassword: "ಪಾಸ್‌ವರ್ಡ್ ನವೀಕರಿಸಿ",
     hello: "ನಮಸ್ಕಾರ",
     logout: "ಲಾಗ್ ಔಟ್",
-    welcomeToLisa: "LISA ಗೆ ಸ್ವಾಗತ",
-    dashboardUnderConstruction: "ನಿಮ್ಮ ವೈಯಕ್ತಿಕಗೊಳಿಸಿದ ಸಾಕ್ಷರತಾ ಕಲಿಕೆಯ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್ ಪ್ರಗತಿಯಲ್ಲಿದೆ.",
-    loadingMessage: "ನಿಮ್ಮ ಕಲಿಕೆಯ ಅನುಭವವನ್ನು ಲೋಡ್ ಮಾಡಲಾಗುತ್ತಿದೆ...",
+    welcomeToLisa: "ಲಿಸಾಗೆ ಸುಸ್ವಾಗತ",
+    loadingMessage: "ಲೋಡ್ ಆಗುತ್ತಿದೆ...",
     signingIn: "ಸೈನ್ ಇನ್ ಮಾಡಲಾಗುತ್ತಿದೆ...",
     creatingAccount: "ಖಾತೆ ರಚಿಸಲಾಗುತ್ತಿದೆ...",
     sendingLink: "ಲಿಂಕ್ ಕಳುಹಿಸಲಾಗುತ್ತಿದೆ...",
     resettingPassword: "ಪಾಸ್‌ವರ್ಡ್ ಮರುಹೊಂದಿಸಲಾಗುತ್ತಿದೆ...",
     signingOut: "ಲಾಗ್ ಔಟ್ ಮಾಡಲಾಗುತ್ತಿದೆ...",
     chooseLanguage: "ನಿಮ್ಮ ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ",
-    selectLanguagePrompt: "ಇಂಟರ್ಫೇಸ್ಗಾಗಿ ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ.",
+    selectLanguagePrompt: "ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ.",
     changeLanguageBtn: "ಭಾಷೆ ಬದಲಾಯಿಸಿ",
     successLogin: "ಲಾಗಿನ್ ಯಶಸ್ವಿಯಾಗಿದೆ!",
     successAccountCreated: "ಖಾತೆಯನ್ನು ಯಶಸ್ವಿಯಾಗಿ ರಚಿಸಲಾಗಿದೆ!",
-    checkEmailConfirm: "ನೋಂದಣಿ ಯಶಸ್ವಿಯಾಗಿದೆ! ನಿಮ್ಮ ಖಾತೆಯನ್ನು ಖಚಿತಪಡಿಸಲು ದಯವಿಟ್ಟು ನಿಮ್ಮ ಇಮೇಲ್ ಪರಿಶೀಲಿಸಿ.",
+    checkEmailConfirm: "ನೋಂದಣಿ ಯಶಸ್ವಿಯಾಗಿದೆ! ನಿಮ್ಮ ಖಾತೆಯನ್ನು ಖಚಿತಪಡಿಸಲು ಇಮೇಲ್ ಪರಿಶೀಲಿಸಿ.",
     successSignOut: "ಯಶಸ್ವಿಯಾಗಿ ಲಾಗ್ ಔಟ್ ಮಾಡಲಾಗಿದೆ.",
-    // Placeholders
-    emailPlaceholder: "ನಿಮ್ಮ ಇಮೇಲ್ ವಿಳಾಸವನ್ನು ನಮೂದಿಸಿ",
-    passwordPlaceholder: "ನಿಮ್ಮ ಪಾಸ್‌ವರ್ಡ್ ನಮೂದಿಸಿ",
+    emailPlaceholder: "ನಿಮ್ಮ ಇಮೇಲ್ ವಿಳಾಸ",
+    passwordPlaceholder: "ನಿಮ್ಮ ಪಾಸ್‌ವರ್ಡ್",
     fullNamePlaceholder: "ನಿಮ್ಮ ಹೆಸರು",
     agePlaceholder: "ವಯಸ್ಸು",
-    emailRegisterPlaceholder: "ಉದಾಹರಣೆ: ramesh@gmail.com",
+    emailRegisterPlaceholder: "ramesh@gmail.com",
     passwordRegisterPlaceholder: "ಪಾಸ್‌ವರ್ಡ್ ರಚಿಸಿ",
-    newPasswordPlaceholder: "ಹೊಸ ಪಾಸ್‌ವರ್ಡ್ ನಮೂದಿಸಿ",
-    // Language Dropdown Options
+    newPasswordPlaceholder: "ಹೊಸ ಪಾಸ್‌ವರ್ಡ್",
     EnglishOption: "ಇಂಗ್ಲಿಷ್",
     HindiOption: "ಹಿಂದಿ",
     KannadaOption: "ಕನ್ನಡ",
-    TeluguOption: "ತೆలుಗು",
+    TeluguOption: "ತೆಲುಗು",
     TamilOption: "ತಮಿಳು",
-    OtherOption: "ಇತರೆ",
-    // Education Dropdown Options
     "No formal educationOption": "ಯಾವುದೇ ಔಪಚಾರಿಕ ಶಿಕ್ಷಣವಿಲ್ಲ",
-    PrimaryOption: "ಪ್ರಾಥಮಿಕ ಶಿಕ್ಷಣ",
+    PrimaryOption: "ಪ್ರಥಮಿಕ ಶಿಕ್ಷಣ",
     SecondaryOption: "ದ್ವಿತೀಯ ಶಿಕ್ಷಣ",
     "Higher secondaryOption": "ಉನ್ನತ ಮಾಧ್ಯಮಿಕ ಶಿಕ್ಷಣ",
-    "Senior citizenOption": "ಹಿರಿಯ ನಾಗರಿಕ",
-    assessmentHistory: "ಮೌಲ್ಯಮಾಪನ ಇತಿಹಾಸ",
-    noAttemptsYet: "ಇನ್ನೂ ಯಾವುದೇ ಮೌಲ್ಯಮಾಪನ ಪೂರ್ಣಗೊಂಡಿಲ್ಲ.",
-    takeAssessmentBtn: "ಮೌಲ್ಯಮಾಪನ ಪ್ರಾರಂಭಿಸಿ",
-    retakeAssessmentBtn: "ಮತ್ತೆ ಮೌಲ್ಯಮಾಪನ ತೆಗೆದುಕೊಳ್ಳಿ",
-    questionProgress: "ಪ್ರಶ್ನೆ {current} ರ {total}",
-    submitAssessmentBtn: "ಮೌಲ್ಯಮಾಪನವನ್ನು ಸಲ್ಲಿಸಿ",
-    submittingAssessment: "ಮೌಲ್ಯಮಾಪನವನ್ನು ಸಲ್ಲಿಸಲಾಗುತ್ತಿದೆ...",
-    resultsTitle: "ಮೌಲ್ಯಮಾಪನ ಫಲಿತಾಂಶಗಳು",
-    correctAnswers: "ಸರಿಯಾದ ಉತ್ತರಗಳು",
-    percentageScore: "ಶೇಕಡಾವಾರು ಅಂಕ",
-    summaryLabel: "ಸಾರಾಂಶ",
-    backToDashboardBtn: "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗೆ ಹಿಂತಿರುಗಿ",
-    categoryLabel: "ವರ್ಗ",
-    dateLabel: "ದಿನಾಂక",
-    answerAllPrompt: "ದಯವಿಟ್ಟು ಸಲ್ಲಿಸುವ ಮುನ್ನ ಎಲ್ಲಾ ಪ್ರಶ್ನೆಗಳಿಗೆ ಉತ್ತರಿಸಿ.",
-    passwordWeak: "ದುರ್ಬಲ",
-    passwordMedium: "ಮಧ್ಯಮ",
-    passwordStrong: "ಬಲವಾದ",
     confirmPassword: "ಪಾಸ್‌ವರ್ಡ್ ದೃಢೀಕರಿಸಿ",
-    confirmPasswordPlaceholder: "ನಿಮ್ಮ ಪಾಸ್‌ವರ್ಡ್ ದೃಢೀಕರಿಸಿ",
+    confirmPasswordPlaceholder: "ಪಾಸ್‌ವರ್ಡ್ ದೃಢೀಕರಿಸಿ",
     passwordsDoNotMatch: "ಪಾಸ್‌ವರ್ಡ್‌ಗಳು ಹೊಂದಿಕೆಯಾಗುತ್ತಿಲ್ಲ.",
+
+    // Initial Assessment Flow
+    initialAssessmentDesc: "ಸುಸ್ವಾಗತ! ನಿಮ್ಮ ಓದುವ, ಬರೆಯುವ ಮತ್ತು ಗ್ರಹಿಸುವ ಕೌಶಲ್ಯಗಳನ್ನು ನಿರ್ಣಯಿಸಲು ದಯವಿಟ್ಟು ಆರಂಭಿಕ ಮೌಲ್ಯಮಾಪನವನ್ನು ತೆಗೆದುಕೊಳ್ಳಿ.",
+    takeAssessmentBtn: "ಆರಂಭಿಕ ಮೌಲ್ಯಮಾಪನ ಪ್ರಾರಂಭಿಸಿ",
+    stepTitle: "ಹಂತ {current} ರ {total}",
+    readingSecTitle: "ಓದುವಿಕೆ ಮತ್ತು ಮಾತನಾಡುವ ವಿಭಾಗ",
+    compSecTitle: "ಗ್ರಹಿಕೆ (MCQ) ವಿಭಾಗ",
+    writingSecTitle: "ಬರವಣಿಗೆ ವಿಭಾಗ",
+    micBtnStart: "ಜೋರಾಗಿ ಓದಲು ಪ್ರಾರಂಭಿಸಿ",
+    micBtnListening: "ಕೇಳಿಸಿಕೊಳ್ಳುತ್ತಿದೆ... ಈಗ ಓದಿ!",
+    micBtnStopped: "ಮಾತು ನಿಂತಿದೆ",
+    monkeyTypeTip: "ಸೂಚನೆಗಳು: ಬಟನ್ ಕ್ಲಿಕ್ ಮಾಡಿ ಕೆಳಗಿನ ವಾಕ್ಯವನ್ನು ಸ್ಪಷ್ಟವಾಗಿ ಓದಿ. ಸರಿಯಾದ ಪದಗಳು ಹಸಿರು ಬಣ್ಣಕ್ಕೆ ಮತ್ತು ತಪ್ಪಾದ ಪದಗಳು ಕೆಂಪು ಬಣ್ಣಕ್ಕೆ ತಿರುಗುತ್ತವೆ.",
+    nextQuestion: "ಮುಂದಿನ ಪ್ರಶ್ನೆ",
+    submitAssessmentBtn: "ಮೌಲ್ಯಮಾಪನ ಸಲ್ಲಿಸಿ",
+    resultsTitle: "ಮೌಲ್ಯಮಾಪನ ಪೂರ್ಣಗೊಂಡಿದೆ!",
+    overallScore: "ಒಟ್ಟು ಅಂಕಗಳು",
+    diagnosedLevelTitle: "ನಿರ್ಣಯಿಸಿದ ಸಾಕ್ಷರತಾ ಮಟ್ಟ",
+    readingSkill: "ಓದುವ ಕೌಶಲ್ಯ",
+    writingSkill: "ಬರೆಯುವ ಕೌಶಲ್ಯ",
+    compSkill: "ಗ್ರಹಿಕೆಯ ಕೌಶಲ್ಯ",
+    diagnosticPassed: "ಮೌಲ್ಯಮಾಪನ ವಿಶ್ಲೇಷಿಸಲಾಗಿದೆ! ನಿಮ್ಮ ಪ್ರದರ್ಶನದ ಆಧಾರದ ಮೇಲೆ, ನೀವು ಇಲ್ಲಿಂದ ಪ್ರಾರಂಭಿಸುತ್ತೀರಿ:",
+    continueToDashboard: "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗೆ ಹೋಗಿ",
+    skipVoiceBtn: "ಹೊರಗುಳಿಯಿರಿ / ಹಸ್ತಚಾಲಿತ ಹೊಂದಾಣಿಕೆ",
+    skipVoicePrompt: "ಧ್ವನಿ ಗುರುತಿಸುವಿಕೆ ಸಮಸ್ಯೆಯೇ? ಬದಲಿಗೆ ಪಠ್ಯವನ್ನು ಟೈಪ್ ಮಾಡಿ:",
+
+    // Dashboard tabs
+    tabProgress: "📊 ನನ್ನ ಪ್ರದರ್ಶನ",
+    tabProfile: "👤 ಪ್ರೊಫೈಲ್ ಸೆಟ್ಟಿಂಗ್ಸ್",
+
+    // Progress Dashboard
+    overallLevel: "ನಿರ್ಣಯಿಸಿದ ಸಾಕ್ಷರತಾ ಮಟ್ಟ",
+    skillBreakdown: "ಮೂಲ ಕೌಶಲ್ಯ ಪ್ರಾವೀಣ್ಯತೆ",
+    badgesEarned: "ಸಾಧನೆ ಬ್ಯಾಡ್ಜ್‌ಗಳು",
+    attemptHistory: "ಮೌಲ್ಯಮಾಪನ ಫಲಿತಾಂಶದ ವಿವರಗಳು",
+    historyDate: "ದಿನಾಂಕ",
+    historyScore: "ಅಂಕಗಳು",
+    historyType: "ಮಾದರಿ",
+    historyStatus: "ಫಲಿತಾಂಶ"
   },
   Telugu: {
-    initialAssessmentDesc: "మీ వ్యక్తిగతీకరించిన అభ్యాస స్థలానికి స్వాగతం! శీఘ్ర 15-ప్రశ్నల ప్రాథమిక అంచనాతో ప్రారంభిద్దాం. ఇది భవిష్యత్ కంటెంట్‌ని అనుకూలీకరించడానికి మాకు సహాయపడుతుంది।",
-    heroTitle: "వ్యక్తిగతీకరించిన అక్షరాస్యత అభ్యాసం కోసం మీ AI సహచరుడు.",
-    heroCopy: "మొదటి తరం అభ్యాసకులు, వృద్ధులు మరియు ప్రాంతీయ భాషా వినియోగదారుల కోసం రూపొందించబడింది. అసిస్టెంట్ అభ్యాసాన్ని అనుకూలిస్తుంది, సరళమైన అభిప్రాయాన్ని ఇస్తుంది మరియు వాయిస్ ఆధారిత పరస్పర చర్యకు మద్దతు ఇస్తుంది.",
+    heroTitle: "లిసా: మీ వ్యక్తిగతీకరించిన అక్షరాస్యత తోడు",
+    heroCopy: "ప్రాంతీయ భాషలలో చదవడం, రాయడం మరియు గ్రహణశక్తి అంచనా. తక్షణ వాయిస్ విశ్లేషణ మరియు ఫీడ్‌బ్యాక్‌తో.",
     login: "లాగిన్",
     register: "నమోదు",
     welcomeBack: "స్వాగతం",
     signInToContinue: "మీ అభ్యాస ప్రయాణాన్ని కొనసాగించడానికి సైన్ ఇన్ చేయండి.",
     email: "ఈమెయిల్",
     password: "పాస్‌వర్డ్",
-    forgotPasswordLink: "పాస్‌వర్డ్ మర్చిపోయారా?",
+    forgotPasswordLink: "పాస్‌వర్డ్ మర్చిపోయాడా?",
     newLearnerPrompt: "కొత్త అభ్యాసకులా? ప్రొఫైల్ సృష్టించడానికి నమోదుకు మారండి.",
     createProfile: "మీ అభ్యాస ప్రొఫైల్‌ను సృష్టించండి",
     fullName: "పూర్తి పేరు",
@@ -371,81 +334,94 @@ const translations = {
     selectLanguage: "భాషను ఎంచుకోండి",
     educationLevel: "విద్యా స్థాయి",
     selectEducation: "విద్యా స్థాయిని ఎంచుకోండి",
-    personalizationHelp: "ఈ సమాచారం కంటెంట్, వాయిస్ మరియు ఫీడ్‌బ్యాక్‌ను వ్యక్తిగతీకరించడంలో సహాయపడుతుంది.",
+    personalizationHelp: "ఈ సమాచారం కంటెంట్, వాయిస్ మరియు అసెస్‌మెంట్‌ను వ్యక్తిగతీకరించడంలో సహాయపడుతుంది.",
     resetPasswordTitle: "పాస్‌వర్డ్ రీసెట్",
-    enterEmailForLink: "పాస్‌వర్డ్ రీసెట్ లింక్‌ను స్వీకరించడానికి మీ ఇమెయిల్‌ను నమోదు చేయండి.",
+    enterEmailForLink: "లింక్ పొందడానికి మీ ఇమెయిల్‌ను నమోదు చేయండి.",
     sendResetLink: "రీసెట్ లింక్ పంపండి",
     backToLogin: "లాగిన్‌కి తిరిగి వెళ్ళండి",
     resetAccountPassword: "మీ ఖాతా పాస్‌వర్డ్‌ను రీసెట్ చేయండి.",
-    regainAccessCopy: "మీ అభ్యాస డాష్‌బోర్డ్‌ను యాక్సెస్ చేయడానికి దయచేసి కొత్త పాస్‌వర్డ్‌ను నమోదు చేయండి.",
+    regainAccessCopy: "డాష్‌బోర్డ్ యాక్సెస్ చేయడానికి దయచేసి కొత్త పాస్‌వర్డ్‌ను నమోదు చేయండి.",
     createNewPassword: "కొత్త పాస్‌వర్డ్‌ను సృష్టించండి",
     typeSecurePassword: "మీ సురక్షితమైన కొత్త పాస్‌వర్డ్‌ను టైప్ చేయండి.",
     newPassword: "కొత్త పాస్‌వర్డ్",
     updatePassword: "పాస్‌వర్డ్ నవీకరించు",
     hello: "నమస్కారం",
     logout: "లాగ్ అవుట్",
-    welcomeToLisa: "LISAకు స్వాగతం",
-    dashboardUnderConstruction: "మీ వ్యక్తిగతీకరించిన అక్షరాస్యత అభ్యాస డాష్‌బోర్డ్ నిర్మాణంలో ఉంది.",
-    loadingMessage: "మీ అభ్యాస అనుభవాన్ని లోడ్ చేస్తోంది...",
+    welcomeToLisa: "లిసాకు స్వాగతం",
+    loadingMessage: "లోడ్ అవుతోంది...",
     signingIn: "లాగిన్ అవుతోంది...",
     creatingAccount: "ఖాతాను సృష్టిస్తోంది...",
     sendingLink: "లింక్ పంపుతోంది...",
     resettingPassword: "పాస్‌వర్డ్ రీసెట్ చేస్తోంది...",
-    signingOut: "లాగ్ అవుట్ అవుతోంది...",
+    signingOut: "Log Out అవుతోంది...",
     chooseLanguage: "మీ భాషను ఎంచుకోండి",
     selectLanguagePrompt: "ఇంటర్‌ఫేస్ కోసం ఒక భాషను ఎంచుకోండి.",
     changeLanguageBtn: "భాష మార్చండి",
     successLogin: "లాగిన్ విజయవంతమైంది!",
     successAccountCreated: "ఖాతా విజయవంతంగా సృష్టించబడింది!",
-    checkEmailConfirm: "నమోదు విజయవంతమైంది! మీ ఖాతాను నిర్ధారించడానికి దయచేసి మీ ఇమెయిల్‌ను తనిఖీ చేయండి.",
+    checkEmailConfirm: "నమోదు విజయవంతమైంది! మీ ఇమెయిల్‌ను తనిఖీ చేయండి.",
     successSignOut: "విజయవంతంగా లాగ్ అవుట్ అయ్యారు.",
-    // Placeholders
-    emailPlaceholder: "మీ ఇమెయిల్ చిరునామాను నమోదు చేయండి",
-    passwordPlaceholder: "మీ పాస్‌వర్డ్‌ను నమోదు చేయండి",
+    emailPlaceholder: "మీ ఇమెయిల్ చిరునామా",
+    passwordPlaceholder: "మీ పాస్‌వర్డ్",
     fullNamePlaceholder: "మీ పేరు",
     agePlaceholder: "వయస్సు",
-    emailRegisterPlaceholder: "ఉదాహరణ: ramesh@gmail.com",
+    emailRegisterPlaceholder: "ramesh@gmail.com",
     passwordRegisterPlaceholder: "పాస్‌వర్డ్‌ను సృష్టించండి",
-    newPasswordPlaceholder: "కొత్త పాస్‌వర్డ్‌ను నమోదు చేయండి",
-    // Language Dropdown Options
+    newPasswordPlaceholder: "కొత్త పాస్‌వర్డ్",
     EnglishOption: "ఇంగ్లీష్",
     HindiOption: "హిందీ",
     KannadaOption: "కన్నడ",
     TeluguOption: "తెలుగు",
     TamilOption: "తమిళం",
-    OtherOption: "ఇతర",
-    // Education Dropdown Options
     "No formal educationOption": "అధికారిక విద్య లేదు",
     PrimaryOption: "ప్రాథమిక విద్య",
     SecondaryOption: "ద్వితీయ విద్య",
     "Higher secondaryOption": "ఉన్నత మాధ్యమిక విద్య",
-    "Senior citizenOption": "సీనియర్ సిటిజన్",
-    assessmentHistory: "అంచనా చరిత్ర",
-    noAttemptsYet: "ఇంకా ఎలాంటి అంచనాలు పూర్తి కాలేదు.",
-    takeAssessmentBtn: "అంచనా ప్రారంభించండి",
-    retakeAssessmentBtn: "మళ్లీ అంచనా వేయండి",
-    questionProgress: "ప్రశ్న {current} యొక్క {total}",
-    submitAssessmentBtn: "అంచనా సమర్పించండి",
-    submittingAssessment: "అంచనా సమర్పించబడుతోంది...",
-    resultsTitle: "అంచనా ఫలితాలు",
-    correctAnswers: "సరైన సమాధానాలు",
-    percentageScore: "శాతం స్కోరు",
-    summaryLabel: "సారాంశం",
-    backToDashboardBtn: "డాష్‌బోర్డ్‌కు తిరిగి వెళ్ళండి",
-    categoryLabel: "వర్గం",
-    dateLabel: "తేదీ",
-    answerAllPrompt: "దయచేసి సమర్పించే ముందు అన్ని ప్రశ్నలకు సమాధానం ఇవ్వండి.",
-    passwordWeak: "బలహీనమైనది",
-    passwordMedium: "మధ్యస్థంగా ఉంది",
-    passwordStrong: "బలంగా ఉంది",
     confirmPassword: "పాస్‌వర్డ్‌ను నిర్ధారించండి",
-    confirmPasswordPlaceholder: "మీ పాస్‌వర్డ్‌ను నిర్ధారించండి",
+    confirmPasswordPlaceholder: "పాస్‌వర్డ్‌ను నిర్ధారించండి",
     passwordsDoNotMatch: "పాస్‌వర్డ్‌లు సరిపోలడం లేదు.",
+
+    // Initial Assessment Flow
+    initialAssessmentDesc: "సుస్వాగతం! మీ చదవడం, రాయడం మరియు గ్రహించే నైపుణ్యాలను అంచనా వేయడానికి దయచేసి ప్రారంభ అంచనాను ప్రారంభించండి.",
+    takeAssessmentBtn: "ప్రారంభ అంచనాను ప్రారంభించండి",
+    stepTitle: "ప్రశ్న {current} యొక్క {total}",
+    readingSecTitle: "పఠనం మరియు మాట్లాడే విభాగం",
+    compSecTitle: "గ్రహణశక్తి (MCQ) విభాగం",
+    writingSecTitle: "రాయడం విభాగం",
+    micBtnStart: "గట్టిగా చదవడం ప్రారంభించండి",
+    micBtnListening: "వింటోంది... ఇప్పుడు చదవండి!",
+    micBtnStopped: "సంభాషణ ఆగిపోయింది",
+    monkeyTypeTip: "సూచనలు: బటన్‌ను క్లిక్ చేసి కింద ఉన్న వాక్యాన్ని స్పష్టంగా చదవండి. సరైన పదాలు ఆకుపచ్చగా, తప్పు పదాలు ఎరుపుగా మారుతాయి.",
+    nextQuestion: "తదుపరి ప్రశ్న",
+    submitAssessmentBtn: "అంచనా సమర్పించండి",
+    resultsTitle: "అంచనా పూర్తయింది!",
+    overallScore: "మొత్తం స్కోరు",
+    diagnosedLevelTitle: "నిర్ధారించిన అక్షరాస్యత స్థాయి",
+    readingSkill: "చదవడం నైపుణ్యం",
+    writingSkill: "రాయడం నైపుణ్యం",
+    compSkill: "గ్రహణశక్తి నైపుణ్యం",
+    diagnosticPassed: "అంచనా విశ్లేషించబడింది! మీ ప్రదర్శన ఆధారంగా మీ స్థాయి:",
+    continueToDashboard: "డాష్‌బోర్డ్‌కు వెళ్లండి",
+    skipVoiceBtn: "దాటవేయి / మాన్యువల్ మ్యాచ్",
+    skipVoicePrompt: "వాయిస్ గుర్తింపు సమస్య ఉందా? బదులుగా టెక్స్ట్ టైప్ చేయండి:",
+
+    // Dashboard tabs
+    tabProgress: "📊 నా ప్రదర్శన",
+    tabProfile: "👤 ప్రొఫైల్ సెట్టింగ్స్",
+
+    // Progress Dashboard
+    overallLevel: "నిర్ధారించిన అక్షరాస్యత స్థాయి",
+    skillBreakdown: "మూల నైపుణ్యాల ప్రగతి",
+    badgesEarned: "సాధించిన బ్యాడ్జ్‌లు",
+    attemptHistory: "అంచనా ఫలితాల వివరాలు",
+    historyDate: "తేదీ",
+    historyScore: "అంకెలు",
+    historyType: "రకం",
+    historyStatus: "ఫలితం"
   },
   Tamil: {
-    initialAssessmentDesc: "உங்கள் தனிப்பயனாக்கப்பட்ட கற்றல் இடத்திற்கு வரவேற்கிறோம்! 15-கேள்விகள் கொண்ட விரைவான ஆரம்ப மதிப்பீட்டுடன் தொடங்குவோம். இது எதிர்கால பாடங்களை வடிவமைக்க நமக்கு உதவும்।",
-    heroTitle: "தனிப்பயனாக்கப்பட்ட எழுத்தறிவு கற்றலுக்கான உங்கள் AI துணை.",
-    heroCopy: "முதல் தலைமுறை கற்பவர்கள், முதியவர்கள் மற்றும் பிராந்திய மொழி பயனர்களுக்காக உருவாக்கப்பட்டது. உதவியாளர் கற்றலை மாற்றியமைத்து, எளிய கருத்துக்களை வழங்கி, குரல் வழி தொடர்புகளை ஆதரிக்கிறது.",
+    heroTitle: "லிசா: உங்களது தனிப்பயனாக்கப்பட்ட எழுத்தறிவுத் தோழி",
+    heroCopy: "பிராந்திய மொழிகளில் வாசிப்பு, எழுதுதல் மற்றும் புரிதல் திறன் மதிப்பீடு. குரல் பகுப்பாய்வு மற்றும் உடனடி பின்னூட்டத்துடன்.",
     login: "உள்நுழைவு",
     register: "பதிவு",
     welcomeBack: "வரவேற்கிறோம்",
@@ -461,24 +437,23 @@ const translations = {
     selectLanguage: "மொழியைத் தேர்ந்தெடுக்கவும்",
     educationLevel: "கல்வி தகுதி",
     selectEducation: "கல்வி தகுதியைத் தேர்ந்தெடுக்கவும்",
-    personalizationHelp: "இந்தத் தகவல் உள்ளடக்கம், குரல் மற்றும் கருத்துக்களைத் தனிப்பயனாக்க உதவுகிறது.",
+    personalizationHelp: "இந்தத் தகவல் மதிப்பீட்டைத் தனிப்பயனாக்க உதவுகிறது.",
     resetPasswordTitle: "கடவுச்சொல்லை மீட்டமை",
-    enterEmailForLink: "கடவுச்சொல் மீட்பு இணைப்பைப் பெற உங்கள் மின்னஞ்சலை உள்ளிடவும்.",
-    sendResetLink: "மீட்பு இணைப்பை அனுப்பு",
+    enterEmailForLink: "கடவுச்சொல் மீட்பு இணைப்பைப் பெற மின்னஞ்சலை உள்ளிடவும்.",
+    sendResetLink: "மீட்பு இணைப்பு அனுப்பு",
     backToLogin: "உள்நுழைவுக்குத் திரும்பு",
     resetAccountPassword: "உங்கள் கணக்கின் கடவுச்சொல்லை மீட்டமைக்கவும்.",
-    regainAccessCopy: "உங்கள் கற்றல் டாஷ்போர்டை அணுக புதிய கடவுச்சொல்லை உள்ளிடவும்.",
+    regainAccessCopy: "டாஷ்போர்டை அணுக புதிய கடவுச்சொல்லை உள்ளிடவும்.",
     createNewPassword: "புதிய கடவுச்சொல்லை உருவாக்கவும்",
     typeSecurePassword: "உங்கள் புதிய கடவுச்சொல்லை உள்ளிடவும்.",
     newPassword: "புதிய கடவுச்சொல்",
     updatePassword: "கடவுச்சொல்லை புதுப்பி",
     hello: "வணக்கம்",
     logout: "வெளியேறு",
-    welcomeToLisa: "LISA-விற்கு வரவேற்கிறோம்",
-    dashboardUnderConstruction: "உங்கள் தனிப்பயனாக்கப்பட்ட எழுத்தறிவு கற்றல் டாஷ்போர்டு தயாராகி வருகிறது.",
-    loadingMessage: "உங்கள் கற்றல் அனுபவத்தை ஏற்றுகிறது...",
+    welcomeToLisa: "லிசாவிற்கு வரவேற்கிறோம்",
+    loadingMessage: "ஏற்றுகிறது...",
     signingIn: "உள்நுழைகிறது...",
-    creatingAccount: "சுயவிவரம் உருவாக்கப்படுகிறது...",
+    creatingAccount: "பதிவு செய்யப்படுகிறது...",
     sendingLink: "இணைப்பு அனுப்பப்படுகிறது...",
     resettingPassword: "கடவுச்சொல் மீட்டமைக்கப்படுகிறது...",
     signingOut: "வெளியேறுகிறது...",
@@ -487,368 +462,105 @@ const translations = {
     changeLanguageBtn: "மொழியை மாற்று",
     successLogin: "உள்நுழைவு வெற்றிகரமாக முடிந்தது!",
     successAccountCreated: "சுயவிவரம் வெற்றிகரமாக உருவாக்கப்பட்டது!",
-    checkEmailConfirm: "பதிவு வெற்றிகரமாக முடிந்தது! உங்கள் கணக்கை உறுதிப்படுத்த மின்னஞ்சலைச் சரிபார்க்கவும்.",
+    checkEmailConfirm: "பதிவு வெற்றிகரமாக முடிந்தது! மின்னஞ்சலைச் சரிபார்க்கவும்.",
     successSignOut: "வெற்றிகரமாக வெளியேறப்பட்டது.",
-    // Placeholders
-    emailPlaceholder: "உங்கள் மின்னஞ்சல் முகவரியை உள்ளிடவும்",
-    passwordPlaceholder: "உங்கள் கடவுச்சொல்லை உள்ளிடவும்",
+    emailPlaceholder: "மின்னஞ்சல் முகவரி",
+    passwordPlaceholder: "கடவுச்சொல்",
     fullNamePlaceholder: "உங்கள் பெயர்",
     agePlaceholder: "வயது",
-    emailRegisterPlaceholder: "உதாரணம்: ramesh@gmail.com",
+    emailRegisterPlaceholder: "ramesh@gmail.com",
     passwordRegisterPlaceholder: "கடவுச்சொல்லை உருவாக்கவும்",
-    newPasswordPlaceholder: "புதிய கடவுச்சொல்லை உள்ளிடவும்",
-    // Language Dropdown Options
+    newPasswordPlaceholder: "புதிய கடவுச்சொல்",
     EnglishOption: "ஆங்கிலம்",
     HindiOption: "இந்தி",
     KannadaOption: "கன்னடம்",
     TeluguOption: "தெலுங்கு",
     TamilOption: "தமிழ்",
-    OtherOption: "மற்றவை",
-    // Education Dropdown Options
     "No formal educationOption": "முறையான கல்வி இல்லை",
     PrimaryOption: "தொடக்கக் கல்வி",
     SecondaryOption: "இடைநிலைக் கல்வி",
     "Higher secondaryOption": "மேல்நிலைக் கல்வி",
-    "Senior citizenOption": "முதியவர் / மூத்த குடிமகன்",
-    assessmentHistory: "மதிப்பீட்டு வரலாறு",
-    noAttemptsYet: "இன்னும் மதிப்பீடுகள் எதுவும் செய்யப்படவில்லை.",
-    takeAssessmentBtn: "மதிப்பீட்டைத் தொடங்கு",
-    retakeAssessmentBtn: "மீண்டும் மதிப்பிடுக",
-    questionProgress: "கேள்வி {current}-ல் {total}",
-    submitAssessmentBtn: "மதிப்பீட்டை சமர்ப்பி",
-    submittingAssessment: "மதிப்பீடு சமர்ப்பிக்கப்படுகிறது...",
-    resultsTitle: "மதிப்பீட்டு முடிவுகள்",
-    correctAnswers: "சரியான பதில்கள்",
-    percentageScore: "சதவீத மதிப்பெண்",
-    summaryLabel: "சுருக்கம்",
-    backToDashboardBtn: "டாஷ்போர்டுக்குத் திரும்பு",
-    categoryLabel: "வகை",
-    dateLabel: "தேதி",
-    answerAllPrompt: "சமர்ப்பிக்கும் முன் அனைத்து கேள்விகளுக்கும் பதிலளிக்கவும்.",
-    passwordWeak: "பலவீனமானது",
-    passwordMedium: "நடுத்தரமானது",
-    passwordStrong: "வலிமையானது",
     confirmPassword: "கடவுச்சொல்லை உறுதிப்படுத்தவும்",
-    confirmPasswordPlaceholder: "உங்கள் கடவுச்சொல்லை உறுதிப்படுத்தவும்",
+    confirmPasswordPlaceholder: "கடவுச்சொல்லை உறுதிப்படுத்தவும்",
     passwordsDoNotMatch: "கடவுச்சொற்கள் பொருந்தவில்லை.",
-  },
-};
 
+    // Initial Assessment Flow
+    initialAssessmentDesc: "வரவேற்கிறோம்! உங்கள் வாசிப்பு, எழுதுதல் மற்றும் புரிதல் திறனை மதிப்பிடுவதற்கு தயவுசெய்து ஆரம்ப மதிப்பீட்டைத் தொடங்குங்கள்.",
+    takeAssessmentBtn: "ஆரம்ப மதிப்பீட்டைத் தொடங்கு",
+    stepTitle: "கேள்வி {current}-ல் {total}",
+    readingSecTitle: "வாசிப்பு மற்றும் பேச்சுப் பிரிவு",
+    compSecTitle: "புரிதல் (MCQ) பிரிவு",
+    writingSecTitle: "எழுதுதல் பிரிவு",
+    micBtnStart: "சத்தமாக வாசிக்கத் தொடங்குங்கள்",
+    micBtnListening: "கேட்கிறது... இப்போது வாசியுங்கள்!",
+    micBtnStopped: "பேச்சு நிறுத்தப்பட்டது",
+    monkeyTypeTip: "வழிமுறைகள்: பொத்தானைக் கிளிக் செய்து கீழே உள்ள வாக்கியத்தைத் தெளிவாக வாசிக்கவும். சரியான வார்த்தைகள் பச்சையாகவும், தவறானவை சிவப்பாகவும் மாறும்.",
+    nextQuestion: "அடுத்த கேள்வி",
+    submitAssessmentBtn: "மதிப்பீட்டை சமர்ப்பி",
+    resultsTitle: "மதிப்பீடு முடிந்தது!",
+    overallScore: "ஒட்டுமொத்த மதிப்பெண்",
+    diagnosedLevelTitle: "கண்டறியப்பட்ட எழுத்தறிவு நிலை",
+    readingSkill: "வாசிப்புத் திறன்",
+    writingSkill: "எழுதும் திறன்",
+    compSkill: "புரிதல் திறன்",
+    diagnosticPassed: "மதிப்பீடு பகுப்பாய்வு செய்யப்பட்டது! உங்கள் திறமையின் அடிப்படையில் உங்களது நிலை:",
+    continueToDashboard: "டாஷ்போர்டுக்குச் செல்",
+    skipVoiceBtn: "தவிர்க்கவும் / கைமுறை பொருத்தம்",
+    skipVoicePrompt: "குரல் ஏற்பிப் பிரச்சனையா? அதற்குப் பதிலாக டைப் செய்யவும் செய்தி:",
 
-// Helper to generate custom assessmentQuestions for 4 ages x 5 levels
-const assessmentQuestions = {
-  general_assessment: {
-    title: {
-      English: "Initial Literacy Assessment",
-      Hindi: "प्रारंभिक साक्षरता आकलन",
-      Kannada: "ಆರಂಭಿಕ ಸಾಕ್ಷರತಾ ಮೌಲ್ಯಮಾಪನ",
-      Telugu: "ప్రారంభ అక్షరాస్యత అంచనా",
-      Tamil: "ஆరம்ப எழுத்தறிவு மதிப்பீடு"
-    },
-    description: {
-      English: "15 questions spanning Levels 1 to 5 to evaluate your current literacy baseline.",
-      Hindi: "आपके वर्तमान साक्षरता स्तर का मूल्यांकन करने के लिए स्तर 1 से 5 तक के 15 प्रश्न।",
-      Kannada: "ನಿಮ್ಮ ಪ್ರಸ್ತುತ ಸಾಕ್ಷರತಾ ಮಟ್ಟವನ್ನು ಮೌಲ್ಯಮಾಪನ ಮಾಡಲು ಹಂತ 1 ರಿಂದ 5 ರವರೆಗಿನ 15 ಪ್ರಶ್ನೆಗಳು.",
-      Telugu: "మీ ప్రస్తుత అక్షరాస్యత స్థాయిని అంచనా వేయడానికి స్థాయి 1 నుండి 5 వరకు 15 ప్రశ్నలు.",
-      Tamil: "உங்கள் தற்போதைய எழுத்தறிவு நிலையை மதிப்பிட நிலை 1 முதல் 5 வரையிலான 15 கேள்விகள்."
-    },
-    questions: [
-      {
-        id: "gen_q_1",
-        question: {
-          English: "Which letter matches the shape of capital 'A'?",
-          Hindi: "कौन सा अक्षर बड़े अक्षर 'A' के आकार से मेल खाता है?",
-          Kannada: "ಯಾವ ಅಕ್ಷರವು ದೊಡ್ಡ ಅಕ್ಷರ 'A' ನ ಆಕಾರಕ್ಕೆ ಹೊಂದಿಕೆಯಾಗುತ್ತದೆ?",
-          Telugu: "ఏ అక్షరం క్యాపిటల్ 'A' ఆకారంతో సరిపోలుతుంది?",
-          Tamil: "எந்த எழுத்து பெரிய எழுத்து 'A'-இன் வடிவத்துடன் ஒத்துப்போகிறது?"
-        },
-        options: {
-          English: ["V", "H", "M", "A"],
-          Hindi: ["V", "H", "M", "A"],
-          Kannada: ["V", "H", "M", "A"],
-          Telugu: ["V", "H", "M", "A"],
-          Tamil: ["V", "H", "M", "A"]
-        },
-        correctIndex: 3
-      },
-      {
-        id: "gen_q_2",
-        question: {
-          English: "Find the lowercase letter that matches 'b'.",
-          Hindi: "छोटे अक्षर 'b' से मेल खाने वाला अक्षर खोजें।",
-          Kannada: "ಸಣ್ಣ ಅಕ್ಷರ 'b' ಗೆ ಹೊಂದಿಕೆಯಾಗುವ ಅಕ್ಷರವನ್ನು ಹುಡುಕಿ.",
-          Telugu: "చిన్న అక్షరం 'b' కి సరిపోయే అక్షరాన్ని కనుగొనండి.",
-          Tamil: "'b' என்ற சிறிய எழுத்துடன் பொருந்தும் எழுத்தைக் கண்டறியவும்."
-        },
-        options: {
-          English: ["p", "d", "q", "b"],
-          Hindi: ["p", "d", "q", "b"],
-          Kannada: ["p", "d", "q", "b"],
-          Telugu: ["p", "d", "q", "b"],
-          Tamil: ["p", "d", "q", "b"]
-        },
-        correctIndex: 3
-      },
-      {
-        id: "gen_q_3",
-        question: {
-          English: "Which letter looks like a circular ring?",
-          Hindi: "कौन सा अक्षर एक वृत्ताकार रिंग (गोले) जैसा दिखता है?",
-          Kannada: "ಯಾವ ಅಕ್ಷರವು ವೃತ್ತಾಕಾರದ ಬಳೆಯಂತೆ ಕಾಣುತ್ತದೆ?",
-          Telugu: "ఏ అಕ್ಷరం గుండ్రటి వలయంలా ఉంటుంది?",
-          Tamil: "வட்ட வளையம் போல இருக்கும் எழுத்து எது?"
-        },
-        options: {
-          English: ["L", "X", "T", "O"],
-          Hindi: ["L", "X", "T", "O"],
-          Kannada: ["L", "X", "T", "O"],
-          Telugu: ["L", "X", "T", "O"],
-          Tamil: ["L", "X", "T", "O"]
-        },
-        correctIndex: 3
-      },
-      {
-        id: "gen_q_4",
-        question: {
-          English: "Which letter makes the starting sound of the word 'Cat'?",
-          Hindi: "कौन सा अक्षर 'Cat' (बिल्ली) शब्द की शुरुआती ध्वनि बनाता है?",
-          Kannada: "ಯಾವ ಅಕ್ಷರವು 'Cat' ಪದದ ಆರಂಭಿಕ ಧ್ವನಿಯನ್ನು ಮಾಡುತ್ತದೆ?",
-          Telugu: "'Cat' పదానికి ప్రారంభ ధ్వనిని ఏ అక్షరం చేస్తుంది?",
-          Tamil: "'Cat' என்ற வார்த்தையின் தொடக்க ஒலியை எந்த எழுத்து உருவாக்குகிறது?"
-        },
-        options: {
-          English: ["S", "K", "G", "C"],
-          Hindi: ["S", "K", "G", "C"],
-          Kannada: ["S", "K", "G", "C"],
-          Telugu: ["S", "K", "G", "C"],
-          Tamil: ["S", "K", "G", "C"]
-        },
-        correctIndex: 3
-      },
-      {
-        id: "gen_q_5",
-        question: {
-          English: "Identify the missing letter in the word: 'D_g'.",
-          Hindi: "शब्द में छूटा हुआ अक्षर पहचानें: 'D_g'।",
-          Kannada: "ಪದದಲ್ಲಿ ಬಿಟ್ಟುಹೋದ ಅಕ್ಷರವನ್ನು ಗುರುತಿಸಿ: 'D_g'.",
-          Telugu: "పదంలో లేని అక్షరాన్ని గుర్తించండి: 'D_g'.",
-          Tamil: "வார்த்தையில் விடுபட்ட எழுத்தைக் கண்டறியவும்: 'D_g'."
-        },
-        options: {
-          English: ["e", "a", "i", "o"],
-          Hindi: ["e", "a", "i", "o"],
-          Kannada: ["e", "a", "i", "o"],
-          Telugu: ["e", "a", "i", "o"],
-          Tamil: ["e", "a", "i", "o"]
-        },
-        correctIndex: 3
-      },
-      {
-        id: "gen_q_6",
-        question: {
-          English: "Choose the correct word for the picture of something we read:",
-          Hindi: "हम जो पढ़ते हैं उसके चित्र के लिए सही शब्द चुनें:",
-          Kannada: "ನಾವು ಓದುವ ವಸ್ತುವಿನ ಚಿತ್ರಕ್ಕೆ ಸರಿಯಾದ ಪದವನ್ನು ಆರಿಸಿ:",
-          Telugu: "మనం చదివే వస్తువు కోసం సరైన పదాన్ని ఎంచుకోండి:",
-          Tamil: "நாம் படிக்கும் பொருளுக்கான சரியான வார்த்தையைத் தேர்ந்தெடுக்கவும்:"
-        },
-        options: {
-          English: ["Bed", "Bag", "Bus", "Book"],
-          Hindi: ["Bed (बिस्तर)", "Bag (बस्ता)", "Bus (बस)", "Book (किताब)"],
-          Kannada: ["Bed (ಹಾಸಿಗೆ)", "Bag (ಚೀಲ)", "Bus (ಬಸ್ಸು)", "Book (ಪುಸ್ತಕ)"],
-          Telugu: ["Bed (మంచం)", "Bag (సంచీ)", "Bus (బస్సు)", "Book (పుస్తకం)"],
-          Tamil: ["Bed (படுக்கை)", "Bag (பைய்)", "Bus (பேருந்து)", "Book (புத்தகம்)"]
-        },
-        correctIndex: 3
-      },
-      {
-        id: "gen_q_7",
-        question: {
-          English: "Complete the sentence: 'The sun shines in the ______.'",
-          Hindi: "वाक्य पूरा करें: 'The sun shines in the ______.'",
-          Kannada: "ವಾಕ್ಯ ಪೂರ್ಣಗೊಳಿಸಿ: 'The sun shines in the ______.'",
-          Telugu: "వాక్యాన్ని పూర్తి చేయండి: 'The sun shines in the ______.'",
-          Tamil: "வாக்கியத்தை நிரப்புக: 'The sun shines in the ______.'"
-        },
-        options: {
-          English: ["ground", "water", "house", "sky"],
-          Hindi: ["ground (ज़मीन)", "water (पानी)", "house (घर)", "sky (आसमान)"],
-          Kannada: ["ground (ನೆಲ)", "water (ನೀರು)", "house (ಮನೆ)", "sky (ಆಕಾಶ)"],
-          Telugu: ["ground (నేల)", "water (నీరు)", "house (ఇల్లు)", "sky (ఆకాశం)"],
-          Tamil: ["ground (தரை)", "water (தண்ணீர்)", "house (வீடு)", "sky (வானம்)"]
-        },
-        correctIndex: 3
-      },
-      {
-        id: "gen_q_8",
-        question: {
-          English: "Complete the sentence: 'I write on paper with a ______.'",
-          Hindi: "वाक्य पूरा करें: 'I write on paper with a ______.'",
-          Kannada: "ವಾಕ್ಯ ಪೂರ್ಣಗೊಳಿಸಿ: 'I write on paper with a ______.'",
-          Telugu: "వాక్యాన్ని పూర్తి చేయండి: 'I write on paper with a ______.'",
-          Tamil: "வாக்கியத்தை நிரப்புக: 'I write on paper with a ______.'"
-        },
-        options: {
-          English: ["shoe", "cup", "spoon", "pen"],
-          Hindi: ["shoe (जूता)", "cup (कप)", "spoon (चम्मच)", "pen (कलम)"],
-          Kannada: ["shoe (ಶೂ)", "cup (ಕಪ್)", "spoon (ಚಮಚ)", "pen (ಪೆನ್ನು)"],
-          Telugu: ["shoe (షూ)", "cup (కప్పు)", "spoon (స్పూన్)", "pen (కలం)"],
-          Tamil: ["shoe (காலணி)", "cup (கோப்பை)", "spoon (கரண்டி)", "pen (பேನಾ)"]
-        },
-        correctIndex: 3
-      },
-      {
-        id: "gen_q_9",
-        question: {
-          English: "Complete the sentence: 'Fish live in the ______.'",
-          Hindi: "वाक्य पूरा करें: 'Fish live in the ______.'",
-          Kannada: "ವಾಕ್ಯ ಪೂರ್ಣಗೊಳಿಸಿ: 'Fish live in the ______.'",
-          Telugu: "వాక్యాన్ని పూర్తి చేయండి: 'Fish live in the ______.'",
-          Tamil: "வாக்கியத்தை நிரப்புக: 'Fish live in the ______.'"
-        },
-        options: {
-          English: ["forest", "sky", "desert", "water"],
-          Hindi: ["forest (जंगल)", "sky (आसमान)", "desert (रेगिस्तान)", "water (पानी)"],
-          Kannada: ["forest (ಕಾಡು)", "sky (ಆಕಾಶ)", "desert (ಮರುಭೂಮಿ)", "water (ನೀರು)"],
-          Telugu: ["forest (అడవి)", "sky (ఆకాశం)", "desert (ఎడారి)", "water (నీరు)"],
-          Tamil: ["forest (காடு)", "sky (வானம்)", "desert (பாலைவனம்)", "water (தண்ணீர்)"]
-        },
-        correctIndex: 3
-      },
-      {
-        id: "gen_q_10",
-        question: {
-          English: "Read the road sign: 'STOP'. What should a driver do?",
-          Hindi: "सड़क का बोर्ड पढ़ें: 'STOP' (रुकें)। चालक को क्या करना चाहिए?",
-          Kannada: "ರಸ್ತೆ ಚಿಹ್ನೆಯನ್ನು ಓದಿ: 'STOP'. ಚಾಲಕ ಏನು ಮಾಡಬೇಕು?",
-          Telugu: "రహదారి బోర్డు చదవండి: 'STOP'. డ్రైవర్ ఏమి చేయాలి?",
-          Tamil: "சாலைப் பலகையைப் படிக்கவும்: 'STOP'. ஓட்டுநர் என்ன செய்ய வேண்டும்?"
-        },
-        options: {
-          English: ["Turn left", "Run fast", "Speed up", "Stop moving"],
-          Hindi: ["बाएं मुड़ें", "तेज़ दौड़ें", "गति बढ़ाएं", "रुकें"],
-          Kannada: ["ಎಡಕ್ಕೆ ತಿರುಗಿ", "ವೇಗವಾಗಿ ಓಡಿ", "ವೇಗವನ್ನು ಹೆಚ್ಚಿಸಿ", "ಚಲಿಸುವುದನ್ನು ನಿಲ್ಲಿಸಿ"],
-          Telugu: ["ఎడమ వైపు తిరగాలి", "వేగంగా వెళ్లాలి", "వేగం పెంచాలి", "వాహనం ఆపాలి"],
-          Tamil: ["இடதுபுறம் திரும்பவும்", "வேகமாக ஓடவும்", "வேகமாகச் செல்லவும்", "செல்வதை நிறுத்தவும்"]
-        },
-        correctIndex: 3
-      },
-      {
-        id: "gen_q_11",
-        question: {
-          English: "Read the instruction: 'Take one pill after dinner every night.' When should you take the pill?",
-          Hindi: "निर्देश पढ़ें: 'Take one pill after dinner every night.' आपको गोली कब लेनी चाहिए?",
-          Kannada: "ಸೂಚನೆಯನ್ನು ಓದಿ: 'Take one pill after dinner every night.' ನೀವು ಮಾತ್ರೆಯನ್ನು ಯಾವಾಗ ತೆಗೆದುಕೊಳ್ಳಬೇಕು?",
-          Telugu: "ఈ సూచనను చదవండి: 'Take one pill after dinner every night.' మీరు టాబ్లెట్ ఎప్పుడు వేసుకోవాలి?",
-          Tamil: "அறிவுறுத்தலைப் படிக்கவும்: 'Take one pill after dinner every night.' மாத்திரையை எப்போது சாப்பிட வேண்டும்?"
-        },
-        options: {
-          English: ["Empty stomach", "Before lunch", "In the morning", "After dinner"],
-          Hindi: ["खाली पेट", "दोपहर के भोजन से पहले", "सुबह में", "रात के खाने के बाद"],
-          Kannada: ["ಖಾಲಿ ಹೊಟ್ಟೆಯಲ್ಲಿ", "ಮಧ್ಯಾಹ್ನದ ಊಟಕ್ಕೆ ಮುನ್ನ", "ಬೆಳಿಗ್ಗೆ", "ರಾತ್ರಿ ಊಟದ ನಂತರ"],
-          Telugu: ["పరగడుపున", "మధ్యాహ్నం భోజనానికి ముందు", "ఉదయం", "రాత్రి భోజనం తర్వాత"],
-          Tamil: ["வெறும் வயிற்றில்", "మதிய உணவுக்கு முன்", "காலையில்", "இரவு உணவுக்குப் பின்"]
-        },
-        correctIndex: 3
-      },
-      {
-        id: "gen_q_12",
-        question: {
-          English: "Read the sign: 'ENTRANCE'. What does it mean?",
-          Hindi: "संकेत पढ़ें: 'ENTRANCE' (प्रवेश)। इसका क्या अर्थ है?",
-          Kannada: "ಚಿಹ್ನೆಯನ್ನು ಓದಿ: 'ENTRANCE'. ಇದರ ಅರ್ಥವೇನು?",
-          Telugu: "'ENTRANCE' బోర్డు చదవండి. దీని అర్థం ఏమిటి?",
-          Tamil: "'ENTRANCE' பலகையைப் படிக்கவும். இதன் பொருள் என்ன?"
-        },
-        options: {
-          English: ["Closed area", "Way to go out", "No entry", "Way to go inside"],
-          Hindi: ["बंद क्षेत्र", "बाहर जाने का रास्ता", "प्रवेश निषेध", "अंदर जाने का रास्ता"],
-          Kannada: ["ಮುಚ್ಚಿದ ಪ್ರದೇಶ", "ಹೊರಹೋಗುವ ದಾರಿ", "ಪ್ರವೇಶವಿಲ್ಲ", "ಒಳಗೆ ಹೋಗುವ ದಾರಿ"],
-          Telugu: ["మూసి ఉన్న ప్రాంతం", "బయటకు వెళ్లే దారి", "ప్రవేశం లేదు", "లోపలికి వెళ్లే దారి"],
-          Tamil: ["மூடப்பட்ட பகுதி", "வெளியேறும் வழி", "நுழையக் கூடாது", "உள்ளே செல்லும் வழி"]
-        },
-        correctIndex: 3
-      },
-      {
-        id: "gen_q_13",
-        question: {
-          English: "Read the message: 'The train is delayed by two hours and will arrive at 11 AM.' What time will the train arrive?",
-          Hindi: "संदेश पढ़ें: 'The train is delayed by two hours and will arrive at 11 AM.' ट्रेन किस समय पहुंचेगी?",
-          Kannada: "ಸಂದೇಶವನ್ನು ಓದಿ: 'The train is delayed by two hours and will arrive at 11 AM.' ರೈಲು ಯಾವ 시간ಕ್ಕೆ ಬರಲಿದೆ?",
-          Telugu: "ఈ సందేశాన్ని చదవండి: 'The train is delayed by two hours and will arrive at 11 AM.' రైలు ఏ సమయానికి చేరుకుంటుంది?",
-          Tamil: "செய்தியைப் படிக்கவும்: 'The train is delayed by two hours and will arrive at 11 AM.' ரயில் எத்தனை மணிக்கு வரும்?"
-        },
-        options: {
-          English: ["12 PM", "9 AM", "10 AM", "11 AM"],
-          Hindi: ["दोपहर 12 बजे", "सुबह 9 बजे", "सुबह 10 बजे", "सुबह 11 बजे"],
-          Kannada: ["ಮಧ್ಯಾಹ್ನ 12 ಕ್ಕೆ", "ಬೆಳಿಗ್ಗೆ 9 ಕ್ಕೆ", "ಬೆಳಿಗ್ಗೆ 10 ಕ್ಕೆ", "ಬೆಳಿಗ್ಗೆ 11 ಕ್ಕೆ"],
-          Telugu: ["మధ్యాహ్నం 12 గంటలకు", "ఉదయం 9 గంటలకు", "ఉదయం 10 గంటలకు", "ఉదయం 11 గంటలకు"],
-          Tamil: ["மதியம் 12 மணி", "காலை 9 மணி", "காலை 10 மணி", "காலை 11 மணி"]
-        },
-        correctIndex: 3
-      },
-      {
-        id: "gen_q_14",
-        question: {
-          English: "Complete the sentence: 'To withdraw money safely, visit the ______.'",
-          Hindi: "वाक्य पूरा करें: 'To withdraw money safely, visit the ______.'",
-          Kannada: "ವಾಕ್ಯ ಪೂರ್ಣಗೊಳಿಸಿ: 'To withdraw money safely, visit the ______.'",
-          Telugu: "వాక్యాన్ని పూర్తి చేయండి: 'To withdraw money safely, visit the ______.'",
-          Tamil: "வாக்கியத்தை நிரப்புக: 'To withdraw money safely, visit the ______.'"
-        },
-        options: {
-          English: ["park", "school", "market", "bank"],
-          Hindi: ["park (पार्क)", "school (स्कूल)", "market (बाज़ार)", "bank (बैंक)"],
-          Kannada: ["park (ಉದ್ಯಾನವನ)", "school (ಶಾಲೆ)", "market (ಮಾರುಕಟ್ಟೆ)", "bank (ಬ್ಯಾಂಕ್)"],
-          Telugu: ["park (పార్క్)", "school (బడి)", "market (మార్కెట్)", "bank (బ్యాంకు)"],
-          Tamil: ["park (பூங்கா)", "school (பள்ளி)", "market (சந்தை)", "bank (வங்கி)"]
-        },
-        correctIndex: 3
-      },
-      {
-        id: "gen_q_15",
-        question: {
-          English: "Read the park notice: 'The walking track is open from 6 AM to 9 AM.' What is the track used for?",
-          Hindi: "पार्क का नोटिस पढ़ें: 'The walking track is open from 6 AM to 9 AM.' ट्रैक का उपयोग किस लिए किया जाता है?",
-          Kannada: "ಪಾರ್ಕ್ ಸೂಚನೆಯನ್ನು ಓದಿ: 'The walking track is open from 6 AM to 9 AM.' ಈ ಹಾದಿಯನ್ನು ಯಾವುದಕ್ಕೆ ಬಳಸಲಾಗುತ್ತದೆ?",
-          Telugu: "పార్క్ నోటీసు చదవండి: 'The walking track is open from 6 AM to 9 AM.' ఈ దారి దేనికి ఉపయోగించబడుతుంది?",
-          Tamil: "பூங்கா அறிவிப்பைப் படிக்கவும்: 'The walking track is open from 6 AM to 9 AM.' இந்தப் பாதை எதற்குப் பயன்படுகிறது?"
-        },
-        options: {
-          English: ["Cycling", "Running", "Playing football", "Walking"],
-          Hindi: ["साइकिल चलाने के लिए", "दौड़ने के लिए", "फुटबॉल खेलने के लिए", "टहलने (Walking) के लिए"],
-          Kannada: ["ಸೈಕಲ್ ತುಳಿಯಲು", "ಓಡಲು", "ಫುಟ್‌ಬಾಲ್ ಆಡಲು", "ನಡೆಯಲು (Walking)"],
-          Telugu: ["సైకిల్ తొక్కడానికి", "పరుగెత్తడానికి", "ఫుట్ బాల్ ఆడటానికి", "నడవడానికి (Walking)"],
-          Tamil: ["சைக்கிள் ஓட்ட", "ஓடுவதற்கு", "கால்பந்து விளையாட", "நடைபயிற்சிக்கு (Walking)"]
-        },
-        correctIndex: 3
-      }
-    ]
+    // Dashboard tabs
+    tabProgress: "📊 எனது செயல்பாடு",
+    tabProfile: "👤 சுயவிவர அமைப்புகள்",
+
+    // Progress Dashboard
+    overallLevel: "கண்டறியப்பட்ட எழுத்தறிவு நிலை",
+    skillBreakdown: "அடிப்படைத் திறன்களின் தேர்ச்சி",
+    badgesEarned: "சாதனை பேட்ஜ்கள்",
+    attemptHistory: "மதிப்பீட்டு முடிவுகளின் விவரங்கள்",
+    historyDate: "தேதி",
+    historyScore: "மதிப்பெண்",
+    historyType: "வகை",
+    historyStatus: "முடிவு"
   }
 };
 
+const getLiteracyLevel = (userProfile) => {
+  if (userProfile?.literacy_level) return Number(userProfile.literacy_level);
+  const ed = userProfile?.education_level;
+  if (ed) {
+    if (ed.includes("Level 1") || ed.includes("स्तर 1") || ed.includes("ಹಂತ 1") || ed.includes("స్థాయి 1") || ed.includes("நிலை 1")) return 1;
+    if (ed.includes("Level 2") || ed.includes("स्तर 2") || ed.includes("ಹಂತ 2") || ed.includes("స్థాయి 2") || ed.includes("நிலை 2")) return 2;
+    if (ed.includes("Level 3") || ed.includes("स्तर 3") || ed.includes("ಹಂತ 3") || ed.includes("స్థాయి 3") || ed.includes("நிலை 3")) return 3;
+    if (ed.includes("Level 4") || ed.includes("स्तर 4") || ed.includes("ಹಂತ 4") || ed.includes("స్థాయి 4") || ed.includes("நிலை 4")) return 4;
+    if (ed.includes("Level 5") || ed.includes("स्तर 5") || ed.includes("ಹಂತ 5") || ed.includes("స్థాయి 5") || ed.includes("நிலை 5")) return 5;
+  }
+  return null;
+};
+
+const getLocalizedLevelName = (level, lang) => {
+  const currentLang = lang || "English";
+  const defs = levelDefinitions[currentLang] || levelDefinitions["English"];
+  const found = defs.find(d => d.level === level);
+  return found ? found.name : `Level ${level}`;
+};
+
+const getLevelCategoryAndDescription = (level, lang) => {
+  const currentLang = lang || "English";
+  const defs = levelDefinitions[currentLang] || levelDefinitions["English"];
+  const found = defs.find(d => d.level === level);
+  return {
+    category: found ? found.name.split(":")[0].trim() : `Level ${level}`,
+    description: found ? found.desc : ""
+  };
+};
+
 function App() {
-  const getLocalizedText = (value) => {
-    if (!value) return "";
-    if (typeof value === "object") {
-      return value[selectedLanguage] || value["English"] || "";
-    }
-    return value;
-  };
-
-  const getLocalizedOptions = (optionsObj) => {
-    if (!optionsObj) return [];
-    if (typeof optionsObj === "object" && !Array.isArray(optionsObj)) {
-      return optionsObj[selectedLanguage] || optionsObj["English"] || [];
-    }
-    return optionsObj;
-  };
-
   const [selectedLanguage, setSelectedLanguage] = useState(
     localStorage.getItem("lisa_lang") || null
   );
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("login"); // "login", "register", or "forgot"
+  const [activeTab, setActiveTab] = useState("login"); // "login", "register", "forgot"
+  const [dashboardTab, setDashboardTab] = useState("progress"); // "progress", "profile"
   const [message, setMessage] = useState("");
   const [session, setSession] = useState(null);
   const [profile, setProfile] = useState(null);
@@ -859,57 +571,63 @@ function App() {
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // Assessment related states
-  const [assessmentState, setAssessmentState] = useState("not_started"); // "not_started" | "answering" | "submitting" | "results"
-  const [selectedAnswers, setSelectedAnswers] = useState({});
-  const [currentAttemptResult, setCurrentAttemptResult] = useState(null);
+  // Initial Assessment states
+  const [assessmentState, setAssessmentState] = useState("not_started"); // "not_started" | "answering" | "results"
+  const [assessmentQuestionsList, setAssessmentQuestionsList] = useState([]);
+  const [currentStep, setCurrentStep] = useState(0); // 0-4
+  const [selectedAnswers, setSelectedAnswers] = useState({}); // { index: optionIndex }
+  const [writingAnswers, setWritingAnswers] = useState({}); // { index: "user text" }
+  const [readingAttempts, setReadingAttempts] = useState({}); // { index: { matchedCount, totalWords, transcript, scores } }
+  
+  // Voice speech states
+  const [isListening, setIsListening] = useState(false);
+  const [spokenTranscript, setSpokenTranscript] = useState("");
+  const [micError, setMicError] = useState("");
+  const [manualTextFallback, setManualTextFallback] = useState("");
+  const recognitionRef = useRef(null);
+
+  // History and analytics
+  const [historyAttempts, setHistoryAttempts] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("lisa_attempts_history")) || [];
+    } catch {
+      return [];
+    }
+  });
+
+  // Edit Profile States
   const [editingProfile, setEditingProfile] = useState(false);
+  const [editFullName, setEditFullName] = useState("");
   const [editAge, setEditAge] = useState("");
+  const [editPreferredLang, setEditPreferredLang] = useState("");
   const [editEdLevel, setEditEdLevel] = useState("");
 
-  const handleStartEditProfile = () => {
-    setEditAge(profile?.age || "");
-    setEditEdLevel(profile?.education_level || "");
-    setEditingProfile(true);
-  };
-
-  const handleSaveProfile = async () => {
-    setSubmitting(true);
-    try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .update({
-          age: parseInt(editAge, 10),
-          education_level: editEdLevel
-        })
-        .eq("id", session.user.id)
-        .select()
-        .single();
-      if (error) {
-        console.error("Error updating profile:", error.message);
-        alert("Failed to update profile: " + error.message);
-      } else {
-        setProfile(data);
-        setEditingProfile(false);
-      }
-    } catch (err) {
-      console.error("Unexpected error updating profile:", err);
-    } finally {
-      setSubmitting(false);
+  const t = (key) => {
+    const lang = selectedLanguage || "English";
+    const dict = translations[lang] || translations["English"];
+    if (key === "successForgotPasswordLink") {
+      return lang === "Hindi" ? "पासवर्ड रीसेट लिंक भेजा गया! कृपया अपना ईमेल जांचें।" :
+             lang === "Kannada" ? "ಪಾಸ್‌ವರ್ಡ್ ಮರುಹೊಂದಿಸುವ ಲಿಂಕ್ ಕಳುಹಿಸಲಾಗಿದೆ! ಇಮೇಲ್ ಪರಿಶೀಲಿಸಿ." :
+             lang === "Telugu" ? "పాస్‌వర్డ్ రీసెట్ లింక్ పంపబడింది! దయచేసి ఇమెయిల్ తనిఖీ చేయండి." :
+             lang === "Tamil" ? "கடவுச்சொல் மீட்பு இணைப்பு அனுப்பப்பட்டது! மின்னஞ்சலைச் சரிபார்க்கவும்." :
+             "Password reset link sent! Please check your email.";
     }
-  };
-
-  const getCategory = () => {
-    return "general_assessment";
+    if (key === "successResetPassword") {
+      return lang === "Hindi" ? "पासवर्ड रीसेट सफल रहा! अब आप लॉगिन कर सकते हैं।" :
+             lang === "Kannada" ? "ಪಾಸ್‌ವರ್ಡ್ ಮರುಹೊಂದಿಕೆ ಯಶಸ್ವಿಯಾಗಿದೆ! ನೀವು ಈಗ ಲಾಗಿನ್ ಮಾಡಬಹುದು." :
+             lang === "Telugu" ? "పాస్‌వర్డ్ రీసెట్ విజయవంతమైంది! మీరు ఇప్పుడు లాగిన్ చేయవచ్చు." :
+             lang === "Tamil" ? "கடவுச்சொல் மீட்டமைக்கப்பட்டது! நீங்கள் இப்போது உள்நுழையலாம்." :
+             "Password reset successfully! You can now log in.";
+    }
+    return dict[key] || translations["English"][key] || key;
   };
 
   useEffect(() => {
-    // Check initial session
+    // Check initial auth session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session?.user) {
         fetchProfile(session.user.id);
-
       } else {
         setInitialLoading(false);
       }
@@ -924,10 +642,8 @@ function App() {
         }
         if (session?.user) {
           fetchProfile(session.user.id);
-
         } else {
           setProfile(null);
-
           setInitialLoading(false);
         }
       }
@@ -947,22 +663,19 @@ function App() {
         .single();
 
       if (error) {
-        console.warn("Could not fetch profile:", error.message);
+        console.warn("Could not fetch profile, setting default session:", error.message);
+        // Fallback for demo users
+        setProfile({
+          id: userId,
+          full_name: session?.user?.user_metadata?.full_name || session?.user?.email || "Learner",
+          age: session?.user?.user_metadata?.age || 20,
+          preferred_language: session?.user?.user_metadata?.preferred_language || selectedLanguage || "English",
+          education_level: session?.user?.user_metadata?.education_level || "No formal education",
+          literacy_level: null
+        });
       } else {
         setProfile(data);
-        const localLang = localStorage.getItem("lisa_lang") || selectedLanguage;
-        if (localLang && data.preferred_language !== localLang) {
-          // Sync database with the locally selected language
-          supabase
-            .from("profiles")
-            .update({ preferred_language: localLang })
-            .eq("id", userId)
-            .then(({ error: updateErr }) => {
-              if (!updateErr) {
-                setProfile(prev => prev ? { ...prev, preferred_language: localLang } : null);
-              }
-            });
-        } else if (data.preferred_language) {
+        if (data.preferred_language) {
           setSelectedLanguage(data.preferred_language);
           localStorage.setItem("lisa_lang", data.preferred_language);
         }
@@ -983,13 +696,11 @@ function App() {
           .from("profiles")
           .update({ preferred_language: lang })
           .eq("id", session.user.id);
-        if (error) {
-          console.warn("Could not update database profile language:", error.message);
-        } else {
+        if (!error) {
           setProfile(prev => prev ? { ...prev, preferred_language: lang } : null);
         }
       } catch (err) {
-        console.error("Error updating profile language in DB:", err);
+        console.error("Error saving profile language preference:", err);
       }
     }
   };
@@ -998,16 +709,11 @@ function App() {
     event.preventDefault();
     setSubmitting(true);
     setMessage("");
-
     const formData = new FormData(event.currentTarget);
     const email = formData.get("loginEmail");
     const password = formData.get("loginPassword");
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       setMessage(`Login error: ${error.message}`);
     } else {
@@ -1055,15 +761,16 @@ function App() {
       return;
     }
 
-    const user = data.user;
-    if (user) {
+    if (data.user) {
       if (data.session) {
         setMessage(t("successAccountCreated"));
         setProfile({
+          id: data.user.id,
           full_name: fullName,
           age,
           preferred_language: language,
           education_level: educationLevel,
+          literacy_level: null
         });
       } else {
         setMessage(t("checkEmailConfirm"));
@@ -1076,14 +783,12 @@ function App() {
     event.preventDefault();
     setSubmitting(true);
     setMessage("");
-
     const formData = new FormData(event.currentTarget);
     const email = formData.get("forgotEmail");
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: window.location.origin,
     });
-
     if (error) {
       setMessage(`Error: ${error.message}`);
     } else {
@@ -1096,18 +801,13 @@ function App() {
     event.preventDefault();
     setSubmitting(true);
     setMessage("");
-
     const formData = new FormData(event.currentTarget);
     const password = formData.get("resetPassword");
 
-    const { error } = await supabase.auth.updateUser({
-      password,
-    });
-
+    const { error } = await supabase.auth.updateUser({ password });
     if (error) {
       setMessage(`Error resetting password: ${error.message}`);
     } else {
-      // Sign out first to clear the session so we don't flash the dashboard
       await supabase.auth.signOut();
       setRecoveryMode(false);
       setActiveTab("login");
@@ -1118,54 +818,285 @@ function App() {
 
   const handleSignOut = async () => {
     setSubmitting(true);
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      setMessage(`Sign out error: ${error.message}`);
-    } else {
-      setMessage(t("successSignOut"));
-      setTimeout(() => {
-        setMessage("");
-      }, 3000);
-    }
+    await supabase.auth.signOut();
+    setMessage(t("successSignOut"));
+    setTimeout(() => setMessage(""), 3000);
     setSubmitting(false);
   };
 
-  const getLangAbbrev = (lang) => {
-    switch (lang) {
-      case "Hindi": return "HI";
-      case "Kannada": return "KN";
-      case "Telugu": return "TE";
-      case "Tamil": return "TA";
-      case "English":
-      default:
-        return "EN";
+  // Dynamic Assessment Shuffled Initialization (Taken Once)
+  const handleStartInitialAssessment = () => {
+    setSelectedAnswers({});
+    setWritingAnswers({});
+    setReadingAttempts({});
+    setSpokenTranscript("");
+    setManualTextFallback("");
+    setMicError("");
+    
+    // Generates a dynamic test where the questions are shuffled
+    // and MCQ options are shuffled as well.
+    const assessment = getRandomAssessment(
+      profile?.age || 20,
+      profile?.education_level || "No formal education",
+      selectedLanguage || "English"
+    );
+    setAssessmentQuestionsList(assessment.questions);
+    setCurrentStep(0);
+    setAssessmentState("answering");
+  };
+
+  // Speech Recognition Logic
+  const startListening = (targetText) => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setMicError("Speech recognition is not supported in this browser. Please use Chrome/Edge or type manually.");
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+
+      let locale = "en-US";
+      if (selectedLanguage === "Hindi") locale = "hi-IN";
+      else if (selectedLanguage === "Kannada") locale = "kn-IN";
+      else if (selectedLanguage === "Telugu") locale = "te-IN";
+      else if (selectedLanguage === "Tamil") locale = "ta-IN";
+
+      recognition.lang = locale;
+      recognitionRef.current = recognition;
+
+      recognition.onstart = () => {
+        setIsListening(true);
+        setSpokenTranscript("");
+        setMicError("");
+      };
+
+      recognition.onerror = (e) => {
+        console.error("Speech Recognition Error:", e);
+        setMicError("Unable to access mic or understand audio. Please click again or try manual text entry.");
+        setIsListening(false);
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        setSpokenTranscript(transcript);
+        evaluateSpeechText(transcript, targetText);
+      };
+
+      recognition.start();
+    } catch (err) {
+      console.error("Failed to start speech recognition", err);
+      setMicError("Mic error, please check connection.");
+      setIsListening(false);
     }
   };
 
-  // Helper to translate strings
-  const t = (key) => {
-    const lang = selectedLanguage || "English";
-    const dict = translations[lang] || translations["English"];
-
-    if (key === "successForgotPasswordLink") {
-      return lang === "Hindi" ? "पासवर्ड रीसेट लिंक भेजा गया! कृपया अपना ईमेल जांचें।" :
-        lang === "Kannada" ? "ಪಾಸ್‌ವರ್ಡ್ ಮರುಹೊಂದಿಸುವ ಲಿಂಕ್ ಕಳುಹಿಸಲಾಗಿದೆ! ನಿಮ್ಮ ಇಮೇಲ್ ಪರಿಶೀಲಿಸಿ." :
-          lang === "Telugu" ? "పాస్‌వర్డ్ రీసెట్ లింక్ పంపబడింది! దయచేసి మీ ఇమెయిల్ తనిఖీ చేయండి." :
-            lang === "Tamil" ? "கடவுச்சொல் மீட்பு இணைப்பு அனுப்பப்பட்டது! மின்னஞ்சலைச் சரிபார்க்கவும்." :
-              "Password reset link sent! Please check your email.";
+  const stopListening = () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
     }
-    if (key === "successResetPassword") {
-      return lang === "Hindi" ? "पासवर्ड रीसेट सफल रहा! अब आप लॉगिन कर सकते हैं।" :
-        lang === "Kannada" ? "ಪಾಸ್‌ವರ್ಡ್ ಮರುಹೊಂದಿಕೆ ಯಶಸ್ವಿಯಾಗಿದೆ! ನೀವು ಈಗ ಲಾಗಿನ್ ಮಾಡಬಹುದು." :
-          lang === "Telugu" ? "పాస్‌వర్డ్ రీసెట్ విజయవంతమైంది! మీరు ఇప్పుడు లాగిన్ చేయవచ్చు." :
-            lang === "Tamil" ? "கடவுச்சொல் மீட்டமைக்கப்பட்டது! நீங்கள் இப்போது உள்நுழையலாம்." :
-              "Password reset successfully! You can now log in.";
-    }
-
-    return dict[key] || translations["English"][key] || key;
+    setIsListening(false);
   };
 
-  // 2. Initial Loading Screen
+  // String cleaning helper
+  const cleanWord = (w) => {
+    return w.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g, "").toLowerCase().trim();
+  };
+
+  const evaluateSpeechText = (transcript, targetText) => {
+    const targetWords = targetText.split(/\s+/).filter(Boolean);
+    const spokenWords = transcript.split(/\s+/).filter(Boolean).map(cleanWord);
+    
+    let matchedCount = 0;
+    const scores = targetWords.map((word) => {
+      const cleaned = cleanWord(word);
+      const isMatched = spokenWords.includes(cleaned);
+      if (isMatched) matchedCount++;
+      return isMatched;
+    });
+
+    setReadingAttempts(prev => ({
+      ...prev,
+      [currentStep]: {
+        transcript,
+        matchedCount,
+        totalWords: targetWords.length,
+        scores
+      }
+    }));
+  };
+
+  // Fallback Text Match
+  const handleManualTextSubmit = (targetText) => {
+    if (!manualTextFallback.trim()) return;
+    evaluateSpeechText(manualTextFallback, targetText);
+  };
+
+  const handleNextStep = () => {
+    if (currentStep < 4) {
+      setCurrentStep(currentStep + 1);
+      setSpokenTranscript("");
+      setManualTextFallback("");
+      setMicError("");
+    }
+  };
+
+  // Evaluate & Diagnose Literacy Level
+  const submitInitialAssessment = async () => {
+    setSubmitting(true);
+    let totalScore = 0; // max 50 points
+
+    assessmentQuestionsList.forEach((q, idx) => {
+      if (q.type === "reading") {
+        const attempt = readingAttempts[idx];
+        if (attempt) {
+          const ratio = attempt.matchedCount / attempt.totalWords;
+          totalScore += Math.round(ratio * 10);
+        }
+      } else if (q.type === "comprehension") {
+        const answer = selectedAnswers[idx];
+        if (answer === q.correctIndex) {
+          totalScore += 10;
+        }
+      } else if (q.type === "writing") {
+        const text = writingAnswers[idx] || "";
+        const result = q.evaluator(text);
+        totalScore += result.score;
+      }
+    });
+
+    // Diagnose initial level 1 to 5 based on totalScore (0 to 50)
+    let diagnosedLevel = 1;
+    if (totalScore >= 43) diagnosedLevel = 5;
+    else if (totalScore >= 32) diagnosedLevel = 4;
+    else if (totalScore >= 22) diagnosedLevel = 3;
+    else if (totalScore >= 12) diagnosedLevel = 2;
+
+    const levelString = getLocalizedLevelName(diagnosedLevel, "English");
+
+    // Profile updates in Supabase
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          education_level: levelString,
+          literacy_level: diagnosedLevel
+        })
+        .eq("id", session.user.id);
+
+      if (error) {
+        console.warn("DB update failed, caching locally:", error.message);
+      }
+      
+      // Update UI state profile
+      setProfile(prev => ({
+        ...prev,
+        education_level: levelString,
+        literacy_level: diagnosedLevel
+      }));
+
+      // Calculate separate stats
+      let readPoints = 0, compPoints = 0, writePoints = 0;
+      assessmentQuestionsList.forEach((q, idx) => {
+        const points = q.type === "reading" ? (readingAttempts[idx]?.matchedCount / readingAttempts[idx]?.totalWords) * 10 || 0 
+                       : q.type === "comprehension" ? (selectedAnswers[idx] === q.correctIndex ? 10 : 0)
+                       : q.evaluator(writingAnswers[idx] || "").score;
+
+        if (q.type === "reading") readPoints += points;
+        if (q.type === "comprehension") compPoints += points;
+        if (q.type === "writing") writePoints += points;
+      });
+
+      const attemptResult = {
+        date: new Date().toLocaleDateString(),
+        type: "Diagnostic Evaluation",
+        score: totalScore,
+        maxScore: 50,
+        level: diagnosedLevel,
+        skills: {
+          reading: Math.round((readPoints / 20) * 100),
+          comprehension: Math.round((compPoints / 20) * 100),
+          writing: Math.round((writePoints / 10) * 100)
+        },
+        passed: true
+      };
+
+      const updatedHistory = [attemptResult, ...historyAttempts];
+      setHistoryAttempts(updatedHistory);
+      localStorage.setItem("lisa_attempts_history", JSON.stringify(updatedHistory));
+
+      setAssessmentState("results");
+    } catch (err) {
+      console.error("Error updating test results:", err);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Profile Edit Submission
+  const handleSaveProfileEdit = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          full_name: editFullName,
+          age: parseInt(editAge, 10),
+          preferred_language: editPreferredLang,
+          education_level: editEdLevel
+        })
+        .eq("id", session.user.id);
+
+      if (error) {
+        console.warn("DB profile save error, caching:", error.message);
+      }
+      
+      setProfile(prev => ({
+        ...prev,
+        full_name: editFullName,
+        age: parseInt(editAge, 10),
+        preferred_language: editPreferredLang,
+        education_level: editEdLevel
+      }));
+      setSelectedLanguage(editPreferredLang);
+      localStorage.setItem("lisa_lang", editPreferredLang);
+      setEditingProfile(false);
+    } catch (err) {
+      console.error("Profile edit error:", err);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleStartEdit = () => {
+    setEditFullName(profile?.full_name || "");
+    setEditAge(profile?.age || "");
+    setEditPreferredLang(profile?.preferred_language || selectedLanguage || "English");
+    setEditEdLevel(profile?.education_level || "No formal education");
+    setEditingProfile(true);
+  };
+
+  // Skill calculations for Progress Analytics
+  const calculateSkillProficiency = (skill) => {
+    let totalScore = 0;
+    let count = 0;
+    historyAttempts.forEach((attempt) => {
+      if (attempt.skills && attempt.skills[skill] !== undefined) {
+        totalScore += attempt.skills[skill];
+        count++;
+      }
+    });
+    return count > 0 ? Math.round(totalScore / count) : 0;
+  };
+
+  // initial loading spinner
   if (initialLoading) {
     return (
       <div className="loading-screen">
@@ -1177,7 +1108,7 @@ function App() {
     );
   }
 
-  // Language Dropdown Selector Component
+  // Language Dropdown Render
   const renderLanguageDropdown = (isRelative = false) => (
     <div className={isRelative ? "lang-selector-relative" : "lang-selector-container"}>
       <button
@@ -1216,26 +1147,21 @@ function App() {
     </div>
   );
 
-  // 3. Recovery Mode (Reset Password Form)
+  // Recovery Mode Form
   if (recoveryMode) {
     return (
       <main className="shell">
-        <div className="brand-logo-top">
-          LISA
-          <span className="brand-logo-tagline">Literacy Intelligience Support Assistance</span>
-        </div>
+        <div className="brand-logo-top">LISA</div>
         {renderLanguageDropdown()}
         <section className="hero-panel">
           <h1>{t("resetAccountPassword")}</h1>
           <p className="hero-copy">{t("regainAccessCopy")}</p>
         </section>
-
-        <section className="auth-panel" aria-label="Reset Password">
+        <section className="auth-panel">
           <div className="auth-card">
             <form className="auth-form active" onSubmit={handleResetPassword}>
               <h2>{t("createNewPassword")}</h2>
               <p>{t("typeSecurePassword")}</p>
-
               <label>
                 {t("newPassword")}
                 <input
@@ -1247,7 +1173,6 @@ function App() {
                   disabled={submitting}
                 />
               </label>
-
               <button type="submit" className="primary-btn" disabled={submitting}>
                 {submitting ? t("resettingPassword") : t("updatePassword")}
               </button>
@@ -1259,271 +1184,567 @@ function App() {
     );
   }
 
-  const getSummary = (score, lang) => {
-    if (score >= 9) {
-      switch (lang) {
-        case "Hindi": return "उत्कृष्ट! इस क्षेत्र में आपके पास मजबूत कौशल हैं। आप उन्नत मॉड्यूल पर आगे बढ़ने के लिए तैयार हैं।";
-        case "Kannada": return "ಅತ್ಯುತ್ತಮ! ಈ ಕ್ಷೇತ್ರದಲ್ಲಿ ನೀವು ಬಲವಾದ ಕೌಶಲ್ಯಗಳನ್ನು ಹೊಂದಿದ್ದೀರಿ. ನೀವು ಸುಧಾರಿತ ಮಾಡ್ಯೂಲ್‌ಗಳಿಗೆ ಮುಂದುವರಿಯಲು ಸಿದ್ಧರಿದ್ದೀರಿ.";
-        case "Telugu": return "అద్భుతమైనది! ఈ రంగంలో మీకు బలమైన నైపుణ్యాలు ఉన్నాయి. మీరు అధునాతన మాడ్యూల్స్‌కు వెళ్ళడానికి సిద్ధంగా ఉన్నారు.";
-        case "Tamil": return "மிகச்சிறப்பு! இந்தத் துறையில் உங்களுக்கு வலுவான திறன்கள் உள்ளன. நீங்கள் மேம்பட்ட பாடங்களுக்குச் செல்லத் தயாராக உள்ளீர்கள்.";
-        default: return "Excellent! You have strong skills in this area. You're ready to proceed to advanced modules.";
-      }
-    } else if (score >= 6) {
-      switch (lang) {
-        case "Hindi": return "अच्छा काम किया! आपका आधार मजबूत है। हम कुछ विषयों को दोहराने में आपकी मदद करेंगे।";
-        case "Kannada": return "ಉತ್ತಮ ಕೆಲಸ! ನಿಮ್ಮ ಬುನಾದಿ ಗಟ್ಟಿಯಾಗಿದೆ. ಕೆಲವು ವಿಷಯಗಳನ್ನು ಪುನರಾವರ್ತಿಸಲು ನಾವು ನಿಮಗೆ ಸಹಾಯ ಮಾಡುತ್ತೇವೆ.";
-        case "Telugu": return "మంచి ప్రయత్నం! మీ పునాది బలంగా ఉంది. కొన్ని అంశాలను పునశ్చరణ చేయడానికి మేము మీకు సహాయం చేస్తాము.";
-        case "Tamil": return "நல்ல முயற்சி! உங்களுக்கு நல்ல அடிப்படை அறிவு உள்ளது. சில தலைப்புகளை மீண்டும் பயிற்சி செய்ய நாங்கள் உதவுவோம்.";
-        default: return "Good job! You've got a solid foundation. We'll help you brush up on a few topics.";
-      }
-    } else {
-      switch (lang) {
-        case "Hindi": return "शानदार प्रयास! आपके आत्मविश्वास और कौशल को बढ़ाने के लिए हम बुनियादी अवधारणाओं से शुरू करेंगे।";
-        case "Kannada": return "ಉತ್ತಮ ಪ್ರಯತ್ನ! ನಿಮ್ಮ ಆತ್ಮವಿಶ್ವಾಸ ಮತ್ತು ಕೌಶಲ್ಯಗಳನ್ನು ಬೆಳೆಸಲು ನಾವು ಮೂಲಭೂತ ಪರಿಕಲ್ಪನೆಗಳಿಂದ ಪ್ರಾರಂಭಿಸುತ್ತೇವೆ.";
-        case "Telugu": return "గొప్ప ప్రయత్నం! మీ విశ్వాసాన్ని మరియు నైపుణ్యాలను పెంచడానికి మేము ప్రాథమిక భావనలతో ప్రారంభిస్తాము.";
-        case "Tamil": return "அருமையான முயற்சி! உங்களின் தன்னம்பிக்கையையும் திறமையையும் வளர்க்க அடிப்படை கருத்துகளிலிருந்து தொடங்குவோம்.";
-        default: return "Great effort! We'll start with fundamental concepts to build up your confidence and skills.";
-      }
-    }
-  };
-
-  const diagnoseLevel = (score) => {
-    if (score >= 13) return 5;
-    if (score >= 10) return 4;
-    if (score >= 7) return 3;
-    if (score >= 4) return 2;
-    return 1;
-  };
-
-  const handleSubmitAssessment = async (e) => {
-    e.preventDefault();
-    const categoryKey = getCategory(profile?.age, profile?.education_level);
-    const currentSet = assessmentQuestions[categoryKey] || assessmentQuestions.adult;
-
-    const answeredCount = Object.keys(selectedAnswers).length;
-    if (answeredCount < 15) {
-      alert(t("answerAllPrompt"));
-      return;
-    }
-
-    setSubmitting(true);
-    let score = 0;
-    for (let i = 0; i < 15; i++) {
-      if (selectedAnswers[i] === currentSet.questions[i].correctIndex) {
-        score++;
-      }
-    }
-
-    const diagnosedLevel = diagnoseLevel(score);
-    const percentage = Math.round((score / 15) * 100);
-    const lang = selectedLanguage || "English";
-    const { description: levelDesc } = getLevelCategoryAndDescription(diagnosedLevel, lang);
-    const summary = `${levelDesc} ${getSummary(score, lang)}`;
-
-    try {
-      // Save diagnosed literacy level to user profile: update both education_level and literacy_level
-      const { error: edErr } = await supabase
-        .from("profiles")
-        .update({ education_level: getLocalizedLevelName(diagnosedLevel, "English") })
-        .eq("id", session.user.id);
-      if (!edErr) {
-        setProfile(prev => prev ? { ...prev, education_level: getLocalizedLevelName(diagnosedLevel, "English") } : null);
-      }
-
-
-
-      const ageGroup = categoryKey.split("_")[0];
-      const diagnosedCategoryKey = `${ageGroup}_level_${diagnosedLevel}`;
-      setCurrentAttemptResult({
-        score,
-        percentage,
-        summary,
-        category: categoryKey,
-        diagnosedCategory: diagnosedCategoryKey,
-        diagnosedLevel: diagnosedLevel
-      });
-      setAssessmentState("results");
-      setSelectedAnswers({});
-    } catch (err) {
-      console.error("Unexpected error submitting assessment:", err);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  // 4. Logged-in Dashboard Page
+  // Dashboard / Assessment Screens when Logged In
   if (session) {
-    const categoryKey = getCategory(profile?.age, profile?.education_level);
-    const currentSet = assessmentQuestions[categoryKey] || assessmentQuestions.adult;
-    const answeredCount = Object.keys(selectedAnswers).length;
+    const userLevel = getLiteracyLevel(profile);
+    const hasDiagnosed = userLevel !== null;
+
+    // Direct assessment screen override (taken once on first launch)
+    if (!hasDiagnosed && assessmentState === "not_started") {
+      return (
+        <main className="diagnostic-outer">
+          <header className="dashboard-header">
+            <div className="dashboard-logo">LISA</div>
+            <div className="dashboard-user">
+              <span>{t("hello")}, {profile?.full_name || session.user.email}</span>
+              <button type="button" className="logout-btn" onClick={handleSignOut}>{t("logout")}</button>
+            </div>
+          </header>
+          <div className="diagnostic-welcome-wrapper">
+            <div className="welcome-banner">
+              <h1>{t("welcomeToLisa")}!</h1>
+            </div>
+            <div className="empty-state-assessment">
+              <p className="intro-copy">{t("initialAssessmentDesc")}</p>
+              <div className="assessment-tours">
+                <div className="tour-badge">🎤 Reading Section (Voice)</div>
+                <div className="tour-badge">❓ Comprehension Section (MCQ)</div>
+                <div className="tour-badge">✍️ Writing Section (Text)</div>
+              </div>
+              <button
+                type="button"
+                className="primary-btn start-assessment-btn"
+                onClick={handleStartInitialAssessment}
+              >
+                {t("takeAssessmentBtn")}
+              </button>
+            </div>
+          </div>
+        </main>
+      );
+    }
+
+    // Diagnostic answering flow (randomized question list, shuffled options)
+    if (assessmentState === "answering") {
+      const q = assessmentQuestionsList[currentStep];
+      const isVoiceReading = q?.type === "reading";
+      const isCompMCQ = q?.type === "comprehension";
+      const isWriting = q?.type === "writing";
+
+      return (
+        <main className="diagnostic-outer">
+          <header className="dashboard-header">
+            <div className="dashboard-logo">LISA</div>
+            <div className="dashboard-user">
+              <span>{t("hello")}, {profile?.full_name || session.user.email}</span>
+            </div>
+          </header>
+          <div className="assessment-card">
+            <div className="assessment-card-header">
+              <div className="step-tag">
+                {t("stepTitle").replace("{current}", currentStep + 1).replace("{total}", 5)}
+              </div>
+              <h2>
+                {isVoiceReading && t("readingSecTitle")}
+                {isCompMCQ && t("compSecTitle")}
+                {isWriting && t("writingSecTitle")}
+              </h2>
+              <div className="progress-bar-bg">
+                <div className="progress-bar-fill" style={{ width: `${((currentStep + 1) / 5) * 100}%` }}></div>
+              </div>
+            </div>
+
+            <div className="question-content-box">
+              {/* READING VOICE TO TEXT WITH MONKEYTYPE UI */}
+              {isVoiceReading && (
+                <div className="reading-q-container">
+                  <p className="helper-text">{t("monkeyTypeTip")}</p>
+                  
+                  <div className="monkeytype-text-block">
+                    {q.targetText.split(/\s+/).map((word, idx) => {
+                      const cleaned = cleanWord(word);
+                      const attempt = readingAttempts[currentStep];
+                      let wordClass = "unspoken";
+                      if (attempt && attempt.scores) {
+                        const targetWordsCleaned = q.targetText.split(/\s+/).map(cleanWord);
+                        const cleanIdx = targetWordsCleaned.indexOf(cleaned);
+                        if (cleanIdx !== -1 && attempt.scores[cleanIdx]) {
+                          wordClass = "correct";
+                        } else if (!isListening) {
+                          wordClass = "incorrect";
+                        }
+                      }
+                      return (
+                        <span key={idx} className={`mt-word ${wordClass}`}>
+                          {word}{" "}
+                        </span>
+                      );
+                    })}
+                  </div>
+
+                  <div className="voice-mic-controls">
+                    {!isListening ? (
+                      <button
+                        type="button"
+                        className="mic-btn"
+                        onClick={() => startListening(q.targetText)}
+                      >
+                        <span className="mic-icon">🎤</span>
+                        {t("micBtnStart")}
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        className="mic-btn listening"
+                        onClick={stopListening}
+                      >
+                        <div className="pulse-ring"></div>
+                        <span className="mic-icon">🔴</span>
+                        {t("micBtnListening")}
+                      </button>
+                    )}
+                  </div>
+
+                  {spokenTranscript && (
+                    <div className="voice-transcript-log">
+                      <strong>Spoken:</strong> "{spokenTranscript}"
+                    </div>
+                  )}
+
+                  {micError && <p className="mic-error-text">{micError}</p>}
+
+                  {/* Manual fallback input */}
+                  <div className="voice-fallback-area">
+                    <label className="fallback-label">{t("skipVoicePrompt")}</label>
+                    <div className="fallback-input-row">
+                      <input
+                        type="text"
+                        placeholder="Type sentence here if mic fails..."
+                        value={manualTextFallback}
+                        onChange={(e) => setManualTextFallback(e.target.value)}
+                      />
+                      <button
+                        type="button"
+                        className="secondary-btn"
+                        onClick={() => handleManualTextSubmit(q.targetText)}
+                      >
+                        {t("skipVoiceBtn")}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* COMPREHENSION SHUFFLED MCQS */}
+              {isCompMCQ && (
+                <div className="comprehension-q-container">
+                  <p className="comprehension-question">{q.question}</p>
+                  <div className="options-grid">
+                    {q.options.map((opt, idx) => {
+                      const isSelected = selectedAnswers[currentStep] === idx;
+                      return (
+                        <button
+                          key={idx}
+                          type="button"
+                          className={`option-btn ${isSelected ? "selected" : ""}`}
+                          onClick={() => setSelectedAnswers({ ...selectedAnswers, [currentStep]: idx })}
+                        >
+                          <span className="option-indicator">{String.fromCharCode(65 + idx)}</span>
+                          <span className="option-label">{opt}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* WRITING PROMPT SECTION */}
+              {isWriting && (
+                <div className="writing-q-container">
+                  <p className="writing-prompt">{q.prompt}</p>
+                  <textarea
+                    className="writing-textarea"
+                    placeholder="Start typing your response here..."
+                    rows={6}
+                    value={writingAnswers[currentStep] || ""}
+                    onChange={(e) => setWritingAnswers({ ...writingAnswers, [currentStep]: e.target.value })}
+                  />
+                  <div className="text-counter">
+                    Characters: {(writingAnswers[currentStep] || "").length} | Words: {(writingAnswers[currentStep] || "").split(/\s+/).filter(Boolean).length}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="assessment-nav-bar">
+              {currentStep < 4 ? (
+                <button
+                  type="button"
+                  className="primary-btn nav-btn"
+                  onClick={handleNextStep}
+                  disabled={
+                    (isVoiceReading && !readingAttempts[currentStep]) ||
+                    (isCompMCQ && selectedAnswers[currentStep] === undefined) ||
+                    (isWriting && !(writingAnswers[currentStep] || "").trim())
+                  }
+                >
+                  {t("nextQuestion")} ➜
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="primary-btn submit-btn"
+                  onClick={submitInitialAssessment}
+                  disabled={submitting || !writingAnswers[4]}
+                >
+                  {submitting ? t("submittingAssessment") : t("submitAssessmentBtn")}
+                </button>
+              )}
+            </div>
+          </div>
+        </main>
+      );
+    }
+
+    // Diagnostic Results screen
+    if (assessmentState === "results") {
+      const currentLevelIndex = getLiteracyLevel(profile) || 1;
+      const latestAttempt = historyAttempts[0];
+
+      return (
+        <main className="diagnostic-outer">
+          <header className="dashboard-header">
+            <div className="dashboard-logo">LISA</div>
+          </header>
+          <div className="results-card">
+            <h2>{t("resultsTitle")}</h2>
+            
+            <div className="results-percentage-circle">
+              <span className="percent-val">{latestAttempt?.score ? Math.round((latestAttempt.score / 50) * 100) : 0}%</span>
+            </div>
+
+            <div className="score-summary-grid">
+              <div className="score-item">
+                <span className="score-label">{t("overallScore")}</span>
+                <span className="score-val">{latestAttempt?.score} / 50</span>
+              </div>
+              <div className="score-item">
+                <span className="score-label">{t("diagnosedLevelTitle")}</span>
+                <span className="score-val" style={{ color: "var(--accent)" }}>
+                  {getLocalizedLevelName(currentLevelIndex, selectedLanguage)}
+                </span>
+              </div>
+            </div>
+
+            <p className="summary-desc-text">
+              {t("diagnosticPassed")} <br />
+              <strong>{getLevelCategoryAndDescription(currentLevelIndex, selectedLanguage).category}</strong>:{" "}
+              {getLevelCategoryAndDescription(currentLevelIndex, selectedLanguage).description}
+            </p>
+
+            <div className="skill-breakdowns-box">
+              <h3>{t("skillBreakdown")}</h3>
+              <div className="skill-progress-bar">
+                <div className="skill-progress-label">
+                  <span>{t("readingSkill")}</span>
+                  <span>{latestAttempt?.skills?.reading || 0}%</span>
+                </div>
+                <div className="bar-bg">
+                  <div className="bar-fill reading" style={{ width: `${latestAttempt?.skills?.reading || 0}%` }}></div>
+                </div>
+              </div>
+              <div className="skill-progress-bar">
+                <div className="skill-progress-label">
+                  <span>{t("compSkill")}</span>
+                  <span>{latestAttempt?.skills?.comprehension || 0}%</span>
+                </div>
+                <div className="bar-bg">
+                  <div className="bar-fill comprehension" style={{ width: `${latestAttempt?.skills?.comprehension || 0}%` }}></div>
+                </div>
+              </div>
+              <div className="skill-progress-bar">
+                <div className="skill-progress-label">
+                  <span>{t("writingSkill")}</span>
+                  <span>{latestAttempt?.skills?.writing || 0}%</span>
+                </div>
+                <div className="bar-bg">
+                  <div className="bar-fill writing" style={{ width: `${latestAttempt?.skills?.writing || 0}%` }}></div>
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              className="primary-btn dashboard-enter-btn"
+              onClick={() => {
+                setAssessmentState("not_started");
+              }}
+            >
+              {t("continueToDashboard")}
+            </button>
+          </div>
+        </main>
+      );
+    }
+
+    // MAIN STUDENT DASHBOARD (Results & Profile Analytics)
+    const currentLevelNum = getLiteracyLevel(profile) || 1;
+    const currentLang = selectedLanguage || "English";
 
     return (
       <div className="dashboard-container">
-        <header className="dashboard-header">
-          <div className="dashboard-logo" style={{ display: "flex", flexDirection: "column", lineHeight: "1.1" }}>
-            LISA
-            <span style={{ fontSize: "0.75rem", fontWeight: 500, color: "var(--muted)", letterSpacing: "0.2px", textTransform: "uppercase" }}>
-              Literacy Intelligience Support Assistance
-            </span>
-          </div>
-          <div className="dashboard-user">
-            <span style={{ fontWeight: 600 }}>
-              {t("hello")}, {profile?.full_name || session.user.email}
-            </span>
+        {/* Navigation Sidebar */}
+        <aside className="dashboard-sidebar">
+          <div className="sidebar-brand">LISA</div>
+          <nav className="sidebar-menu">
             <button
-              type="button"
-              className="logout-btn"
-              disabled={submitting}
-              onClick={handleSignOut}
+              className={`menu-item ${dashboardTab === "progress" ? "active" : ""}`}
+              onClick={() => setDashboardTab("progress")}
             >
-              {submitting ? t("signingOut") : t("logout")}
+              <span>{t("tabProgress")}</span>
             </button>
-            {renderLanguageDropdown(true)}
-          </div>
-        </header>
+            <button
+              className={`menu-item ${dashboardTab === "profile" ? "active" : ""}`}
+              onClick={() => setDashboardTab("profile")}
+            >
+              <span>{t("tabProfile")}</span>
+            </button>
+          </nav>
+        </aside>
 
-        <main className="dashboard-main">
-          {assessmentState === "answering" && (
-            <div className="assessment-card">
-              <div className="assessment-card-header">
-                <h2>{getLocalizedText(currentSet.title)}</h2>
-                <p className="assessment-desc">{getLocalizedText(currentSet.description)}</p>
-                <div className="progress-container">
-                  <div className="progress-text">
-                    {t("questionProgress")
-                      .replace("{current}", answeredCount)
-                      .replace("{total}", 15)}
+        {/* Main Content Area */}
+        <div className="dashboard-content-area">
+          <header className="dashboard-header">
+            <div className="header-info">
+              <h2>{t(dashboardTab === "progress" ? "tabProgress" : "tabProfile")}</h2>
+            </div>
+            <div className="dashboard-user">
+              <span>{profile?.full_name || session.user.email}</span>
+              <button type="button" className="logout-btn" onClick={handleSignOut}>{t("logout")}</button>
+              {renderLanguageDropdown(true)}
+            </div>
+          </header>
+
+          <main className="dashboard-main-view">
+            {/* TABS: PROGRESS & HISTORY */}
+            {dashboardTab === "progress" && (
+              <div className="progress-tab-wrapper">
+                <div className="stats-header-grid">
+                  <div className="stat-box">
+                    <h5>{t("overallLevel")}</h5>
+                    <h3 style={{ fontSize: "1.3rem", color: "var(--accent)" }}>
+                      {getLocalizedLevelName(currentLevelNum, currentLang).split(":")[0]}
+                    </h3>
                   </div>
-                  <div className="progress-bar-bg">
-                    <div
-                      className="progress-bar-fill"
-                      style={{ width: `${(answeredCount / 15) * 100}%` }}
-                    ></div>
+                  <div className="stat-box">
+                    <h5>Overall Skill Score</h5>
+                    <h3>{historyAttempts[0]?.score || 0} / 50</h3>
+                  </div>
+                  <div className="stat-box">
+                    <h5>Status</h5>
+                    <h3 style={{ color: "#10b981" }}>Diagnosed</h3>
                   </div>
                 </div>
-              </div>
 
-              <form onSubmit={handleSubmitAssessment} className="assessment-form">
-                <div className="questions-list">
-                  {currentSet.questions.map((q, idx) => (
-                    <div key={q.id} className="question-item-card">
-                      <p className="question-text">
-                        <span className="question-number">{idx + 1}.</span> {getLocalizedText(q.question)}
-                      </p>
-                      <div className="options-grid">
-                        {getLocalizedOptions(q.options).map((opt, optIdx) => {
-                          const isSelected = selectedAnswers[idx] === optIdx;
-                          return (
-                            <button
-                              key={optIdx}
-                              type="button"
-                              className={`option-btn ${isSelected ? "selected" : ""}`}
-                              onClick={() => {
-                                setSelectedAnswers(prev => ({
-                                  ...prev,
-                                  [idx]: optIdx,
-                                }));
-                              }}
-                            >
-                              <span className="option-indicator">
-                                {String.fromCharCode(65 + optIdx)}
-                              </span>
-                              <span className="option-label">{opt}</span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="assessment-submit-bar">
-                  <button
-                    type="submit"
-                    className="primary-btn submit-btn"
-                    disabled={answeredCount < 15 || submitting}
-                  >
-                    {submitting ? t("submittingAssessment") : t("submitAssessmentBtn")}
+                <div style={{ textAlign: "center", marginBottom: "32px" }}>
+                  <button type="button" className="primary-btn" onClick={handleStartInitialAssessment} style={{ padding: "14px 32px", fontSize: "1.1rem" }}>
+                    Take / Retake Assessment
                   </button>
                 </div>
-              </form>
-            </div>
-          )}
 
-          {assessmentState === "results" && currentAttemptResult && (
-            <div className="results-card">
-              <h2>{t("resultsTitle")}</h2>
-              <div className="results-score-container">
-                <div className="results-percentage-circle">
-                  <span className="percent-val">{currentAttemptResult.percentage}%</span>
+                {/* Core skills analytics progress bars */}
+                <div className="skills-analytics-card">
+                  <h4>{t("skillBreakdown")}</h4>
+                  <div className="skill-progress-bar">
+                    <div className="skill-progress-label">
+                      <span>{t("readingSkill")}</span>
+                      <span>{calculateSkillProficiency("reading")}%</span>
+                    </div>
+                    <div className="bar-bg">
+                      <div className="bar-fill reading" style={{ width: `${calculateSkillProficiency("reading")}%` }}></div>
+                    </div>
+                  </div>
+                  <div className="skill-progress-bar">
+                    <div className="skill-progress-label">
+                      <span>{t("compSkill")}</span>
+                      <span>{calculateSkillProficiency("comprehension")}%</span>
+                    </div>
+                    <div className="bar-bg">
+                      <div className="bar-fill comprehension" style={{ width: `${calculateSkillProficiency("comprehension")}%` }}></div>
+                    </div>
+                  </div>
+                  <div className="skill-progress-bar">
+                    <div className="skill-progress-label">
+                      <span>{t("writingSkill")}</span>
+                      <span>{calculateSkillProficiency("writing")}%</span>
+                    </div>
+                    <div className="bar-bg">
+                      <div className="bar-fill writing" style={{ width: `${calculateSkillProficiency("writing")}%` }}></div>
+                    </div>
+                  </div>
                 </div>
-                <div className="results-score-details">
-                  <p className="score-count">
-                    <strong>{t("correctAnswers")}:</strong> {currentAttemptResult.score} / 15
-                  </p>
-                  <p className="score-category">
-                    <strong>{t("categoryLabel")}:</strong>{" "}
-                    {getLevelCategoryAndDescription(currentAttemptResult.diagnosedLevel, selectedLanguage || "English").category}
-                  </p>
+
+                {/* Achievements Badges */}
+                <div className="badges-gallery-card">
+                  <h4>{t("badgesEarned")}</h4>
+                  <div className="badges-grid">
+                    <div className="badge-item unlocked">
+                      <div className="badge-art">🏁</div>
+                      <h6>First Attempt</h6>
+                      <p>Completed the initial diagnostic assessment.</p>
+                    </div>
+                    
+                    <div className={`badge-item ${calculateSkillProficiency("reading") >= 75 ? "unlocked" : "locked"}`}>
+                      <div className="badge-art">🎤</div>
+                      <h6>Voice Pioneer</h6>
+                      <p>Achieved 75% or higher in Reading Speech matching.</p>
+                    </div>
+
+                    <div className={`badge-item ${calculateSkillProficiency("comprehension") >= 75 ? "unlocked" : "locked"}`}>
+                      <div className="badge-art">❓</div>
+                      <h6>Comprehension Pro</h6>
+                      <p>Achieved 75% or higher in MCQ evaluation.</p>
+                    </div>
+
+                    <div className={`badge-item ${calculateSkillProficiency("writing") >= 75 ? "unlocked" : "locked"}`}>
+                      <div className="badge-art">✍️</div>
+                      <h6>Spelling Guru</h6>
+                      <p>Achieved 75% or higher in prompt writing assessment.</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* History list */}
+                <div className="history-table-wrapper">
+                  <h4>{t("attemptHistory")}</h4>
+                  {historyAttempts.length === 0 ? (
+                    <p style={{ padding: "20px", color: "var(--muted)" }}>No evaluations recorded yet.</p>
+                  ) : (
+                    <table className="history-table">
+                      <thead>
+                        <tr>
+                          <th>{t("historyDate")}</th>
+                          <th>{t("historyType")}</th>
+                          <th>{t("historyScore")}</th>
+                          <th>Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {historyAttempts.map((h, i) => (
+                          <tr key={i}>
+                            <td>{h.date}</td>
+                            <td>{h.type}</td>
+                            <td>{h.score} / 50</td>
+                            <td>
+                              <span className={`score-badge ${h.passed ? "high" : "low"}`}>
+                                Evaluated
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
                 </div>
               </div>
+            )}
 
-              <div className="summary-section">
-                <h3>{t("summaryLabel")}</h3>
-                <p className="summary-text">
-                  {(() => {
-                    const lang = selectedLanguage || "English";
-                    const { description: levelDesc } = getLevelCategoryAndDescription(currentAttemptResult.diagnosedLevel, lang);
-                    const feedback = getSummary(currentAttemptResult.score, lang);
-                    return `${levelDesc} ${feedback}`;
-                  })()}
-                </p>
+            {/* TABS: PROFILE EDITING */}
+            {dashboardTab === "profile" && (
+              <div className="profile-tab-wrapper">
+                {!editingProfile ? (
+                  <div className="profile-info-card">
+                    <div className="profile-avatar">👤</div>
+                    <h3>{profile?.full_name}</h3>
+                    <p><strong>Email:</strong> {session.user.email}</p>
+                    <p><strong>Age:</strong> {profile?.age || "N/A"}</p>
+                    <p><strong>Preferred Language:</strong> {profile?.preferred_language}</p>
+                    <p><strong>Diagnosed Level:</strong> {getLocalizedLevelName(currentLevelNum, currentLang)}</p>
+
+                    <button
+                      type="button"
+                      className="primary-btn edit-profile-trigger"
+                      onClick={handleStartEdit}
+                    >
+                      Update Profile
+                    </button>
+                  </div>
+                ) : (
+                  <form className="auth-form active editing-profile-form" onSubmit={handleSaveProfileEdit}>
+                    <h3>Update Profile Info</h3>
+                    <label>
+                      Full Name
+                      <input
+                        type="text"
+                        required
+                        value={editFullName}
+                        onChange={(e) => setEditFullName(e.target.value)}
+                      />
+                    </label>
+                    <label>
+                      Age
+                      <input
+                        type="number"
+                        min="5"
+                        max="120"
+                        required
+                        value={editAge}
+                        onChange={(e) => setEditAge(e.target.value)}
+                      />
+                    </label>
+                    <label>
+                      Preferred Language
+                      <select
+                        required
+                        value={editPreferredLang}
+                        onChange={(e) => setEditPreferredLang(e.target.value)}
+                      >
+                        {languages.map((l) => (
+                          <option key={l} value={l}>{t(l + "Option")}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      Current Education Status
+                      <select
+                        required
+                        value={editEdLevel}
+                        onChange={(e) => setEditEdLevel(e.target.value)}
+                      >
+                        {educationLevels.map((ed) => (
+                          <option key={ed} value={ed}>{t(ed + "Option")}</option>
+                        ))}
+                      </select>
+                    </label>
+
+                    <div className="two-col" style={{ marginTop: "14px" }}>
+                      <button type="submit" className="primary-btn" disabled={submitting}>
+                        {submitting ? "Saving..." : "Save Changes"}
+                      </button>
+                      <button
+                        type="button"
+                        className="secondary-btn"
+                        onClick={() => setEditingProfile(false)}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                )}
               </div>
-
-              <button
-                type="button"
-                className="primary-btn back-btn"
-                onClick={() => setAssessmentState("not_started")}
-              >
-                {t("backToDashboardBtn")}
-              </button>
-            </div>
-          )}
-
-          {assessmentState === "not_started" && (
-            <div className="dashboard-home-card">
-              <div className="welcome-banner" style={{ textAlign: "center", marginBottom: "1.5rem" }}>
-                <h1>{t("welcomeToLisa")}</h1>
-              </div>
-
-              <div className="empty-state-assessment" style={{ textAlign: "center", padding: "2.5rem 1.5rem", background: "var(--card-bg)", borderRadius: "12px", border: "1px solid var(--border)", maxWidth: "600px", margin: "0 auto" }}>
-                <p className="intro-copy" style={{ fontSize: "1.15rem", marginBottom: "1.5rem", lineHeight: "1.6" }}>
-                  {t("initialAssessmentDesc")}
-                </p>
-                <button
-                  type="button"
-                  className="primary-btn start-assessment-btn"
-                  onClick={() => {
-                    setSelectedAnswers({});
-                    setAssessmentState("answering");
-                  }}
-                >
-                  {t("takeAssessmentBtn")}
-                </button>
-              </div>
-            </div>
-          )}
-        </main>
+            )}
+          </main>
+        </div>
       </div>
     );
   }
 
-  // 5. Login / Register / Forgot Password Forms
+  // LOGIN / REGISTER SCREENS (Not Logged In)
   return (
     <main className="shell">
       <div className="brand-logo-top">
         LISA
-        <span className="brand-logo-tagline">Literacy Intelligience Support Assistance</span>
+        <span className="brand-logo-tagline">Literacy Intelligence Support Assistant</span>
       </div>
       {renderLanguageDropdown()}
       <section className="hero-panel">
@@ -1779,20 +2000,10 @@ function App() {
               <div className="two-col">
                 <label>
                   {t("preferredLanguage")}
-                  <select
-                    name="language"
-                    required
-                    value={selectedLanguage || ""}
-                    onChange={(e) => handleLanguageSelect(e.target.value)}
-                    disabled={submitting}
-                  >
-                    <option value="" disabled>
-                      {t("selectLanguage")}
-                    </option>
+                  <select name="language" required value={selectedLanguage || ""} onChange={(e) => handleLanguageSelect(e.target.value)} disabled={submitting}>
+                    <option value="" disabled>{t("selectLanguage")}</option>
                     {languages.map((language) => (
-                      <option key={language} value={language}>
-                        {t(language + "Option")}
-                      </option>
+                      <option key={language} value={language}>{t(language + "Option")}</option>
                     ))}
                   </select>
                 </label>
@@ -1801,13 +2012,9 @@ function App() {
               <label>
                 {t("educationLevel")}
                 <select name="educationLevel" required defaultValue="" disabled={submitting}>
-                  <option value="" disabled>
-                    {t("selectEducation")}
-                  </option>
-                  {educationLevels.map((educationLevel) => (
-                    <option key={educationLevel} value={educationLevel}>
-                      {t(educationLevel + "Option")}
-                    </option>
+                  <option value="" disabled>{t("selectEducation")}</option>
+                  {educationLevels.map((ed) => (
+                    <option key={ed} value={ed}>{t(ed + "Option")}</option>
                   ))}
                 </select>
               </label>
@@ -1872,26 +2079,18 @@ function App() {
             <h2>{t("chooseLanguage")}</h2>
             <p>{t("selectLanguagePrompt")}</p>
             <div className="lang-grid">
-              <button className="lang-btn" onClick={() => handleLanguageSelect("English")}>
-                <span className="native">English</span>
-                <span style={{ fontSize: "0.85rem", opacity: 0.7 }}>English</span>
-              </button>
-              <button className="lang-btn" onClick={() => handleLanguageSelect("Hindi")}>
-                <span className="native">हिन्दी</span>
-                <span style={{ fontSize: "0.85rem", opacity: 0.7 }}>Hindi</span>
-              </button>
-              <button className="lang-btn" onClick={() => handleLanguageSelect("Kannada")}>
-                <span className="native">ಕನ್ನಡ</span>
-                <span style={{ fontSize: "0.85rem", opacity: 0.7 }}>Kannada</span>
-              </button>
-              <button className="lang-btn" onClick={() => handleLanguageSelect("Telugu")}>
-                <span className="native">తెలుగు</span>
-                <span style={{ fontSize: "0.85rem", opacity: 0.7 }}>Telugu</span>
-              </button>
-              <button className="lang-btn" onClick={() => handleLanguageSelect("Tamil")}>
-                <span className="native">தமிழ்</span>
-                <span style={{ fontSize: "0.85rem", opacity: 0.7 }}>Tamil</span>
-              </button>
+              {languages.map((l) => (
+                <button key={l} className="lang-btn" onClick={() => handleLanguageSelect(l)}>
+                  <span className="native">
+                    {l === "English" && "English"}
+                    {l === "Hindi" && "हिन्दी"}
+                    {l === "Kannada" && "ಕನ್ನಡ"}
+                    {l === "Telugu" && "తెలుగు"}
+                    {l === "Tamil" && "தமிழ்"}
+                  </span>
+                  <span style={{ fontSize: "0.85rem", opacity: 0.7 }}>{l}</span>
+                </button>
+              ))}
             </div>
           </div>
         </div>
