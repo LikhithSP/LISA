@@ -59,6 +59,24 @@ const getLevelCategoryAndDescription = (level, lang) => {
   return { category: `Level ${level}`, description: "" };
 };
 
+const getPasswordStrength = (pass) => {
+  if (!pass) return null;
+  let score = 0;
+  if (pass.length >= 6) score++;
+  if (pass.length >= 8) score++;
+  if (/[A-Z]/.test(pass)) score++;
+  if (/[0-9]/.test(pass)) score++;
+  if (/[^A-Za-z0-9]/.test(pass)) score++;
+
+  if (score <= 2) {
+    return { labelKey: "passwordWeak", color: "#ef4444", pct: 33 };
+  } else if (score <= 4) {
+    return { labelKey: "passwordMedium", color: "#f97316", pct: 66 };
+  } else {
+    return { labelKey: "passwordStrong", color: "#22c55e", pct: 100 };
+  }
+};
+
 const getLiteracyLevel = (userProfile) => {
   if (userProfile?.literacy_level) return Number(userProfile.literacy_level);
   const ed = userProfile?.education_level;
@@ -73,11 +91,10 @@ const getLiteracyLevel = (userProfile) => {
 };
 
 const educationLevels = [
-  "Level 1: Cannot read letters",
-  "Level 2: Can read letters but not words",
-  "Level 3: Can read words but not sentences",
-  "Level 4: Can read sentences but struggles with understanding",
-  "Level 5: Can read and understand basic content",
+  "No formal education",
+  "Primary",
+  "Secondary",
+  "Higher secondary",
 ];
 
 const translations = {
@@ -133,7 +150,7 @@ const translations = {
     passwordPlaceholder: "Enter your password",
     fullNamePlaceholder: "Your name",
     agePlaceholder: "Age",
-    emailRegisterPlaceholder: "learner@example.com",
+    emailRegisterPlaceholder: "Example: ramesh@gmail.com",
     passwordRegisterPlaceholder: "Create a password",
     newPasswordPlaceholder: "Enter new password",
     // Language Dropdown Options
@@ -164,6 +181,9 @@ const translations = {
     categoryLabel: "Category",
     dateLabel: "Date",
     answerAllPrompt: "Please answer all questions before submitting.",
+    passwordWeak: "Weak",
+    passwordMedium: "Medium",
+    passwordStrong: "Strong",
   },
   Hindi: {
     initialAssessmentDesc: "आपके व्यक्तिगत शिक्षण क्षेत्र में आपका स्वागत है! आइए एक त्वरित 15-प्रश्नों के प्रारंभिक आकलन के साथ शुरुआत करें। यह हमें भविष्य की सामग्री को अनुकूलित करने में मदद करता है।",
@@ -180,7 +200,7 @@ const translations = {
     createProfile: "अपना शिक्षार्थी प्रोफ़ाइल बनाएं",
     fullName: "पूरा नाम",
     age: "उम्र",
-    preferredLanguage: "लक्ष्य भाषा",
+    preferredLanguage: "पसंदीदा भाषा",
     selectLanguage: "भाषा चुनें",
     educationLevel: "शिक्षा का स्तर",
     selectEducation: "शिक्षा का स्तर चुनें",
@@ -217,7 +237,7 @@ const translations = {
     passwordPlaceholder: "अपना पासवर्ड दर्ज करें",
     fullNamePlaceholder: "आपका नाम",
     agePlaceholder: "उम्र",
-    emailRegisterPlaceholder: "learner@example.com",
+    emailRegisterPlaceholder: "उदाहरण: ramesh@gmail.com",
     passwordRegisterPlaceholder: "एक पासवर्ड बनाएं",
     newPasswordPlaceholder: "नया पासवर्ड दर्ज करें",
     // Language Dropdown Options
@@ -248,6 +268,9 @@ const translations = {
     categoryLabel: "श्रेणी",
     dateLabel: "तिथि",
     answerAllPrompt: "कृपया सबमिट करने से पहले सभी प्रश्नों के उत्तर दें।",
+    passwordWeak: "कमज़ोर",
+    passwordMedium: "मध्यम",
+    passwordStrong: "मजबूत",
   },
   Kannada: {
     initialAssessmentDesc: "ನಿಮ್ಮ ವೈಯಕ್ತೀಕರಿಸಿದ ಕಲಿಕಾ ಜಾಗಕ್ಕೆ ಸುಸ್ವಾಗತ! 15-ಪ್ರಶ್ನೆಗಳ ತ್ವರಿತ ಆರಂಭಿಕ ಮೌಲ್ಯಮಾಪನದೊಂದಿಗೆ ಪ್ರಾರಂಭಿಸೋಣ. ಇದು ಭವಿಷ್ಯದ ವಿಷಯವನ್ನು ಕಸ್ಟಮೈಸ್ ಮಾಡಲು ನಮಗೆ ಸಹಾಯ ಮಾಡುತ್ತದೆ।",
@@ -264,7 +287,7 @@ const translations = {
     createProfile: "ನಿಮ್ಮ ಕಲಿಯುವವರ ಪ್ರೊಫೈಲ್ ರಚಿಸಿ",
     fullName: "ಪೂರ್ಣ ಹೆಸರು",
     age: "ವಯಸ್ಸು",
-    preferredLanguage: "ಕಲಿಯಲು ಬಯಸುವ ಭಾಷೆ",
+    preferredLanguage: "ಆದ್ಯತೆಯ ಭಾಷೆ",
     selectLanguage: "ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ",
     educationLevel: "ಶಿಕ್ಷಣದ ಮಟ್ಟ",
     selectEducation: "ಶಿಕ್ಷಣದ ಮಟ್ಟವನ್ನು ಆಯ್ಕೆಮಾಡಿ",
@@ -301,7 +324,7 @@ const translations = {
     passwordPlaceholder: "ನಿಮ್ಮ ಪಾಸ್‌ವರ್ಡ್ ನಮೂದಿಸಿ",
     fullNamePlaceholder: "ನಿಮ್ಮ ಹೆಸರು",
     agePlaceholder: "ವಯಸ್ಸು",
-    emailRegisterPlaceholder: "learner@example.com",
+    emailRegisterPlaceholder: "ಉದಾಹರಣೆ: ramesh@gmail.com",
     passwordRegisterPlaceholder: "ಪಾಸ್‌ವರ್ಡ್ ರಚಿಸಿ",
     newPasswordPlaceholder: "ಹೊಸ ಪಾಸ್‌ವರ್ಡ್ ನಮೂದಿಸಿ",
     // Language Dropdown Options
@@ -332,6 +355,9 @@ const translations = {
     categoryLabel: "ವರ್ಗ",
     dateLabel: "ದಿನಾಂక",
     answerAllPrompt: "ದಯವಿಟ್ಟು ಸಲ್ಲಿಸುವ ಮುನ್ನ ಎಲ್ಲಾ ಪ್ರಶ್ನೆಗಳಿಗೆ ಉತ್ತರಿಸಿ.",
+    passwordWeak: "ದುರ್ಬಲ",
+    passwordMedium: "ಮಧ್ಯಮ",
+    passwordStrong: "ಬಲವಾದ",
   },
   Telugu: {
     initialAssessmentDesc: "మీ వ్యక్తిగతీకరించిన అభ్యాస స్థలానికి స్వాగతం! శీఘ్ర 15-ప్రశ్నల ప్రాథమిక అంచనాతో ప్రారంభిద్దాం. ఇది భవిష్యత్ కంటెంట్‌ని అనుకూలీకరించడానికి మాకు సహాయపడుతుంది।",
@@ -348,7 +374,7 @@ const translations = {
     createProfile: "మీ అభ్యాస ప్రొఫైల్‌ను సృష్టించండి",
     fullName: "పూర్తి పేరు",
     age: "వయస్సు",
-    preferredLanguage: "లక్ష్య భాష",
+    preferredLanguage: "ప్రాధాన్యత కలిగిన భాష",
     selectLanguage: "భాషను ఎంచుకోండి",
     educationLevel: "విద్యా స్థాయి",
     selectEducation: "విద్యా స్థాయిని ఎంచుకోండి",
@@ -385,7 +411,7 @@ const translations = {
     passwordPlaceholder: "మీ పాస్‌వర్డ్‌ను నమోదు చేయండి",
     fullNamePlaceholder: "మీ పేరు",
     agePlaceholder: "వయస్సు",
-    emailRegisterPlaceholder: "learner@example.com",
+    emailRegisterPlaceholder: "ఉదాహరణ: ramesh@gmail.com",
     passwordRegisterPlaceholder: "పాస్‌వర్డ్‌ను సృష్టించండి",
     newPasswordPlaceholder: "కొత్త పాస్‌వర్డ్‌ను నమోదు చేయండి",
     // Language Dropdown Options
@@ -416,6 +442,9 @@ const translations = {
     categoryLabel: "వర్గం",
     dateLabel: "తేదీ",
     answerAllPrompt: "దయచేసి సమర్పించే ముందు అన్ని ప్రశ్నలకు సమాధానం ఇవ్వండి.",
+    passwordWeak: "బలహీనమైనది",
+    passwordMedium: "మధ్యస్థంగా ఉంది",
+    passwordStrong: "బలంగా ఉంది",
   },
   Tamil: {
     initialAssessmentDesc: "உங்கள் தனிப்பயனாக்கப்பட்ட கற்றல் இடத்திற்கு வரவேற்கிறோம்! 15-கேள்விகள் கொண்ட விரைவான ஆரம்ப மதிப்பீட்டுடன் தொடங்குவோம். இது எதிர்கால பாடங்களை வடிவமைக்க நமக்கு உதவும்।",
@@ -432,7 +461,7 @@ const translations = {
     createProfile: "உங்கள் கற்றல் சுயவிவரத்தை உருவாக்கவும்",
     fullName: "முழு பெயர்",
     age: "வயது",
-    preferredLanguage: "இலக்கு மொழி",
+    preferredLanguage: "விருப்பமான மொழி",
     selectLanguage: "மொழியைத் தேர்ந்தெடுக்கவும்",
     educationLevel: "கல்வி தகுதி",
     selectEducation: "கல்வி தகுதியைத் தேர்ந்தெடுக்கவும்",
@@ -469,7 +498,7 @@ const translations = {
     passwordPlaceholder: "உங்கள் கடவுச்சொல்லை உள்ளிடவும்",
     fullNamePlaceholder: "உங்கள் பெயர்",
     agePlaceholder: "வயது",
-    emailRegisterPlaceholder: "learner@example.com",
+    emailRegisterPlaceholder: "உதாரணம்: ramesh@gmail.com",
     passwordRegisterPlaceholder: "கடவுச்சொல்லை உருவாக்கவும்",
     newPasswordPlaceholder: "புதிய கடவுச்சொல்லை உள்ளிடவும்",
     // Language Dropdown Options
@@ -500,6 +529,9 @@ const translations = {
     categoryLabel: "வகை",
     dateLabel: "தேதி",
     answerAllPrompt: "சமர்ப்பிக்கும் முன் அனைத்து கேள்விகளுக்கும் பதிலளிக்கவும்.",
+    passwordWeak: "பலவீனமானது",
+    passwordMedium: "நடுத்தரமானது",
+    passwordStrong: "வலிமையானது",
   },
 };
 
@@ -522,276 +554,276 @@ const assessmentQuestions = {
       Tamil: "உங்கள் தற்போதைய எழுத்தறிவு நிலையை மதிப்பிட நிலை 1 முதல் 5 வரையிலான 15 கேள்விகள்."
     },
     questions: [
-    {
-      id: "gen_q_1",
-      question: {
-      English: "Which letter matches the shape of capital 'A'?",
-      Hindi: "कौन सा अक्षर बड़े अक्षर 'A' के आकार से मेल खाता है?",
-      Kannada: "ಯಾವ ಅಕ್ಷರವು ದೊಡ್ಡ ಅಕ್ಷರ 'A' ನ ಆಕಾರಕ್ಕೆ ಹೊಂದಿಕೆಯಾಗುತ್ತದೆ?",
-      Telugu: "ఏ అక్షరం క్యాపిటల్ 'A' ఆకారంతో సరిపోలుతుంది?",
-      Tamil: "எந்த எழுத்து பெரிய எழுத்து 'A'-இன் வடிவத்துடன் ஒத்துப்போகிறது?"
+      {
+        id: "gen_q_1",
+        question: {
+          English: "Which letter matches the shape of capital 'A'?",
+          Hindi: "कौन सा अक्षर बड़े अक्षर 'A' के आकार से मेल खाता है?",
+          Kannada: "ಯಾವ ಅಕ್ಷರವು ದೊಡ್ಡ ಅಕ್ಷರ 'A' ನ ಆಕಾರಕ್ಕೆ ಹೊಂದಿಕೆಯಾಗುತ್ತದೆ?",
+          Telugu: "ఏ అక్షరం క్యాపిటల్ 'A' ఆకారంతో సరిపోలుతుంది?",
+          Tamil: "எந்த எழுத்து பெரிய எழுத்து 'A'-இன் வடிவத்துடன் ஒத்துப்போகிறது?"
+        },
+        options: {
+          English: ["V", "H", "M", "A"],
+          Hindi: ["V", "H", "M", "A"],
+          Kannada: ["V", "H", "M", "A"],
+          Telugu: ["V", "H", "M", "A"],
+          Tamil: ["V", "H", "M", "A"]
+        },
+        correctIndex: 3
       },
-      options: {
-      English: ["V", "H", "M", "A"],
-      Hindi: ["V", "H", "M", "A"],
-      Kannada: ["V", "H", "M", "A"],
-      Telugu: ["V", "H", "M", "A"],
-      Tamil: ["V", "H", "M", "A"]
+      {
+        id: "gen_q_2",
+        question: {
+          English: "Find the lowercase letter that matches 'b'.",
+          Hindi: "छोटे अक्षर 'b' से मेल खाने वाला अक्षर खोजें।",
+          Kannada: "ಸಣ್ಣ ಅಕ್ಷರ 'b' ಗೆ ಹೊಂದಿಕೆಯಾಗುವ ಅಕ್ಷರವನ್ನು ಹುಡುಕಿ.",
+          Telugu: "చిన్న అక్షరం 'b' కి సరిపోయే అక్షరాన్ని కనుగొనండి.",
+          Tamil: "'b' என்ற சிறிய எழுத்துடன் பொருந்தும் எழுத்தைக் கண்டறியவும்."
+        },
+        options: {
+          English: ["p", "d", "q", "b"],
+          Hindi: ["p", "d", "q", "b"],
+          Kannada: ["p", "d", "q", "b"],
+          Telugu: ["p", "d", "q", "b"],
+          Tamil: ["p", "d", "q", "b"]
+        },
+        correctIndex: 3
       },
-      correctIndex: 3
-    },
-    {
-      id: "gen_q_2",
-      question: {
-      English: "Find the lowercase letter that matches 'b'.",
-      Hindi: "छोटे अक्षर 'b' से मेल खाने वाला अक्षर खोजें।",
-      Kannada: "ಸಣ್ಣ ಅಕ್ಷರ 'b' ಗೆ ಹೊಂದಿಕೆಯಾಗುವ ಅಕ್ಷರವನ್ನು ಹುಡುಕಿ.",
-      Telugu: "చిన్న అక్షరం 'b' కి సరిపోయే అక్షరాన్ని కనుగొనండి.",
-      Tamil: "'b' என்ற சிறிய எழுத்துடன் பொருந்தும் எழுத்தைக் கண்டறியவும்."
+      {
+        id: "gen_q_3",
+        question: {
+          English: "Which letter looks like a circular ring?",
+          Hindi: "कौन सा अक्षर एक वृत्ताकार रिंग (गोले) जैसा दिखता है?",
+          Kannada: "ಯಾವ ಅಕ್ಷರವು ವೃತ್ತಾಕಾರದ ಬಳೆಯಂತೆ ಕಾಣುತ್ತದೆ?",
+          Telugu: "ఏ అಕ್ಷరం గుండ్రటి వలయంలా ఉంటుంది?",
+          Tamil: "வட்ட வளையம் போல இருக்கும் எழுத்து எது?"
+        },
+        options: {
+          English: ["L", "X", "T", "O"],
+          Hindi: ["L", "X", "T", "O"],
+          Kannada: ["L", "X", "T", "O"],
+          Telugu: ["L", "X", "T", "O"],
+          Tamil: ["L", "X", "T", "O"]
+        },
+        correctIndex: 3
       },
-      options: {
-      English: ["p", "d", "q", "b"],
-      Hindi: ["p", "d", "q", "b"],
-      Kannada: ["p", "d", "q", "b"],
-      Telugu: ["p", "d", "q", "b"],
-      Tamil: ["p", "d", "q", "b"]
+      {
+        id: "gen_q_4",
+        question: {
+          English: "Which letter makes the starting sound of the word 'Cat'?",
+          Hindi: "कौन सा अक्षर 'Cat' (बिल्ली) शब्द की शुरुआती ध्वनि बनाता है?",
+          Kannada: "ಯಾವ ಅಕ್ಷರವು 'Cat' ಪದದ ಆರಂಭಿಕ ಧ್ವನಿಯನ್ನು ಮಾಡುತ್ತದೆ?",
+          Telugu: "'Cat' పదానికి ప్రారంభ ధ్వనిని ఏ అక్షరం చేస్తుంది?",
+          Tamil: "'Cat' என்ற வார்த்தையின் தொடக்க ஒலியை எந்த எழுத்து உருவாக்குகிறது?"
+        },
+        options: {
+          English: ["S", "K", "G", "C"],
+          Hindi: ["S", "K", "G", "C"],
+          Kannada: ["S", "K", "G", "C"],
+          Telugu: ["S", "K", "G", "C"],
+          Tamil: ["S", "K", "G", "C"]
+        },
+        correctIndex: 3
       },
-      correctIndex: 3
-    },
-    {
-      id: "gen_q_3",
-      question: {
-      English: "Which letter looks like a circular ring?",
-      Hindi: "कौन सा अक्षर एक वृत्ताकार रिंग (गोले) जैसा दिखता है?",
-      Kannada: "ಯಾವ ಅಕ್ಷರವು ವೃತ್ತಾಕಾರದ ಬಳೆಯಂತೆ ಕಾಣುತ್ತದೆ?",
-      Telugu: "ఏ అಕ್ಷరం గుండ్రటి వలయంలా ఉంటుంది?",
-      Tamil: "வட்ட வளையம் போல இருக்கும் எழுத்து எது?"
+      {
+        id: "gen_q_5",
+        question: {
+          English: "Identify the missing letter in the word: 'D_g'.",
+          Hindi: "शब्द में छूटा हुआ अक्षर पहचानें: 'D_g'।",
+          Kannada: "ಪದದಲ್ಲಿ ಬಿಟ್ಟುಹೋದ ಅಕ್ಷರವನ್ನು ಗುರುತಿಸಿ: 'D_g'.",
+          Telugu: "పదంలో లేని అక్షరాన్ని గుర్తించండి: 'D_g'.",
+          Tamil: "வார்த்தையில் விடுபட்ட எழுத்தைக் கண்டறியவும்: 'D_g'."
+        },
+        options: {
+          English: ["e", "a", "i", "o"],
+          Hindi: ["e", "a", "i", "o"],
+          Kannada: ["e", "a", "i", "o"],
+          Telugu: ["e", "a", "i", "o"],
+          Tamil: ["e", "a", "i", "o"]
+        },
+        correctIndex: 3
       },
-      options: {
-      English: ["L", "X", "T", "O"],
-      Hindi: ["L", "X", "T", "O"],
-      Kannada: ["L", "X", "T", "O"],
-      Telugu: ["L", "X", "T", "O"],
-      Tamil: ["L", "X", "T", "O"]
+      {
+        id: "gen_q_6",
+        question: {
+          English: "Choose the correct word for the picture of something we read:",
+          Hindi: "हम जो पढ़ते हैं उसके चित्र के लिए सही शब्द चुनें:",
+          Kannada: "ನಾವು ಓದುವ ವಸ್ತುವಿನ ಚಿತ್ರಕ್ಕೆ ಸರಿಯಾದ ಪದವನ್ನು ಆರಿಸಿ:",
+          Telugu: "మనం చదివే వస్తువు కోసం సరైన పదాన్ని ఎంచుకోండి:",
+          Tamil: "நாம் படிக்கும் பொருளுக்கான சரியான வார்த்தையைத் தேர்ந்தெடுக்கவும்:"
+        },
+        options: {
+          English: ["Bed", "Bag", "Bus", "Book"],
+          Hindi: ["Bed (बिस्तर)", "Bag (बस्ता)", "Bus (बस)", "Book (किताब)"],
+          Kannada: ["Bed (ಹಾಸಿಗೆ)", "Bag (ಚೀಲ)", "Bus (ಬಸ್ಸು)", "Book (ಪುಸ್ತಕ)"],
+          Telugu: ["Bed (మంచం)", "Bag (సంచీ)", "Bus (బస్సు)", "Book (పుస్తకం)"],
+          Tamil: ["Bed (படுக்கை)", "Bag (பைய்)", "Bus (பேருந்து)", "Book (புத்தகம்)"]
+        },
+        correctIndex: 3
       },
-      correctIndex: 3
-    },
-    {
-      id: "gen_q_4",
-      question: {
-      English: "Which letter makes the starting sound of the word 'Cat'?",
-      Hindi: "कौन सा अक्षर 'Cat' (बिल्ली) शब्द की शुरुआती ध्वनि बनाता है?",
-      Kannada: "ಯಾವ ಅಕ್ಷರವು 'Cat' ಪದದ ಆರಂಭಿಕ ಧ್ವನಿಯನ್ನು ಮಾಡುತ್ತದೆ?",
-      Telugu: "'Cat' పదానికి ప్రారంభ ధ్వనిని ఏ అక్షరం చేస్తుంది?",
-      Tamil: "'Cat' என்ற வார்த்தையின் தொடக்க ஒலியை எந்த எழுத்து உருவாக்குகிறது?"
+      {
+        id: "gen_q_7",
+        question: {
+          English: "Complete the sentence: 'The sun shines in the ______.'",
+          Hindi: "वाक्य पूरा करें: 'The sun shines in the ______.'",
+          Kannada: "ವಾಕ್ಯ ಪೂರ್ಣಗೊಳಿಸಿ: 'The sun shines in the ______.'",
+          Telugu: "వాక్యాన్ని పూర్తి చేయండి: 'The sun shines in the ______.'",
+          Tamil: "வாக்கியத்தை நிரப்புக: 'The sun shines in the ______.'"
+        },
+        options: {
+          English: ["ground", "water", "house", "sky"],
+          Hindi: ["ground (ज़मीन)", "water (पानी)", "house (घर)", "sky (आसमान)"],
+          Kannada: ["ground (ನೆಲ)", "water (ನೀರು)", "house (ಮನೆ)", "sky (ಆಕಾಶ)"],
+          Telugu: ["ground (నేల)", "water (నీరు)", "house (ఇల్లు)", "sky (ఆకాశం)"],
+          Tamil: ["ground (தரை)", "water (தண்ணீர்)", "house (வீடு)", "sky (வானம்)"]
+        },
+        correctIndex: 3
       },
-      options: {
-      English: ["S", "K", "G", "C"],
-      Hindi: ["S", "K", "G", "C"],
-      Kannada: ["S", "K", "G", "C"],
-      Telugu: ["S", "K", "G", "C"],
-      Tamil: ["S", "K", "G", "C"]
+      {
+        id: "gen_q_8",
+        question: {
+          English: "Complete the sentence: 'I write on paper with a ______.'",
+          Hindi: "वाक्य पूरा करें: 'I write on paper with a ______.'",
+          Kannada: "ವಾಕ್ಯ ಪೂರ್ಣಗೊಳಿಸಿ: 'I write on paper with a ______.'",
+          Telugu: "వాక్యాన్ని పూర్తి చేయండి: 'I write on paper with a ______.'",
+          Tamil: "வாக்கியத்தை நிரப்புக: 'I write on paper with a ______.'"
+        },
+        options: {
+          English: ["shoe", "cup", "spoon", "pen"],
+          Hindi: ["shoe (जूता)", "cup (कप)", "spoon (चम्मच)", "pen (कलम)"],
+          Kannada: ["shoe (ಶೂ)", "cup (ಕಪ್)", "spoon (ಚಮಚ)", "pen (ಪೆನ್ನು)"],
+          Telugu: ["shoe (షూ)", "cup (కప్పు)", "spoon (స్పూన్)", "pen (కలం)"],
+          Tamil: ["shoe (காலணி)", "cup (கோப்பை)", "spoon (கரண்டி)", "pen (பேನಾ)"]
+        },
+        correctIndex: 3
       },
-      correctIndex: 3
-    },
-    {
-      id: "gen_q_5",
-      question: {
-      English: "Identify the missing letter in the word: 'D_g'.",
-      Hindi: "शब्द में छूटा हुआ अक्षर पहचानें: 'D_g'।",
-      Kannada: "ಪದದಲ್ಲಿ ಬಿಟ್ಟುಹೋದ ಅಕ್ಷರವನ್ನು ಗುರುತಿಸಿ: 'D_g'.",
-      Telugu: "పదంలో లేని అక్షరాన్ని గుర్తించండి: 'D_g'.",
-      Tamil: "வார்த்தையில் விடுபட்ட எழுத்தைக் கண்டறியவும்: 'D_g'."
+      {
+        id: "gen_q_9",
+        question: {
+          English: "Complete the sentence: 'Fish live in the ______.'",
+          Hindi: "वाक्य पूरा करें: 'Fish live in the ______.'",
+          Kannada: "ವಾಕ್ಯ ಪೂರ್ಣಗೊಳಿಸಿ: 'Fish live in the ______.'",
+          Telugu: "వాక్యాన్ని పూర్తి చేయండి: 'Fish live in the ______.'",
+          Tamil: "வாக்கியத்தை நிரப்புக: 'Fish live in the ______.'"
+        },
+        options: {
+          English: ["forest", "sky", "desert", "water"],
+          Hindi: ["forest (जंगल)", "sky (आसमान)", "desert (रेगिस्तान)", "water (पानी)"],
+          Kannada: ["forest (ಕಾಡು)", "sky (ಆಕಾಶ)", "desert (ಮರುಭೂಮಿ)", "water (ನೀರು)"],
+          Telugu: ["forest (అడవి)", "sky (ఆకాశం)", "desert (ఎడారి)", "water (నీరు)"],
+          Tamil: ["forest (காடு)", "sky (வானம்)", "desert (பாலைவனம்)", "water (தண்ணீர்)"]
+        },
+        correctIndex: 3
       },
-      options: {
-      English: ["e", "a", "i", "o"],
-      Hindi: ["e", "a", "i", "o"],
-      Kannada: ["e", "a", "i", "o"],
-      Telugu: ["e", "a", "i", "o"],
-      Tamil: ["e", "a", "i", "o"]
+      {
+        id: "gen_q_10",
+        question: {
+          English: "Read the road sign: 'STOP'. What should a driver do?",
+          Hindi: "सड़क का बोर्ड पढ़ें: 'STOP' (रुकें)। चालक को क्या करना चाहिए?",
+          Kannada: "ರಸ್ತೆ ಚಿಹ್ನೆಯನ್ನು ಓದಿ: 'STOP'. ಚಾಲಕ ಏನು ಮಾಡಬೇಕು?",
+          Telugu: "రహదారి బోర్డు చదవండి: 'STOP'. డ్రైవర్ ఏమి చేయాలి?",
+          Tamil: "சாலைப் பலகையைப் படிக்கவும்: 'STOP'. ஓட்டுநர் என்ன செய்ய வேண்டும்?"
+        },
+        options: {
+          English: ["Turn left", "Run fast", "Speed up", "Stop moving"],
+          Hindi: ["बाएं मुड़ें", "तेज़ दौड़ें", "गति बढ़ाएं", "रुकें"],
+          Kannada: ["ಎಡಕ್ಕೆ ತಿರುಗಿ", "ವೇಗವಾಗಿ ಓಡಿ", "ವೇಗವನ್ನು ಹೆಚ್ಚಿಸಿ", "ಚಲಿಸುವುದನ್ನು ನಿಲ್ಲಿಸಿ"],
+          Telugu: ["ఎడమ వైపు తిరగాలి", "వేగంగా వెళ్లాలి", "వేగం పెంచాలి", "వాహనం ఆపాలి"],
+          Tamil: ["இடதுபுறம் திரும்பவும்", "வேகமாக ஓடவும்", "வேகமாகச் செல்லவும்", "செல்வதை நிறுத்தவும்"]
+        },
+        correctIndex: 3
       },
-      correctIndex: 3
-    },
-    {
-      id: "gen_q_6",
-      question: {
-      English: "Choose the correct word for the picture of something we read:",
-      Hindi: "हम जो पढ़ते हैं उसके चित्र के लिए सही शब्द चुनें:",
-      Kannada: "ನಾವು ಓದುವ ವಸ್ತುವಿನ ಚಿತ್ರಕ್ಕೆ ಸರಿಯಾದ ಪದವನ್ನು ಆರಿಸಿ:",
-      Telugu: "మనం చదివే వస్తువు కోసం సరైన పదాన్ని ఎంచుకోండి:",
-      Tamil: "நாம் படிக்கும் பொருளுக்கான சரியான வார்த்தையைத் தேர்ந்தெடுக்கவும்:"
+      {
+        id: "gen_q_11",
+        question: {
+          English: "Read the instruction: 'Take one pill after dinner every night.' When should you take the pill?",
+          Hindi: "निर्देश पढ़ें: 'Take one pill after dinner every night.' आपको गोली कब लेनी चाहिए?",
+          Kannada: "ಸೂಚನೆಯನ್ನು ಓದಿ: 'Take one pill after dinner every night.' ನೀವು ಮಾತ್ರೆಯನ್ನು ಯಾವಾಗ ತೆಗೆದುಕೊಳ್ಳಬೇಕು?",
+          Telugu: "ఈ సూచనను చదవండి: 'Take one pill after dinner every night.' మీరు టాబ్లెట్ ఎప్పుడు వేసుకోవాలి?",
+          Tamil: "அறிவுறுத்தலைப் படிக்கவும்: 'Take one pill after dinner every night.' மாத்திரையை எப்போது சாப்பிட வேண்டும்?"
+        },
+        options: {
+          English: ["Empty stomach", "Before lunch", "In the morning", "After dinner"],
+          Hindi: ["खाली पेट", "दोपहर के भोजन से पहले", "सुबह में", "रात के खाने के बाद"],
+          Kannada: ["ಖಾಲಿ ಹೊಟ್ಟೆಯಲ್ಲಿ", "ಮಧ್ಯಾಹ್ನದ ಊಟಕ್ಕೆ ಮುನ್ನ", "ಬೆಳಿಗ್ಗೆ", "ರಾತ್ರಿ ಊಟದ ನಂತರ"],
+          Telugu: ["పరగడుపున", "మధ్యాహ్నం భోజనానికి ముందు", "ఉదయం", "రాత్రి భోజనం తర్వాత"],
+          Tamil: ["வெறும் வயிற்றில்", "మதிய உணவுக்கு முன்", "காலையில்", "இரவு உணவுக்குப் பின்"]
+        },
+        correctIndex: 3
       },
-      options: {
-      English: ["Bed", "Bag", "Bus", "Book"],
-      Hindi: ["Bed (बिस्तर)", "Bag (बस्ता)", "Bus (बस)", "Book (किताब)"],
-      Kannada: ["Bed (ಹಾಸಿಗೆ)", "Bag (ಚೀಲ)", "Bus (ಬಸ್ಸು)", "Book (ಪುಸ್ತಕ)"],
-      Telugu: ["Bed (మంచం)", "Bag (సంచీ)", "Bus (బస్సు)", "Book (పుస్తకం)"],
-      Tamil: ["Bed (படுக்கை)", "Bag (பைய்)", "Bus (பேருந்து)", "Book (புத்தகம்)"]
+      {
+        id: "gen_q_12",
+        question: {
+          English: "Read the sign: 'ENTRANCE'. What does it mean?",
+          Hindi: "संकेत पढ़ें: 'ENTRANCE' (प्रवेश)। इसका क्या अर्थ है?",
+          Kannada: "ಚಿಹ್ನೆಯನ್ನು ಓದಿ: 'ENTRANCE'. ಇದರ ಅರ್ಥವೇನು?",
+          Telugu: "'ENTRANCE' బోర్డు చదవండి. దీని అర్థం ఏమిటి?",
+          Tamil: "'ENTRANCE' பலகையைப் படிக்கவும். இதன் பொருள் என்ன?"
+        },
+        options: {
+          English: ["Closed area", "Way to go out", "No entry", "Way to go inside"],
+          Hindi: ["बंद क्षेत्र", "बाहर जाने का रास्ता", "प्रवेश निषेध", "अंदर जाने का रास्ता"],
+          Kannada: ["ಮುಚ್ಚಿದ ಪ್ರದೇಶ", "ಹೊರಹೋಗುವ ದಾರಿ", "ಪ್ರವೇಶವಿಲ್ಲ", "ಒಳಗೆ ಹೋಗುವ ದಾರಿ"],
+          Telugu: ["మూసి ఉన్న ప్రాంతం", "బయటకు వెళ్లే దారి", "ప్రవేశం లేదు", "లోపలికి వెళ్లే దారి"],
+          Tamil: ["மூடப்பட்ட பகுதி", "வெளியேறும் வழி", "நுழையக் கூடாது", "உள்ளே செல்லும் வழி"]
+        },
+        correctIndex: 3
       },
-      correctIndex: 3
-    },
-    {
-      id: "gen_q_7",
-      question: {
-      English: "Complete the sentence: 'The sun shines in the ______.'",
-      Hindi: "वाक्य पूरा करें: 'The sun shines in the ______.'",
-      Kannada: "ವಾಕ್ಯ ಪೂರ್ಣಗೊಳಿಸಿ: 'The sun shines in the ______.'",
-      Telugu: "వాక్యాన్ని పూర్తి చేయండి: 'The sun shines in the ______.'",
-      Tamil: "வாக்கியத்தை நிரப்புக: 'The sun shines in the ______.'"
+      {
+        id: "gen_q_13",
+        question: {
+          English: "Read the message: 'The train is delayed by two hours and will arrive at 11 AM.' What time will the train arrive?",
+          Hindi: "संदेश पढ़ें: 'The train is delayed by two hours and will arrive at 11 AM.' ट्रेन किस समय पहुंचेगी?",
+          Kannada: "ಸಂದೇಶವನ್ನು ಓದಿ: 'The train is delayed by two hours and will arrive at 11 AM.' ರೈಲು ಯಾವ 시간ಕ್ಕೆ ಬರಲಿದೆ?",
+          Telugu: "ఈ సందేశాన్ని చదవండి: 'The train is delayed by two hours and will arrive at 11 AM.' రైలు ఏ సమయానికి చేరుకుంటుంది?",
+          Tamil: "செய்தியைப் படிக்கவும்: 'The train is delayed by two hours and will arrive at 11 AM.' ரயில் எத்தனை மணிக்கு வரும்?"
+        },
+        options: {
+          English: ["12 PM", "9 AM", "10 AM", "11 AM"],
+          Hindi: ["दोपहर 12 बजे", "सुबह 9 बजे", "सुबह 10 बजे", "सुबह 11 बजे"],
+          Kannada: ["ಮಧ್ಯಾಹ್ನ 12 ಕ್ಕೆ", "ಬೆಳಿಗ್ಗೆ 9 ಕ್ಕೆ", "ಬೆಳಿಗ್ಗೆ 10 ಕ್ಕೆ", "ಬೆಳಿಗ್ಗೆ 11 ಕ್ಕೆ"],
+          Telugu: ["మధ్యాహ్నం 12 గంటలకు", "ఉదయం 9 గంటలకు", "ఉదయం 10 గంటలకు", "ఉదయం 11 గంటలకు"],
+          Tamil: ["மதியம் 12 மணி", "காலை 9 மணி", "காலை 10 மணி", "காலை 11 மணி"]
+        },
+        correctIndex: 3
       },
-      options: {
-      English: ["ground", "water", "house", "sky"],
-      Hindi: ["ground (ज़मीन)", "water (पानी)", "house (घर)", "sky (आसमान)"],
-      Kannada: ["ground (ನೆಲ)", "water (ನೀರು)", "house (ಮನೆ)", "sky (ಆಕಾಶ)"],
-      Telugu: ["ground (నేల)", "water (నీరు)", "house (ఇల్లు)", "sky (ఆకాశం)"],
-      Tamil: ["ground (தரை)", "water (தண்ணீர்)", "house (வீடு)", "sky (வானம்)"]
+      {
+        id: "gen_q_14",
+        question: {
+          English: "Complete the sentence: 'To withdraw money safely, visit the ______.'",
+          Hindi: "वाक्य पूरा करें: 'To withdraw money safely, visit the ______.'",
+          Kannada: "ವಾಕ್ಯ ಪೂರ್ಣಗೊಳಿಸಿ: 'To withdraw money safely, visit the ______.'",
+          Telugu: "వాక్యాన్ని పూర్తి చేయండి: 'To withdraw money safely, visit the ______.'",
+          Tamil: "வாக்கியத்தை நிரப்புக: 'To withdraw money safely, visit the ______.'"
+        },
+        options: {
+          English: ["park", "school", "market", "bank"],
+          Hindi: ["park (पार्क)", "school (स्कूल)", "market (बाज़ार)", "bank (बैंक)"],
+          Kannada: ["park (ಉದ್ಯಾನವನ)", "school (ಶಾಲೆ)", "market (ಮಾರುಕಟ್ಟೆ)", "bank (ಬ್ಯಾಂಕ್)"],
+          Telugu: ["park (పార్క్)", "school (బడి)", "market (మార్కెట్)", "bank (బ్యాంకు)"],
+          Tamil: ["park (பூங்கா)", "school (பள்ளி)", "market (சந்தை)", "bank (வங்கி)"]
+        },
+        correctIndex: 3
       },
-      correctIndex: 3
-    },
-    {
-      id: "gen_q_8",
-      question: {
-      English: "Complete the sentence: 'I write on paper with a ______.'",
-      Hindi: "वाक्य पूरा करें: 'I write on paper with a ______.'",
-      Kannada: "ವಾಕ್ಯ ಪೂರ್ಣಗೊಳಿಸಿ: 'I write on paper with a ______.'",
-      Telugu: "వాక్యాన్ని పూర్తి చేయండి: 'I write on paper with a ______.'",
-      Tamil: "வாக்கியத்தை நிரப்புக: 'I write on paper with a ______.'"
-      },
-      options: {
-      English: ["shoe", "cup", "spoon", "pen"],
-      Hindi: ["shoe (जूता)", "cup (कप)", "spoon (चम्मच)", "pen (कलम)"],
-      Kannada: ["shoe (ಶೂ)", "cup (ಕಪ್)", "spoon (ಚಮಚ)", "pen (ಪೆನ್ನು)"],
-      Telugu: ["shoe (షూ)", "cup (కప్పు)", "spoon (స్పూన్)", "pen (కలం)"],
-      Tamil: ["shoe (காலணி)", "cup (கோப்பை)", "spoon (கரண்டி)", "pen (பேನಾ)"]
-      },
-      correctIndex: 3
-    },
-    {
-      id: "gen_q_9",
-      question: {
-      English: "Complete the sentence: 'Fish live in the ______.'",
-      Hindi: "वाक्य पूरा करें: 'Fish live in the ______.'",
-      Kannada: "ವಾಕ್ಯ ಪೂರ್ಣಗೊಳಿಸಿ: 'Fish live in the ______.'",
-      Telugu: "వాక్యాన్ని పూర్తి చేయండి: 'Fish live in the ______.'",
-      Tamil: "வாக்கியத்தை நிரப்புக: 'Fish live in the ______.'"
-      },
-      options: {
-      English: ["forest", "sky", "desert", "water"],
-      Hindi: ["forest (जंगल)", "sky (आसमान)", "desert (रेगिस्तान)", "water (पानी)"],
-      Kannada: ["forest (ಕಾಡು)", "sky (ಆಕಾಶ)", "desert (ಮರುಭೂಮಿ)", "water (ನೀರು)"],
-      Telugu: ["forest (అడవి)", "sky (ఆకాశం)", "desert (ఎడారి)", "water (నీరు)"],
-      Tamil: ["forest (காடு)", "sky (வானம்)", "desert (பாலைவனம்)", "water (தண்ணீர்)"]
-      },
-      correctIndex: 3
-    },
-    {
-      id: "gen_q_10",
-      question: {
-      English: "Read the road sign: 'STOP'. What should a driver do?",
-      Hindi: "सड़क का बोर्ड पढ़ें: 'STOP' (रुकें)। चालक को क्या करना चाहिए?",
-      Kannada: "ರಸ್ತೆ ಚಿಹ್ನೆಯನ್ನು ಓದಿ: 'STOP'. ಚಾಲಕ ಏನು ಮಾಡಬೇಕು?",
-      Telugu: "రహదారి బోర్డు చదవండి: 'STOP'. డ్రైవర్ ఏమి చేయాలి?",
-      Tamil: "சாலைப் பலகையைப் படிக்கவும்: 'STOP'. ஓட்டுநர் என்ன செய்ய வேண்டும்?"
-      },
-      options: {
-      English: ["Turn left", "Run fast", "Speed up", "Stop moving"],
-      Hindi: ["बाएं मुड़ें", "तेज़ दौड़ें", "गति बढ़ाएं", "रुकें"],
-      Kannada: ["ಎಡಕ್ಕೆ ತಿರುಗಿ", "ವೇಗವಾಗಿ ಓಡಿ", "ವೇಗವನ್ನು ಹೆಚ್ಚಿಸಿ", "ಚಲಿಸುವುದನ್ನು ನಿಲ್ಲಿಸಿ"],
-      Telugu: ["ఎడమ వైపు తిరగాలి", "వేగంగా వెళ్లాలి", "వేగం పెంచాలి", "వాహనం ఆపాలి"],
-      Tamil: ["இடதுபுறம் திரும்பவும்", "வேகமாக ஓடவும்", "வேகமாகச் செல்லவும்", "செல்வதை நிறுத்தவும்"]
-      },
-      correctIndex: 3
-    },
-    {
-      id: "gen_q_11",
-      question: {
-      English: "Read the instruction: 'Take one pill after dinner every night.' When should you take the pill?",
-      Hindi: "निर्देश पढ़ें: 'Take one pill after dinner every night.' आपको गोली कब लेनी चाहिए?",
-      Kannada: "ಸೂಚನೆಯನ್ನು ಓದಿ: 'Take one pill after dinner every night.' ನೀವು ಮಾತ್ರೆಯನ್ನು ಯಾವಾಗ ತೆಗೆದುಕೊಳ್ಳಬೇಕು?",
-      Telugu: "ఈ సూచనను చదవండి: 'Take one pill after dinner every night.' మీరు టాబ్లెట్ ఎప్పుడు వేసుకోవాలి?",
-      Tamil: "அறிவுறுத்தலைப் படிக்கவும்: 'Take one pill after dinner every night.' மாத்திரையை எப்போது சாப்பிட வேண்டும்?"
-      },
-      options: {
-      English: ["Empty stomach", "Before lunch", "In the morning", "After dinner"],
-      Hindi: ["खाली पेट", "दोपहर के भोजन से पहले", "सुबह में", "रात के खाने के बाद"],
-      Kannada: ["ಖಾಲಿ ಹೊಟ್ಟೆಯಲ್ಲಿ", "ಮಧ್ಯಾಹ್ನದ ಊಟಕ್ಕೆ ಮುನ್ನ", "ಬೆಳಿಗ್ಗೆ", "ರಾತ್ರಿ ಊಟದ ನಂತರ"],
-      Telugu: ["పరగడుపున", "మధ్యాహ్నం భోజనానికి ముందు", "ఉదయం", "రాత్రి భోజనం తర్వాత"],
-      Tamil: ["வெறும் வயிற்றில்", "మதிய உணவுக்கு முன்", "காலையில்", "இரவு உணவுக்குப் பின்"]
-      },
-      correctIndex: 3
-    },
-    {
-      id: "gen_q_12",
-      question: {
-      English: "Read the sign: 'ENTRANCE'. What does it mean?",
-      Hindi: "संकेत पढ़ें: 'ENTRANCE' (प्रवेश)। इसका क्या अर्थ है?",
-      Kannada: "ಚಿಹ್ನೆಯನ್ನು ಓದಿ: 'ENTRANCE'. ಇದರ ಅರ್ಥವೇನು?",
-      Telugu: "'ENTRANCE' బోర్డు చదవండి. దీని అర్థం ఏమిటి?",
-      Tamil: "'ENTRANCE' பலகையைப் படிக்கவும். இதன் பொருள் என்ன?"
-      },
-      options: {
-      English: ["Closed area", "Way to go out", "No entry", "Way to go inside"],
-      Hindi: ["बंद क्षेत्र", "बाहर जाने का रास्ता", "प्रवेश निषेध", "अंदर जाने का रास्ता"],
-      Kannada: ["ಮುಚ್ಚಿದ ಪ್ರದೇಶ", "ಹೊರಹೋಗುವ ದಾರಿ", "ಪ್ರವೇಶವಿಲ್ಲ", "ಒಳಗೆ ಹೋಗುವ ದಾರಿ"],
-      Telugu: ["మూసి ఉన్న ప్రాంతం", "బయటకు వెళ్లే దారి", "ప్రవేశం లేదు", "లోపలికి వెళ్లే దారి"],
-      Tamil: ["மூடப்பட்ட பகுதி", "வெளியேறும் வழி", "நுழையக் கூடாது", "உள்ளே செல்லும் வழி"]
-      },
-      correctIndex: 3
-    },
-    {
-      id: "gen_q_13",
-      question: {
-      English: "Read the message: 'The train is delayed by two hours and will arrive at 11 AM.' What time will the train arrive?",
-      Hindi: "संदेश पढ़ें: 'The train is delayed by two hours and will arrive at 11 AM.' ट्रेन किस समय पहुंचेगी?",
-      Kannada: "ಸಂದೇಶವನ್ನು ಓದಿ: 'The train is delayed by two hours and will arrive at 11 AM.' ರೈಲು ಯಾವ 시간ಕ್ಕೆ ಬರಲಿದೆ?",
-      Telugu: "ఈ సందేశాన్ని చదవండి: 'The train is delayed by two hours and will arrive at 11 AM.' రైలు ఏ సమయానికి చేరుకుంటుంది?",
-      Tamil: "செய்தியைப் படிக்கவும்: 'The train is delayed by two hours and will arrive at 11 AM.' ரயில் எத்தனை மணிக்கு வரும்?"
-      },
-      options: {
-      English: ["12 PM", "9 AM", "10 AM", "11 AM"],
-      Hindi: ["दोपहर 12 बजे", "सुबह 9 बजे", "सुबह 10 बजे", "सुबह 11 बजे"],
-      Kannada: ["ಮಧ್ಯಾಹ್ನ 12 ಕ್ಕೆ", "ಬೆಳಿಗ್ಗೆ 9 ಕ್ಕೆ", "ಬೆಳಿಗ್ಗೆ 10 ಕ್ಕೆ", "ಬೆಳಿಗ್ಗೆ 11 ಕ್ಕೆ"],
-      Telugu: ["మధ్యాహ్నం 12 గంటలకు", "ఉదయం 9 గంటలకు", "ఉదయం 10 గంటలకు", "ఉదయం 11 గంటలకు"],
-      Tamil: ["மதியம் 12 மணி", "காலை 9 மணி", "காலை 10 மணி", "காலை 11 மணி"]
-      },
-      correctIndex: 3
-    },
-    {
-      id: "gen_q_14",
-      question: {
-      English: "Complete the sentence: 'To withdraw money safely, visit the ______.'",
-      Hindi: "वाक्य पूरा करें: 'To withdraw money safely, visit the ______.'",
-      Kannada: "ವಾಕ್ಯ ಪೂರ್ಣಗೊಳಿಸಿ: 'To withdraw money safely, visit the ______.'",
-      Telugu: "వాక్యాన్ని పూర్తి చేయండి: 'To withdraw money safely, visit the ______.'",
-      Tamil: "வாக்கியத்தை நிரப்புக: 'To withdraw money safely, visit the ______.'"
-      },
-      options: {
-      English: ["park", "school", "market", "bank"],
-      Hindi: ["park (पार्क)", "school (स्कूल)", "market (बाज़ार)", "bank (बैंक)"],
-      Kannada: ["park (ಉದ್ಯಾನವನ)", "school (ಶಾಲೆ)", "market (ಮಾರುಕಟ್ಟೆ)", "bank (ಬ್ಯಾಂಕ್)"],
-      Telugu: ["park (పార్క్)", "school (బడి)", "market (మార్కెట్)", "bank (బ్యాంకు)"],
-      Tamil: ["park (பூங்கா)", "school (பள்ளி)", "market (சந்தை)", "bank (வங்கி)"]
-      },
-      correctIndex: 3
-    },
-    {
-      id: "gen_q_15",
-      question: {
-      English: "Read the park notice: 'The walking track is open from 6 AM to 9 AM.' What is the track used for?",
-      Hindi: "पार्क का नोटिस पढ़ें: 'The walking track is open from 6 AM to 9 AM.' ट्रैक का उपयोग किस लिए किया जाता है?",
-      Kannada: "ಪಾರ್ಕ್ ಸೂಚನೆಯನ್ನು ಓದಿ: 'The walking track is open from 6 AM to 9 AM.' ಈ ಹಾದಿಯನ್ನು ಯಾವುದಕ್ಕೆ ಬಳಸಲಾಗುತ್ತದೆ?",
-      Telugu: "పార్క్ నోటీసు చదవండి: 'The walking track is open from 6 AM to 9 AM.' ఈ దారి దేనికి ఉపయోగించబడుతుంది?",
-      Tamil: "பூங்கா அறிவிப்பைப் படிக்கவும்: 'The walking track is open from 6 AM to 9 AM.' இந்தப் பாதை எதற்குப் பயன்படுகிறது?"
-      },
-      options: {
-      English: ["Cycling", "Running", "Playing football", "Walking"],
-      Hindi: ["साइकिल चलाने के लिए", "दौड़ने के लिए", "फुटबॉल खेलने के लिए", "टहलने (Walking) के लिए"],
-      Kannada: ["ಸೈಕಲ್ ತುಳಿಯಲು", "ಓಡಲು", "ಫುಟ್‌ಬಾಲ್ ಆಡಲು", "ನಡೆಯಲು (Walking)"],
-      Telugu: ["సైకిల్ తొక్కడానికి", "పరుగెత్తడానికి", "ఫుట్ బాల్ ఆడటానికి", "నడవడానికి (Walking)"],
-      Tamil: ["சைக்கிள் ஓட்ட", "ஓடுவதற்கு", "கால்பந்து விளையாட", "நடைபயிற்சிக்கு (Walking)"]
-      },
-      correctIndex: 3
-    }
+      {
+        id: "gen_q_15",
+        question: {
+          English: "Read the park notice: 'The walking track is open from 6 AM to 9 AM.' What is the track used for?",
+          Hindi: "पार्क का नोटिस पढ़ें: 'The walking track is open from 6 AM to 9 AM.' ट्रैक का उपयोग किस लिए किया जाता है?",
+          Kannada: "ಪಾರ್ಕ್ ಸೂಚನೆಯನ್ನು ಓದಿ: 'The walking track is open from 6 AM to 9 AM.' ಈ ಹಾದಿಯನ್ನು ಯಾವುದಕ್ಕೆ ಬಳಸಲಾಗುತ್ತದೆ?",
+          Telugu: "పార్క్ నోటీసు చదవండి: 'The walking track is open from 6 AM to 9 AM.' ఈ దారి దేనికి ఉపయోగించబడుతుంది?",
+          Tamil: "பூங்கா அறிவிப்பைப் படிக்கவும்: 'The walking track is open from 6 AM to 9 AM.' இந்தப் பாதை எதற்குப் பயன்படுகிறது?"
+        },
+        options: {
+          English: ["Cycling", "Running", "Playing football", "Walking"],
+          Hindi: ["साइकिल चलाने के लिए", "दौड़ने के लिए", "फुटबॉल खेलने के लिए", "टहलने (Walking) के लिए"],
+          Kannada: ["ಸೈಕಲ್ ತುಳಿಯಲು", "ಓಡಲು", "ಫುಟ್‌ಬಾಲ್ ಆಡಲು", "ನಡೆಯಲು (Walking)"],
+          Telugu: ["సైకిల్ తొక్కడానికి", "పరుగెత్తడానికి", "ఫుట్ బాల్ ఆడటానికి", "నడవడానికి (Walking)"],
+          Tamil: ["சைக்கிள் ஓட்ட", "ஓடுவதற்கு", "கால்பந்து விளையாட", "நடைபயிற்சிக்கு (Walking)"]
+        },
+        correctIndex: 3
+      }
     ]
   }
 };
@@ -824,6 +856,9 @@ function App() {
   const [initialLoading, setInitialLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [recoveryMode, setRecoveryMode] = useState(false);
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showRegisterPassword, setShowRegisterPassword] = useState(false);
+  const [registerPassword, setRegisterPassword] = useState("");
 
   // Assessment related states
   const [assessmentState, setAssessmentState] = useState("not_started"); // "not_started" | "answering" | "submitting" | "results"
@@ -890,7 +925,7 @@ function App() {
         }
         if (session?.user) {
           fetchProfile(session.user.id);
-  
+
         } else {
           setProfile(null);
 
@@ -916,7 +951,19 @@ function App() {
         console.warn("Could not fetch profile:", error.message);
       } else {
         setProfile(data);
-        if (data.preferred_language) {
+        const localLang = localStorage.getItem("lisa_lang") || selectedLanguage;
+        if (localLang && data.preferred_language !== localLang) {
+          // Sync database with the locally selected language
+          supabase
+            .from("profiles")
+            .update({ preferred_language: localLang })
+            .eq("id", userId)
+            .then(({ error: updateErr }) => {
+              if (!updateErr) {
+                setProfile(prev => prev ? { ...prev, preferred_language: localLang } : null);
+              }
+            });
+        } else if (data.preferred_language) {
           setSelectedLanguage(data.preferred_language);
           localStorage.setItem("lisa_lang", data.preferred_language);
         }
@@ -1243,7 +1290,7 @@ function App() {
     e.preventDefault();
     const categoryKey = getCategory(profile?.age, profile?.education_level);
     const currentSet = assessmentQuestions[categoryKey] || assessmentQuestions.adult;
-    
+
     const answeredCount = Object.keys(selectedAnswers).length;
     if (answeredCount < 15) {
       alert(t("answerAllPrompt"));
@@ -1257,7 +1304,7 @@ function App() {
         score++;
       }
     }
-    
+
     const diagnosedLevel = diagnoseLevel(score);
     const percentage = Math.round((score / 15) * 100);
     const lang = selectedLanguage || "English";
@@ -1273,9 +1320,9 @@ function App() {
       if (!edErr) {
         setProfile(prev => prev ? { ...prev, education_level: getLocalizedLevelName(diagnosedLevel, "English") } : null);
       }
-      
 
-      
+
+
       const ageGroup = categoryKey.split("_")[0];
       const diagnosedCategoryKey = `${ageGroup}_level_${diagnosedLevel}`;
       setCurrentAttemptResult({
@@ -1430,7 +1477,7 @@ function App() {
 
           {assessmentState === "not_started" && (
             <div className="dashboard-home-card">
-              <div className="welcome-banner">
+              <div className="welcome-banner" style={{ textAlign: "center", marginBottom: "1.5rem" }}>
                 <h1>{t("welcomeToLisa")}</h1>
               </div>
 
@@ -1516,14 +1563,44 @@ function App() {
 
               <label>
                 {t("password")}
-                <input
-                  type="password"
-                  name="loginPassword"
-                  placeholder={t("passwordPlaceholder")}
-                  autoComplete="current-password"
-                  required
-                  disabled={submitting}
-                />
+                <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+                  <input
+                    type={showLoginPassword ? "text" : "password"}
+                    name="loginPassword"
+                    style={{ paddingRight: "44px", width: "100%" }}
+                    placeholder={t("passwordPlaceholder")}
+                    autoComplete="current-password"
+                    required
+                    disabled={submitting}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowLoginPassword(!showLoginPassword)}
+                    style={{
+                      position: "absolute",
+                      right: "12px",
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      padding: "4px",
+                      display: "flex",
+                      alignItems: "center",
+                      color: "var(--muted)",
+                    }}
+                  >
+                    {showLoginPassword ? (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                        <line x1="1" y1="1" x2="23" y2="23" />
+                      </svg>
+                    ) : (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                        <circle cx="12" cy="12" r="3" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
               </label>
 
               <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "-8px" }}>
@@ -1599,20 +1676,72 @@ function App() {
 
               <label>
                 {t("password")}
-                <input
-                  type="password"
-                  name="registerPassword"
-                  placeholder={t("passwordRegisterPlaceholder")}
-                  autoComplete="new-password"
-                  required
-                  disabled={submitting}
-                />
+                <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+                  <input
+                    type={showRegisterPassword ? "text" : "password"}
+                    name="registerPassword"
+                    value={registerPassword}
+                    onChange={(e) => setRegisterPassword(e.target.value)}
+                    style={{ paddingRight: "44px", width: "100%" }}
+                    placeholder={t("passwordRegisterPlaceholder")}
+                    autoComplete="new-password"
+                    required
+                    disabled={submitting}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowRegisterPassword(!showRegisterPassword)}
+                    style={{
+                      position: "absolute",
+                      right: "12px",
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      padding: "4px",
+                      display: "flex",
+                      alignItems: "center",
+                      color: "var(--muted)",
+                    }}
+                  >
+                    {showRegisterPassword ? (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                        <line x1="1" y1="1" x2="23" y2="23" />
+                      </svg>
+                    ) : (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                        <circle cx="12" cy="12" r="3" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
+                {registerPassword && (() => {
+                  const strength = getPasswordStrength(registerPassword);
+                  return (
+                    <div style={{ marginTop: "6px" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.8rem", marginBottom: "4px" }}>
+                        <span style={{ color: "var(--muted)" }}>Password Strength:</span>
+                        <span style={{ color: strength.color, fontWeight: "600" }}>{t(strength.labelKey)}</span>
+                      </div>
+                      <div style={{ height: "4px", background: "var(--line)", borderRadius: "2px", overflow: "hidden" }}>
+                        <div style={{ height: "100%", width: `${strength.pct}%`, background: strength.color, transition: "width 0.2s ease" }}></div>
+                      </div>
+                    </div>
+                  );
+                })()}
               </label>
 
               <div className="two-col">
                 <label>
                   {t("preferredLanguage")}
-                  <select name="language" required defaultValue={selectedLanguage || ""} disabled={submitting}>
+                  <select
+                    name="language"
+                    required
+                    value={selectedLanguage || ""}
+                    onChange={(e) => handleLanguageSelect(e.target.value)}
+                    disabled={submitting}
+                  >
                     <option value="" disabled>
                       {t("selectLanguage")}
                     </option>
