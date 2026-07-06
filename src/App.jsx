@@ -1336,7 +1336,8 @@ function App() {
         percentage,
         summary,
         category: categoryKey,
-        diagnosedCategory: diagnosedCategoryKey
+        diagnosedCategory: diagnosedCategoryKey,
+        diagnosedLevel: diagnosedLevel
       });
       setAssessmentState("results");
       setSelectedAnswers({});
@@ -1450,11 +1451,11 @@ function App() {
                 </div>
                 <div className="results-score-details">
                   <p className="score-count">
-                    <strong>{t("correctAnswers")}:</strong> {currentAttemptResult.score} / 10
+                    <strong>{t("correctAnswers")}:</strong> {currentAttemptResult.score} / 15
                   </p>
                   <p className="score-category">
                     <strong>{t("categoryLabel")}:</strong>{" "}
-                    {getLocalizedText((assessmentQuestions[currentAttemptResult.diagnosedCategory] || currentSet).title)}
+                    {getLevelCategoryAndDescription(currentAttemptResult.diagnosedLevel, selectedLanguage || "English").category}
                   </p>
                 </div>
               </div>
