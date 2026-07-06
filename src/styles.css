@@ -30,7 +30,7 @@ body {
   color: var(--text);
   background: url("/hero.jpg") no-repeat fixed;
   background-size: 750px;
-    /*radial-gradient(circle at top left, rgba(198, 95, 45, 0.16), transparent 24%),
+  /*radial-gradient(circle at top left, rgba(198, 95, 45, 0.16), transparent 24%),
     radial-gradient(circle at bottom right, rgba(24, 32, 43, 0.08), transparent 22%),
     linear-gradient(135deg, #f7f3ea 0%, #f3f0e8 55%, #efe7db 100%);*/
 }
@@ -286,7 +286,9 @@ select:focus {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Dashboard Styles */
@@ -392,6 +394,17 @@ select:focus {
   color: var(--accent-dark);
   letter-spacing: 1px;
   z-index: 2000;
+  line-height: 1.1;
+}
+
+.brand-logo-tagline {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--muted);
+  letter-spacing: 0.2px;
+  text-transform: uppercase;
+  margin-top: 2px;
 }
 
 @media (max-width: 720px) {
@@ -488,7 +501,8 @@ select:focus {
   width: 100vw;
   background: rgba(24, 32, 43, 0.4);
   backdrop-filter: blur(8px);
-  z-index: 2100; /* overlay above everything, including top-right trigger */
+  z-index: 2100;
+  /* overlay above everything, including top-right trigger */
   padding: 24px;
 }
 
@@ -561,7 +575,9 @@ select:focus {
 }
 
 /* Assessment Card & Questionnaire */
-.assessment-card, .results-card, .dashboard-home-card {
+.assessment-card,
+.results-card,
+.dashboard-home-card {
   width: min(100%, 760px);
   background: var(--panel);
   backdrop-filter: blur(24px);
@@ -909,7 +925,8 @@ select:focus {
   text-align: left;
 }
 
-.history-table th, .history-table td {
+.history-table th,
+.history-table td {
   padding: 16px 20px;
   border-bottom: 1px solid var(--line);
 }
@@ -948,7 +965,3 @@ select:focus {
   background: #f8d7da;
   color: #721c24;
 }
-
-
-
-

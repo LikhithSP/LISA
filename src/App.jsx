@@ -1220,7 +1220,10 @@ function App() {
   if (recoveryMode) {
     return (
       <main className="shell">
-        <div className="brand-logo-top">LISA</div>
+        <div className="brand-logo-top">
+          LISA
+          <span className="brand-logo-tagline">Literacy Intelligience Support Assistance</span>
+        </div>
         {renderLanguageDropdown()}
         <section className="hero-panel">
           <h1>{t("resetAccountPassword")}</h1>
@@ -1357,7 +1360,12 @@ function App() {
     return (
       <div className="dashboard-container">
         <header className="dashboard-header">
-          <div className="dashboard-logo">LISA</div>
+          <div className="dashboard-logo" style={{ display: "flex", flexDirection: "column", lineHeight: "1.1" }}>
+            LISA
+            <span style={{ fontSize: "0.75rem", fontWeight: 500, color: "var(--muted)", letterSpacing: "0.2px", textTransform: "uppercase" }}>
+              Literacy Intelligience Support Assistance
+            </span>
+          </div>
           <div className="dashboard-user">
             <span style={{ fontWeight: 600 }}>
               {t("hello")}, {profile?.full_name || session.user.email}
@@ -1513,7 +1521,10 @@ function App() {
   // 5. Login / Register / Forgot Password Forms
   return (
     <main className="shell">
-      <div className="brand-logo-top">LISA</div>
+      <div className="brand-logo-top">
+        LISA
+        <span className="brand-logo-tagline">Literacy Intelligience Support Assistance</span>
+      </div>
       {renderLanguageDropdown()}
       <section className="hero-panel">
         <h1>{t("heroTitle")}</h1>
