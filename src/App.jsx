@@ -59,23 +59,7 @@ const getLevelCategoryAndDescription = (level, lang) => {
   return { category: `Level ${level}`, description: "" };
 };
 
-const getPasswordStrength = (pass) => {
-  if (!pass) return null;
-  let score = 0;
-  if (pass.length >= 6) score++;
-  if (pass.length >= 8) score++;
-  if (/[A-Z]/.test(pass)) score++;
-  if (/[0-9]/.test(pass)) score++;
-  if (/[^A-Za-z0-9]/.test(pass)) score++;
 
-  if (score <= 2) {
-    return { labelKey: "passwordWeak", color: "#ef4444", pct: 33 };
-  } else if (score <= 4) {
-    return { labelKey: "passwordMedium", color: "#f97316", pct: 66 };
-  } else {
-    return { labelKey: "passwordStrong", color: "#22c55e", pct: 100 };
-  }
-};
 
 const getLiteracyLevel = (userProfile) => {
   if (userProfile?.literacy_level) return Number(userProfile.literacy_level);
@@ -184,6 +168,9 @@ const translations = {
     passwordWeak: "Weak",
     passwordMedium: "Medium",
     passwordStrong: "Strong",
+    confirmPassword: "Confirm Password",
+    confirmPasswordPlaceholder: "Confirm your password",
+    passwordsDoNotMatch: "Passwords do not match.",
   },
   Hindi: {
     initialAssessmentDesc: "आपके व्यक्तिगत शिक्षण क्षेत्र में आपका स्वागत है! आइए एक त्वरित 15-प्रश्नों के प्रारंभिक आकलन के साथ शुरुआत करें। यह हमें भविष्य की सामग्री को अनुकूलित करने में मदद करता है।",
@@ -271,6 +258,9 @@ const translations = {
     passwordWeak: "कमज़ोर",
     passwordMedium: "मध्यम",
     passwordStrong: "मजबूत",
+    confirmPassword: "पासवर्ड की पुष्टि करें",
+    confirmPasswordPlaceholder: "अपने पासवर्ड की पुष्टि करें",
+    passwordsDoNotMatch: "पासवर्ड मेल नहीं खाते हैं।",
   },
   Kannada: {
     initialAssessmentDesc: "ನಿಮ್ಮ ವೈಯಕ್ತೀಕರಿಸಿದ ಕಲಿಕಾ ಜಾಗಕ್ಕೆ ಸುಸ್ವಾಗತ! 15-ಪ್ರಶ್ನೆಗಳ ತ್ವರಿತ ಆರಂಭಿಕ ಮೌಲ್ಯಮಾಪನದೊಂದಿಗೆ ಪ್ರಾರಂಭಿಸೋಣ. ಇದು ಭವಿಷ್ಯದ ವಿಷಯವನ್ನು ಕಸ್ಟಮೈಸ್ ಮಾಡಲು ನಮಗೆ ಸಹಾಯ ಮಾಡುತ್ತದೆ।",
@@ -358,6 +348,9 @@ const translations = {
     passwordWeak: "ದುರ್ಬಲ",
     passwordMedium: "ಮಧ್ಯಮ",
     passwordStrong: "ಬಲವಾದ",
+    confirmPassword: "ಪಾಸ್‌ವರ್ಡ್ ದೃಢೀಕರಿಸಿ",
+    confirmPasswordPlaceholder: "ನಿಮ್ಮ ಪಾಸ್‌ವರ್ಡ್ ದೃಢೀಕರಿಸಿ",
+    passwordsDoNotMatch: "ಪಾಸ್‌ವರ್ಡ್‌ಗಳು ಹೊಂದಿಕೆಯಾಗುತ್ತಿಲ್ಲ.",
   },
   Telugu: {
     initialAssessmentDesc: "మీ వ్యక్తిగతీకరించిన అభ్యాస స్థలానికి స్వాగతం! శీఘ్ర 15-ప్రశ్నల ప్రాథమిక అంచనాతో ప్రారంభిద్దాం. ఇది భవిష్యత్ కంటెంట్‌ని అనుకూలీకరించడానికి మాకు సహాయపడుతుంది।",
@@ -445,6 +438,9 @@ const translations = {
     passwordWeak: "బలహీనమైనది",
     passwordMedium: "మధ్యస్థంగా ఉంది",
     passwordStrong: "బలంగా ఉంది",
+    confirmPassword: "పాస్‌వర్డ్‌ను నిర్ధారించండి",
+    confirmPasswordPlaceholder: "మీ పాస్‌వర్డ్‌ను నిర్ధారించండి",
+    passwordsDoNotMatch: "పాస్‌వర్డ్‌లు సరిపోలడం లేదు.",
   },
   Tamil: {
     initialAssessmentDesc: "உங்கள் தனிப்பயனாக்கப்பட்ட கற்றல் இடத்திற்கு வரவேற்கிறோம்! 15-கேள்விகள் கொண்ட விரைவான ஆரம்ப மதிப்பீட்டுடன் தொடங்குவோம். இது எதிர்கால பாடங்களை வடிவமைக்க நமக்கு உதவும்।",
@@ -532,6 +528,9 @@ const translations = {
     passwordWeak: "பலவீனமானது",
     passwordMedium: "நடுத்தரமானது",
     passwordStrong: "வலிமையானது",
+    confirmPassword: "கடவுச்சொல்லை உறுதிப்படுத்தவும்",
+    confirmPasswordPlaceholder: "உங்கள் கடவுச்சொல்லை உறுதிப்படுத்தவும்",
+    passwordsDoNotMatch: "கடவுச்சொற்கள் பொருந்தவில்லை.",
   },
 };
 
@@ -858,7 +857,7 @@ function App() {
   const [recoveryMode, setRecoveryMode] = useState(false);
   const [showLoginPassword, setShowLoginPassword] = useState(false);
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
-  const [registerPassword, setRegisterPassword] = useState("");
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Assessment related states
   const [assessmentState, setAssessmentState] = useState("not_started"); // "not_started" | "answering" | "submitting" | "results"
@@ -1025,10 +1024,17 @@ function App() {
     const formData = new FormData(event.currentTarget);
     const email = formData.get("registerEmail");
     const password = formData.get("registerPassword");
+    const confirmPassword = formData.get("confirmPassword");
     const fullName = formData.get("fullName");
     const age = parseInt(formData.get("age"), 10);
     const language = formData.get("language");
     const educationLevel = formData.get("educationLevel");
+
+    if (password !== confirmPassword) {
+      setMessage(t("passwordsDoNotMatch"));
+      setSubmitting(false);
+      return;
+    }
 
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -1680,8 +1686,6 @@ function App() {
                   <input
                     type={showRegisterPassword ? "text" : "password"}
                     name="registerPassword"
-                    value={registerPassword}
-                    onChange={(e) => setRegisterPassword(e.target.value)}
                     style={{ paddingRight: "44px", width: "100%" }}
                     placeholder={t("passwordRegisterPlaceholder")}
                     autoComplete="new-password"
@@ -1716,20 +1720,48 @@ function App() {
                     )}
                   </button>
                 </div>
-                {registerPassword && (() => {
-                  const strength = getPasswordStrength(registerPassword);
-                  return (
-                    <div style={{ marginTop: "6px" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.8rem", marginBottom: "4px" }}>
-                        <span style={{ color: "var(--muted)" }}>Password Strength:</span>
-                        <span style={{ color: strength.color, fontWeight: "600" }}>{t(strength.labelKey)}</span>
-                      </div>
-                      <div style={{ height: "4px", background: "var(--line)", borderRadius: "2px", overflow: "hidden" }}>
-                        <div style={{ height: "100%", width: `${strength.pct}%`, background: strength.color, transition: "width 0.2s ease" }}></div>
-                      </div>
-                    </div>
-                  );
-                })()}
+              </label>
+
+              <label>
+                {t("confirmPassword")}
+                <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+                  <input
+                    type={showConfirmPassword ? "text" : "password"}
+                    name="confirmPassword"
+                    style={{ paddingRight: "44px", width: "100%" }}
+                    placeholder={t("confirmPasswordPlaceholder")}
+                    autoComplete="new-password"
+                    required
+                    disabled={submitting}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    style={{
+                      position: "absolute",
+                      right: "12px",
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      padding: "4px",
+                      display: "flex",
+                      alignItems: "center",
+                      color: "var(--muted)",
+                    }}
+                  >
+                    {showConfirmPassword ? (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                        <line x1="1" y1="1" x2="23" y2="23" />
+                      </svg>
+                    ) : (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                        <circle cx="12" cy="12" r="3" />
+                      </svg>
+                    )}
+                  </button>
+                </div>
               </label>
 
               <div className="two-col">
