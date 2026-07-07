@@ -90,6 +90,7 @@ const translations = {
     submitAssessmentBtn: "Submit Assessment",
     resultsTitle: "Assessment Completed!",
     overallScore: "Overall Score",
+    percentage: "Percentage",
     diagnosedLevelTitle: "Diagnosed Literacy Level",
     readingSkill: "Reading Skill",
     writingSkill: "Writing Skill",
@@ -201,6 +202,7 @@ const translations = {
     submitAssessmentBtn: "आकलन सबमिट करें",
     resultsTitle: "आकलन पूरा हुआ!",
     overallScore: "कुल स्कोर",
+    percentage: "प्रतिशत",
     diagnosedLevelTitle: "निर्धारित साक्षरता स्तर",
     readingSkill: "पढ़ने का कौशल",
     writingSkill: "लिखने का कौशल",
@@ -312,6 +314,7 @@ const translations = {
     submitAssessmentBtn: "ಮೌಲ್ಯಮಾಪನ ಸಲ್ಲಿಸಿ",
     resultsTitle: "ಮೌಲ್ಯಮಾಪನ ಪೂರ್ಣಗೊಂಡಿದೆ!",
     overallScore: "ಒಟ್ಟು ಅಂಕಗಳು",
+    percentage: "ಶೇಕಡಾವಾರು",
     diagnosedLevelTitle: "ನಿರ್ಣಯಿಸಿದ ಸಾಕ್ಷರತಾ ಮಟ್ಟ",
     readingSkill: "ಓದುವ ಕೌಶಲ್ಯ",
     writingSkill: "ಬರೆಯುವ ಕೌಶಲ್ಯ",
@@ -423,6 +426,7 @@ const translations = {
     submitAssessmentBtn: "అంచనా సమర్పించండి",
     resultsTitle: "అంచనా పూర్తయింది!",
     overallScore: "మొత్తం స్కోరు",
+    percentage: "శాతం",
     diagnosedLevelTitle: "నిర్ధారించిన అక్షరాస్యత స్థాయి",
     readingSkill: "చదవడం నైపుణ్యం",
     writingSkill: "రాయడం నైపుణ్యం",
@@ -534,6 +538,7 @@ const translations = {
     submitAssessmentBtn: "மதிப்பீட்டை சமர்ப்பி",
     resultsTitle: "மதிப்பீடு முடிந்தது!",
     overallScore: "ஒட்டுமொத்த மதிப்பெண்",
+    percentage: "சதவீதம்",
     diagnosedLevelTitle: "கண்டறியப்பட்ட எழுத்தறிவு நிலை",
     readingSkill: "வாசிப்புத் திறன்",
     writingSkill: "எழுதும் திறன்",
@@ -622,6 +627,18 @@ function App() {
   );
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const profileDropdownRef = useRef(null);
+
+  useEffect(() => {
+    if (!profileDropdownOpen) return;
+    const handleClickOutside = (e) => {
+      if (profileDropdownRef.current && !profileDropdownRef.current.contains(e.target)) {
+        setProfileDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [profileDropdownOpen]);
   const [activeTab, setActiveTab] = useState("login"); // "login", "register", "forgot"
   const [dashboardTab, setDashboardTab] = useState("home"); // "home", "profile"
   const [message, setMessage] = useState("");
@@ -1491,7 +1508,7 @@ function App() {
             {renderLanguageDropdown(true)}
 
             {/* Clickable Profile Button with Dropdown */}
-            <div className="profile-dropdown-container" style={{ position: 'relative' }}>
+            <div className="profile-dropdown-container" ref={profileDropdownRef} style={{ position: 'relative' }}>
               <button
                 type="button"
                 className="profile-nav-pill"
@@ -1933,7 +1950,7 @@ function App() {
                             setManualTextFallback("");
                           }}
                         >
-                          ⬅️ {t("prevBtn")}
+                          <span style={{ display: 'inline-block', transform: 'scaleX(-1)' }}>➜</span> {t("prevBtn")}
                         </button>
                       )}
                     </div>
@@ -1980,12 +1997,13 @@ function App() {
 
               return (
                 <div className="results-card" style={{ maxWidth: '800px', margin: '20px auto' }}>
+                  <h2 className="results-completed-title">{t("resultsTitle")}</h2>
                   <div className="results-hero-section">
                     <div className="results-hero-left">
                       <div className="results-percentage-circle">
                         <span className="percent-val">{latestAttempt?.score ? Math.round((latestAttempt.score / 50) * 100) : 0}%</span>
                       </div>
-                      <h2 className="results-completed-title">{t("resultsTitle")}</h2>
+                      <span className="results-percent-text">{t("percentage")}</span>
                     </div>
 
                     <div className="results-hero-center-score">
@@ -2002,41 +2020,43 @@ function App() {
                     </div>
                   </div>
 
-                  <div className="benchmark-card">
-                    <div className="benchmark-badge-icon">🎖️</div>
-                    <h3 className="benchmark-title">{getLevelCategoryAndDescription(currentLevelIndex, currentLang).category}</h3>
-                    <p className="benchmark-desc">
-                      {getLevelCategoryAndDescription(currentLevelIndex, currentLang).description}
-                    </p>
-                  </div>
+                  <div className="results-detail-row">
+                    <div className="benchmark-card">
+                      <div className="benchmark-badge-icon">🎖️</div>
+                      <h3 className="benchmark-title">{getLevelCategoryAndDescription(currentLevelIndex, currentLang).category}</h3>
+                      <p className="benchmark-desc">
+                        {getLevelCategoryAndDescription(currentLevelIndex, currentLang).description}
+                      </p>
+                    </div>
 
-                  <div className="skill-breakdowns-box">
-                    <h3>{t("skillBreakdown")}</h3>
-                    <div className="skill-progress-bar">
-                      <div className="skill-progress-label">
-                        <span>{t("readingSkill")}</span>
-                        <span>{latestAttempt?.skills?.reading || 0}%</span>
+                    <div className="skill-breakdowns-box">
+                      <h3>{t("skillBreakdown")}</h3>
+                      <div className="skill-progress-bar">
+                        <div className="skill-progress-label">
+                          <span>{t("readingSkill")}</span>
+                          <span>{latestAttempt?.skills?.reading || 0}%</span>
+                        </div>
+                        <div className="bar-bg">
+                          <div className="bar-fill reading" style={{ width: `${latestAttempt?.skills?.reading || 0}%` }}></div>
+                        </div>
                       </div>
-                      <div className="bar-bg">
-                        <div className="bar-fill reading" style={{ width: `${latestAttempt?.skills?.reading || 0}%` }}></div>
+                      <div className="skill-progress-bar">
+                        <div className="skill-progress-label">
+                          <span>{t("compSkill")}</span>
+                          <span>{latestAttempt?.skills?.comprehension || 0}%</span>
+                        </div>
+                        <div className="bar-bg">
+                          <div className="bar-fill comprehension" style={{ width: `${latestAttempt?.skills?.comprehension || 0}%` }}></div>
+                        </div>
                       </div>
-                    </div>
-                    <div className="skill-progress-bar">
-                      <div className="skill-progress-label">
-                        <span>{t("compSkill")}</span>
-                        <span>{latestAttempt?.skills?.comprehension || 0}%</span>
-                      </div>
-                      <div className="bar-bg">
-                        <div className="bar-fill comprehension" style={{ width: `${latestAttempt?.skills?.comprehension || 0}%` }}></div>
-                      </div>
-                    </div>
-                    <div className="skill-progress-bar">
-                      <div className="skill-progress-label">
-                        <span>{t("writingSkill")}</span>
-                        <span>{latestAttempt?.skills?.writing || 0}%</span>
-                      </div>
-                      <div className="bar-bg">
-                        <div className="bar-fill writing" style={{ width: `${latestAttempt?.skills?.writing || 0}%` }}></div>
+                      <div className="skill-progress-bar">
+                        <div className="skill-progress-label">
+                          <span>{t("writingSkill")}</span>
+                          <span>{latestAttempt?.skills?.writing || 0}%</span>
+                        </div>
+                        <div className="bar-bg">
+                          <div className="bar-fill writing" style={{ width: `${latestAttempt?.skills?.writing || 0}%` }}></div>
+                        </div>
                       </div>
                     </div>
                   </div>
