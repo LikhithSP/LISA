@@ -105,7 +105,7 @@ h1 {
   background: var(--panel);
   backdrop-filter: blur(24px);
   border: 1px solid var(--line);
-  box-shadow: var(--shadow);
+  box-shadow: none;
   display: flex;
   flex-direction: column;
   max-height: calc(100vh - 96px);
@@ -205,7 +205,7 @@ select:focus {
 
 .primary-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 22px 36px rgba(198, 95, 45, 0.28);
+  box-shadow: none;
 }
 
 .helper-text {
@@ -455,6 +455,7 @@ select:focus {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  z-index: 2100;
 }
 
 .lang-dropdown-item {
@@ -583,7 +584,7 @@ select:focus {
   border: 1px solid var(--line);
   border-radius: 28px;
   padding: 36px;
-  box-shadow: var(--shadow);
+  box-shadow: none;
   max-height: calc(100vh - 120px);
   display: flex;
   flex-direction: column;
@@ -983,7 +984,7 @@ select:focus {
   border: 1px solid var(--line);
   padding: 40px 48px 80px 48px; /* Extra bottom padding to prevent cropping */
   border-radius: 28px;
-  box-shadow: var(--shadow);
+  box-shadow: none;
   max-height: none !important; /* Override max-height limit */
   overflow: visible !important; /* Prevent internal clipping of buttons */
 }
@@ -1021,7 +1022,7 @@ select:focus {
   border: 1px solid var(--line);
   padding: 48px;
   border-radius: 28px;
-  box-shadow: var(--shadow);
+  box-shadow: none;
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -1534,6 +1535,8 @@ select:focus {
   justify-content: space-between;
   align-items: center;
   flex-shrink: 0;
+  position: relative;
+  z-index: 100;
 }
 
 .dashboard-logo {
