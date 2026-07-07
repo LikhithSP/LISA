@@ -1216,7 +1216,7 @@ function App() {
       localStorage.setItem("lisa_attempts_history", JSON.stringify(updatedHistory));
 
       setDashboardTab("home");
-      setAssessmentState("not_started");
+      setAssessmentState("results");
     } catch (err) {
       console.error("Error updating test results:", err);
     } finally {
