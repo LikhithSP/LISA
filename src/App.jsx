@@ -1282,6 +1282,47 @@ function App() {
     setEditingProfile(true);
   };
 
+  const handleResetAssessmentStatus = async () => {
+    try {
+      const primaryUpdate = await supabase
+        .from("profiles")
+        .update({
+          education_level: "No formal education",
+          literacy_level: null,
+          assessment_completed: false
+        })
+        .eq("id", session.user.id);
+
+      let error = primaryUpdate.error;
+
+      if (error) {
+        console.warn("Primary reset failed, retrying with guaranteed schema fields:", error.message);
+        const retry = await supabase
+          .from("profiles")
+          .update({ education_level: "No formal education" })
+          .eq("id", session.user.id);
+        error = retry.error;
+      }
+
+      if (error) throw error;
+
+      setProfile(prev => prev ? {
+        ...prev,
+        education_level: "No formal education",
+        literacy_level: null,
+        assessment_completed: false
+      } : null);
+      clearStoredAssessmentState(session.user.id);
+      setHistoryAttempts([]);
+      localStorage.removeItem("lisa_attempts_history");
+      setAssessmentState("not_started");
+      alert("Diagnostic status reset successfully! You will now see the initial assessment welcome screen.");
+    } catch (err) {
+      console.error("Error resetting profile:", err);
+      alert("Failed to reset profile: " + err.message);
+    }
+  };
+
   // Skill calculations for Progress Analytics
   const calculateSkillProficiency = (skill) => {
     let totalScore = 0;
@@ -1419,13 +1460,10 @@ function App() {
       <div className="dashboard-container">
         {/* Navigation Top Bar Header */}
         <header className="dashboard-header" style={{ background: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: '16px 32px', borderBottom: '1px solid var(--line)' }}>
-          {/* Brand Logo & Info */}
-          <div className="sidebar-brand-wrapper" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div className="brand-logo-circle">L</div>
-            <div className="brand-text-block">
-              <div className="brand-title" style={{ color: 'var(--text)', fontWeight: '800' }}>LISA</div>
-              <div className="brand-subtitle" style={{ color: 'var(--muted)', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.2px', fontWeight: 500 }}>Literacy Intelligence Support Assistant</div>
-            </div>
+          {/* Brand Logo & Info (same design as login page) */}
+          <div className="brand-logo-top dashboard-brand">
+            LISA
+            <span className="brand-logo-tagline">Literacy Intelligence Support Assistant</span>
           </div>
 
           {/* Navigation Links */}
@@ -1456,14 +1494,14 @@ function App() {
             <div className="profile-dropdown-container" style={{ position: 'relative' }}>
               <button
                 type="button"
-                className={`profile-nav-pill ${dashboardTab === "profile" ? "active" : ""}`}
+                className="profile-nav-pill"
                 onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  background: dashboardTab === 'profile' ? 'rgba(198, 95, 45, 0.08)' : 'rgba(0, 0, 0, 0.03)',
-                  color: dashboardTab === 'profile' ? 'var(--accent)' : 'var(--text)',
+                  background: 'rgba(0, 0, 0, 0.03)',
+                  color: 'var(--text)',
                   border: '1px solid var(--line)',
                   padding: '6px 12px',
                   borderRadius: '20px',
@@ -1482,29 +1520,120 @@ function App() {
               </button>
 
               {profileDropdownOpen && (
-                <div className="profile-dropdown-menu">
-                  <button
-                    type="button"
-                    className="profile-dropdown-item"
-                    onClick={() => {
-                      setDashboardTab("profile");
-                      setProfileDropdownOpen(false);
-                    }}
-                  >
-                    👤 {t("myProfile")}
-                  </button>
+                <div className="profile-dropdown-menu profile-dropdown-card">
+                  {!editingProfile ? (
+                    <>
+                      <div className="profile-dropdown-header">
+                        <div className="profile-dropdown-avatar">
+                          {getUserInitials(profile?.full_name)}
+                        </div>
+                        <div className="profile-dropdown-id">
+                          <span className="profile-dropdown-name">{profile?.full_name || "Learner"}</span>
+                          <span className="profile-dropdown-email">{session.user.email}</span>
+                        </div>
+                      </div>
 
-                  <button
-                    type="button"
-                    className="profile-dropdown-item"
-                    style={{ color: '#ef4444' }}
-                    onClick={() => {
-                      setProfileDropdownOpen(false);
-                      handleSignOut();
-                    }}
-                  >
-                    🚪 {t("logout")}
-                  </button>
+                      <div className="profile-dropdown-details">
+                        <div className="profile-detail-row">
+                          <span className="profile-detail-label">Age</span>
+                          <span className="profile-detail-value">{profile?.age || "N/A"}</span>
+                        </div>
+                        <div className="profile-detail-row">
+                          <span className="profile-detail-label">Preferred Language</span>
+                          <span className="profile-detail-value">{profile?.preferred_language || "English"}</span>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        className="primary-btn profile-dropdown-action"
+                        onClick={() => handleStartEdit()}
+                      >
+                        Update Profile
+                      </button>
+
+                      <button
+                        type="button"
+                        className="secondary-btn profile-dropdown-action"
+                        style={{ borderColor: 'rgba(239, 68, 68, 0.4)', color: '#ef4444' }}
+                        onClick={() => handleResetAssessmentStatus()}
+                      >
+                        Reset Assessment Status
+                      </button>
+
+                      <button
+                        type="button"
+                        className="profile-dropdown-item profile-dropdown-logout"
+                        onClick={() => {
+                          setProfileDropdownOpen(false);
+                          handleSignOut();
+                        }}
+                      >
+                        🚪 {t("logout")}
+                      </button>
+                    </>
+                  ) : (
+                    <form className="profile-dropdown-edit" onSubmit={handleSaveProfileEdit}>
+                      <h4 className="profile-dropdown-edit-title">Update Profile</h4>
+                      <label className="profile-dropdown-label">
+                        Full Name
+                        <input
+                          type="text"
+                          required
+                          value={editFullName}
+                          onChange={(e) => setEditFullName(e.target.value)}
+                        />
+                      </label>
+                      <label className="profile-dropdown-label">
+                        Age
+                        <input
+                          type="number"
+                          min="5"
+                          max="120"
+                          required
+                          value={editAge}
+                          onChange={(e) => setEditAge(e.target.value)}
+                        />
+                      </label>
+                      <label className="profile-dropdown-label">
+                        Preferred Language
+                        <select
+                          required
+                          value={editPreferredLang}
+                          onChange={(e) => setEditPreferredLang(e.target.value)}
+                        >
+                          {languages.map((l) => (
+                            <option key={l} value={l}>{t(l + "Option")}</option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="profile-dropdown-label">
+                        Current Education Status
+                        <select
+                          required
+                          value={editEdLevel}
+                          onChange={(e) => setEditEdLevel(e.target.value)}
+                        >
+                          {educationLevels.map((ed) => (
+                            <option key={ed} value={ed}>{t(ed + "Option")}</option>
+                          ))}
+                        </select>
+                      </label>
+
+                      <div className="profile-dropdown-edit-actions">
+                        <button type="submit" className="primary-btn profile-dropdown-action" disabled={submitting}>
+                          {submitting ? "Saving..." : "Save Changes"}
+                        </button>
+                        <button
+                          type="button"
+                          className="secondary-btn profile-dropdown-action"
+                          onClick={() => setEditingProfile(false)}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  )}
                 </div>
               )}
             </div>
@@ -2067,149 +2196,6 @@ function App() {
                         </div>
                       </div>
                     </div>
-                  </div>
-                )}
-
-                {/* TABS: PROFILE EDITING */}
-                {dashboardTab === "profile" && (
-                  <div className="profile-tab-wrapper">
-                    {!editingProfile ? (
-                      <div className="profile-info-card">
-                        <div className="profile-avatar">👤</div>
-                        <h3>{profile?.full_name}</h3>
-                        <p><strong>Email:</strong> {session.user.email}</p>
-                        <p><strong>Age:</strong> {profile?.age || "N/A"}</p>
-                        <p><strong>Preferred Language:</strong> {profile?.preferred_language}</p>
-
-                        <button
-                          type="button"
-                          className="primary-btn edit-profile-trigger"
-                          onClick={handleStartEdit}
-                        >
-                          Update Profile
-                        </button>
-
-                        <div style={{ marginTop: '30px', padding: '20px', background: '#fee2e2', border: '1px solid #fecaca', borderRadius: '16px' }}>
-                          <h4 style={{ margin: '0 0 10px 0', color: '#991b1b', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span>🔧</span> Developer Testing Options
-                          </h4>
-                          <p style={{ margin: '0 0 16px 0', fontSize: '0.85rem', color: '#7f1d1d', lineHeight: '1.5' }}>
-                            Use this tool to reset your profile's diagnostic status in Supabase so you can test the initial assessment welcome screen, questionnaire flow, and feedback page from the beginning.
-                          </p>
-                          <button
-                            type="button"
-                            className="secondary-btn"
-                            style={{ background: '#ef4444', color: 'white', border: 'none', padding: '10px 16px', borderRadius: '12px', cursor: 'pointer', fontWeight: '600' }}
-                            onClick={async () => {
-                              try {
-                                const primaryUpdate = await supabase
-                                  .from("profiles")
-                                  .update({
-                                    education_level: "No formal education",
-                                    literacy_level: null,
-                                    assessment_completed: false
-                                  })
-                                  .eq("id", session.user.id);
-
-                                let error = primaryUpdate.error;
-
-                                if (error) {
-                                  console.warn("Primary reset failed, retrying with guaranteed schema fields:", error.message);
-                                  // Retry using only the guaranteed education_level column
-                                  const retry = await supabase
-                                    .from("profiles")
-                                    .update({
-                                      education_level: "No formal education"
-                                    })
-                                    .eq("id", session.user.id);
-                                  error = retry.error;
-                                }
-
-                                if (error) throw error;
-
-                                setProfile(prev => prev ? {
-                                  ...prev,
-                                  education_level: "No formal education",
-                                  literacy_level: null,
-                                  assessment_completed: false
-                                } : null);
-                                clearStoredAssessmentState(session.user.id);
-                                setHistoryAttempts([]);
-                                localStorage.removeItem("lisa_attempts_history");
-                                setAssessmentState("not_started");
-                                alert("Diagnostic status reset successfully! You will now see the initial assessment welcome screen.");
-                              } catch (err) {
-                                console.error("Error resetting profile:", err);
-                                alert("Failed to reset profile: " + err.message);
-                              }
-                            }}
-                          >
-                            Reset Assessment Status
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <form className="auth-form active editing-profile-form" onSubmit={handleSaveProfileEdit}>
-                        <h3>Update Profile Info</h3>
-                        <label>
-                          Full Name
-                          <input
-                            type="text"
-                            required
-                            value={editFullName}
-                            onChange={(e) => setEditFullName(e.target.value)}
-                          />
-                        </label>
-                        <label>
-                          Age
-                          <input
-                            type="number"
-                            min="5"
-                            max="120"
-                            required
-                            value={editAge}
-                            onChange={(e) => setEditAge(e.target.value)}
-                          />
-                        </label>
-                        <label>
-                          Preferred Language
-                          <select
-                            required
-                            value={editPreferredLang}
-                            onChange={(e) => setEditPreferredLang(e.target.value)}
-                          >
-                            {languages.map((l) => (
-                              <option key={l} value={l}>{t(l + "Option")}</option>
-                            ))}
-                          </select>
-                        </label>
-                        <label>
-                          Current Education Status
-                          <select
-                            required
-                            value={editEdLevel}
-                            onChange={(e) => setEditEdLevel(e.target.value)}
-                          >
-                            {educationLevels.map((ed) => (
-                              <option key={ed} value={ed}>{t(ed + "Option")}</option>
-                            ))}
-                          </select>
-                        </label>
-
-                        <div className="two-col" style={{ marginTop: "14px" }}>
-                          <button type="submit" className="primary-btn" disabled={submitting}>
-                            {submitting ? "Saving..." : "Save Changes"}
-                          </button>
-                          <button
-                            type="button"
-                            className="secondary-btn"
-                            onClick={() => setEditingProfile(false)}
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      </form>
-                    )}
                   </div>
                 )}
               </>
