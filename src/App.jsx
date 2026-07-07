@@ -92,7 +92,7 @@ const translations = {
     writingSkill: "Writing Skill",
     compSkill: "Comprehension Skill",
     diagnosticPassed: "Assessment analyzed! Based on your performance, you are diagnosed at:",
-    continueToDashboard: "Go to Dashboard",
+    continueToDashboard: "Back to Dashboard",
     skipVoiceBtn: "Skip / Manual Match",
     skipVoicePrompt: "Voice recognition issue? Type the exact text instead:",
 
@@ -195,7 +195,7 @@ const translations = {
     writingSkill: "लिखने का कौशल",
     compSkill: "समझने का कौशल",
     diagnosticPassed: "मूल्यांकन पूरा! आपके प्रदर्शन के आधार पर, आपका स्तर है:",
-    continueToDashboard: "डैशबोर्ड पर जाएं",
+    continueToDashboard: "डैशबोर्ड पर वापस जाएं",
     skipVoiceBtn: "छोड़ें / मैनुअल मिलान",
     skipVoicePrompt: "आवाज़ पहचानने में समस्या? इसके बजाय टेक्स्ट टाइप करें:",
 
@@ -298,7 +298,7 @@ const translations = {
     writingSkill: "ಬರೆಯುವ ಕೌಶಲ್ಯ",
     compSkill: "ಗ್ರಹಿಕೆಯ ಕೌಶಲ್ಯ",
     diagnosticPassed: "ಮೌಲ್ಯಮಾಪನ ವಿಶ್ಲೇಷಿಸಲಾಗಿದೆ! ನಿಮ್ಮ ಪ್ರದರ್ಶನದ ಆಧಾರದ ಮೇಲೆ, ನೀವು ಇಲ್ಲಿಂದ ಪ್ರಾರಂಭಿಸುತ್ತೀರಿ:",
-    continueToDashboard: "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗೆ ಹೋಗಿ",
+    continueToDashboard: "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗೆ ಹಿಂತಿರುಗಿ",
     skipVoiceBtn: "ಹೊರಗುಳಿಯಿರಿ / ಹಸ್ತಚಾಲಿತ ಹೊಂದಾಣಿಕೆ",
     skipVoicePrompt: "ಧ್ವನಿ ಗುರುತಿಸುವಿಕೆ ಸಮಸ್ಯೆಯೇ? ಬದಲಿಗೆ ಪಠ್ಯವನ್ನು ಟೈಪ್ ಮಾಡಿ:",
 
@@ -401,7 +401,7 @@ const translations = {
     writingSkill: "రాయడం నైపుణ్యం",
     compSkill: "గ్రహణశక్తి నైపుణ్యం",
     diagnosticPassed: "అంచనా విశ్లేషించబడింది! మీ ప్రదర్శన ఆధారంగా మీ స్థాయి:",
-    continueToDashboard: "డాష్‌బోర్డ్‌కు వెళ్లండి",
+    continueToDashboard: "డాష్‌బోర్డ్‌కు తిరిగి వెళ్లండి",
     skipVoiceBtn: "దాటవేయి / మాన్యువల్ మ్యాచ్",
     skipVoicePrompt: "వాయిస్ గుర్తింపు సమస్య ఉందా? బదులుగా టెక్స్ట్ టైప్ చేయండి:",
 
@@ -504,7 +504,7 @@ const translations = {
     writingSkill: "எழுதும் திறன்",
     compSkill: "புரிதல் திறன்",
     diagnosticPassed: "மதிப்பீடு பகுப்பாய்வு செய்யப்பட்டது! உங்கள் திறமையின் அடிப்படையில் உங்களது நிலை:",
-    continueToDashboard: "டாஷ்போர்டுக்குச் செல்",
+    continueToDashboard: "டாஷ்போர்டுக்குத் திரும்பு",
     skipVoiceBtn: "தவிர்க்கவும் / கைமுறை பொருத்தம்",
     skipVoicePrompt: "குரல் ஏற்பிப் பிரச்சனையா? அதற்குப் பதிலாக டைப் செய்யவும் செய்தி:",
 
@@ -1222,337 +1222,6 @@ function App() {
   if (session) {
     const userLevel = getLiteracyLevel(profile);
     const hasDiagnosed = userLevel !== null;
-
-    // Direct assessment screen override (taken once on first launch)
-    if (!hasDiagnosed && assessmentState === "not_started") {
-      return (
-        <main className="diagnostic-outer">
-          <header className="dashboard-header">
-            <div className="dashboard-logo">LISA</div>
-            <div className="dashboard-user">
-              <span>{t("hello")}, {profile?.full_name || session.user.email}</span>
-              <button type="button" className="logout-btn" onClick={handleSignOut}>{t("logout")}</button>
-            </div>
-          </header>
-          <div className="diagnostic-welcome-wrapper">
-            <div className="welcome-banner">
-              <h1>{t("welcomeToLisa")}!</h1>
-            </div>
-            <div className="empty-state-assessment">
-              <p className="intro-copy">{t("initialAssessmentDesc")}</p>
-              <div className="assessment-tours">
-                <div className="tour-badge">🎤 Reading Section (Voice)</div>
-                <div className="tour-badge">❓ Comprehension Section (MCQ)</div>
-                <div className="tour-badge">✍️ Writing Section (Text)</div>
-              </div>
-              <button
-                type="button"
-                className="primary-btn start-assessment-btn"
-                onClick={handleStartInitialAssessment}
-              >
-                {t("takeAssessmentBtn")}
-              </button>
-            </div>
-          </div>
-        </main>
-      );
-    }
-
-    // Diagnostic answering flow (randomized question list, shuffled options)
-    if (assessmentState === "answering") {
-      const q = assessmentQuestionsList[currentStep];
-      const isVoiceReading = q?.type === "reading";
-      const isCompMCQ = q?.type === "comprehension";
-      const isWriting = q?.type === "writing";
-
-      return (
-        <main className="diagnostic-outer">
-          <header className="dashboard-header">
-            <div className="dashboard-logo">LISA</div>
-            <div className="dashboard-user">
-              <span>{t("hello")}, {profile?.full_name || session.user.email}</span>
-            </div>
-          </header>
-          <div className="assessment-card">
-            <div className="assessment-card-header">
-              <div className="step-tag">
-                {t("stepTitle").replace("{current}", currentStep + 1).replace("{total}", assessmentQuestionsList.length)}
-              </div>
-              <h2>
-                {isVoiceReading && t("readingSecTitle")}
-                {isCompMCQ && t("compSecTitle")}
-                {isWriting && t("writingSecTitle")}
-              </h2>
-              <div className="progress-bar-bg">
-                <div className="progress-bar-fill" style={{ width: `${((currentStep + 1) / assessmentQuestionsList.length) * 100}%` }}></div>
-              </div>
-            </div>
-
-            <div className="question-content-box">
-              {/* READING VOICE TO TEXT WITH MONKEYTYPE UI */}
-              {isVoiceReading && (
-                <div className="reading-q-container">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-                    <p className="helper-text" style={{ margin: 0 }}>{t("monkeyTypeTip")}</p>
-                    <button
-                      type="button"
-                      className="tts-btn"
-                      onClick={() => speakText(q.targetText)}
-                      title="Listen to pronunciation"
-                    >
-                      🔊 Listen
-                    </button>
-                  </div>
-                  
-                  <div className="monkeytype-text-block">
-                    {q.targetText.split(/\s+/).map((word, idx) => {
-                      const cleaned = cleanWord(word);
-                      const attempt = readingAttempts[currentStep];
-                      let wordClass = "unspoken";
-                      if (attempt && attempt.scores) {
-                        const targetWordsCleaned = q.targetText.split(/\s+/).map(cleanWord);
-                        const cleanIdx = targetWordsCleaned.indexOf(cleaned);
-                        if (cleanIdx !== -1 && attempt.scores[cleanIdx]) {
-                          wordClass = "correct";
-                        } else if (!isListening) {
-                          wordClass = "incorrect";
-                        }
-                      }
-                      return (
-                        <span key={idx} className={`mt-word ${wordClass}`}>
-                          {word}{" "}
-                        </span>
-                      );
-                    })}
-                  </div>
-
-                  <div className="voice-mic-controls">
-                    {!isListening ? (
-                      <button
-                        type="button"
-                        className="mic-btn"
-                        onClick={() => startListening(q.targetText)}
-                      >
-                        <span className="mic-icon">🎤</span>
-                        {t("micBtnStart")}
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        className="mic-btn listening"
-                        onClick={stopListening}
-                      >
-                        <div className="pulse-ring"></div>
-                        <span className="mic-icon">🔴</span>
-                        {t("micBtnListening")}
-                      </button>
-                    )}
-                  </div>
-
-                  {spokenTranscript && (
-                    <div className="voice-transcript-log">
-                      <strong>Spoken:</strong> "{spokenTranscript}"
-                    </div>
-                  )}
-
-                  {micError && <p className="mic-error-text">{micError}</p>}
-
-                  {/* Manual fallback input */}
-                  <div className="voice-fallback-area">
-                    <label className="fallback-label">{t("skipVoicePrompt")}</label>
-                    <div className="fallback-input-row">
-                      <input
-                        type="text"
-                        placeholder="Type sentence here if mic fails..."
-                        value={manualTextFallback}
-                        onChange={(e) => setManualTextFallback(e.target.value)}
-                      />
-                      <button
-                        type="button"
-                        className="secondary-btn"
-                        onClick={() => handleManualTextSubmit(q.targetText)}
-                      >
-                        {t("skipVoiceBtn")}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* COMPREHENSION SHUFFLED MCQS */}
-              {isCompMCQ && (
-                <div className="comprehension-q-container">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
-                    <p className="comprehension-question" style={{ margin: 0, flex: 1, fontWeight: 700, fontSize: "1.2rem" }}>{q.question}</p>
-                    <button
-                      type="button"
-                      className="tts-btn"
-                      onClick={() => speakText(q.question)}
-                      title="Listen to question"
-                    >
-                      🔊 Listen
-                    </button>
-                  </div>
-                  <div className="options-grid">
-                    {q.options.map((opt, idx) => {
-                      const isSelected = selectedAnswers[currentStep] === idx;
-                      return (
-                        <button
-                          key={idx}
-                          type="button"
-                          className={`option-btn ${isSelected ? "selected" : ""}`}
-                          onClick={() => setSelectedAnswers({ ...selectedAnswers, [currentStep]: idx })}
-                        >
-                          <span className="option-indicator">{String.fromCharCode(65 + idx)}</span>
-                          <span className="option-label">{opt}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* WRITING PROMPT SECTION */}
-              {isWriting && (
-                <div className="writing-q-container">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
-                    <p className="writing-prompt" style={{ margin: 0, flex: 1, fontWeight: 700, fontSize: "1.2rem" }}>{q.prompt}</p>
-                    <button
-                      type="button"
-                      className="tts-btn"
-                      onClick={() => speakText(q.prompt)}
-                      title="Listen to prompt"
-                    >
-                      🔊 Listen
-                    </button>
-                  </div>
-                  <textarea
-                    className="writing-textarea"
-                    placeholder="Start typing your response here..."
-                    rows={6}
-                    value={writingAnswers[currentStep] || ""}
-                    onChange={(e) => setWritingAnswers({ ...writingAnswers, [currentStep]: e.target.value })}
-                  />
-                  <div className="text-counter">
-                    Characters: {(writingAnswers[currentStep] || "").length} | Words: {(writingAnswers[currentStep] || "").split(/\s+/).filter(Boolean).length}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="assessment-nav-bar">
-              {currentStep < assessmentQuestionsList.length - 1 ? (
-                <button
-                  type="button"
-                  className="primary-btn nav-btn"
-                  onClick={handleNextStep}
-                  disabled={
-                    (isVoiceReading && !readingAttempts[currentStep]) ||
-                    (isCompMCQ && selectedAnswers[currentStep] === undefined) ||
-                    (isWriting && !(writingAnswers[currentStep] || "").trim())
-                  }
-                >
-                  {t("nextQuestion")} ➜
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  className="primary-btn submit-btn"
-                  onClick={submitInitialAssessment}
-                  disabled={
-                    submitting ||
-                    (isVoiceReading && !readingAttempts[currentStep]) ||
-                    (isCompMCQ && selectedAnswers[currentStep] === undefined) ||
-                    (isWriting && !(writingAnswers[currentStep] || "").trim())
-                  }
-                >
-                  {submitting ? t("submittingAssessment") : t("submitAssessmentBtn")}
-                </button>
-              )}
-            </div>
-          </div>
-        </main>
-      );
-    }
-
-    // Diagnostic Results screen
-    if (assessmentState === "results") {
-      const currentLevelIndex = getLiteracyLevel(profile) || 1;
-      const latestAttempt = historyAttempts[0];
-
-      return (
-        <main className="diagnostic-outer">
-          <header className="dashboard-header">
-            <div className="dashboard-logo">LISA</div>
-          </header>
-          <div className="results-card">
-            <h2>{t("resultsTitle")}</h2>
-            
-            <div className="results-percentage-circle">
-              <span className="percent-val">{latestAttempt?.score ? Math.round((latestAttempt.score / 50) * 100) : 0}%</span>
-            </div>
-
-            <div className="score-summary-grid" style={{ gridTemplateColumns: "1fr", justifyContent: "center" }}>
-              <div className="score-item" style={{ textAlign: "center" }}>
-                <span className="score-label">{t("overallScore")}</span>
-                <span className="score-val" style={{ fontSize: "1.8rem" }}>{latestAttempt?.score} / 50</span>
-              </div>
-            </div>
-
-            <div className="benchmark-card">
-              <div className="benchmark-badge-icon">🎖️</div>
-              <h3 className="benchmark-title">{getLevelCategoryAndDescription(currentLevelIndex, currentLang).category}</h3>
-              <p className="benchmark-desc">
-                {getLevelCategoryAndDescription(currentLevelIndex, currentLang).description}
-              </p>
-            </div>
-
-            <div className="skill-breakdowns-box">
-              <h3>{t("skillBreakdown")}</h3>
-              <div className="skill-progress-bar">
-                <div className="skill-progress-label">
-                  <span>{t("readingSkill")}</span>
-                  <span>{latestAttempt?.skills?.reading || 0}%</span>
-                </div>
-                <div className="bar-bg">
-                  <div className="bar-fill reading" style={{ width: `${latestAttempt?.skills?.reading || 0}%` }}></div>
-                </div>
-              </div>
-              <div className="skill-progress-bar">
-                <div className="skill-progress-label">
-                  <span>{t("compSkill")}</span>
-                  <span>{latestAttempt?.skills?.comprehension || 0}%</span>
-                </div>
-                <div className="bar-bg">
-                  <div className="bar-fill comprehension" style={{ width: `${latestAttempt?.skills?.comprehension || 0}%` }}></div>
-                </div>
-              </div>
-              <div className="skill-progress-bar">
-                <div className="skill-progress-label">
-                  <span>{t("writingSkill")}</span>
-                  <span>{latestAttempt?.skills?.writing || 0}%</span>
-                </div>
-                <div className="bar-bg">
-                  <div className="bar-fill writing" style={{ width: `${latestAttempt?.skills?.writing || 0}%` }}></div>
-                </div>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              className="primary-btn dashboard-enter-btn"
-              onClick={() => {
-                setAssessmentState("not_started");
-              }}
-            >
-              {t("continueToDashboard")}
-            </button>
-          </div>
-        </main>
-      );
-    }
-
-    // MAIN STUDENT DASHBOARD (Results & Profile Analytics)
     const currentLevelNum = getLiteracyLevel(profile) || 1;
     const currentLang = selectedLanguage || "English";
 
@@ -1596,16 +1265,18 @@ function App() {
                 <span>👤 Profile Settings</span>
               </button>
               
-              <div style={{ padding: '0 12px', marginTop: '16px' }}>
-                <button
-                  type="button"
-                  className="primary-btn"
-                  onClick={handleStartInitialAssessment}
-                  style={{ width: "100%", padding: "10px", borderRadius: "10px", fontWeight: "700" }}
-                >
-                  📝 Take Assessment
-                </button>
-              </div>
+              {!hasDiagnosed && (
+                <div style={{ padding: '0 12px', marginTop: '16px' }}>
+                  <button
+                    type="button"
+                    className="primary-btn"
+                    onClick={handleStartInitialAssessment}
+                    style={{ width: "100%", padding: "10px", borderRadius: "10px", fontWeight: "700" }}
+                  >
+                    📝 Take Assessment
+                  </button>
+                </div>
+              )}
             </nav>
           </div>
 
@@ -1634,349 +1305,703 @@ function App() {
           </header>
 
           <main className="dashboard-main-view">
-            {/* TABS: HOME */}
-            {dashboardTab === "home" && (
-              <div className="home-tab-wrapper">
-                {/* 1. Tutor Announcement Bar */}
-                <div className="tutor-announcement-bar">
-                  <div className="tutor-icon-box">🤖</div>
-                  <div className="tutor-text-wrapper">
-                    <h5>LISA AI Tutor</h5>
-                    <p>Keep your streak going! You are doing an amazing job learning foundational literacy.</p>
-                  </div>
+            {/* 1. Welcome state when not diagnosed and assessment not started */}
+            {!hasDiagnosed && assessmentState === "not_started" && (
+              <div className="diagnostic-welcome-wrapper" style={{ maxWidth: '800px', margin: '20px auto', padding: '20px' }}>
+                <div className="welcome-banner">
+                  <h1>{t("welcomeToLisa")}!</h1>
                 </div>
-
-                {/* 2. Premium Hero Banner Card */}
-                {(() => {
-                  const overallProgress = historyAttempts[0]?.score ? Math.round((historyAttempts[0].score / 50) * 100) : 0;
-                  const strokeDashoffset = 251.2 - (overallProgress / 100) * 251.2;
-
-                  return (
-                    <div className="premium-hero-card">
-                      <div className="hero-left-content">
-                        <span className="hero-tag">LISA PLATFORM</span>
-                        <h1>Ready to check your skills?</h1>
-                        <p className="hero-subtext">Launch your dynamic diagnostic literacy evaluation now.</p>
-                        
-                        <div className="hero-actions">
-                          <button
-                            type="button"
-                            className="primary-btn"
-                            onClick={handleStartInitialAssessment}
-                            style={{ padding: "12px 28px", borderRadius: "16px", background: "white", color: "#100b21", border: "none", fontWeight: "800" }}
-                          >
-                            ▷ Start Assessment
-                          </button>
-                          <span className="hero-streak-text">
-                            🔥 {historyAttempts.length > 0 ? "3 day streak" : "0 day streak"}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="hero-right-progress">
-                        <svg width="100" height="100" className="progress-ring-svg">
-                          <circle cx="50" cy="50" r="40" strokeWidth="8" fill="transparent" className="progress-ring-circle-bg" />
-                          <circle
-                            cx="50"
-                            cy="50"
-                            r="40"
-                            strokeWidth="8"
-                            fill="transparent"
-                            className="progress-ring-circle-fill"
-                            strokeDashoffset={strokeDashoffset}
-                          />
-                          <text x="50" y="55" textAnchor="middle" fill="white" fontWeight="900" fontSize="1.1rem">{overallProgress}%</text>
-                        </svg>
-                        <span className="progress-percentage-label">
-                          {getLevelCategoryAndDescription(getLiteracyLevel(profile) || 1, selectedLanguage).category}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })()}
-
-                {/* 3. 4-Metric Statistics Grid */}
-                {(() => {
-                  const achievementsCount = 1 + 
-                    (calculateSkillProficiency("reading") >= 75 ? 1 : 0) +
-                    (calculateSkillProficiency("comprehension") >= 75 ? 1 : 0) +
-                    (calculateSkillProficiency("writing") >= 75 ? 1 : 0);
-                  const hoursLearned = (historyAttempts.length * 0.5).toFixed(1);
-
-                  return (
-                    <div className="metric-stats-grid">
-                      <div className="metric-stat-box">
-                        <div className="metric-icon-circle" style={{ background: '#eff6ff', color: '#3b82f6' }}>📖</div>
-                        <div className="metric-text-wrapper">
-                          <span className="metric-number">{historyAttempts.length}</span>
-                          <span className="metric-label">Evaluations Done</span>
-                        </div>
-                      </div>
-                      <div className="metric-stat-box">
-                        <div className="metric-icon-circle" style={{ background: '#fef3c7', color: '#d97706' }}>🏆</div>
-                        <div className="metric-text-wrapper">
-                          <span className="metric-number">
-                            {achievementsCount} <span className="badge-new-tag">New</span>
-                          </span>
-                          <span className="metric-label">Achievements</span>
-                        </div>
-                      </div>
-                      <div className="metric-stat-box">
-                        <div className="metric-icon-circle" style={{ background: '#ecfdf5', color: '#059669' }}>⏱️</div>
-                        <div className="metric-text-wrapper">
-                          <span className="metric-number">{hoursLearned}h</span>
-                          <span className="metric-label">Hours Learned</span>
-                        </div>
-                      </div>
-                      <div className="metric-stat-box">
-                        <div className="metric-icon-circle" style={{ background: '#fff5f5', color: '#e53e3e' }}>🔥</div>
-                        <div className="metric-text-wrapper">
-                          <span className="metric-number">{historyAttempts.length > 0 ? "3" : "0"}</span>
-                          <span className="metric-label">Day Streak</span>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })()}
-
-                {/* 4. Day Streak Widget Tracker */}
-                <div className="streak-widget-card">
-                  <div className="streak-card-header">
-                    <h4>🔥 Day Streak</h4>
-                    <span style={{ fontWeight: '800', color: '#f59e0b', fontSize: '1.1rem' }}>
-                      {historyAttempts.length > 0 ? "3" : "0"} Days Active
-                    </span>
+                <div className="empty-state-assessment">
+                  <p className="intro-copy">{t("initialAssessmentDesc")}</p>
+                  <div className="assessment-tours">
+                    <div className="tour-badge">🎤 Reading Section (Voice)</div>
+                    <div className="tour-badge">❓ Comprehension Section (MCQ)</div>
+                    <div className="tour-badge">✍️ Writing Section (Text)</div>
                   </div>
-                  <div className="streak-days-list">
-                    {["S", "M", "T", "W", "T", "F", "S"].map((day, idx) => {
-                      const isActive = historyAttempts.length > 0 && [1, 2, 3].includes(idx); // Monday, Tuesday, Wednesday
-                      return (
-                        <div key={idx} className={`streak-day-bubble ${isActive ? "active" : ""}`}>
-                          {isActive ? "✓" : day}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* 5. Lessons Section Grid */}
-                <div className="lessons-section-header">
-                  <h3>📚 Practice Modules</h3>
-                </div>
-                <div className="lessons-card-grid">
-                  <div className="lesson-card-item active" onClick={handleStartInitialAssessment}>
-                    <div className="lesson-card-header">
-                      <div className="lesson-card-icon-box" style={{ background: '#eff6ff', color: '#3b82f6' }}>🎤</div>
-                      <span className="lesson-active-badge">Active</span>
-                    </div>
-                    <div>
-                      <h4 className="lesson-card-title">Reading Foundations</h4>
-                      <p className="lesson-card-desc">Practice sentence articulation and clear regional speaking.</p>
-                    </div>
-                    <div className="lesson-card-footer">
-                      <div className="bar-bg" style={{ height: '6px' }}>
-                        <div className="bar-fill reading" style={{ width: `${calculateSkillProficiency("reading")}%` }}></div>
-                      </div>
-                      <span className="lesson-card-duration">⏱ 15 min | {calculateSkillProficiency("reading")}% Mastery</span>
-                    </div>
-                  </div>
-
-                  <div className="lesson-card-item" onClick={handleStartInitialAssessment}>
-                    <div className="lesson-card-header">
-                      <div className="lesson-card-icon-box" style={{ background: '#fef3c7', color: '#d97706' }}>❓</div>
-                    </div>
-                    <div>
-                      <h4 className="lesson-card-title">Comprehension Practice</h4>
-                      <p className="lesson-card-desc">Answer interactive MCQs on everyday warnings, signs, and texts.</p>
-                    </div>
-                    <div className="lesson-card-footer">
-                      <div className="bar-bg" style={{ height: '6px' }}>
-                        <div className="bar-fill comprehension" style={{ width: `${calculateSkillProficiency("comprehension")}%` }}></div>
-                      </div>
-                      <span className="lesson-card-duration">⏱ 12 min | {calculateSkillProficiency("comprehension")}% Mastery</span>
-                    </div>
-                  </div>
-
-                  <div className="lesson-card-item" onClick={handleStartInitialAssessment}>
-                    <div className="lesson-card-header">
-                      <div className="lesson-card-icon-box" style={{ background: '#ecfdf5', color: '#059669' }}>✍️</div>
-                    </div>
-                    <div>
-                      <h4 className="lesson-card-title">Writing & Literacy</h4>
-                      <p className="lesson-card-desc">Write short descriptive texts about prompts and daily routines.</p>
-                    </div>
-                    <div className="lesson-card-footer">
-                      <div className="bar-bg" style={{ height: '6px' }}>
-                        <div className="bar-fill writing" style={{ width: `${calculateSkillProficiency("writing")}%` }}></div>
-                      </div>
-                      <span className="lesson-card-duration">⏱ 10 min | {calculateSkillProficiency("writing")}% Mastery</span>
-                    </div>
-                  </div>
-
-                  <div className="lesson-card-item" onClick={handleStartInitialAssessment}>
-                    <div className="lesson-card-header">
-                      <div className="lesson-card-icon-box" style={{ background: '#f5f3ff', color: '#8b5cf6' }}>🎓</div>
-                    </div>
-                    <div>
-                      <h4 className="lesson-card-title">Language Practice</h4>
-                      <p className="lesson-card-desc">Combine elements of syntax and vocabulary structures.</p>
-                    </div>
-                    <div className="lesson-card-footer">
-                      <div className="bar-bg" style={{ height: '6px' }}>
-                        <div className="bar-fill reading" style={{ width: '0%', background: '#a78bfa' }}></div>
-                      </div>
-                      <span className="lesson-card-duration">⏱ 18 min | 0% Mastery</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Achievements Badges Section */}
-                <div className="badges-gallery-card" style={{ background: 'white', border: '1px solid rgba(0,0,0,0.04)', boxShadow: '0 4px 16px rgba(0,0,0,0.02)', borderRadius: '24px' }}>
-                  <h4>🏆 Achievements & Badges</h4>
-                  <div className="badges-grid" style={{ marginTop: '20px' }}>
-                    <div className="badge-item unlocked">
-                      <div className="badge-art">🏁</div>
-                      <h6>First Attempt</h6>
-                      <p>Completed the initial diagnostic assessment.</p>
-                    </div>
-                    
-                    <div className={`badge-item ${calculateSkillProficiency("reading") >= 75 ? "unlocked" : "locked"}`}>
-                      <div className="badge-art">🎤</div>
-                      <h6>Voice Pioneer</h6>
-                      <p>Achieved 75% or higher in Reading Speech matching.</p>
-                    </div>
-
-                    <div className={`badge-item ${calculateSkillProficiency("comprehension") >= 75 ? "unlocked" : "locked"}`}>
-                      <div className="badge-art">❓</div>
-                      <h6>Comprehension Pro</h6>
-                      <p>Achieved 75% or higher in MCQ evaluation.</p>
-                    </div>
-
-                    <div className={`badge-item ${calculateSkillProficiency("writing") >= 75 ? "unlocked" : "locked"}`}>
-                      <div className="badge-art">✍️</div>
-                      <h6>Spelling Guru</h6>
-                      <p>Achieved 75% or higher in prompt writing assessment.</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* History list */}
-                <div className="history-table-wrapper" style={{ background: 'white', border: '1px solid rgba(0,0,0,0.04)', boxShadow: '0 4px 16px rgba(0,0,0,0.02)', borderRadius: '24px', padding: '28px' }}>
-                  <h4>📝 Diagnostic Evaluation History</h4>
-                  {historyAttempts.length === 0 ? (
-                    <p style={{ padding: "20px", color: "var(--muted)", margin: 0 }}>No evaluations recorded yet.</p>
-                  ) : (
-                    <table className="history-table" style={{ margin: 0 }}>
-                      <thead>
-                        <tr>
-                          <th>{t("historyDate")}</th>
-                          <th>{t("historyType")}</th>
-                          <th>{t("historyScore")}</th>
-                          <th>Status</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {historyAttempts.map((h, i) => (
-                          <tr key={i}>
-                            <td>{h.date}</td>
-                            <td>{h.type}</td>
-                            <td>{h.score} / 50</td>
-                            <td>
-                              <span className={`score-badge ${h.passed ? "high" : "low"}`}>
-                                Evaluated
-                              </span>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  )}
+                  <button
+                    type="button"
+                    className="primary-btn start-assessment-btn"
+                    onClick={handleStartInitialAssessment}
+                  >
+                    {t("takeAssessmentBtn")}
+                  </button>
                 </div>
               </div>
             )}
 
-            {/* TABS: PROFILE EDITING */}
-            {dashboardTab === "profile" && (
-              <div className="profile-tab-wrapper">
-                {!editingProfile ? (
-                  <div className="profile-info-card">
-                    <div className="profile-avatar">👤</div>
-                    <h3>{profile?.full_name}</h3>
-                    <p><strong>Email:</strong> {session.user.email}</p>
-                    <p><strong>Age:</strong> {profile?.age || "N/A"}</p>
-                    <p><strong>Preferred Language:</strong> {profile?.preferred_language}</p>
+            {/* 2. Answering state */}
+            {assessmentState === "answering" && (() => {
+              const q = assessmentQuestionsList[currentStep];
+              const isVoiceReading = q?.type === "reading";
+              const isCompMCQ = q?.type === "comprehension";
+              const isWriting = q?.type === "writing";
 
-                    <button
-                      type="button"
-                      className="primary-btn edit-profile-trigger"
-                      onClick={handleStartEdit}
-                    >
-                      Update Profile
-                    </button>
+              return (
+                <div className="assessment-card" style={{ maxWidth: '800px', margin: '20px auto' }}>
+                  <div className="assessment-card-header">
+                    <div className="step-tag">
+                      {t("stepTitle").replace("{current}", currentStep + 1).replace("{total}", assessmentQuestionsList.length)}
+                    </div>
+                    <h2>
+                      {isVoiceReading && t("readingSecTitle")}
+                      {isCompMCQ && t("compSecTitle")}
+                      {isWriting && t("writingSecTitle")}
+                    </h2>
+                    <div className="progress-bar-bg">
+                      <div className="progress-bar-fill" style={{ width: `${((currentStep + 1) / assessmentQuestionsList.length) * 100}%` }}></div>
+                    </div>
                   </div>
-                ) : (
-                  <form className="auth-form active editing-profile-form" onSubmit={handleSaveProfileEdit}>
-                    <h3>Update Profile Info</h3>
-                    <label>
-                      Full Name
-                      <input
-                        type="text"
-                        required
-                        value={editFullName}
-                        onChange={(e) => setEditFullName(e.target.value)}
-                      />
-                    </label>
-                    <label>
-                      Age
-                      <input
-                        type="number"
-                        min="5"
-                        max="120"
-                        required
-                        value={editAge}
-                        onChange={(e) => setEditAge(e.target.value)}
-                      />
-                    </label>
-                    <label>
-                      Preferred Language
-                      <select
-                        required
-                        value={editPreferredLang}
-                        onChange={(e) => setEditPreferredLang(e.target.value)}
-                      >
-                        {languages.map((l) => (
-                          <option key={l} value={l}>{t(l + "Option")}</option>
-                        ))}
-                      </select>
-                    </label>
-                    <label>
-                      Current Education Status
-                      <select
-                        required
-                        value={editEdLevel}
-                        onChange={(e) => setEditEdLevel(e.target.value)}
-                      >
-                        {educationLevels.map((ed) => (
-                          <option key={ed} value={ed}>{t(ed + "Option")}</option>
-                        ))}
-                      </select>
-                    </label>
 
-                    <div className="two-col" style={{ marginTop: "14px" }}>
-                      <button type="submit" className="primary-btn" disabled={submitting}>
-                        {submitting ? "Saving..." : "Save Changes"}
-                      </button>
+                  <div className="question-content-box">
+                    {/* READING VOICE TO TEXT WITH MONKEYTYPE UI */}
+                    {isVoiceReading && (
+                      <div className="reading-q-container">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                          <p className="helper-text" style={{ margin: 0 }}>{t("monkeyTypeTip")}</p>
+                          <button
+                            type="button"
+                            className="tts-btn"
+                            onClick={() => speakText(q.targetText)}
+                            title="Listen to pronunciation"
+                          >
+                            🔊 Listen
+                          </button>
+                        </div>
+                        
+                        <div className="monkeytype-text-block">
+                          {q.targetText.split(/\s+/).map((word, idx) => {
+                            const cleaned = cleanWord(word);
+                            const attempt = readingAttempts[currentStep];
+                            let wordClass = "unspoken";
+                            if (attempt && attempt.scores) {
+                              const targetWordsCleaned = q.targetText.split(/\s+/).map(cleanWord);
+                              const cleanIdx = targetWordsCleaned.indexOf(cleaned);
+                              if (cleanIdx !== -1 && attempt.scores[cleanIdx]) {
+                                wordClass = "correct";
+                              } else if (!isListening) {
+                                wordClass = "incorrect";
+                              }
+                            }
+                            return (
+                              <span key={idx} className={`mt-word ${wordClass}`}>
+                                {word}{" "}
+                              </span>
+                            );
+                          })}
+                        </div>
+
+                        <div className="voice-mic-controls">
+                          {!isListening ? (
+                            <button
+                              type="button"
+                              className="mic-btn"
+                              onClick={() => startListening(q.targetText)}
+                            >
+                              <span className="mic-icon">🎤</span>
+                              {t("micBtnStart")}
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              className="mic-btn listening"
+                              onClick={stopListening}
+                            >
+                              <div className="pulse-ring"></div>
+                              <span className="mic-icon">🔴</span>
+                              {t("micBtnListening")}
+                            </button>
+                          )}
+                        </div>
+
+                        {spokenTranscript && (
+                          <div className="voice-transcript-log">
+                            <strong>Spoken:</strong> "{spokenTranscript}"
+                          </div>
+                        )}
+
+                        {micError && <p className="mic-error-text">{micError}</p>}
+
+                        {/* Manual fallback input */}
+                        <div className="voice-fallback-area">
+                          <label className="fallback-label">{t("skipVoicePrompt")}</label>
+                          <div className="fallback-input-row">
+                            <input
+                              type="text"
+                              placeholder="Type sentence here if mic fails..."
+                              value={manualTextFallback}
+                              onChange={(e) => setManualTextFallback(e.target.value)}
+                            />
+                            <button
+                              type="button"
+                              className="secondary-btn"
+                              onClick={() => handleManualTextSubmit(q.targetText)}
+                            >
+                              {t("skipVoiceBtn")}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* COMPREHENSION SHUFFLED MCQS */}
+                    {isCompMCQ && (
+                      <div className="comprehension-q-container">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
+                          <p className="comprehension-question" style={{ margin: 0, flex: 1, fontWeight: 700, fontSize: "1.2rem" }}>{q.question}</p>
+                          <button
+                            type="button"
+                            className="tts-btn"
+                            onClick={() => speakText(q.question)}
+                            title="Listen to question"
+                          >
+                            🔊 Listen
+                          </button>
+                        </div>
+                        <div className="options-grid">
+                          {q.options.map((opt, idx) => {
+                            const isSelected = selectedAnswers[currentStep] === idx;
+                            return (
+                              <button
+                                key={idx}
+                                type="button"
+                                className={`option-btn ${isSelected ? "selected" : ""}`}
+                                onClick={() => setSelectedAnswers({ ...selectedAnswers, [currentStep]: idx })}
+                              >
+                                <span className="option-indicator">{String.fromCharCode(65 + idx)}</span>
+                                <span className="option-label">{opt}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* WRITING PROMPT SECTION */}
+                    {isWriting && (
+                      <div className="writing-q-container">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
+                          <p className="writing-prompt" style={{ margin: 0, flex: 1, fontWeight: 700, fontSize: "1.2rem" }}>{q.prompt}</p>
+                          <button
+                            type="button"
+                            className="tts-btn"
+                            onClick={() => speakText(q.prompt)}
+                            title="Listen to prompt"
+                          >
+                            🔊 Listen
+                          </button>
+                        </div>
+                        <textarea
+                          className="writing-textarea"
+                          placeholder="Start typing your response here..."
+                          rows={6}
+                          value={writingAnswers[currentStep] || ""}
+                          onChange={(e) => setWritingAnswers({ ...writingAnswers, [currentStep]: e.target.value })}
+                        />
+                        <div className="text-counter">
+                          Characters: {(writingAnswers[currentStep] || "").length} | Words: {(writingAnswers[currentStep] || "").split(/\s+/).filter(Boolean).length}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="assessment-nav-bar">
+                    {currentStep < assessmentQuestionsList.length - 1 ? (
                       <button
                         type="button"
-                        className="secondary-btn"
-                        onClick={() => setEditingProfile(false)}
+                        className="primary-btn nav-btn"
+                        onClick={handleNextStep}
+                        disabled={
+                          (isVoiceReading && !readingAttempts[currentStep]) ||
+                          (isCompMCQ && selectedAnswers[currentStep] === undefined) ||
+                          (isWriting && !(writingAnswers[currentStep] || "").trim())
+                        }
                       >
-                        Cancel
+                        {t("nextQuestion")} ➜
                       </button>
+                    ) : (
+                      <button
+                        type="button"
+                        className="primary-btn submit-btn"
+                        onClick={submitInitialAssessment}
+                        disabled={
+                          submitting ||
+                          (isVoiceReading && !readingAttempts[currentStep]) ||
+                          (isCompMCQ && selectedAnswers[currentStep] === undefined) ||
+                          (isWriting && !(writingAnswers[currentStep] || "").trim())
+                        }
+                      >
+                        {submitting ? t("submittingAssessment") : t("submitAssessmentBtn")}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* 3. Results feedback state */}
+            {assessmentState === "results" && (() => {
+              const currentLevelIndex = getLiteracyLevel(profile) || 1;
+              const latestAttempt = historyAttempts[0];
+
+              return (
+                <div className="results-card" style={{ maxWidth: '800px', margin: '20px auto' }}>
+                  <h2>{t("resultsTitle")}</h2>
+                  
+                  <div className="results-percentage-circle">
+                    <span className="percent-val">{latestAttempt?.score ? Math.round((latestAttempt.score / 50) * 100) : 0}%</span>
+                  </div>
+
+                  <div className="score-summary-grid" style={{ gridTemplateColumns: "1fr", justifyContent: "center" }}>
+                    <div className="score-item" style={{ textAlign: "center" }}>
+                      <span className="score-label">{t("overallScore")}</span>
+                      <span className="score-val" style={{ fontSize: "1.8rem" }}>{latestAttempt?.score} / 50</span>
                     </div>
-                  </form>
+                  </div>
+
+                  <div className="benchmark-card">
+                    <div className="benchmark-badge-icon">🎖️</div>
+                    <h3 className="benchmark-title">{getLevelCategoryAndDescription(currentLevelIndex, currentLang).category}</h3>
+                    <p className="benchmark-desc">
+                      {getLevelCategoryAndDescription(currentLevelIndex, currentLang).description}
+                    </p>
+                  </div>
+
+                  <div className="skill-breakdowns-box">
+                    <h3>{t("skillBreakdown")}</h3>
+                    <div className="skill-progress-bar">
+                      <div className="skill-progress-label">
+                        <span>{t("readingSkill")}</span>
+                        <span>{latestAttempt?.skills?.reading || 0}%</span>
+                      </div>
+                      <div className="bar-bg">
+                        <div className="bar-fill reading" style={{ width: `${latestAttempt?.skills?.reading || 0}%` }}></div>
+                      </div>
+                    </div>
+                    <div className="skill-progress-bar">
+                      <div className="skill-progress-label">
+                        <span>{t("compSkill")}</span>
+                        <span>{latestAttempt?.skills?.comprehension || 0}%</span>
+                      </div>
+                      <div className="bar-bg">
+                        <div className="bar-fill comprehension" style={{ width: `${latestAttempt?.skills?.comprehension || 0}%` }}></div>
+                      </div>
+                    </div>
+                    <div className="skill-progress-bar">
+                      <div className="skill-progress-label">
+                        <span>{t("writingSkill")}</span>
+                        <span>{latestAttempt?.skills?.writing || 0}%</span>
+                      </div>
+                      <div className="bar-bg">
+                        <div className="bar-fill writing" style={{ width: `${latestAttempt?.skills?.writing || 0}%` }}></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    className="primary-btn dashboard-enter-btn"
+                    onClick={() => {
+                      setAssessmentState("not_started");
+                    }}
+                  >
+                    {t("continueToDashboard")}
+                  </button>
+                </div>
+              );
+            })()}
+
+            {/* 4. Normal Dashboard View (only rendered when diagnosed and not in assessment) */}
+            {hasDiagnosed && assessmentState === "not_started" && (
+              <>
+                {dashboardTab === "home" && (
+                  <div className="home-tab-wrapper">
+                    {/* Tutor Announcement Bar */}
+                    <div className="tutor-announcement-bar">
+                      <div className="tutor-icon-box">🤖</div>
+                      <div className="tutor-text-wrapper">
+                        <h5>LISA AI Tutor</h5>
+                        <p>Keep your streak going! You are doing an amazing job learning foundational literacy.</p>
+                      </div>
+                    </div>
+
+                    {/* Premium Hero Banner Card */}
+                    {(() => {
+                      const overallProgress = historyAttempts[0]?.score ? Math.round((historyAttempts[0].score / 50) * 100) : 0;
+                      const strokeDashoffset = 251.2 - (overallProgress / 100) * 251.2;
+
+                      return (
+                        <div className="premium-hero-card">
+                          <div className="hero-left-content">
+                            <span className="hero-tag">LISA PLATFORM</span>
+                            <h1>Your Literacy Journey</h1>
+                            <p className="hero-subtext">You have completed your initial diagnostic assessment. Keep practicing to build your skills!</p>
+                            
+                            <div className="hero-actions">
+                              <span className="hero-streak-text">
+                                🔥 {historyAttempts.length > 0 ? "3 day streak" : "0 day streak"}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="hero-right-progress">
+                            <svg width="100" height="100" className="progress-ring-svg">
+                              <circle cx="50" cy="50" r="40" strokeWidth="8" fill="transparent" className="progress-ring-circle-bg" />
+                              <circle
+                                cx="50"
+                                cy="50"
+                                r="40"
+                                strokeWidth="8"
+                                fill="transparent"
+                                className="progress-ring-circle-fill"
+                                strokeDashoffset={strokeDashoffset}
+                              />
+                              <text x="50" y="55" textAnchor="middle" fill="white" fontWeight="900" fontSize="1.1rem">{overallProgress}%</text>
+                            </svg>
+                            <span className="progress-percentage-label">
+                              {getLevelCategoryAndDescription(getLiteracyLevel(profile) || 1, selectedLanguage).category}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })()}
+
+                    {/* 4-Metric Statistics Grid */}
+                    {(() => {
+                      const achievementsCount = 1 + 
+                        (calculateSkillProficiency("reading") >= 75 ? 1 : 0) +
+                        (calculateSkillProficiency("comprehension") >= 75 ? 1 : 0) +
+                        (calculateSkillProficiency("writing") >= 75 ? 1 : 0);
+                      const hoursLearned = (historyAttempts.length * 0.5).toFixed(1);
+
+                      return (
+                        <div className="metric-stats-grid">
+                          <div className="metric-stat-box">
+                            <div className="metric-icon-circle" style={{ background: '#eff6ff', color: '#3b82f6' }}>📖</div>
+                            <div className="metric-text-wrapper">
+                              <span className="metric-number">{historyAttempts.length}</span>
+                              <span className="metric-label">Evaluations Done</span>
+                            </div>
+                          </div>
+                          <div className="metric-stat-box">
+                            <div className="metric-icon-circle" style={{ background: '#fef3c7', color: '#d97706' }}>🏆</div>
+                            <div className="metric-text-wrapper">
+                              <span className="metric-number">
+                                {achievementsCount} <span className="badge-new-tag">New</span>
+                              </span>
+                              <span className="metric-label">Achievements</span>
+                            </div>
+                          </div>
+                          <div className="metric-stat-box">
+                            <div className="metric-icon-circle" style={{ background: '#ecfdf5', color: '#059669' }}>⏱️</div>
+                            <div className="metric-text-wrapper">
+                              <span className="metric-number">{hoursLearned}h</span>
+                              <span className="metric-label">Hours Learned</span>
+                            </div>
+                          </div>
+                          <div className="metric-stat-box">
+                            <div className="metric-icon-circle" style={{ background: '#fff5f5', color: '#e53e3e' }}>🔥</div>
+                            <div className="metric-text-wrapper">
+                              <span className="metric-number">{historyAttempts.length > 0 ? "3" : "0"}</span>
+                              <span className="metric-label">Day Streak</span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })()}
+
+                    {/* Day Streak Widget Tracker */}
+                    <div className="streak-widget-card">
+                      <div className="streak-card-header">
+                        <h4>🔥 Day Streak</h4>
+                        <span style={{ fontWeight: '800', color: '#f59e0b', fontSize: '1.1rem' }}>
+                          {historyAttempts.length > 0 ? "3" : "0"} Days Active
+                        </span>
+                      </div>
+                      <div className="streak-days-list">
+                        {["S", "M", "T", "W", "T", "F", "S"].map((day, idx) => {
+                          const isActive = historyAttempts.length > 0 && [1, 2, 3].includes(idx);
+                          return (
+                            <div key={idx} className={`streak-day-bubble ${isActive ? "active" : ""}`}>
+                              {isActive ? "✓" : day}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Lessons Section Grid */}
+                    <div className="lessons-section-header">
+                      <h3>📚 Practice Modules</h3>
+                    </div>
+                    <div className="lessons-card-grid">
+                      <div className="lesson-card-item active" onClick={() => alert("Practice modules are under development. Keep practicing with your current level!")}>
+                        <div className="lesson-card-header">
+                          <div className="lesson-card-icon-box" style={{ background: '#eff6ff', color: '#3b82f6' }}>🎤</div>
+                          <span className="lesson-active-badge">Active</span>
+                        </div>
+                        <div>
+                          <h4 className="lesson-card-title">Reading Foundations</h4>
+                          <p className="lesson-card-desc">Practice sentence articulation and clear regional speaking.</p>
+                        </div>
+                        <div className="lesson-card-footer">
+                          <div className="bar-bg" style={{ height: '6px' }}>
+                            <div className="bar-fill reading" style={{ width: `${calculateSkillProficiency("reading")}%` }}></div>
+                          </div>
+                          <span className="lesson-card-duration">⏱ 15 min | {calculateSkillProficiency("reading")}% Mastery</span>
+                        </div>
+                      </div>
+
+                      <div className="lesson-card-item" onClick={() => alert("Practice modules are under development. Keep practicing with your current level!")}>
+                        <div className="lesson-card-header">
+                          <div className="lesson-card-icon-box" style={{ background: '#fef3c7', color: '#d97706' }}>❓</div>
+                        </div>
+                        <div>
+                          <h4 className="lesson-card-title">Comprehension Practice</h4>
+                          <p className="lesson-card-desc">Answer interactive MCQs on everyday warnings, signs, and texts.</p>
+                        </div>
+                        <div className="lesson-card-footer">
+                          <div className="bar-bg" style={{ height: '6px' }}>
+                            <div className="bar-fill comprehension" style={{ width: `${calculateSkillProficiency("comprehension")}%` }}></div>
+                          </div>
+                          <span className="lesson-card-duration">⏱ 12 min | {calculateSkillProficiency("comprehension")}% Mastery</span>
+                        </div>
+                      </div>
+
+                      <div className="lesson-card-item" onClick={() => alert("Practice modules are under development. Keep practicing with your current level!")}>
+                        <div className="lesson-card-header">
+                          <div className="lesson-card-icon-box" style={{ background: '#ecfdf5', color: '#059669' }}>✍️</div>
+                        </div>
+                        <div>
+                          <h4 className="lesson-card-title">Writing & Literacy</h4>
+                          <p className="lesson-card-desc">Write short descriptive texts about prompts and daily routines.</p>
+                        </div>
+                        <div className="lesson-card-footer">
+                          <div className="bar-bg" style={{ height: '6px' }}>
+                            <div className="bar-fill writing" style={{ width: `${calculateSkillProficiency("writing")}%` }}></div>
+                          </div>
+                          <span className="lesson-card-duration">⏱ 10 min | {calculateSkillProficiency("writing")}% Mastery</span>
+                        </div>
+                      </div>
+
+                      <div className="lesson-card-item" onClick={() => alert("Practice modules are under development. Keep practicing with your current level!")}>
+                        <div className="lesson-card-header">
+                          <div className="lesson-card-icon-box" style={{ background: '#f5f3ff', color: '#8b5cf6' }}>🎓</div>
+                        </div>
+                        <div>
+                          <h4 className="lesson-card-title">Language Practice</h4>
+                          <p className="lesson-card-desc">Combine elements of syntax and vocabulary structures.</p>
+                        </div>
+                        <div className="lesson-card-footer">
+                          <div className="bar-bg" style={{ height: '6px' }}>
+                            <div className="bar-fill reading" style={{ width: '0%', background: '#a78bfa' }}></div>
+                          </div>
+                          <span className="lesson-card-duration">⏱ 18 min | 0% Mastery</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Achievements Badges Section */}
+                    <div className="badges-gallery-card" style={{ background: 'white', border: '1px solid rgba(0,0,0,0.04)', boxShadow: '0 4px 16px rgba(0,0,0,0.02)', borderRadius: '24px' }}>
+                      <h4>🏆 Achievements & Badges</h4>
+                      <div className="badges-grid" style={{ marginTop: '20px' }}>
+                        <div className="badge-item unlocked">
+                          <div className="badge-art">🏁</div>
+                          <h6>First Attempt</h6>
+                          <p>Completed the initial diagnostic assessment.</p>
+                        </div>
+                        
+                        <div className={`badge-item ${calculateSkillProficiency("reading") >= 75 ? "unlocked" : "locked"}`}>
+                          <div className="badge-art">🎤</div>
+                          <h6>Voice Pioneer</h6>
+                          <p>Achieved 75% or higher in Reading Speech matching.</p>
+                        </div>
+
+                        <div className={`badge-item ${calculateSkillProficiency("comprehension") >= 75 ? "unlocked" : "locked"}`}>
+                          <div className="badge-art">❓</div>
+                          <h6>Comprehension Pro</h6>
+                          <p>Achieved 75% or higher in MCQ evaluation.</p>
+                        </div>
+
+                        <div className={`badge-item ${calculateSkillProficiency("writing") >= 75 ? "unlocked" : "locked"}`}>
+                          <div className="badge-art">✍️</div>
+                          <h6>Spelling Guru</h6>
+                          <p>Achieved 75% or higher in prompt writing assessment.</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* History list */}
+                    <div className="history-table-wrapper" style={{ background: 'white', border: '1px solid rgba(0,0,0,0.04)', boxShadow: '0 4px 16px rgba(0,0,0,0.02)', borderRadius: '24px', padding: '28px' }}>
+                      <h4>📝 Diagnostic Evaluation History</h4>
+                      {historyAttempts.length === 0 ? (
+                        <p style={{ padding: "20px", color: "var(--muted)", margin: 0 }}>No evaluations recorded yet.</p>
+                      ) : (
+                        <table className="history-table" style={{ margin: 0 }}>
+                          <thead>
+                            <tr>
+                              <th>{t("historyDate")}</th>
+                              <th>{t("historyType")}</th>
+                              <th>{t("historyScore")}</th>
+                              <th>Status</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {historyAttempts.map((h, i) => (
+                              <tr key={i}>
+                                <td>{h.date}</td>
+                                <td>{h.type}</td>
+                                <td>{h.score} / 50</td>
+                                <td>
+                                  <span className={`score-badge ${h.passed ? "high" : "low"}`}>
+                                    Evaluated
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      )}
+                    </div>
+                  </div>
                 )}
-              </div>
+
+                {/* TABS: PROFILE EDITING */}
+                {dashboardTab === "profile" && (
+                  <div className="profile-tab-wrapper">
+                    {!editingProfile ? (
+                      <div className="profile-info-card">
+                        <div className="profile-avatar">👤</div>
+                        <h3>{profile?.full_name}</h3>
+                        <p><strong>Email:</strong> {session.user.email}</p>
+                        <p><strong>Age:</strong> {profile?.age || "N/A"}</p>
+                        <p><strong>Preferred Language:</strong> {profile?.preferred_language}</p>
+
+                        <button
+                          type="button"
+                          className="primary-btn edit-profile-trigger"
+                          onClick={handleStartEdit}
+                        >
+                          Update Profile
+                        </button>
+
+                        <div style={{ marginTop: '30px', padding: '20px', background: '#fee2e2', border: '1px solid #fecaca', borderRadius: '16px' }}>
+                          <h4 style={{ margin: '0 0 10px 0', color: '#991b1b', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span>🔧</span> Developer Testing Options
+                          </h4>
+                          <p style={{ margin: '0 0 16px 0', fontSize: '0.85rem', color: '#7f1d1d', lineHeight: '1.5' }}>
+                            Use this tool to reset your profile's diagnostic status in Supabase so you can test the initial assessment welcome screen, questionnaire flow, and feedback page from the beginning.
+                          </p>
+                          <button
+                            type="button"
+                            className="secondary-btn"
+                            style={{ background: '#ef4444', color: 'white', border: 'none', padding: '10px 16px', borderRadius: '12px', cursor: 'pointer', fontWeight: '600' }}
+                            onClick={async () => {
+                              try {
+                                let { error } = await supabase
+                                  .from("profiles")
+                                  .update({
+                                    education_level: "No formal education",
+                                    literacy_level: null
+                                  })
+                                  .eq("id", session.user.id);
+                                
+                                if (error && (error.message.includes("literacy_level") || error.code === "PGRST204" || error.message.includes("column"))) {
+                                  // Retry updating only education_level if literacy_level column does not exist
+                                  const retry = await supabase
+                                    .from("profiles")
+                                    .update({
+                                      education_level: "No formal education"
+                                    })
+                                    .eq("id", session.user.id);
+                                  error = retry.error;
+                                }
+                                
+                                if (error) throw error;
+                                
+                                setProfile(prev => prev ? {
+                                  ...prev,
+                                  education_level: "No formal education",
+                                  literacy_level: null
+                                } : null);
+                                setHistoryAttempts([]);
+                                localStorage.removeItem("lisa_attempts_history");
+                                setAssessmentState("not_started");
+                                alert("Diagnostic status reset successfully! You will now see the initial assessment welcome screen.");
+                              } catch (err) {
+                                console.error("Error resetting profile:", err);
+                                alert("Failed to reset profile: " + err.message);
+                              }
+                            }}
+                          >
+                            Reset Assessment Status
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <form className="auth-form active editing-profile-form" onSubmit={handleSaveProfileEdit}>
+                        <h3>Update Profile Info</h3>
+                        <label>
+                          Full Name
+                          <input
+                            type="text"
+                            required
+                            value={editFullName}
+                            onChange={(e) => setEditFullName(e.target.value)}
+                          />
+                        </label>
+                        <label>
+                          Age
+                          <input
+                            type="number"
+                            min="5"
+                            max="120"
+                            required
+                            value={editAge}
+                            onChange={(e) => setEditAge(e.target.value)}
+                          />
+                        </label>
+                        <label>
+                          Preferred Language
+                          <select
+                            required
+                            value={editPreferredLang}
+                            onChange={(e) => setEditPreferredLang(e.target.value)}
+                          >
+                            {languages.map((l) => (
+                              <option key={l} value={l}>{t(l + "Option")}</option>
+                            ))}
+                          </select>
+                        </label>
+                        <label>
+                          Current Education Status
+                          <select
+                            required
+                            value={editEdLevel}
+                            onChange={(e) => setEditEdLevel(e.target.value)}
+                          >
+                            {educationLevels.map((ed) => (
+                              <option key={ed} value={ed}>{t(ed + "Option")}</option>
+                            ))}
+                          </select>
+                        </label>
+
+                        <div className="two-col" style={{ marginTop: "14px" }}>
+                          <button type="submit" className="primary-btn" disabled={submitting}>
+                            {submitting ? "Saving..." : "Save Changes"}
+                          </button>
+                          <button
+                            type="button"
+                            className="secondary-btn"
+                            onClick={() => setEditingProfile(false)}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </form>
+                    )}
+                  </div>
+                )}
+              </>
             )}
           </main>
         </div>
