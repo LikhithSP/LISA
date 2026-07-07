@@ -5,8 +5,13 @@ create table if not exists public.profiles (
   age integer check (age >= 5 and age <= 120),
   preferred_language text,
   education_level text,
+  literacy_level integer,
+  assessment_completed boolean not null default false,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
+
+alter table public.profiles add column if not exists literacy_level integer;
+alter table public.profiles add column if not exists assessment_completed boolean not null default false;
 
 -- Set up Row Level Security
 alter table public.profiles enable row level security;
@@ -24,13 +29,15 @@ create policy "Users can update their own profile." on public.profiles
 create or replace function public.handle_new_user()
 returns trigger as $$
 begin
-  insert into public.profiles (id, full_name, age, preferred_language, education_level)
+  insert into public.profiles (id, full_name, age, preferred_language, education_level, literacy_level, assessment_completed)
   values (
     new.id,
     coalesce(new.raw_user_meta_data->>'full_name', ''),
     coalesce((new.raw_user_meta_data->>'age')::integer, null),
     coalesce(new.raw_user_meta_data->>'preferred_language', ''),
-    coalesce(new.raw_user_meta_data->>'education_level', '')
+    coalesce(new.raw_user_meta_data->>'education_level', ''),
+    null,
+    false
   )
   on conflict (id) do nothing;
   return new;
@@ -45,5 +52,6 @@ create trigger on_auth_user_created
 
 -- Recommendations for Literacy Level Tracking:
 -- Execute the following SQL statement in the Supabase SQL Editor to track diagnosed literacy levels:
--- ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS literacy_level integer DEFAULT 1 CHECK (literacy_level >= 1 AND literacy_level <= 5);
+-- ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS literacy_level integer;
+-- ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS assessment_completed boolean NOT NULL DEFAULT false;
 
