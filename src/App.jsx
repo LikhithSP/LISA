@@ -1227,82 +1227,84 @@ function App() {
 
     return (
       <div className="dashboard-container">
-        {/* Navigation Sidebar */}
-        <aside className="dashboard-sidebar">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            {/* Branding */}
-            <div className="sidebar-brand-wrapper">
-              <div className="brand-logo-circle">L</div>
-              <div className="brand-text-block">
-                <div className="brand-title">LISA</div>
-                <div className="brand-subtitle">AI Literacy Platform</div>
-              </div>
+        {/* Navigation Top Bar Header */}
+        <header className="dashboard-header" style={{ background: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: '16px 32px', borderBottom: '1px solid var(--line)' }}>
+          {/* Brand Logo & Info */}
+          <div className="sidebar-brand-wrapper" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div className="brand-logo-circle">L</div>
+            <div className="brand-text-block">
+              <div className="brand-title" style={{ color: 'var(--text)', fontWeight: '800' }}>LISA</div>
+              <div className="brand-subtitle" style={{ color: 'var(--muted)' }}>AI Literacy Platform</div>
             </div>
+          </div>
 
-            {/* User Profile Card */}
-            <div className="sidebar-user-card">
-              <div className="user-avatar-initials">
+          {/* Navigation Links */}
+          <nav className="top-nav-menu" style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+            <button
+              className={`menu-item ${dashboardTab === "home" ? "active" : ""}`}
+              onClick={() => setDashboardTab("home")}
+              style={{
+                background: dashboardTab === 'home' ? 'rgba(198, 95, 45, 0.08)' : 'none',
+                color: dashboardTab === 'home' ? 'var(--accent)' : 'var(--text)',
+                border: 'none',
+                padding: '8px 16px',
+                borderRadius: '8px',
+                fontWeight: '600',
+                cursor: 'pointer'
+              }}
+            >
+              <span>🏠 Home</span>
+            </button>
+            <button
+              className={`menu-item ${dashboardTab === "profile" ? "active" : ""}`}
+              onClick={() => setDashboardTab("profile")}
+              style={{
+                background: dashboardTab === 'profile' ? 'rgba(198, 95, 45, 0.08)' : 'none',
+                color: dashboardTab === 'profile' ? 'var(--accent)' : 'var(--text)',
+                border: 'none',
+                padding: '8px 16px',
+                borderRadius: '8px',
+                fontWeight: '600',
+                cursor: 'pointer'
+              }}
+            >
+              <span>👤 Profile Settings</span>
+            </button>
+            
+            {!hasDiagnosed && assessmentState === "not_started" && (
+              <button
+                type="button"
+                className="primary-btn"
+                onClick={handleStartInitialAssessment}
+                style={{ padding: "8px 16px", borderRadius: "10px", fontWeight: "700" }}
+              >
+                📝 Take Assessment
+              </button>
+            )}
+          </nav>
+
+          {/* Right User Actions Area */}
+          <div className="dashboard-user-actions" style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+            {renderLanguageDropdown(true)}
+
+            {/* Quick Profile Pill */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div className="user-avatar-initials" style={{ width: '32px', height: '32px', fontSize: '0.85rem' }}>
                 {getUserInitials(profile?.full_name)}
               </div>
-              <div className="user-info-text">
-                <div className="user-card-name">{profile?.full_name || "Learner"}</div>
-                <div className="user-card-email">{session.user.email}</div>
-              </div>
-            </div>
-
-            {/* Sidebar Navigation */}
-            <nav className="sidebar-menu">
-              <button
-                className={`menu-item ${dashboardTab === "home" ? "active" : ""}`}
-                onClick={() => setDashboardTab("home")}
-              >
-                <span>🏠 Home</span>
-              </button>
-              <button
-                className={`menu-item ${dashboardTab === "profile" ? "active" : ""}`}
-                onClick={() => setDashboardTab("profile")}
-              >
-                <span>👤 Profile Settings</span>
-              </button>
-              
-              {!hasDiagnosed && (
-                <div style={{ padding: '0 12px', marginTop: '16px' }}>
-                  <button
-                    type="button"
-                    className="primary-btn"
-                    onClick={handleStartInitialAssessment}
-                    style={{ width: "100%", padding: "10px", borderRadius: "10px", fontWeight: "700" }}
-                  >
-                    📝 Take Assessment
-                  </button>
-                </div>
-              )}
-            </nav>
-          </div>
-
-          {/* Sidebar Footer area */}
-          <div className="sidebar-footer">
-            <div style={{ background: "rgba(255, 255, 255, 0.03)", padding: "10px 14px", borderRadius: "12px", border: "1px solid rgba(255, 255, 255, 0.05)" }}>
-              {renderLanguageDropdown(true)}
-            </div>
-            <button type="button" className="sidebar-signout-btn" onClick={handleSignOut}>
-              <span>🚪 Logout</span>
-            </button>
-          </div>
-        </aside>
-
-        {/* Main Content Area */}
-        <div className="dashboard-content-area">
-          <header className="dashboard-header" style={{ background: 'white' }}>
-            <div className="header-info">
-              <h2>Welcome back, {profile?.full_name || "Learner"}! 👋</h2>
-            </div>
-            <div className="dashboard-user">
-              <span className="badge-new-tag" style={{ background: '#d1fae5', color: '#065f46', padding: '6px 12px', fontSize: '0.8rem', borderRadius: '10px' }}>
-                🟢 Online & Ready
+              <span style={{ fontWeight: '600', color: 'var(--text)', fontSize: '0.9rem' }}>
+                {profile?.full_name || "Learner"}
               </span>
             </div>
-          </header>
+
+            <button type="button" className="logout-btn" onClick={handleSignOut} style={{ background: 'rgba(239, 68, 68, 0.08)', color: '#ef4444', border: 'none', padding: '8px 16px', borderRadius: '10px', fontWeight: '700', cursor: 'pointer' }}>
+              🚪 Logout
+            </button>
+          </div>
+        </header>
+
+        {/* Main Content Area */}
+        <div className="dashboard-content-area" style={{ flexGrow: 1, overflowY: 'auto' }}>
 
           <main className="dashboard-main-view">
             {/* 1. Welcome state when not diagnosed and assessment not started */}
