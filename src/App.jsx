@@ -1647,9 +1647,16 @@ function App() {
             {/* 1. Welcome state when not diagnosed and assessment not started */}
             {!hasDiagnosed && assessmentState === "not_started" && dashboardTab === "home" && (
               <div className="diagnostic-welcome-wrapper" style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
-                <div className="welcome-banner" style={{ textAlign: "center" }}>
-                  <h1>{t("hello")}, {profile?.full_name || "Learner"} 👋</h1>
-                  <h2 style={{ fontSize: "1.3rem", marginTop: "8px", color: "var(--muted)", fontWeight: 600 }}>{t("welcomeToLisa")}!</h2>
+                <div className="welcome-banner welcome-banner-mascot">
+                  <img
+                    src="/as1.png"
+                    alt="LISA mascot"
+                    className="welcome-mascot"
+                  />
+                  <div className="welcome-banner-text">
+                    <h1>{t("hello")}, {profile?.full_name || "Learner"} 👋</h1>
+                    <h2 style={{ fontSize: "1.3rem", marginTop: "8px", color: "var(--muted)", fontWeight: 600 }}>{t("welcomeToLisa")}!</h2>
+                  </div>
                 </div>
                 <div className="empty-state-assessment">
                   <p className="intro-copy">{t("initialAssessmentDesc")}</p>
@@ -1738,18 +1745,25 @@ function App() {
 
               return (
                 <div className="assessment-card" style={{ maxWidth: '800px', margin: '20px auto' }}>
-                  <div className="assessment-card-header">
-                    <div className="step-tag">
-                      {t("stepTitle").replace("{current}", currentStep + 1).replace("{total}", assessmentQuestionsList.length)}
+                  <div className="assessment-card-header assessment-header-with-mascot">
+                    <div className="assessment-header-content">
+                      <div className="step-tag">
+                        {t("stepTitle").replace("{current}", currentStep + 1).replace("{total}", assessmentQuestionsList.length)}
+                      </div>
+                      <h2>
+                        {isVoiceReading && t("readingSecTitle")}
+                        {isCompMCQ && t("compSecTitle")}
+                        {isWriting && t("writingSecTitle")}
+                      </h2>
+                      <div className="progress-bar-bg">
+                        <div className="progress-bar-fill" style={{ width: `${((currentStep + 1) / assessmentQuestionsList.length) * 100}%` }}></div>
+                      </div>
                     </div>
-                    <h2>
-                      {isVoiceReading && t("readingSecTitle")}
-                      {isCompMCQ && t("compSecTitle")}
-                      {isWriting && t("writingSecTitle")}
-                    </h2>
-                    <div className="progress-bar-bg">
-                      <div className="progress-bar-fill" style={{ width: `${((currentStep + 1) / assessmentQuestionsList.length) * 100}%` }}></div>
-                    </div>
+                    <img
+                      src="/as2.png"
+                      alt="LISA mascot"
+                      className="assessment-mascot"
+                    />
                   </div>
 
                   <div className="question-content-box">
@@ -1966,16 +1980,25 @@ function App() {
 
               return (
                 <div className="results-card" style={{ maxWidth: '800px', margin: '20px auto' }}>
-                  <h2>{t("resultsTitle")}</h2>
+                  <div className="results-hero-section">
+                    <div className="results-hero-left">
+                      <div className="results-percentage-circle">
+                        <span className="percent-val">{latestAttempt?.score ? Math.round((latestAttempt.score / 50) * 100) : 0}%</span>
+                      </div>
+                      <h2 className="results-completed-title">{t("resultsTitle")}</h2>
+                    </div>
 
-                  <div className="results-percentage-circle">
-                    <span className="percent-val">{latestAttempt?.score ? Math.round((latestAttempt.score / 50) * 100) : 0}%</span>
-                  </div>
+                    <div className="results-hero-center-score">
+                      <span className="hero-score-label">{t("overallScore")}</span>
+                      <span className="hero-score-val">{latestAttempt?.score || 0} / 50</span>
+                    </div>
 
-                  <div className="score-summary-grid" style={{ gridTemplateColumns: "1fr", justifyContent: "center" }}>
-                    <div className="score-item" style={{ textAlign: "center" }}>
-                      <span className="score-label">{t("overallScore")}</span>
-                      <span className="score-val" style={{ fontSize: "1.8rem" }}>{latestAttempt?.score} / 50</span>
+                    <div className="results-hero-right">
+                      <img
+                        src="/as3.png"
+                        alt="LISA mascot"
+                        className="assessment-mascot results-mascot-medium"
+                      />
                     </div>
                   </div>
 
