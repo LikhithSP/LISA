@@ -838,7 +838,6 @@ const getLevel = (educationLevel, ageNum) => {
 // - 1 writing question (user writes a short response)
 // All sections are matched to the user's age group, education level, and language.
 export const getRandomAssessment = (age, educationLevel, language = "English") => {
-  const lang = language || "English";
   const ageNum = parseInt(age, 10) || 20;
 
   const ageGroup = getAgeGroup(ageNum);
@@ -861,22 +860,20 @@ export const getRandomAssessment = (age, educationLevel, language = "English") =
     sampled.push(shuffled[i % shuffled.length]);
   }
 
-  // Convert multilingual question objects to flat, language-resolved question objects
   const comprehensionQuestions = sampled.map((q) => {
-    const questionText = (q.question && (q.question[lang] || q.question["English"])) || "";
-    const rawOptions = (q.options && (q.options[lang] || q.options["English"])) || [];
+    const rawOptionsEnglish = (q.options && q.options["English"]) || [];
     const correctIdx = typeof q.correctIndex === "number" ? q.correctIndex : 0;
 
-    // Shuffle options and track where the correct answer ends up
-    const indexed = rawOptions.map((opt, i) => ({ opt, isCorrect: i === correctIdx }));
-    const shuffledIndexed = [...indexed].sort(() => 0.5 - Math.random());
-    const newCorrectIndex = shuffledIndexed.findIndex((x) => x.isCorrect);
+    // Create a shuffled indices array: e.g. [0, 1, 2, 3] -> [2, 0, 1, 3]
+    const indices = rawOptionsEnglish.map((_, idx) => idx);
+    const shuffledIndices = [...indices].sort(() => 0.5 - Math.random());
+    const newCorrectIndex = shuffledIndices.indexOf(correctIdx);
 
     return {
       id: q.id,
       type: "comprehension",
-      question: questionText,
-      options: shuffledIndexed.map((x) => x.opt),
+      rawQuestion: q,
+      shuffledIndices,
       correctIndex: newCorrectIndex,
     };
   });
@@ -888,19 +885,16 @@ export const getRandomAssessment = (age, educationLevel, language = "English") =
     assessmentReadingWriting[`${ageGroup}_level_1`] ||
     assessmentReadingWriting["adult_level_1"];
 
-  const readingText = (rwPool?.reading && (rwPool.reading[lang] || rwPool.reading["English"])) || "Read this text aloud.";
-  const writingPrompt = (rwPool?.writing && (rwPool.writing[lang] || rwPool.writing["English"])) || "Write a short sentence.";
-
   const readingQuestion = {
     id: `${key}_reading`,
     type: "reading",
-    targetText: readingText,
+    rawQuestion: rwPool,
   };
 
   const writingQuestion = {
     id: `${key}_writing`,
     type: "writing",
-    prompt: writingPrompt,
+    rawQuestion: rwPool,
     evaluator: (text) => {
       const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
       if (wordCount >= 5) return { score: 10, feedback: "Great effort!" };

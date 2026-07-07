@@ -578,14 +578,16 @@ select:focus {
 .assessment-card,
 .results-card,
 .dashboard-home-card {
-  width: min(100%, 760px);
+  width: 840px;
+  height: 580px;
+  max-width: 100%;
+  max-height: 90vh;
   background: var(--panel);
   backdrop-filter: blur(24px);
   border: 1px solid var(--line);
   border-radius: 28px;
   padding: 36px;
   box-shadow: none;
-  max-height: calc(100vh - 120px);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -759,8 +761,10 @@ select:focus {
 .results-card {
   align-items: center;
   text-align: center;
-  max-width: 580px;
-  max-height: none;
+  max-width: 840px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding-right: 24px;
 }
 
 .results-card h2 {
@@ -857,17 +861,17 @@ select:focus {
 .welcome-banner {
   border-bottom: 1px solid var(--line);
   padding-bottom: 24px;
-  margin-bottom: 28px;
+  margin-bottom: 16px;
 }
 
 .welcome-banner h1 {
   font-size: 2.2rem;
-  margin: 0 0 6px 0;
+  margin: 20px 0 6px 0;
 }
 
 .empty-state-assessment {
   text-align: center;
-  padding: 32px 16px;
+  padding: 12px 16px 32px 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -979,14 +983,19 @@ select:focus {
 }
 
 .assessment-card {
+  width: 840px;
+  height: 580px;
+  max-width: 100%;
+  max-height: 90vh;
   background: var(--panel);
-  backdrop-filter: blur(20px);
+  backdrop-filter: blur(24px);
   border: 1px solid var(--line);
-  padding: 40px 48px 80px 48px; /* Extra bottom padding to prevent cropping */
   border-radius: 28px;
+  padding: 36px;
   box-shadow: none;
-  max-height: none !important; /* Override max-height limit */
-  overflow: visible !important; /* Prevent internal clipping of buttons */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 
@@ -1028,6 +1037,10 @@ select:focus {
   flex-direction: column;
   align-items: center;
   gap: 24px;
+  width: 840px;
+  height: 580px;
+  max-width: 100%;
+  overflow-y: auto;
 }
 
 .assessment-tours {
@@ -1571,8 +1584,45 @@ select:focus {
 
 .dashboard-main-view {
   flex-grow: 1;
-  overflow-y: auto;
+  overflow: hidden;
   padding: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.question-content-box {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 8px; /* Prevent scrollbar overlaying option buttons */
+}
+
+/* Light grey custom scrollbar styling */
+.question-content-box::-webkit-scrollbar,
+.diagnostic-welcome-wrapper::-webkit-scrollbar,
+.results-card::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.question-content-box::-webkit-scrollbar-track,
+.diagnostic-welcome-wrapper::-webkit-scrollbar-track,
+.results-card::-webkit-scrollbar-track {
+  background: rgba(24, 32, 43, 0.02);
+  border-radius: 4px;
+}
+
+.question-content-box::-webkit-scrollbar-thumb,
+.diagnostic-welcome-wrapper::-webkit-scrollbar-thumb,
+.results-card::-webkit-scrollbar-thumb {
+  background: rgba(24, 32, 43, 0.15); /* Light grey */
+  border-radius: 4px;
+}
+
+.question-content-box::-webkit-scrollbar-thumb:hover,
+.diagnostic-welcome-wrapper::-webkit-scrollbar-thumb:hover,
+.results-card::-webkit-scrollbar-thumb:hover {
+  background: rgba(24, 32, 43, 0.25);
 }
 
 /* My path Curriculum styles */
@@ -2475,5 +2525,47 @@ select:focus {
   font-size: 1.05rem;
   color: var(--text-p);
   line-height: 1.6;
-  max-width: 90%;
-}
+}
+
+/* Profile settings dropdown menu */
+.profile-dropdown-container {
+  position: relative;
+}
+
+.profile-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 8px;
+  width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  box-shadow: 0 10px 30px rgba(24, 32, 43, 0.12);
+  z-index: 2200; /* render above anything else */
+}
+
+.profile-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  background: none;
+  border: none;
+  border-radius: 10px;
+  color: var(--text);
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.profile-dropdown-item:hover {
+  background: rgba(198, 95, 45, 0.08);
+  color: var(--accent);
+}

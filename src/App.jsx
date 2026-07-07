@@ -98,6 +98,9 @@ const translations = {
     continueToDashboard: "Back to Dashboard",
     skipVoiceBtn: "Skip / Manual Match",
     skipVoicePrompt: "Voice recognition issue? Type the exact text instead:",
+    writeInEnglishPrompt: "(Please write your response in English)",
+    listenBtn: "Listen",
+    myProfile: "My Profile",
 
     // Dashboard tabs
     tabProgress: "📊 My Performance",
@@ -204,6 +207,9 @@ const translations = {
     continueToDashboard: "डैशबोर्ड पर वापस जाएं",
     skipVoiceBtn: "छोड़ें / मैनुअल मिलान",
     skipVoicePrompt: "आवाज़ पहचानने में समस्या? इसके बजाय टेक्स्ट टाइप करें:",
+    writeInEnglishPrompt: "(कृपया अपना उत्तर अंग्रेजी में लिखें)",
+    listenBtn: "सुनें",
+    myProfile: "मेरी प्रोफ़ाइल",
 
     // Dashboard tabs
     tabProgress: "📊 मेरा प्रदर्शन",
@@ -310,6 +316,9 @@ const translations = {
     continueToDashboard: "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗೆ ಹಿಂತಿರುಗಿ",
     skipVoiceBtn: "ಹೊರಗುಳಿಯಿರಿ / ಹಸ್ತಚಾಲಿತ ಹೊಂದಾಣಿಕೆ",
     skipVoicePrompt: "ಧ್ವನಿ ಗುರುತಿಸುವಿಕೆ ಸಮಸ್ಯೆಯೇ? ಬದಲಿಗೆ ಪಠ್ಯವನ್ನು ಟೈಪ್ ಮಾಡಿ:",
+    writeInEnglishPrompt: "(ದಯವಿಟ್ಟು ನಿಮ್ಮ ಉತ್ತರವನ್ನು ಇಂಗ್ಲಿಷ್‌ನಲ್ಲಿ ಬರೆಯಿರಿ)",
+    listenBtn: "ಆಲಿಸಿ",
+    myProfile: "ನನ್ನ ಪ್ರೊಫೈಲ್",
 
     // Dashboard tabs
     tabProgress: "📊 ನನ್ನ ಪ್ರದರ್ಶನ",
@@ -416,6 +425,9 @@ const translations = {
     continueToDashboard: "డాష్‌బోర్డ్‌కు తిరిగి వెళ్లండి",
     skipVoiceBtn: "దాటవేయి / మాన్యువల్ మ్యాచ్",
     skipVoicePrompt: "వాయిస్ గుర్తింపు సమస్య ఉందా? బదులుగా టెక్స్ట్ టైప్ చేయండి:",
+    writeInEnglishPrompt: "(దయచేసి మీ సమాధానాన్ని ఇంగ్లీషులో రాయండి)",
+    listenBtn: "వినండి",
+    myProfile: "నా ప్రొఫైల్",
 
     // Dashboard tabs
     tabProgress: "📊 నా ప్రదర్శన",
@@ -522,6 +534,9 @@ const translations = {
     continueToDashboard: "டாஷ்போர்டுக்குத் திரும்பு",
     skipVoiceBtn: "தவிர்க்கவும் / கைமுறை பொருத்தம்",
     skipVoicePrompt: "குரல் ஏற்பிப் பிரச்சனையா? அதற்குப் பதிலாக டைப் செய்யவும் செய்தி:",
+    writeInEnglishPrompt: "(தயவுசெய்து உங்கள் பதிலை ஆங்கிலத்தில் எழுதவும்)",
+    listenBtn: "கேளுங்கள்",
+    myProfile: "என் சுயவிவரம்",
 
     // Dashboard tabs
     tabProgress: "📊 எனது செயல்பாடு",
@@ -574,6 +589,7 @@ function App() {
     localStorage.getItem("lisa_lang") || null
   );
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("login"); // "login", "register", "forgot"
   const [dashboardTab, setDashboardTab] = useState("home"); // "home", "profile"
   const [message, setMessage] = useState("");
@@ -638,6 +654,14 @@ function App() {
   };
 
   useEffect(() => {
+    // Load ResponsiveVoice client script on initial mount
+    if (!window.responsiveVoice) {
+      const script = document.createElement("script");
+      script.src = "https://code.responsivevoice.org/responsivevoice.js?key=8Q7W8t4L";
+      script.async = true;
+      document.body.appendChild(script);
+    }
+
     // Check initial auth session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
@@ -879,12 +903,8 @@ function App() {
       recognition.continuous = false;
       recognition.interimResults = false;
 
+      // Always use English (en-US) for speech recognition in the English reading assessment
       let locale = "en-US";
-      if (selectedLanguage === "Hindi") locale = "hi-IN";
-      else if (selectedLanguage === "Kannada") locale = "kn-IN";
-      else if (selectedLanguage === "Telugu") locale = "te-IN";
-      else if (selectedLanguage === "Tamil") locale = "ta-IN";
-
       recognition.lang = locale;
       recognitionRef.current = recognition;
 
@@ -918,20 +938,57 @@ function App() {
     }
   };
 
+  const getLocale = (lang) => {
+    if (lang === "Hindi") return "hi-IN";
+    if (lang === "Kannada") return "kn-IN";
+    if (lang === "Telugu") return "te-IN";
+    if (lang === "Tamil") return "ta-IN";
+    return "en-US";
+  };
+
   const speakText = (text) => {
+    const lang = selectedLanguage || "English";
+    
+    if (window.responsiveVoice) {
+      let voiceName = "US English Female";
+      if (lang === "Hindi") voiceName = "Hindi Female";
+      else if (lang === "Kannada") voiceName = "Kannada Female";
+      else if (lang === "Telugu") voiceName = "Telugu Female";
+      else if (lang === "Tamil") voiceName = "Tamil Female";
+
+      console.log(`Speaking using ResponsiveVoice: "${text}" with voice "${voiceName}"`);
+      window.responsiveVoice.speak(text, voiceName, {
+        pitch: 1,
+        rate: 0.9,
+        onerror: (e) => {
+          console.error("ResponsiveVoice error, trying fallback:", e);
+          fallbackSpeechSynthesis(text, getLocale(lang));
+        }
+      });
+    } else {
+      console.warn("ResponsiveVoice not loaded yet, falling back to native SpeechSynthesis.");
+      fallbackSpeechSynthesis(text, getLocale(lang));
+    }
+  };
+
+  const fallbackSpeechSynthesis = (text, locale) => {
     if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
-      const lang = selectedLanguage || "English";
-      let locale = "en-US";
-      if (lang === "Hindi") locale = "hi-IN";
-      else if (lang === "Kannada") locale = "kn-IN";
-      else if (lang === "Telugu") locale = "te-IN";
-      else if (lang === "Tamil") locale = "ta-IN";
       utterance.lang = locale;
+      
+      const voices = window.speechSynthesis.getVoices();
+      const matchingVoice = voices.find(v => 
+        v.lang.toLowerCase() === locale.toLowerCase() || 
+        v.lang.toLowerCase().replace("_", "-") === locale.toLowerCase() ||
+        v.lang.toLowerCase().startsWith(locale.split("-")[0].toLowerCase())
+      );
+      if (matchingVoice) {
+        utterance.voice = matchingVoice;
+      }
+      
+      utterance.onerror = (e) => console.error("TTS SpeechSynthesisUtterance Error:", e);
       window.speechSynthesis.speak(utterance);
-    } else {
-      console.warn("Speech synthesis not supported in this browser.");
     }
   };
 
@@ -1276,51 +1333,77 @@ function App() {
             >
               <span>🏠 {t("home")}</span>
             </button>
-            <button
-              className={`menu-item ${dashboardTab === "profile" ? "active" : ""}`}
-              onClick={() => setDashboardTab("profile")}
-              style={{
-                background: dashboardTab === 'profile' ? 'rgba(198, 95, 45, 0.08)' : 'none',
-                color: dashboardTab === 'profile' ? 'var(--accent)' : 'var(--text)',
-                border: 'none',
-                padding: '8px 16px',
-                borderRadius: '8px',
-                fontWeight: '600',
-                cursor: 'pointer'
-              }}
-            >
-              <span>👤 {t("profileSettings")}</span>
-            </button>
-            
-            {!hasDiagnosed && assessmentState === "not_started" && (
-              <button
-                type="button"
-                className="primary-btn"
-                onClick={handleStartInitialAssessment}
-                style={{ padding: "8px 16px", borderRadius: "10px", fontWeight: "700" }}
-              >
-                📝 {t("takeAssessment")}
-              </button>
-            )}
           </nav>
 
           {/* Right User Actions Area */}
           <div className="dashboard-user-actions" style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
             {renderLanguageDropdown(true)}
 
-            {/* Quick Profile Pill */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div className="user-avatar-initials" style={{ width: '32px', height: '32px', fontSize: '0.85rem' }}>
-                {getUserInitials(profile?.full_name)}
-              </div>
-              <span style={{ fontWeight: '600', color: 'var(--text)', fontSize: '0.9rem' }}>
-                {profile?.full_name || "Learner"}
-              </span>
-            </div>
+            {/* Clickable Profile Button with Dropdown */}
+            <div className="profile-dropdown-container" style={{ position: 'relative' }}>
+              <button
+                type="button"
+                className={`profile-nav-pill ${dashboardTab === "profile" ? "active" : ""}`}
+                onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  background: dashboardTab === 'profile' ? 'rgba(198, 95, 45, 0.08)' : 'rgba(0, 0, 0, 0.03)',
+                  color: dashboardTab === 'profile' ? 'var(--accent)' : 'var(--text)',
+                  border: '1px solid var(--line)',
+                  padding: '6px 12px',
+                  borderRadius: '20px',
+                  cursor: 'pointer',
+                  fontWeight: '600',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <div className="user-avatar-initials" style={{ width: '28px', height: '28px', fontSize: '0.8rem', margin: 0 }}>
+                  {getUserInitials(profile?.full_name)}
+                </div>
+                <span style={{ fontSize: '0.9rem' }}>
+                  {t("myProfile")}
+                </span>
+                <span style={{ fontSize: '0.6rem', marginLeft: '4px', opacity: 0.7 }}>▼</span>
+              </button>
 
-            <button type="button" className="logout-btn" onClick={handleSignOut} style={{ background: 'rgba(239, 68, 68, 0.08)', color: '#ef4444', border: 'none', padding: '8px 16px', borderRadius: '10px', fontWeight: '700', cursor: 'pointer' }}>
-              🚪 {t("logout")}
-            </button>
+              {profileDropdownOpen && (
+                <div className="profile-dropdown-menu">
+                  <button
+                    type="button"
+                    className="profile-dropdown-item"
+                    onClick={() => {
+                      setDashboardTab("profile");
+                      setProfileDropdownOpen(false);
+                    }}
+                  >
+                    👤 {t("myProfile")}
+                  </button>
+                  <button
+                    type="button"
+                    className="profile-dropdown-item"
+                    onClick={() => {
+                      setDashboardTab("home");
+                      setProfileDropdownOpen(false);
+                    }}
+                  >
+                    🏠 {t("home")}
+                  </button>
+                  <button
+                    type="button"
+                    className="profile-dropdown-item"
+                    style={{ color: '#ef4444' }}
+                    onClick={() => {
+                      setProfileDropdownOpen(false);
+                      handleSignOut();
+                    }}
+                  >
+                    🚪 {t("logout")}
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
@@ -1332,7 +1415,7 @@ function App() {
             {!hasDiagnosed && assessmentState === "not_started" && dashboardTab === "home" && (
               <div className="diagnostic-welcome-wrapper" style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
                 <div className="welcome-banner" style={{ textAlign: "center" }}>
-                  <h1>{t("hello")}, {profile?.full_name || "Learner"}!</h1>
+                  <h1>{t("hello")}, {profile?.full_name || "Learner"} 👋</h1>
                   <h2 style={{ fontSize: "1.3rem", marginTop: "8px", color: "var(--muted)", fontWeight: 600 }}>{t("welcomeToLisa")}!</h2>
                 </div>
                 <div className="empty-state-assessment">
@@ -1360,6 +1443,66 @@ function App() {
               const isCompMCQ = q?.type === "comprehension";
               const isWriting = q?.type === "writing";
 
+              // 1. Resolve reading targetText
+              const readingTargetText = isVoiceReading
+                ? (q.rawQuestion?.reading?.["English"] || "Read this text aloud.")
+                : "";
+
+              // 2. Resolve comprehension question & options
+              const compQuestionText = isCompMCQ
+                ? (q.rawQuestion?.question?.[selectedLanguage] || q.rawQuestion?.question?.["English"] || "")
+                : "";
+
+              const optionTranslationMap = {
+                Ship: { Hindi: "जहाज", Kannada: "ಹಡಗು", Telugu: "ఓడ", Tamil: "கப்பல்" },
+                Crop: { Hindi: "फसल", Kannada: "ಬೆಳೆ", Telugu: "పంట", Tamil: "பயிர்" },
+                Soap: { Hindi: "साबुन", Kannada: "ಸೋಪು", Telugu: "సబ్బు", Tamil: "சோப்பு" },
+                Shut: { Hindi: "बंद", Kannada: "ಮುಚ್ಚು", Telugu: "మూసిವೇయి", Tamil: "மூடு" },
+                Shop: { Hindi: "दुकान", Kannada: "ಅಂಗಡಿ", Telugu: "ದುಕಾణం", Tamil: "கடை" },
+                Book: { Hindi: "किताब", Kannada: "ಪುಸ್ತಕ", Telugu: "ಪುಸ್ತಕಂ", Tamil: "புத்தகம்" },
+                Pen: { Hindi: "कलम", Kannada: "ಪೇನಾ", Telugu: "పెన్ను", Tamil: "பேனா" },
+                Read: { Hindi: "पढ़ना", Kannada: "ಓದು", Telugu: "చదవడం", Tamil: "வாசி" },
+                Write: { Hindi: "लिखना", Kannada: "ಬರೆ", Telugu: "రాయడం", Tamil: "எழுது" },
+                Speak: { Hindi: "बोलना", Kannada: "ಮಾತನಾಡು", Telugu: "ಮಾట్లాಡటం", Tamil: "பேசு" },
+                Listen: { Hindi: "सुनना", Kannada: "ಕೇಳು", Telugu: "వినడం", Tamil: "கேள்" },
+                Word: { Hindi: "शब्द", Kannada: "ಪದ", Telugu: "పదం", Tamil: "வார்த்தை" },
+                Letter: { Hindi: "अक्षर", Kannada: "ಅಕ್ಷರ", Telugu: "అక్షరం", Tamil: "எழுத்து" },
+                Sentence: { Hindi: "वाक्य", Kannada: "ವಾಕ್ಯ", Telugu: "వాక్యం", Tamil: "வாக்கியம்" },
+                Name: { Hindi: "नाम", Kannada: "ಹೆಸರು", Telugu: "పేరు", Tamil: "பெயர்" },
+                Day: { Hindi: "दिन", Kannada: "ದಿನ", Telugu: "రోజు", Tamil: "நாள்" },
+                Night: { Hindi: "रात", Kannada: "ರಾತ್ರಿ", Telugu: "రాత్రి", Tamil: "இரவு" },
+                Food: { Hindi: "भोजन", Kannada: "आहार", Telugu: "ఆహారం", Tamil: "உணவு" },
+                Water: { Hindi: "पानी", Kannada: "ನೀರು", Telugu: "నీరు", Tamil: "தண்ணீர்" },
+                Milk: { Hindi: "दूध", Kannada: "ಹಾಲು", Telugu: "పాలు", Tamil: "பால்" }
+              };
+
+              const compOptions = isCompMCQ
+                ? q.shuffledIndices.map((originalIdx) => {
+                    const engOpt = q.rawQuestion?.options?.["English"]?.[originalIdx] || "";
+                    const transOpt = q.rawQuestion?.options?.[selectedLanguage]?.[originalIdx] || "";
+                    
+                    if (selectedLanguage === "English") return engOpt;
+                    
+                    // If transOpt already includes regional translations like "Lose (ಕಳೆದುಕೋ)", just use it directly
+                    if (transOpt && engOpt !== transOpt) {
+                      return transOpt;
+                    }
+                    
+                    // Otherwise check our translation fallback
+                    const cleanKey = engOpt.trim();
+                    const fallbackTrans = optionTranslationMap[cleanKey]?.[selectedLanguage];
+                    if (fallbackTrans) {
+                      return `${engOpt} (${fallbackTrans})`;
+                    }
+                    return engOpt;
+                  })
+                : [];
+
+              // 3. Resolve writing prompt
+              const writingPromptText = isWriting
+                ? (q.rawQuestion?.writing?.[selectedLanguage] || q.rawQuestion?.writing?.["English"] || "")
+                : "";
+
               return (
                 <div className="assessment-card" style={{ maxWidth: '800px', margin: '20px auto' }}>
                   <div className="assessment-card-header">
@@ -1385,20 +1528,20 @@ function App() {
                           <button
                             type="button"
                             className="tts-btn"
-                            onClick={() => speakText(q.targetText)}
+                            onClick={() => speakText(readingTargetText)}
                             title="Listen to pronunciation"
                           >
-                            🔊 Listen
+                            🔊 {t("listenBtn") || "Listen"}
                           </button>
                         </div>
                         
                         <div className="monkeytype-text-block">
-                          {q.targetText.split(/\s+/).map((word, idx) => {
+                          {readingTargetText.split(/\s+/).map((word, idx) => {
                             const cleaned = cleanWord(word);
                             const attempt = readingAttempts[currentStep];
                             let wordClass = "unspoken";
                             if (attempt && attempt.scores) {
-                              const targetWordsCleaned = q.targetText.split(/\s+/).map(cleanWord);
+                              const targetWordsCleaned = readingTargetText.split(/\s+/).map(cleanWord);
                               const cleanIdx = targetWordsCleaned.indexOf(cleaned);
                               if (cleanIdx !== -1 && attempt.scores[cleanIdx]) {
                                 wordClass = "correct";
@@ -1419,7 +1562,7 @@ function App() {
                             <button
                               type="button"
                               className="mic-btn"
-                              onClick={() => startListening(q.targetText)}
+                              onClick={() => startListening(readingTargetText)}
                             >
                               <span className="mic-icon">🎤</span>
                               {t("micBtnStart")}
@@ -1458,7 +1601,7 @@ function App() {
                             <button
                               type="button"
                               className="secondary-btn"
-                              onClick={() => handleManualTextSubmit(q.targetText)}
+                              onClick={() => handleManualTextSubmit(readingTargetText)}
                             >
                               {t("skipVoiceBtn")}
                             </button>
@@ -1471,18 +1614,18 @@ function App() {
                     {isCompMCQ && (
                       <div className="comprehension-q-container">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
-                          <p className="comprehension-question" style={{ margin: 0, flex: 1, fontWeight: 700, fontSize: "1.2rem" }}>{q.question}</p>
+                          <p className="comprehension-question" style={{ margin: 0, flex: 1, fontWeight: 700, fontSize: "1.2rem" }}>{compQuestionText}</p>
                           <button
                             type="button"
                             className="tts-btn"
-                            onClick={() => speakText(q.question)}
+                            onClick={() => speakText(compQuestionText)}
                             title="Listen to question"
                           >
-                            🔊 Listen
+                            🔊 {t("listenBtn") || "Listen"}
                           </button>
                         </div>
                         <div className="options-grid">
-                          {q.options.map((opt, idx) => {
+                          {compOptions.map((opt, idx) => {
                             const isSelected = selectedAnswers[currentStep] === idx;
                             return (
                               <button
@@ -1503,15 +1646,17 @@ function App() {
                     {/* WRITING PROMPT SECTION */}
                     {isWriting && (
                       <div className="writing-q-container">
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
-                          <p className="writing-prompt" style={{ margin: 0, flex: 1, fontWeight: 700, fontSize: "1.2rem" }}>{q.prompt}</p>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px', justifyContent: 'space-between', width: '100%' }}>
+                          <div style={{ flex: 1 }}>
+                            <p className="writing-prompt" style={{ margin: 0, fontWeight: 700, fontSize: "1.2rem" }}>{writingPromptText}</p>
+                          </div>
                           <button
                             type="button"
                             className="tts-btn"
-                            onClick={() => speakText(q.prompt)}
+                            onClick={() => speakText(writingPromptText)}
                             title="Listen to prompt"
                           >
-                            🔊 Listen
+                            🔊 {t("listenBtn") || "Listen"}
                           </button>
                         </div>
                         <textarea
