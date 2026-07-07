@@ -73,13 +73,16 @@ const translations = {
     passwordsDoNotMatch: "Passwords do not match.",
     
     // Assessment Flow
-    initialAssessmentDesc: "Welcome! To diagnose your reading, writing, and comprehension skills, please start the randomized Initial Assessment.",
+    initialAssessmentDesc: "To diagnose your reading, writing, and comprehension skills, please start with the Initial Assessment.",
     takeAssessmentBtn: "Start Initial Assessment",
     stepTitle: "Step {current} of {total}",
-    readingSecTitle: "Reading & Speaking Section",
-    compSecTitle: "Comprehension Section",
-    writingSecTitle: "Writing Section",
+    readingSecTitle: "Reading Section (Voice)",
+    compSecTitle: "Comprehension Section (MCQ)",
+    writingSecTitle: "Writing Section (Text)",
     micBtnStart: "Start Reading Aloud",
+    home: "Home",
+    profileSettings: "Profile Settings",
+    takeAssessment: "Take Assessment",
     micBtnListening: "Listening... Read now!",
     micBtnStopped: "Speech Stopped",
     monkeyTypeTip: "Instructions: Click the button and read the sentence below clearly. Correct words turn green, incorrect words turn red.",
@@ -176,13 +179,16 @@ const translations = {
     passwordsDoNotMatch: "पासवर्ड मेल नहीं खाते हैं।",
 
     // Initial Assessment Flow
-    initialAssessmentDesc: "नमस्ते! आपके पढ़ने, लिखने और समझने के कौशल का आकलन करने के लिए कृपया यह प्रारंभिक आकलन शुरू करें।",
+    initialAssessmentDesc: "आपके पढ़ने, लिखने और समझने के कौशल का आकलन करने के लिए कृपया प्रारंभिक आकलन से शुरुआत करें।",
     takeAssessmentBtn: "प्रारंभिक आकलन शुरू करें",
     stepTitle: "कदम {current} का {total}",
-    readingSecTitle: "पठन और वाचन खंड",
-    compSecTitle: "समझ (एमसीक्यू) खंड",
-    writingSecTitle: "लेखन खंड",
+    readingSecTitle: "पठन अनुभाग (आवाज़)",
+    compSecTitle: "समझ अनुभाग (एमसीक्यू)",
+    writingSecTitle: "लेखन अनुभाग (पाठ)",
     micBtnStart: "जोर से पढ़ना शुरू करें",
+    home: "होम",
+    profileSettings: "प्रोफ़ाइल सेटिंग्स",
+    takeAssessment: "आकलन लें",
     micBtnListening: "सुन रहा है... अब पढ़ें!",
     micBtnStopped: "बोलना बंद हुआ",
     monkeyTypeTip: "निर्देश: बटन दबाएं और नीचे लिखे वाक्य को स्पष्ट रूप से पढ़ें। सही शब्द हरे और गलत शब्द लाल हो जाएंगे।",
@@ -279,13 +285,16 @@ const translations = {
     passwordsDoNotMatch: "ಪಾಸ್‌ವರ್ಡ್‌ಗಳು ಹೊಂದಿಕೆಯಾಗುತ್ತಿಲ್ಲ.",
 
     // Initial Assessment Flow
-    initialAssessmentDesc: "ಸುಸ್ವಾಗತ! ನಿಮ್ಮ ಓದುವ, ಬರೆಯುವ ಮತ್ತು ಗ್ರಹಿಸುವ ಕೌಶಲ್ಯಗಳನ್ನು ನಿರ್ಣಯಿಸಲು ದಯವಿಟ್ಟು ಆರಂಭಿಕ ಮೌಲ್ಯಮಾಪನವನ್ನು ತೆಗೆದುಕೊಳ್ಳಿ.",
+    initialAssessmentDesc: "ನಿಮ್ಮ ಓದುವ, ಬರೆಯುವ ಮತ್ತು ಗ್ರಹಿಸುವ ಕೌಶಲ್ಯಗಳನ್ನು ನಿರ್ಣಯಿಸಲು ದಯವಿಟ್ಟು ಆರಂಭಿಕ ಮೌಲ್ಯಮಾಪನದೊಂದಿಗೆ ಪ್ರಾರಂಭಿಸಿ।",
     takeAssessmentBtn: "ಆರಂಭಿಕ ಮೌಲ್ಯಮಾಪನ ಪ್ರಾರಂಭಿಸಿ",
     stepTitle: "ಹಂತ {current} ರ {total}",
-    readingSecTitle: "ಓದುವಿಕೆ ಮತ್ತು ಮಾತನಾಡುವ ವಿಭಾಗ",
-    compSecTitle: "ಗ್ರಹಿಕೆ (MCQ) ವಿಭಾಗ",
-    writingSecTitle: "ಬರವಣಿಗೆ ವಿಭಾಗ",
+    readingSecTitle: "ಓದುವಿಕೆ ವಿಭಾಗ (ಧ್ವನಿ)",
+    compSecTitle: "ಗ್ರಹಿಕೆ ವಿಭಾಗ (MCQ)",
+    writingSecTitle: "ಬರವಣಿಗೆ ವಿಭಾಗ (ಪಠ್ಯ)",
     micBtnStart: "ಜೋರಾಗಿ ಓದಲು ಪ್ರಾರಂಭಿಸಿ",
+    home: "ಮುಖಪುಟ",
+    profileSettings: "ಪ್ರೊಫೈಲ್ ಸೆಟ್ಟಿಂಗ್ಸ್",
+    takeAssessment: "ಮೌಲ್ಯಮಾಪನ ತೆಗೆದುಕೊಳ್ಳಿ",
     micBtnListening: "ಕೇಳಿಸಿಕೊಳ್ಳುತ್ತಿದೆ... ಈಗ ಓದಿ!",
     micBtnStopped: "ಮಾತು ನಿಂತಿದೆ",
     monkeyTypeTip: "ಸೂಚನೆಗಳು: ಬಟನ್ ಕ್ಲಿಕ್ ಮಾಡಿ ಕೆಳಗಿನ ವಾಕ್ಯವನ್ನು ಸ್ಪಷ್ಟವಾಗಿ ಓದಿ. ಸರಿಯಾದ ಪದಗಳು ಹಸಿರು ಬಣ್ಣಕ್ಕೆ ಮತ್ತು ತಪ್ಪಾದ ಪದಗಳು ಕೆಂಪು ಬಣ್ಣಕ್ಕೆ ತಿರುಗುತ್ತವೆ.",
@@ -382,13 +391,16 @@ const translations = {
     passwordsDoNotMatch: "పాస్‌వర్డ్‌లు సరిపోలడం లేదు.",
 
     // Initial Assessment Flow
-    initialAssessmentDesc: "సుస్వాగతం! మీ చదవడం, రాయడం మరియు గ్రహించే నైపుణ్యాలను అంచనా వేయడానికి దయచేసి ప్రారంభ అంచనాను ప్రారంభించండి.",
+    initialAssessmentDesc: "మీ చదవడం, రాయడం మరియు గ్రహించే నైపుణ్యాలను అంచనా వేయడానికి దయచేసి ప్రారంభ అంచనాతో ప్రారంభించండి.",
     takeAssessmentBtn: "ప్రారంభ అంచనాను ప్రారంభించండి",
     stepTitle: "ప్రశ్న {current} యొక్క {total}",
-    readingSecTitle: "పఠనం మరియు మాట్లాడే విభాగం",
-    compSecTitle: "గ్రహణశక్తి (MCQ) విభాగం",
-    writingSecTitle: "రాయడం విభాగం",
+    readingSecTitle: "పఠనం విభాగం (వాయిస్)",
+    compSecTitle: "గ్రహణశక్తి విభాగం (MCQ)",
+    writingSecTitle: "రాయడం విభాగం (టెక్స్ట్)",
     micBtnStart: "గట్టిగా చదవడం ప్రారంభించండి",
+    home: "హోమ్",
+    profileSettings: "ప్రొఫైల్ సెట్టింగ్స్",
+    takeAssessment: "అంచనా తీసుకోండి",
     micBtnListening: "వింటోంది... ఇప్పుడు చదవండి!",
     micBtnStopped: "సంభాషణ ఆగిపోయింది",
     monkeyTypeTip: "సూచనలు: బటన్‌ను క్లిక్ చేసి కింద ఉన్న వాక్యాన్ని స్పష్టంగా చదవండి. సరైన పదాలు ఆకుపచ్చగా, తప్పు పదాలు ఎరుపుగా మారుతాయి.",
@@ -485,13 +497,16 @@ const translations = {
     passwordsDoNotMatch: "கடவுச்சொற்கள் பொருந்தவில்லை.",
 
     // Initial Assessment Flow
-    initialAssessmentDesc: "வரவேற்கிறோம்! உங்கள் வாசிப்பு, எழுதுதல் மற்றும் புரிதல் திறனை மதிப்பிடுவதற்கு தயவுசெய்து ஆரம்ப மதிப்பீட்டைத் தொடங்குங்கள்.",
+    initialAssessmentDesc: "உங்கள் வாசிப்பு, எழுதுதல் மற்றும் புரிதல் திறனை மதிப்பிடுவதற்கு தயவுசெய்து ஆரம்ப மதிப்பீட்டுடன் தொடங்குங்கள்.",
     takeAssessmentBtn: "ஆரம்ப மதிப்பீட்டைத் தொடங்கு",
     stepTitle: "கேள்வி {current}-ல் {total}",
-    readingSecTitle: "வாசிப்பு மற்றும் பேச்சுப் பிரிவு",
-    compSecTitle: "புரிதல் (MCQ) பிரிவு",
-    writingSecTitle: "எழுதுதல் பிரிவு",
+    readingSecTitle: "வாசிப்புப் பிரிவு (குரல்)",
+    compSecTitle: "புரிதல் பிரிவு (MCQ)",
+    writingSecTitle: "எழுதுதல் பிரிவு (உரை)",
     micBtnStart: "சத்தமாக வாசிக்கத் தொடங்குங்கள்",
+    home: "முகப்பு",
+    profileSettings: "சுயவிவர அமைப்புகள்",
+    takeAssessment: "மதிப்பீடு செய்ய",
     micBtnListening: "கேட்கிறது... இப்போது வாசியுங்கள்!",
     micBtnStopped: "பேச்சு நிறுத்தப்பட்டது",
     monkeyTypeTip: "வழிமுறைகள்: பொத்தானைக் கிளிக் செய்து கீழே உள்ள வாக்கியத்தைத் தெளிவாக வாசிக்கவும். சரியான வார்த்தைகள் பச்சையாகவும், தவறானவை சிவப்பாகவும் மாறும்.",
@@ -675,7 +690,13 @@ function App() {
         });
       } else {
         setProfile(data);
-        if (data.preferred_language) {
+        // Sync locally selected language from login screen to database profile
+        const localLang = localStorage.getItem("lisa_lang") || selectedLanguage || "English";
+        if (localLang && data.preferred_language !== localLang) {
+          await supabase.from("profiles").update({ preferred_language: localLang }).eq("id", userId);
+          setProfile(prev => prev ? { ...prev, preferred_language: localLang } : null);
+          setSelectedLanguage(localLang);
+        } else if (data.preferred_language) {
           setSelectedLanguage(data.preferred_language);
           localStorage.setItem("lisa_lang", data.preferred_language);
         }
@@ -1234,7 +1255,7 @@ function App() {
             <div className="brand-logo-circle">L</div>
             <div className="brand-text-block">
               <div className="brand-title" style={{ color: 'var(--text)', fontWeight: '800' }}>LISA</div>
-              <div className="brand-subtitle" style={{ color: 'var(--muted)' }}>AI Literacy Platform</div>
+              <div className="brand-subtitle" style={{ color: 'var(--muted)', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.2px', fontWeight: 500 }}>Literacy Intelligence Support Assistant</div>
             </div>
           </div>
 
@@ -1253,7 +1274,7 @@ function App() {
                 cursor: 'pointer'
               }}
             >
-              <span>🏠 Home</span>
+              <span>🏠 {t("home")}</span>
             </button>
             <button
               className={`menu-item ${dashboardTab === "profile" ? "active" : ""}`}
@@ -1268,7 +1289,7 @@ function App() {
                 cursor: 'pointer'
               }}
             >
-              <span>👤 Profile Settings</span>
+              <span>👤 {t("profileSettings")}</span>
             </button>
             
             {!hasDiagnosed && assessmentState === "not_started" && (
@@ -1278,7 +1299,7 @@ function App() {
                 onClick={handleStartInitialAssessment}
                 style={{ padding: "8px 16px", borderRadius: "10px", fontWeight: "700" }}
               >
-                📝 Take Assessment
+                📝 {t("takeAssessment")}
               </button>
             )}
           </nav>
@@ -1298,27 +1319,28 @@ function App() {
             </div>
 
             <button type="button" className="logout-btn" onClick={handleSignOut} style={{ background: 'rgba(239, 68, 68, 0.08)', color: '#ef4444', border: 'none', padding: '8px 16px', borderRadius: '10px', fontWeight: '700', cursor: 'pointer' }}>
-              🚪 Logout
+              🚪 {t("logout")}
             </button>
           </div>
         </header>
 
         {/* Main Content Area */}
-        <div className="dashboard-content-area" style={{ flexGrow: 1, overflowY: 'auto' }}>
+        <div className="dashboard-content-area" style={{ flexGrow: 1 }}>
 
           <main className="dashboard-main-view">
             {/* 1. Welcome state when not diagnosed and assessment not started */}
-            {!hasDiagnosed && assessmentState === "not_started" && (
-              <div className="diagnostic-welcome-wrapper" style={{ maxWidth: '800px', margin: '20px auto', padding: '20px' }}>
-                <div className="welcome-banner">
-                  <h1>{t("welcomeToLisa")}!</h1>
+            {!hasDiagnosed && assessmentState === "not_started" && dashboardTab === "home" && (
+              <div className="diagnostic-welcome-wrapper" style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
+                <div className="welcome-banner" style={{ textAlign: "center" }}>
+                  <h1>{t("hello")}, {profile?.full_name || "Learner"}!</h1>
+                  <h2 style={{ fontSize: "1.3rem", marginTop: "8px", color: "var(--muted)", fontWeight: 600 }}>{t("welcomeToLisa")}!</h2>
                 </div>
                 <div className="empty-state-assessment">
                   <p className="intro-copy">{t("initialAssessmentDesc")}</p>
                   <div className="assessment-tours">
-                    <div className="tour-badge">🎤 Reading Section (Voice)</div>
-                    <div className="tour-badge">❓ Comprehension Section (MCQ)</div>
-                    <div className="tour-badge">✍️ Writing Section (Text)</div>
+                    <div className="tour-badge">🎤 {t("readingSecTitle")}</div>
+                    <div className="tour-badge">❓ {t("compSecTitle")}</div>
+                    <div className="tour-badge">✍️ {t("writingSecTitle")}</div>
                   </div>
                   <button
                     type="button"
@@ -1613,9 +1635,9 @@ function App() {
             })()}
 
             {/* 4. Normal Dashboard View (only rendered when diagnosed and not in assessment) */}
-            {hasDiagnosed && assessmentState === "not_started" && (
+            {assessmentState === "not_started" && (
               <>
-                {dashboardTab === "home" && (
+                {dashboardTab === "home" && hasDiagnosed && (
                   <div className="home-tab-wrapper">
                     {/* Tutor Announcement Bar */}
                     <div className="tutor-announcement-bar">
