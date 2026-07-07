@@ -71,7 +71,7 @@ const translations = {
     confirmPassword: "Confirm Password",
     confirmPasswordPlaceholder: "Confirm your password",
     passwordsDoNotMatch: "Passwords do not match.",
-    
+
     // Assessment Flow
     initialAssessmentDesc: "To diagnose your reading, writing, and comprehension skills, please start with the Initial Assessment.",
     takeAssessmentBtn: "Start Initial Assessment",
@@ -614,7 +614,7 @@ function App() {
   const [selectedAnswers, setSelectedAnswers] = useState({}); // { index: optionIndex }
   const [writingAnswers, setWritingAnswers] = useState({}); // { index: "user text" }
   const [readingAttempts, setReadingAttempts] = useState({}); // { index: { matchedCount, totalWords, transcript, scores } }
-  
+
   // Voice speech states
   const [isListening, setIsListening] = useState(false);
   const [spokenTranscript, setSpokenTranscript] = useState("");
@@ -643,17 +643,17 @@ function App() {
     const dict = translations[lang] || translations["English"];
     if (key === "successForgotPasswordLink") {
       return lang === "Hindi" ? "पासवर्ड रीसेट लिंक भेजा गया! कृपया अपना ईमेल जांचें।" :
-             lang === "Kannada" ? "ಪಾಸ್‌ವರ್ಡ್ ಮರುಹೊಂದಿಸುವ ಲಿಂಕ್ ಕಳುಹಿಸಲಾಗಿದೆ! ಇಮೇಲ್ ಪರಿಶೀಲಿಸಿ." :
-             lang === "Telugu" ? "పాస్‌వర్డ్ రీసెట్ లింక్ పంపబడింది! దయచేసి ఇమెయిల్ తనిఖీ చేయండి." :
-             lang === "Tamil" ? "கடவுச்சொல் மீட்பு இணைப்பு அனுப்பப்பட்டது! மின்னஞ்சலைச் சரிபார்க்கவும்." :
-             "Password reset link sent! Please check your email.";
+        lang === "Kannada" ? "ಪಾಸ್‌ವರ್ಡ್ ಮರುಹೊಂದಿಸುವ ಲಿಂಕ್ ಕಳುಹಿಸಲಾಗಿದೆ! ಇಮೇಲ್ ಪರಿಶೀಲಿಸಿ." :
+          lang === "Telugu" ? "పాస్‌వర్డ్ రీసెట్ లింక్ పంపబడింది! దయచేసి ఇమెయిల్ తనిఖీ చేయండి." :
+            lang === "Tamil" ? "கடவுச்சொல் மீட்பு இணைப்பு அனுப்பப்பட்டது! மின்னஞ்சலைச் சரிபார்க்கவும்." :
+              "Password reset link sent! Please check your email.";
     }
     if (key === "successResetPassword") {
       return lang === "Hindi" ? "पासवर्ड रीसेट सफल रहा! अब आप लॉगिन कर सकते हैं।" :
-             lang === "Kannada" ? "ಪಾಸ್‌ವರ್ಡ್ ಮರುಹೊಂದಿಕೆ ಯಶಸ್ವಿಯಾಗಿದೆ! ನೀವು ಈಗ ಲಾಗಿನ್ ಮಾಡಬಹುದು." :
-             lang === "Telugu" ? "పాస్‌వర్డ్ రీసెట్ విజయవంతమైంది! మీరు ఇప్పుడు లాగిన్ చేయవచ్చు." :
-             lang === "Tamil" ? "கடவுச்சொல் மீட்டமைக்கப்பட்டது! நீங்கள் இப்போது உள்நுழையலாம்." :
-             "Password reset successfully! You can now log in.";
+        lang === "Kannada" ? "ಪಾಸ್‌ವರ್ಡ್ ಮರುಹೊಂದಿಕೆ ಯಶಸ್ವಿಯಾಗಿದೆ! ನೀವು ಈಗ ಲಾಗಿನ್ ಮಾಡಬಹುದು." :
+          lang === "Telugu" ? "పాస్‌వర్డ్ రీసెట్ విజయవంతమైంది! మీరు ఇప్పుడు లాగిన్ చేయవచ్చు." :
+            lang === "Tamil" ? "கடவுச்சொல் மீட்டமைக்கப்பட்டது! நீங்கள் இப்போது உள்நுழையலாம்." :
+              "Password reset successfully! You can now log in.";
     }
     return dict[key] || translations["English"][key] || key;
   };
@@ -882,7 +882,7 @@ function App() {
     setSpokenTranscript("");
     setManualTextFallback("");
     setMicError("");
-    
+
     // Generates a dynamic test where the questions are shuffled
     // and MCQ options are shuffled as well.
     const assessment = getRandomAssessment(
@@ -953,7 +953,7 @@ function App() {
 
   const speakText = (text) => {
     const lang = selectedLanguage || "English";
-    
+
     if (window.responsiveVoice) {
       let voiceName = "US English Female";
       if (lang === "Hindi") voiceName = "Hindi Female";
@@ -981,17 +981,17 @@ function App() {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = locale;
-      
+
       const voices = window.speechSynthesis.getVoices();
-      const matchingVoice = voices.find(v => 
-        v.lang.toLowerCase() === locale.toLowerCase() || 
+      const matchingVoice = voices.find(v =>
+        v.lang.toLowerCase() === locale.toLowerCase() ||
         v.lang.toLowerCase().replace("_", "-") === locale.toLowerCase() ||
         v.lang.toLowerCase().startsWith(locale.split("-")[0].toLowerCase())
       );
       if (matchingVoice) {
         utterance.voice = matchingVoice;
       }
-      
+
       utterance.onerror = (e) => console.error("TTS SpeechSynthesisUtterance Error:", e);
       window.speechSynthesis.speak(utterance);
     }
@@ -1021,7 +1021,7 @@ function App() {
   const evaluateSpeechText = (transcript, targetText) => {
     const targetWords = targetText.split(/\s+/).filter(Boolean);
     const spokenWords = transcript.split(/\s+/).filter(Boolean).map(cleanWord);
-    
+
     let matchedCount = 0;
     const scores = targetWords.map((word) => {
       const cleaned = cleanWord(word);
@@ -1110,7 +1110,7 @@ function App() {
       if (error) {
         console.warn("DB update failed, caching locally:", error.message);
       }
-      
+
       // Update UI state profile
       setProfile(prev => ({
         ...prev,
@@ -1121,9 +1121,9 @@ function App() {
       // Calculate separate stats
       let readPoints = 0, compPoints = 0, writePoints = 0;
       assessmentQuestionsList.forEach((q, idx) => {
-        const points = q.type === "reading" ? (readingAttempts[idx]?.matchedCount / readingAttempts[idx]?.totalWords) * 10 || 0 
-                       : q.type === "comprehension" ? (selectedAnswers[idx] === q.correctIndex ? 10 : 0)
-                       : q.evaluator(writingAnswers[idx] || "").score;
+        const points = q.type === "reading" ? (readingAttempts[idx]?.matchedCount / readingAttempts[idx]?.totalWords) * 10 || 0
+          : q.type === "comprehension" ? (selectedAnswers[idx] === q.correctIndex ? 10 : 0)
+            : q.evaluator(writingAnswers[idx] || "").score;
 
         if (q.type === "reading") readPoints += points;
         if (q.type === "comprehension") compPoints += points;
@@ -1174,7 +1174,7 @@ function App() {
       if (error) {
         console.warn("DB profile save error, caching:", error.message);
       }
-      
+
       setProfile(prev => ({
         ...prev,
         full_name: editFullName,
@@ -1408,27 +1408,7 @@ function App() {
                       setProfileDropdownOpen(false);
                     }}
                   >
-                    🏠 {t("home")}
-                  </button>
-                  <button
-                    type="button"
-                    className="profile-dropdown-item"
-                    onClick={() => {
-                      setDashboardTab("dashboard");
-                      setProfileDropdownOpen(false);
-                    }}
-                  >
-                    📊 {t("dashboard")}
-                  </button>
-                  <button
-                    type="button"
-                    className="profile-dropdown-item"
-                    style={{ color: '#ef4444' }}
-                    onClick={() => {
-                      setProfileDropdownOpen(false);
-                      handleSignOut();
-                    }}
-                  >
+
                     🚪 {t("logout")}
                   </button>
                 </div>
@@ -1451,8 +1431,8 @@ function App() {
                 <div className="empty-state-assessment">
                   <p className="intro-copy">{t("initialAssessmentDesc")}</p>
                   <div className="assessment-tours">
-                    <div className="tour-badge">🎤 {t("readingSecTitle")}</div>
-                    <div className="tour-badge">❓ {t("compSecTitle")}</div>
+                    <div className="tour-badge">📃 {t("compSecTitle")}</div>
+                    <div className="tour-badge">🗣️ {t("readingSecTitle")}</div>
                     <div className="tour-badge">✍️ {t("writingSecTitle")}</div>
                   </div>
                   <button
@@ -1508,24 +1488,24 @@ function App() {
 
               const compOptions = isCompMCQ
                 ? q.shuffledIndices.map((originalIdx) => {
-                    const engOpt = q.rawQuestion?.options?.["English"]?.[originalIdx] || "";
-                    const transOpt = q.rawQuestion?.options?.[selectedLanguage]?.[originalIdx] || "";
-                    
-                    if (selectedLanguage === "English") return engOpt;
-                    
-                    // If transOpt already includes regional translations like "Lose (ಕಳೆದುಕೋ)", just use it directly
-                    if (transOpt && engOpt !== transOpt) {
-                      return transOpt;
-                    }
-                    
-                    // Otherwise check our translation fallback
-                    const cleanKey = engOpt.trim();
-                    const fallbackTrans = optionTranslationMap[cleanKey]?.[selectedLanguage];
-                    if (fallbackTrans) {
-                      return `${engOpt} (${fallbackTrans})`;
-                    }
-                    return engOpt;
-                  })
+                  const engOpt = q.rawQuestion?.options?.["English"]?.[originalIdx] || "";
+                  const transOpt = q.rawQuestion?.options?.[selectedLanguage]?.[originalIdx] || "";
+
+                  if (selectedLanguage === "English") return engOpt;
+
+                  // If transOpt already includes regional translations like "Lose (ಕಳೆದುಕೋ)", just use it directly
+                  if (transOpt && engOpt !== transOpt) {
+                    return transOpt;
+                  }
+
+                  // Otherwise check our translation fallback
+                  const cleanKey = engOpt.trim();
+                  const fallbackTrans = optionTranslationMap[cleanKey]?.[selectedLanguage];
+                  if (fallbackTrans) {
+                    return `${engOpt} (${fallbackTrans})`;
+                  }
+                  return engOpt;
+                })
                 : [];
 
               // 3. Resolve writing prompt
@@ -1564,7 +1544,7 @@ function App() {
                             🔊 {t("listenBtn") || "Listen"}
                           </button>
                         </div>
-                        
+
                         <div className="monkeytype-text-block">
                           {readingTargetText.split(/\s+/).map((word, idx) => {
                             const cleaned = cleanWord(word);
@@ -1745,7 +1725,7 @@ function App() {
               return (
                 <div className="results-card" style={{ maxWidth: '800px', margin: '20px auto' }}>
                   <h2>{t("resultsTitle")}</h2>
-                  
+
                   <div className="results-percentage-circle">
                     <span className="percent-val">{latestAttempt?.score ? Math.round((latestAttempt.score / 50) * 100) : 0}%</span>
                   </div>
@@ -1834,7 +1814,7 @@ function App() {
                             <span className="hero-tag">LISA PLATFORM</span>
                             <h1>Your Literacy Journey</h1>
                             <p className="hero-subtext">You have completed your initial diagnostic assessment. Keep practicing to build your skills!</p>
-                            
+
                             <div className="hero-actions">
                               <span className="hero-streak-text">
                                 🔥 {historyAttempts.length > 0 ? "3 day streak" : "0 day streak"}
@@ -1866,7 +1846,7 @@ function App() {
 
                     {/* 4-Metric Statistics Grid */}
                     {(() => {
-                      const achievementsCount = 1 + 
+                      const achievementsCount = 1 +
                         (calculateSkillProficiency("reading") >= 75 ? 1 : 0) +
                         (calculateSkillProficiency("comprehension") >= 75 ? 1 : 0) +
                         (calculateSkillProficiency("writing") >= 75 ? 1 : 0);
@@ -2008,7 +1988,7 @@ function App() {
                           <h6>First Attempt</h6>
                           <p>Completed the initial diagnostic assessment.</p>
                         </div>
-                        
+
                         <div className={`badge-item ${calculateSkillProficiency("reading") >= 75 ? "unlocked" : "locked"}`}>
                           <div className="badge-art">🎤</div>
                           <h6>Voice Pioneer</h6>
@@ -2103,7 +2083,7 @@ function App() {
                                     literacy_level: null
                                   })
                                   .eq("id", session.user.id);
-                                
+
                                 if (error && (error.message.includes("literacy_level") || error.code === "PGRST204" || error.message.includes("column"))) {
                                   // Retry updating only education_level if literacy_level column does not exist
                                   const retry = await supabase
@@ -2114,9 +2094,9 @@ function App() {
                                     .eq("id", session.user.id);
                                   error = retry.error;
                                 }
-                                
+
                                 if (error) throw error;
-                                
+
                                 setProfile(prev => prev ? {
                                   ...prev,
                                   education_level: "No formal education",
