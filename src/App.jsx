@@ -572,6 +572,28 @@ const getLiteracyLevel = (userProfile) => {
   return null;
 };
 
+const hasCompletedAssessment = (userProfile) => {
+  return userProfile?.assessment_completed === true || getLiteracyLevel(userProfile) !== null;
+};
+
+const getAssessmentStorageKey = (userId) => `lisa_assessment_state_${userId || "anonymous"}`;
+
+const getStoredAssessmentState = (userId) => {
+  try {
+    return JSON.parse(localStorage.getItem(getAssessmentStorageKey(userId))) || null;
+  } catch {
+    return null;
+  }
+};
+
+const setStoredAssessmentState = (userId, state) => {
+  localStorage.setItem(getAssessmentStorageKey(userId), JSON.stringify(state));
+};
+
+const clearStoredAssessmentState = (userId) => {
+  localStorage.removeItem(getAssessmentStorageKey(userId));
+};
+
 const getLocalizedLevelName = (level, lang) => {
   const currentLang = lang || "English";
   const defs = levelDefinitions[currentLang] || levelDefinitions["English"];
@@ -708,6 +730,7 @@ function App() {
 
       if (error) {
         console.warn("Could not fetch profile, setting default session:", error.message);
+        const storedAssessment = getStoredAssessmentState(userId);
         // Fallback for demo users
         setProfile({
           id: userId,
@@ -715,19 +738,29 @@ function App() {
           age: session?.user?.user_metadata?.age || 20,
           preferred_language: session?.user?.user_metadata?.preferred_language || selectedLanguage || "English",
           education_level: session?.user?.user_metadata?.education_level || "No formal education",
-          literacy_level: null
+          literacy_level: storedAssessment?.literacy_level ?? null,
+          assessment_completed: storedAssessment?.assessment_completed ?? false
         });
       } else {
-        setProfile(data);
+        const storedAssessment = getStoredAssessmentState(userId);
+        const mergedProfile = storedAssessment
+          ? {
+            ...data,
+            literacy_level: data.literacy_level ?? storedAssessment.literacy_level ?? null,
+            assessment_completed: data.assessment_completed ?? storedAssessment.assessment_completed ?? false
+          }
+          : data;
+
+        setProfile(mergedProfile);
         // Sync locally selected language from login screen to database profile
         const localLang = localStorage.getItem("lisa_lang") || selectedLanguage || "English";
-        if (localLang && data.preferred_language !== localLang) {
+        if (localLang && mergedProfile.preferred_language !== localLang) {
           await supabase.from("profiles").update({ preferred_language: localLang }).eq("id", userId);
           setProfile(prev => prev ? { ...prev, preferred_language: localLang } : null);
           setSelectedLanguage(localLang);
-        } else if (data.preferred_language) {
-          setSelectedLanguage(data.preferred_language);
-          localStorage.setItem("lisa_lang", data.preferred_language);
+        } else if (mergedProfile.preferred_language) {
+          setSelectedLanguage(mergedProfile.preferred_language);
+          localStorage.setItem("lisa_lang", mergedProfile.preferred_language);
         }
       }
     } catch (err) {
@@ -820,7 +853,8 @@ function App() {
           age,
           preferred_language: language,
           education_level: educationLevel,
-          literacy_level: null
+          literacy_level: null,
+          assessment_completed: false
         });
       } else {
         setMessage(t("checkEmailConfirm"));
@@ -1099,13 +1133,36 @@ function App() {
 
     // Profile updates in Supabase
     try {
-      const { error } = await supabase
+      const primaryUpdate = await supabase
         .from("profiles")
         .update({
           education_level: levelString,
-          literacy_level: diagnosedLevel
+          literacy_level: diagnosedLevel,
+          assessment_completed: true
         })
         .eq("id", session.user.id);
+
+      let error = primaryUpdate.error;
+
+      if (error && (error.message.includes("literacy_level") || error.message.includes("assessment_completed") || error.code === "PGRST204" || error.message.includes("column"))) {
+        const fallbackUpdate = {
+          education_level: levelString
+        };
+
+        if (!error.message.includes("literacy_level")) {
+          fallbackUpdate.literacy_level = diagnosedLevel;
+        }
+        if (!error.message.includes("assessment_completed")) {
+          fallbackUpdate.assessment_completed = true;
+        }
+
+        const retry = await supabase
+          .from("profiles")
+          .update(fallbackUpdate)
+          .eq("id", session.user.id);
+
+        error = retry.error;
+      }
 
       if (error) {
         console.warn("DB update failed, caching locally:", error.message);
@@ -1115,8 +1172,13 @@ function App() {
       setProfile(prev => ({
         ...prev,
         education_level: levelString,
-        literacy_level: diagnosedLevel
+        literacy_level: diagnosedLevel,
+        assessment_completed: true
       }));
+      setStoredAssessmentState(session.user.id, {
+        literacy_level: diagnosedLevel,
+        assessment_completed: true
+      });
 
       // Calculate separate stats
       let readPoints = 0, compPoints = 0, writePoints = 0;
@@ -1148,7 +1210,8 @@ function App() {
       setHistoryAttempts(updatedHistory);
       localStorage.setItem("lisa_attempts_history", JSON.stringify(updatedHistory));
 
-      setAssessmentState("results");
+      setDashboardTab("home");
+      setAssessmentState("not_started");
     } catch (err) {
       console.error("Error updating test results:", err);
     } finally {
@@ -1304,7 +1367,7 @@ function App() {
   // Dashboard / Assessment Screens when Logged In
   if (session) {
     const userLevel = getLiteracyLevel(profile);
-    const hasDiagnosed = userLevel !== null;
+    const hasDiagnosed = hasCompletedAssessment(profile);
     const currentLevelNum = getLiteracyLevel(profile) || 1;
     const currentLang = selectedLanguage || "English";
 
@@ -1337,21 +1400,6 @@ function App() {
               }}
             >
               <span>🏠 {t("home")}</span>
-            </button>
-            <button
-              className={`menu-item ${dashboardTab === "dashboard" ? "active" : ""}`}
-              onClick={() => setDashboardTab("dashboard")}
-              style={{
-                background: dashboardTab === 'dashboard' ? 'rgba(198, 95, 45, 0.08)' : 'none',
-                color: dashboardTab === 'dashboard' ? 'var(--accent)' : 'var(--text)',
-                border: 'none',
-                padding: '8px 16px',
-                borderRadius: '8px',
-                fontWeight: '600',
-                cursor: 'pointer'
-              }}
-            >
-              <span>📊 {t("dashboard")}</span>
             </button>
           </nav>
 
@@ -1400,15 +1448,16 @@ function App() {
                   >
                     👤 {t("myProfile")}
                   </button>
+
                   <button
                     type="button"
                     className="profile-dropdown-item"
+                    style={{ color: '#ef4444' }}
                     onClick={() => {
-                      setDashboardTab("home");
                       setProfileDropdownOpen(false);
+                      handleSignOut();
                     }}
                   >
-
                     🚪 {t("logout")}
                   </button>
                 </div>
@@ -2076,16 +2125,20 @@ function App() {
                             style={{ background: '#ef4444', color: 'white', border: 'none', padding: '10px 16px', borderRadius: '12px', cursor: 'pointer', fontWeight: '600' }}
                             onClick={async () => {
                               try {
-                                let { error } = await supabase
+                                const primaryUpdate = await supabase
                                   .from("profiles")
                                   .update({
                                     education_level: "No formal education",
-                                    literacy_level: null
+                                    literacy_level: null,
+                                    assessment_completed: false
                                   })
                                   .eq("id", session.user.id);
 
-                                if (error && (error.message.includes("literacy_level") || error.code === "PGRST204" || error.message.includes("column"))) {
-                                  // Retry updating only education_level if literacy_level column does not exist
+                                let error = primaryUpdate.error;
+
+                                if (error) {
+                                  console.warn("Primary reset failed, retrying with guaranteed schema fields:", error.message);
+                                  // Retry using only the guaranteed education_level column
                                   const retry = await supabase
                                     .from("profiles")
                                     .update({
@@ -2100,8 +2153,10 @@ function App() {
                                 setProfile(prev => prev ? {
                                   ...prev,
                                   education_level: "No formal education",
-                                  literacy_level: null
+                                  literacy_level: null,
+                                  assessment_completed: false
                                 } : null);
+                                clearStoredAssessmentState(session.user.id);
                                 setHistoryAttempts([]);
                                 localStorage.removeItem("lisa_attempts_history");
                                 setAssessmentState("not_started");
