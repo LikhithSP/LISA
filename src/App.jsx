@@ -101,6 +101,7 @@ const translations = {
     writeInEnglishPrompt: "(Please write your response in English)",
     listenBtn: "Listen",
     myProfile: "My Profile",
+    dashboard: "Dashboard",
 
     // Dashboard tabs
     tabProgress: "📊 My Performance",
@@ -210,6 +211,7 @@ const translations = {
     writeInEnglishPrompt: "(कृपया अपना उत्तर अंग्रेजी में लिखें)",
     listenBtn: "सुनें",
     myProfile: "मेरी प्रोफ़ाइल",
+    dashboard: "डैशबोर्ड",
 
     // Dashboard tabs
     tabProgress: "📊 मेरा प्रदर्शन",
@@ -319,6 +321,7 @@ const translations = {
     writeInEnglishPrompt: "(ದಯವಿಟ್ಟು ನಿಮ್ಮ ಉತ್ತರವನ್ನು ಇಂಗ್ಲಿಷ್‌ನಲ್ಲಿ ಬರೆಯಿರಿ)",
     listenBtn: "ಆಲಿಸಿ",
     myProfile: "ನನ್ನ ಪ್ರೊಫೈಲ್",
+    dashboard: "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
 
     // Dashboard tabs
     tabProgress: "📊 ನನ್ನ ಪ್ರದರ್ಶನ",
@@ -428,6 +431,7 @@ const translations = {
     writeInEnglishPrompt: "(దయచేసి మీ సమాధానాన్ని ఇంగ్లీషులో రాయండి)",
     listenBtn: "వినండి",
     myProfile: "నా ప్రొఫైల్",
+    dashboard: "డాష్‌బోర్డ్",
 
     // Dashboard tabs
     tabProgress: "📊 నా ప్రదర్శన",
@@ -537,6 +541,7 @@ const translations = {
     writeInEnglishPrompt: "(தயவுசெய்து உங்கள் பதிலை ஆங்கிலத்தில் எழுதவும்)",
     listenBtn: "கேளுங்கள்",
     myProfile: "என் சுயவிவரம்",
+    dashboard: "டாஷ்போர்டு",
 
     // Dashboard tabs
     tabProgress: "📊 எனது செயல்பாடு",
@@ -1333,6 +1338,21 @@ function App() {
             >
               <span>🏠 {t("home")}</span>
             </button>
+            <button
+              className={`menu-item ${dashboardTab === "dashboard" ? "active" : ""}`}
+              onClick={() => setDashboardTab("dashboard")}
+              style={{
+                background: dashboardTab === 'dashboard' ? 'rgba(198, 95, 45, 0.08)' : 'none',
+                color: dashboardTab === 'dashboard' ? 'var(--accent)' : 'var(--text)',
+                border: 'none',
+                padding: '8px 16px',
+                borderRadius: '8px',
+                fontWeight: '600',
+                cursor: 'pointer'
+              }}
+            >
+              <span>📊 {t("dashboard")}</span>
+            </button>
           </nav>
 
           {/* Right User Actions Area */}
@@ -1393,6 +1413,16 @@ function App() {
                   <button
                     type="button"
                     className="profile-dropdown-item"
+                    onClick={() => {
+                      setDashboardTab("dashboard");
+                      setProfileDropdownOpen(false);
+                    }}
+                  >
+                    📊 {t("dashboard")}
+                  </button>
+                  <button
+                    type="button"
+                    className="profile-dropdown-item"
                     style={{ color: '#ef4444' }}
                     onClick={() => {
                       setProfileDropdownOpen(false);
@@ -1410,7 +1440,7 @@ function App() {
         {/* Main Content Area */}
         <div className="dashboard-content-area" style={{ flexGrow: 1 }}>
 
-          <main className="dashboard-main-view">
+          <main className={`dashboard-main-view ${(!hasDiagnosed && dashboardTab === "home") || assessmentState !== "not_started" ? "centered-layout" : ""}`}>
             {/* 1. Welcome state when not diagnosed and assessment not started */}
             {!hasDiagnosed && assessmentState === "not_started" && dashboardTab === "home" && (
               <div className="diagnostic-welcome-wrapper" style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
@@ -1782,7 +1812,7 @@ function App() {
             {/* 4. Normal Dashboard View (only rendered when diagnosed and not in assessment) */}
             {assessmentState === "not_started" && (
               <>
-                {dashboardTab === "home" && hasDiagnosed && (
+                {(dashboardTab === "dashboard" || (dashboardTab === "home" && hasDiagnosed)) && (
                   <div className="home-tab-wrapper">
                     {/* Tutor Announcement Bar */}
                     <div className="tutor-announcement-bar">

@@ -1584,8 +1584,12 @@ select:focus {
 
 .dashboard-main-view {
   flex-grow: 1;
-  overflow: hidden;
+  overflow-y: auto;
   padding: 32px;
+}
+
+.dashboard-main-view.centered-layout {
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
