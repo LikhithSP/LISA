@@ -1872,114 +1872,90 @@ function App() {
                       <div className="tutor-icon-box">🤖</div>
                       <div className="tutor-text-wrapper">
                         <h5>LISA AI Tutor</h5>
-                        <p>Keep your streak going! You are doing an amazing job learning foundational literacy.</p>
+                        <p>Hi {profile?.full_name || "Learner"}! You're making great progress — practice a little each day to keep your streak alive and unlock new achievements. 💪</p>
                       </div>
                     </div>
 
-                    {/* Premium Hero Banner Card */}
+                    {/* Stat Cards Row + Two-Column Section */}
                     {(() => {
-                      const overallProgress = historyAttempts[0]?.score ? Math.round((historyAttempts[0].score / 50) * 100) : 0;
-                      const strokeDashoffset = 251.2 - (overallProgress / 100) * 251.2;
-
-                      return (
-                        <div className="premium-hero-card">
-                          <div className="hero-left-content">
-                            <span className="hero-tag">LISA PLATFORM</span>
-                            <h1>Your Literacy Journey</h1>
-                            <p className="hero-subtext">You have completed your initial diagnostic assessment. Keep practicing to build your skills!</p>
-
-                            <div className="hero-actions">
-                              <span className="hero-streak-text">
-                                🔥 {historyAttempts.length > 0 ? "3 day streak" : "0 day streak"}
-                              </span>
-                            </div>
-                          </div>
-
-                          <div className="hero-right-progress">
-                            <svg width="100" height="100" className="progress-ring-svg">
-                              <circle cx="50" cy="50" r="40" strokeWidth="8" fill="transparent" className="progress-ring-circle-bg" />
-                              <circle
-                                cx="50"
-                                cy="50"
-                                r="40"
-                                strokeWidth="8"
-                                fill="transparent"
-                                className="progress-ring-circle-fill"
-                                strokeDashoffset={strokeDashoffset}
-                              />
-                              <text x="50" y="55" textAnchor="middle" fill="white" fontWeight="900" fontSize="1.1rem">{overallProgress}%</text>
-                            </svg>
-                            <span className="progress-percentage-label">
-                              {getLevelCategoryAndDescription(getLiteracyLevel(profile) || 1, selectedLanguage).category}
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    })()}
-
-                    {/* 4-Metric Statistics Grid */}
-                    {(() => {
-                      const achievementsCount = 1 +
-                        (calculateSkillProficiency("reading") >= 75 ? 1 : 0) +
-                        (calculateSkillProficiency("comprehension") >= 75 ? 1 : 0) +
-                        (calculateSkillProficiency("writing") >= 75 ? 1 : 0);
                       const hoursLearned = (historyAttempts.length * 0.5).toFixed(1);
+                      const level = getLiteracyLevel(profile) || 1;
+                      const levelCategory = getLevelCategoryAndDescription(level, selectedLanguage).category;
+
+                      const achievementsList = [
+                        { label: "First Steps", icon: "🌟", earned: true },
+                        { label: "Reading Star", icon: "📖", earned: calculateSkillProficiency("reading") >= 75 },
+                        { label: "Comprehension Pro", icon: "🧠", earned: calculateSkillProficiency("comprehension") >= 75 },
+                        { label: "Wordsmith", icon: "✍️", earned: calculateSkillProficiency("writing") >= 75 },
+                      ];
+                      const achievementsCount = achievementsList.filter((a) => a.earned).length;
 
                       return (
-                        <div className="metric-stats-grid">
-                          <div className="metric-stat-box">
-                            <div className="metric-icon-circle" style={{ background: '#eff6ff', color: '#3b82f6' }}>📖</div>
-                            <div className="metric-text-wrapper">
-                              <span className="metric-number">{historyAttempts.length}</span>
-                              <span className="metric-label">Evaluations Done</span>
+                        <>
+                          {/* Stat Cards Row */}
+                          <div className="metric-stats-grid">
+                            <div className="metric-stat-box">
+                              <div className="metric-icon-circle" style={{ background: '#eff6ff', color: '#3b82f6' }}>📖</div>
+                              <div className="metric-text-wrapper">
+                                <span className="metric-number">{historyAttempts.length}</span>
+                                <span className="metric-label">Evaluations Done</span>
+                              </div>
+                            </div>
+                            <div className="metric-stat-box">
+                              <div className="metric-icon-circle" style={{ background: '#ecfdf5', color: '#059669' }}>⏱️</div>
+                              <div className="metric-text-wrapper">
+                                <span className="metric-number">{hoursLearned}h</span>
+                                <span className="metric-label">Hours Learned</span>
+                              </div>
+                            </div>
+                            <div className="metric-stat-box">
+                              <div className="metric-icon-circle" style={{ background: '#fef3c7', color: '#d97706' }}>🎯</div>
+                              <div className="metric-text-wrapper">
+                                <span className="metric-number">{levelCategory}</span>
+                                <span className="metric-label">Current Level</span>
+                              </div>
                             </div>
                           </div>
-                          <div className="metric-stat-box">
-                            <div className="metric-icon-circle" style={{ background: '#fef3c7', color: '#d97706' }}>🏆</div>
-                            <div className="metric-text-wrapper">
-                              <span className="metric-number">
-                                {achievementsCount} <span className="badge-new-tag">New</span>
-                              </span>
-                              <span className="metric-label">Achievements</span>
+
+                          {/* Two Columns: Day Streak & Achievements */}
+                          <div className="dashboard-dual-grid">
+                            <div className="streak-widget-card">
+                              <div className="streak-card-header">
+                                <h4>🔥 Day Streak</h4>
+                                <span className="streak-badge">
+                                  {historyAttempts.length > 0 ? "3" : "0"} Days Active
+                                </span>
+                              </div>
+                              <div className="streak-days-list">
+                                {["S", "M", "T", "W", "T", "F", "S"].map((day, idx) => {
+                                  const isActive = historyAttempts.length > 0 && [1, 2, 3].includes(idx);
+                                  return (
+                                    <div key={idx} className={`streak-day-bubble ${isActive ? "active" : ""}`}>
+                                      {isActive ? "✓" : day}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+
+                            <div className="achievements-card">
+                              <div className="achievements-card-header">
+                                <h4>🏆 Achievements</h4>
+                                <span className="achievements-count">{achievementsCount} unlocked</span>
+                              </div>
+                              <div className="achievements-list">
+                                {achievementsList.map((a, i) => (
+                                  <div key={i} className={`achievement-item ${a.earned ? "earned" : "locked"}`}>
+                                    <span className="achievement-icon">{a.earned ? a.icon : "🔒"}</span>
+                                    <span className="achievement-label">{a.label}</span>
+                                  </div>
+                                ))}
+                              </div>
                             </div>
                           </div>
-                          <div className="metric-stat-box">
-                            <div className="metric-icon-circle" style={{ background: '#ecfdf5', color: '#059669' }}>⏱️</div>
-                            <div className="metric-text-wrapper">
-                              <span className="metric-number">{hoursLearned}h</span>
-                              <span className="metric-label">Hours Learned</span>
-                            </div>
-                          </div>
-                          <div className="metric-stat-box">
-                            <div className="metric-icon-circle" style={{ background: '#fff5f5', color: '#e53e3e' }}>🔥</div>
-                            <div className="metric-text-wrapper">
-                              <span className="metric-number">{historyAttempts.length > 0 ? "3" : "0"}</span>
-                              <span className="metric-label">Day Streak</span>
-                            </div>
-                          </div>
-                        </div>
+                        </>
                       );
                     })()}
-
-                    {/* Day Streak Widget Tracker */}
-                    <div className="streak-widget-card">
-                      <div className="streak-card-header">
-                        <h4>🔥 Day Streak</h4>
-                        <span style={{ fontWeight: '800', color: '#f59e0b', fontSize: '1.1rem' }}>
-                          {historyAttempts.length > 0 ? "3" : "0"} Days Active
-                        </span>
-                      </div>
-                      <div className="streak-days-list">
-                        {["S", "M", "T", "W", "T", "F", "S"].map((day, idx) => {
-                          const isActive = historyAttempts.length > 0 && [1, 2, 3].includes(idx);
-                          return (
-                            <div key={idx} className={`streak-day-bubble ${isActive ? "active" : ""}`}>
-                              {isActive ? "✓" : day}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
 
                     {/* Lessons Section Grid */}
                     <div className="lessons-section-header">
@@ -2050,69 +2026,6 @@ function App() {
                           <span className="lesson-card-duration">⏱ 18 min | 0% Mastery</span>
                         </div>
                       </div>
-                    </div>
-
-                    {/* Achievements Badges Section */}
-                    <div className="badges-gallery-card" style={{ background: 'white', border: '1px solid rgba(0,0,0,0.04)', boxShadow: '0 4px 16px rgba(0,0,0,0.02)', borderRadius: '24px' }}>
-                      <h4>🏆 Achievements & Badges</h4>
-                      <div className="badges-grid" style={{ marginTop: '20px' }}>
-                        <div className="badge-item unlocked">
-                          <div className="badge-art">🏁</div>
-                          <h6>First Attempt</h6>
-                          <p>Completed the initial diagnostic assessment.</p>
-                        </div>
-
-                        <div className={`badge-item ${calculateSkillProficiency("reading") >= 75 ? "unlocked" : "locked"}`}>
-                          <div className="badge-art">🎤</div>
-                          <h6>Voice Pioneer</h6>
-                          <p>Achieved 75% or higher in Reading Speech matching.</p>
-                        </div>
-
-                        <div className={`badge-item ${calculateSkillProficiency("comprehension") >= 75 ? "unlocked" : "locked"}`}>
-                          <div className="badge-art">❓</div>
-                          <h6>Comprehension Pro</h6>
-                          <p>Achieved 75% or higher in MCQ evaluation.</p>
-                        </div>
-
-                        <div className={`badge-item ${calculateSkillProficiency("writing") >= 75 ? "unlocked" : "locked"}`}>
-                          <div className="badge-art">✍️</div>
-                          <h6>Spelling Guru</h6>
-                          <p>Achieved 75% or higher in prompt writing assessment.</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* History list */}
-                    <div className="history-table-wrapper" style={{ background: 'white', border: '1px solid rgba(0,0,0,0.04)', boxShadow: '0 4px 16px rgba(0,0,0,0.02)', borderRadius: '24px', padding: '28px' }}>
-                      <h4>📝 Diagnostic Evaluation History</h4>
-                      {historyAttempts.length === 0 ? (
-                        <p style={{ padding: "20px", color: "var(--muted)", margin: 0 }}>No evaluations recorded yet.</p>
-                      ) : (
-                        <table className="history-table" style={{ margin: 0 }}>
-                          <thead>
-                            <tr>
-                              <th>{t("historyDate")}</th>
-                              <th>{t("historyType")}</th>
-                              <th>{t("historyScore")}</th>
-                              <th>Status</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {historyAttempts.map((h, i) => (
-                              <tr key={i}>
-                                <td>{h.date}</td>
-                                <td>{h.type}</td>
-                                <td>{h.score} / 50</td>
-                                <td>
-                                  <span className={`score-badge ${h.passed ? "high" : "low"}`}>
-                                    Evaluated
-                                  </span>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      )}
                     </div>
                   </div>
                 )}
