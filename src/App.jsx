@@ -102,6 +102,7 @@ const translations = {
     listenBtn: "Listen",
     myProfile: "My Profile",
     dashboard: "Dashboard",
+    prevBtn: "Previous",
 
     // Dashboard tabs
     tabProgress: "📊 My Performance",
@@ -212,6 +213,7 @@ const translations = {
     listenBtn: "सुनें",
     myProfile: "मेरी प्रोफ़ाइल",
     dashboard: "डैशबोर्ड",
+    prevBtn: "पिछला",
 
     // Dashboard tabs
     tabProgress: "📊 मेरा प्रदर्शन",
@@ -322,6 +324,7 @@ const translations = {
     listenBtn: "ಆಲಿಸಿ",
     myProfile: "ನನ್ನ ಪ್ರೊಫೈಲ್",
     dashboard: "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
+    prevBtn: "ಹಿಂದಿನ",
 
     // Dashboard tabs
     tabProgress: "📊 ನನ್ನ ಪ್ರದರ್ಶನ",
@@ -432,6 +435,7 @@ const translations = {
     listenBtn: "వినండి",
     myProfile: "నా ప్రొఫైల్",
     dashboard: "డాష్‌బోర్డ్",
+    prevBtn: "మునుపటి",
 
     // Dashboard tabs
     tabProgress: "📊 నా ప్రదర్శన",
@@ -542,6 +546,7 @@ const translations = {
     listenBtn: "கேளுங்கள்",
     myProfile: "என் சுயவிவரம்",
     dashboard: "டாஷ்போர்டு",
+    prevBtn: "முந்தைய",
 
     // Dashboard tabs
     tabProgress: "📊 எனது செயல்பாடு",
@@ -1732,35 +1737,54 @@ function App() {
                     )}
                   </div>
 
-                  <div className="assessment-nav-bar">
-                    {currentStep < assessmentQuestionsList.length - 1 ? (
-                      <button
-                        type="button"
-                        className="primary-btn nav-btn"
-                        onClick={handleNextStep}
-                        disabled={
-                          (isVoiceReading && !readingAttempts[currentStep]) ||
-                          (isCompMCQ && selectedAnswers[currentStep] === undefined) ||
-                          (isWriting && !(writingAnswers[currentStep] || "").trim())
-                        }
-                      >
-                        {t("nextQuestion")} ➜
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        className="primary-btn submit-btn"
-                        onClick={submitInitialAssessment}
-                        disabled={
-                          submitting ||
-                          (isVoiceReading && !readingAttempts[currentStep]) ||
-                          (isCompMCQ && selectedAnswers[currentStep] === undefined) ||
-                          (isWriting && !(writingAnswers[currentStep] || "").trim())
-                        }
-                      >
-                        {submitting ? t("submittingAssessment") : t("submitAssessmentBtn")}
-                      </button>
-                    )}
+                  <div className="assessment-nav-bar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', gap: '12px' }}>
+                    <div>
+                      {currentStep > 0 && (
+                        <button
+                          type="button"
+                          className="secondary-btn nav-btn"
+                          onClick={() => {
+                            setCurrentStep(currentStep - 1);
+                            setSpokenTranscript("");
+                            setMicError("");
+                            setManualTextFallback("");
+                          }}
+                        >
+                          ⬅️ {t("prevBtn")}
+                        </button>
+                      )}
+                    </div>
+
+                    <div>
+                      {currentStep < assessmentQuestionsList.length - 1 ? (
+                        <button
+                          type="button"
+                          className="primary-btn nav-btn"
+                          onClick={handleNextStep}
+                          disabled={
+                            (isVoiceReading && !readingAttempts[currentStep]) ||
+                            (isCompMCQ && selectedAnswers[currentStep] === undefined) ||
+                            (isWriting && !(writingAnswers[currentStep] || "").trim())
+                          }
+                        >
+                          {t("nextQuestion")} ➜
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          className="primary-btn submit-btn"
+                          onClick={submitInitialAssessment}
+                          disabled={
+                            submitting ||
+                            (isVoiceReading && !readingAttempts[currentStep]) ||
+                            (isCompMCQ && selectedAnswers[currentStep] === undefined) ||
+                            (isWriting && !(writingAnswers[currentStep] || "").trim())
+                          }
+                        >
+                          {submitting ? t("submittingAssessment") : t("submitAssessmentBtn")}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
