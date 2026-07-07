@@ -634,6 +634,20 @@ function App() {
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+  // Dark mode (Claude-inspired) theme state
+  const [isDark, setIsDark] = useState(() => {
+    const stored = localStorage.getItem("lisa_theme");
+    if (stored) return stored === "dark";
+    return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", isDark ? "dark" : "light");
+    localStorage.setItem("lisa_theme", isDark ? "dark" : "light");
+  }, [isDark]);
+
+  const toggleTheme = () => setIsDark((prev) => !prev);
+
   // Initial Assessment states
   const [assessmentState, setAssessmentState] = useState("not_started"); // "not_started" | "answering" | "results"
   const [assessmentQuestionsList, setAssessmentQuestionsList] = useState([]);
@@ -1293,6 +1307,30 @@ function App() {
     );
   }
 
+  // Dark Mode Toggle Button
+  const renderThemeToggle = () => (
+    <div className="theme-toggle-container" key="theme-toggle">
+      <button
+        type="button"
+        className="theme-toggle-btn"
+        onClick={toggleTheme}
+        aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+        title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+      >
+        {isDark ? (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="4" />
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+          </svg>
+        ) : (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+          </svg>
+        )}
+      </button>
+    </div>
+  );
+
   // Language Dropdown Render
   const renderLanguageDropdown = (isRelative = false) => (
     <div className={isRelative ? "lang-selector-relative" : "lang-selector-container"}>
@@ -1337,6 +1375,7 @@ function App() {
     return (
       <main className="shell">
         <div className="brand-logo-top">LISA</div>
+        {renderThemeToggle()}
         {renderLanguageDropdown()}
         <section className="hero-panel">
           <h1>{t("resetAccountPassword")}</h1>
@@ -1410,6 +1449,7 @@ function App() {
 
           {/* Right User Actions Area */}
           <div className="dashboard-user-actions" style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+            {renderThemeToggle()}
             {renderLanguageDropdown(true)}
 
             {/* Clickable Profile Button with Dropdown */}
@@ -2187,6 +2227,7 @@ function App() {
         LISA
         <span className="brand-logo-tagline">Literacy Intelligence Support Assistant</span>
       </div>
+      {renderThemeToggle()}
       {renderLanguageDropdown()}
       <section className="hero-panel">
         <h1>{t("heroTitle")}</h1>

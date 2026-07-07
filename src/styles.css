@@ -11,6 +11,22 @@
   --accent-soft: #f7d8c8;
   --shadow: 0 28px 80px rgba(24, 32, 43, 0.14);
   font-family: "Inter", sans-serif;
+  --transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Claude-inspired dark theme */
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0a0a0b;
+  --panel: rgba(30, 30, 35, 0.85);
+  --panel-strong: #1a1a1e;
+  --text: #ececf1;
+  --muted: #8b8d96;
+  --line: rgba(255, 255, 255, 0.08);
+  --accent: #c77d4a;
+  --accent-dark: #d69a6e;
+  --accent-soft: #3d2b1f;
+  --shadow: 0 28px 80px rgba(0, 0, 0, 0.55);
 }
 
 * {
@@ -21,6 +37,93 @@ html,
 body,
 #root {
   min-height: 100%;
+}
+
+/* Smooth theme transition */
+body,
+.auth-card,
+.auth-tabs,
+.tab-btn,
+input,
+select,
+.primary-btn,
+.secondary-btn,
+.dashboard-header,
+.dashboard-main-view,
+.metric-stat-box,
+.streak-widget-card,
+.achievements-card,
+.lesson-card-item,
+.question-item-card,
+.option-btn,
+.score-item,
+.skill-breakdowns-box,
+.profile-info-card,
+.editing-profile-form,
+.lang-card,
+.lang-btn,
+.results-score-container,
+.history-table-wrapper,
+.stat-box,
+.skills-analytics-card,
+.badges-gallery-card,
+.empty-state-card,
+.assessment-card,
+.results-card,
+.dashboard-home-card,
+.diagnostic-welcome-wrapper {
+  transition: var(--transition), box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+/* Dark Mode Toggle Button */
+.theme-toggle-container {
+  position: fixed;
+  top: 24px;
+  right: 40px;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.theme-toggle-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--panel-strong);
+  color: var(--text);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 180ms ease;
+}
+
+.theme-toggle-btn:hover {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(198, 95, 45, 0.18);
+  color: var(--accent);
+}
+
+.theme-toggle-btn:active {
+  transform: scale(0.94);
+}
+
+.theme-toggle-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* When the language selector is also present (dashboard), offset toggle left of it */
+.dashboard-header .theme-toggle-btn {
+  position: static;
+}
+
+/* Inside dashboard header, render toggle inline (not fixed) */
+.dashboard-header .theme-toggle-container {
+  position: static;
 }
 
 body {
@@ -403,7 +506,7 @@ select:focus {
 .lang-selector-container {
   position: fixed;
   top: 24px;
-  right: 40px;
+  right: 96px;
   z-index: 2000;
   font-family: "Inter", sans-serif;
 }
@@ -514,6 +617,11 @@ select:focus {
 
 @media (max-width: 720px) {
   .lang-selector-container {
+    top: 14px;
+    right: 62px;
+  }
+
+  .theme-toggle-container {
     top: 14px;
     right: 14px;
   }
@@ -1123,20 +1231,24 @@ select:focus {
 .mt-word {
   transition: color 200ms ease;
   display: inline-block;
-  margin-right: 0.35em; /* Fixes browser whitespace collapsing */
+  margin-right: 0.35em;
+  /* Fixes browser whitespace collapsing */
 }
 
 .mt-word.unspoken {
-  color: #9ca3af; /* muted gray */
+  color: #9ca3af;
+  /* muted gray */
 }
 
 .mt-word.correct {
-  color: #10b981; /* emerald green */
+  color: #10b981;
+  /* emerald green */
   text-shadow: 0 0 1px rgba(16, 185, 129, 0.2);
 }
 
 .mt-word.incorrect {
-  color: #ef4444; /* ruby red */
+  color: #ef4444;
+  /* ruby red */
   text-decoration: underline dotted;
 }
 
@@ -1191,6 +1303,7 @@ select:focus {
     transform: scale(1);
     opacity: 1;
   }
+
   100% {
     transform: scale(1.25);
     opacity: 0;
@@ -1410,7 +1523,8 @@ select:focus {
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
-  background: #f7f9fc; /* Light clean grey/blue background */
+  background: #f7f9fc;
+  /* Light clean grey/blue background */
 }
 
 /* Sidebar Branding */
@@ -1547,7 +1661,8 @@ select:focus {
 .sidebar-signout-btn {
   background: none;
   border: none;
-  color: #ef4444; /* red-500 */
+  color: #ef4444;
+  /* red-500 */
   font: inherit;
   font-size: 0.9rem;
   font-weight: 700;
@@ -1628,7 +1743,8 @@ select:focus {
 .question-content-box {
   flex: 1;
   overflow-y: auto;
-  padding-right: 8px; /* Prevent scrollbar overlaying option buttons */
+  padding-right: 8px;
+  /* Prevent scrollbar overlaying option buttons */
 }
 
 /* Light grey custom scrollbar styling */
@@ -1649,7 +1765,8 @@ select:focus {
 .question-content-box::-webkit-scrollbar-thumb,
 .diagnostic-welcome-wrapper::-webkit-scrollbar-thumb,
 .results-card::-webkit-scrollbar-thumb {
-  background: rgba(24, 32, 43, 0.15); /* Light grey */
+  background: rgba(24, 32, 43, 0.15);
+  /* Light grey */
   border-radius: 4px;
 }
 
@@ -1879,7 +1996,7 @@ select:focus {
   border: 1px solid var(--line);
   border-radius: 24px;
   padding: 32px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
   text-align: left;
   display: flex;
   flex-direction: column;
@@ -1907,7 +2024,7 @@ select:focus {
   border-radius: 20px;
   padding: 24px;
   text-align: center;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.02);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.02);
 }
 
 .stat-box h5 {
@@ -1930,7 +2047,7 @@ select:focus {
   border: 1px solid var(--line);
   border-radius: 24px;
   padding: 28px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.02);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.02);
   text-align: left;
   margin-bottom: 32px;
 }
@@ -1948,7 +2065,7 @@ select:focus {
   border: 1px solid var(--line);
   border-radius: 24px;
   padding: 28px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.02);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.02);
   text-align: left;
   margin-bottom: 32px;
 }
@@ -1984,7 +2101,7 @@ select:focus {
 
 .badge-item.locked {
   opacity: 0.45;
-  background: rgba(0,0,0,0.02);
+  background: rgba(0, 0, 0, 0.02);
 }
 
 .badge-art {
@@ -2031,7 +2148,7 @@ select:focus {
   border-radius: 50%;
   display: grid;
   place-items: center;
-  box-shadow: 0 6px 16px rgba(0,0,0,0.04);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.04);
 }
 
 .profile-info-card h3 {
@@ -2247,7 +2364,8 @@ select:focus {
 .hero-streak-text {
   font-size: 0.88rem;
   font-weight: 600;
-  color: #f59e0b; /* Amber */
+  color: #f59e0b;
+  /* Amber */
   display: flex;
   align-items: center;
   gap: 6px;
@@ -2270,8 +2388,10 @@ select:focus {
 }
 
 .progress-ring-circle-fill {
-  stroke: #7c3aed; /* Purple indicator */
-  stroke-dasharray: 251.2; /* 2 * pi * r (r=40) */
+  stroke: #7c3aed;
+  /* Purple indicator */
+  stroke-dasharray: 251.2;
+  /* 2 * pi * r (r=40) */
   transition: stroke-dashoffset 0.35s;
 }
 
@@ -2411,7 +2531,8 @@ select:focus {
 }
 
 .streak-day-bubble.active {
-  background: #f59e0b; /* Amber */
+  background: #f59e0b;
+  /* Amber */
   color: white;
   box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
 }
@@ -2610,6 +2731,7 @@ select:focus {
   .lessons-card-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+
   .dashboard-dual-grid {
     grid-template-columns: 1fr;
   }
@@ -2619,9 +2741,11 @@ select:focus {
   .lessons-card-grid {
     grid-template-columns: 1fr;
   }
+
   .achievements-list {
     grid-template-columns: 1fr;
   }
+
   .premium-hero-card {
     flex-direction: column;
     align-items: flex-start;
@@ -2686,7 +2810,8 @@ select:focus {
   flex-direction: column;
   gap: 4px;
   box-shadow: 0 10px 30px rgba(24, 32, 43, 0.12);
-  z-index: 2200; /* render above anything else */
+  z-index: 2200;
+  /* render above anything else */
 }
 
 .profile-dropdown-item {
@@ -2709,4 +2834,198 @@ select:focus {
 .profile-dropdown-item:hover {
   background: rgba(198, 95, 45, 0.08);
   color: var(--accent);
+}
+
+/* ==========================================
+   DARK MODE OVERRIDES (Claude-inspired)
+   ========================================== */
+
+[data-theme="dark"] body {
+  background: #0e0e0e url("/hero1.png") no-repeat fixed;
+  background-size: 750px;
+  color: var(--text);
+}
+
+/* Brand marks */
+[data-theme="dark"] .brand-logo-top,
+[data-theme="dark"] .dashboard-logo,
+[data-theme="dark"] .brand-title {
+  color: var(--text);
+}
+
+[data-theme="dark"] .brand-logo-tagline {
+  color: var(--muted);
+}
+
+/* Auth / login shell */
+[data-theme="dark"] .auth-tabs {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+[data-theme="dark"] .tab-btn.active {
+  background: var(--panel-strong);
+  color: var(--text);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+}
+
+[data-theme="dark"] input,
+[data-theme="dark"] select {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: var(--text);
+}
+
+[data-theme="dark"] input::placeholder {
+  color: var(--muted);
+}
+
+/* MonkeyType reading block */
+[data-theme="dark"] .monkeytype-text-block {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--line);
+  color: var(--text);
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+/* Writing area */
+[data-theme="dark"] .writing-textarea {
+  background: #141417;
+  color: var(--text);
+  border-color: var(--line);
+}
+
+/* Dashboard layout */
+[data-theme="dark"] .dashboard-container {
+  background: #0a0a0b !important;
+}
+
+[data-theme="dark"] .dashboard-header {
+  background: rgba(20, 20, 24, 0.85) !important;
+  backdrop-filter: blur(12px);
+  border-bottom-color: var(--line);
+}
+
+[data-theme="dark"] .dashboard-main-view {
+  background: #0a0a0b !important;
+}
+
+/* Metric / stat cards */
+[data-theme="dark"] .metric-stat-box,
+[data-theme="dark"] .streak-widget-card,
+[data-theme="dark"] .achievements-card,
+[data-theme="dark"] .lesson-card-item {
+  background: var(--panel-strong);
+  border-color: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .metric-icon-circle,
+[data-theme="dark"] .streak-day-bubble {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
+}
+
+[data-theme="dark"] .streak-badge {
+  background: rgba(245, 158, 11, 0.12);
+  color: #fbbf24;
+}
+
+[data-theme="dark"] .achievements-count {
+  background: rgba(111, 76, 233, 0.18);
+  color: #b39dff;
+}
+
+[data-theme="dark"] .achievement-item {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme="dark"] .achievement-icon {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .lesson-card-icon-box {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* Tutor announcement */
+[data-theme="dark"] .tutor-announcement-bar {
+  background: rgba(111, 76, 233, 0.1);
+  border-color: rgba(111, 76, 233, 0.25);
+}
+
+/* Option / question cards */
+[data-theme="dark"] .option-indicator {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--muted);
+}
+
+[data-theme="dark"] .auth-tabs,
+[data-theme="dark"] .tab-btn.active {
+  color: var(--text);
+}
+
+/* Progress bars */
+[data-theme="dark"] .progress-bar-bg,
+[data-theme="dark"] .bar-bg {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* History table */
+[data-theme="dark"] .history-table-wrapper {
+  background: var(--panel-strong);
+}
+
+[data-theme="dark"] .history-table th {
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--muted);
+}
+
+/* Secondary buttons (overridden earlier with !important-heavy rules) */
+[data-theme="dark"] .secondary-btn {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  border-color: var(--line);
+}
+
+[data-theme="dark"] .secondary-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* Score badges stay readable */
+[data-theme="dark"] .score-badge.high {
+  background: rgba(16, 185, 129, 0.18);
+  color: #34d399;
+}
+
+[data-theme="dark"] .score-badge.medium {
+  background: rgba(245, 158, 11, 0.18);
+  color: #fbbf24;
+}
+
+[data-theme="dark"] .score-badge.low {
+  background: rgba(239, 68, 68, 0.18);
+  color: #f87171;
+}
+
+/* Developer testing notice box on profile */
+[data-theme="dark"] .profile-info-card>div[style*="fee2e2"] {
+  background: rgba(239, 68, 68, 0.12) !important;
+  border-color: rgba(239, 68, 68, 0.3) !important;
+}
+
+/* Profile nav pill uses inline styles; ensure readable in dark */
+[data-theme="dark"] .profile-nav-pill {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: var(--text) !important;
+  border-color: var(--line) !important;
+}
+
+/* Override light backgrounds in metric icon circles (inline styles) */
+[data-theme="dark"] .metric-icon-circle[style] {
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
+[data-theme="dark"] .lesson-card-icon-box[style] {
+  background: rgba(255, 255, 255, 0.05) !important;
 }
