@@ -1,4 +1,7 @@
 // LISA Multilingual Curriculum & Shuffled Diagnostic Assessment Pools
+import { assessmentQuestions } from "./assessmentQuestionsData.js";
+import { assessmentReadingWriting } from "./assessmentReadingWritingData.js";
+
 
 export const levelDefinitions = {
   English: [
@@ -806,78 +809,108 @@ const shuffleArray = (arr) => {
   return [...arr].sort(() => 0.5 - Math.random());
 };
 
-// Returns a randomized diagnostic assessment containing:
-// - 10 Comprehension questions (MCQs)
-// - 1 Reading question
-// - 1 Writing question
-// Based strictly on 5 distinct Proficiency Benchmarks.
-export const getRandomAssessment = (age, educationLevel, language = "English") => {
-  const currentLang = language || "English";
-  const pool = initialAssessmentPool[currentLang] || initialAssessmentPool["English"];
+// Map age + education level to the correct assessmentQuestions key (ageGroup_level_N)
+const getAgeGroup = (ageNum) => {
+  if (ageNum < 13) return "child";
+  if (ageNum < 18) return "teen";
+  if (ageNum < 60) return "adult";
+  return "senior";
+};
 
-  // 1. Determine Difficulty Tier (Mapped 1:1 to the 5 Proficiency Benchmarks)
-  let tier = "tier1_emerging";
-  const ageNum = parseInt(age, 10) || 0;
-
-  // Granular education mapping
+const getLevel = (educationLevel, ageNum) => {
   const eduStr = (educationLevel || "").toLowerCase();
-  
   if (eduStr.includes("higher secondary") || eduStr.includes("secondary") || eduStr.includes("college")) {
-    tier = "tier5_independent";
+    return 5;
   } else if (eduStr.includes("primary")) {
-    tier = "tier3_constructor";
+    return 3;
   } else {
-    // If no formal education, rely heavily on age milestones
-    if (ageNum < 10) {
-      tier = "tier1_emerging";
-    } else if (ageNum >= 10 && ageNum < 15) {
-      tier = "tier2_developing";
-    } else if (ageNum >= 15 && ageNum < 25) {
-      tier = "tier3_constructor";
-    } else if (ageNum >= 25 && ageNum < 40) {
-      tier = "tier4_comprehender";
-    } else {
-      tier = "tier5_independent";
-    }
+    if (ageNum < 10) return 1;
+    if (ageNum < 15) return 2;
+    if (ageNum < 25) return 3;
+    if (ageNum < 40) return 4;
+    return 5;
+  }
+};
+
+// Returns a randomized diagnostic assessment:
+// - 10 comprehension MCQs (age+level appropriate, shuffled, multilingual)
+// - 1 reading question (user reads text aloud — voice-to-text)
+// - 1 writing question (user writes a short response)
+// All sections are matched to the user's age group, education level, and language.
+export const getRandomAssessment = (age, educationLevel, language = "English") => {
+  const lang = language || "English";
+  const ageNum = parseInt(age, 10) || 20;
+
+  const ageGroup = getAgeGroup(ageNum);
+  const level = getLevel(educationLevel, ageNum);
+  const key = `${ageGroup}_level_${level}`;
+
+  // ── Comprehension MCQs ──────────────────────────────────────────
+  // Fallback chain: exact key → same group level 1 → child_level_1
+  const compPool =
+    assessmentQuestions[key] ||
+    assessmentQuestions[`${ageGroup}_level_1`] ||
+    assessmentQuestions["child_level_1"];
+
+  const rawQuestions = compPool?.questions || [];
+
+  // Pick up to 10 questions (shuffle + cycle if fewer than 10)
+  const shuffled = [...rawQuestions].sort(() => 0.5 - Math.random());
+  const sampled = [];
+  for (let i = 0; i < 10; i++) {
+    sampled.push(shuffled[i % shuffled.length]);
   }
 
-  // Fallback if tier is somehow missing
-  const tierPool = pool[tier] || pool["tier1_emerging"] || { reading: [], comprehension: [], writing: [] };
+  // Convert multilingual question objects to flat, language-resolved question objects
+  const comprehensionQuestions = sampled.map((q) => {
+    const questionText = (q.question && (q.question[lang] || q.question["English"])) || "";
+    const rawOptions = (q.options && (q.options[lang] || q.options["English"])) || [];
+    const correctIdx = typeof q.correctIndex === "number" ? q.correctIndex : 0;
 
-  const sampleWithCycling = (array, n) => {
-    if (!array || array.length === 0) return [];
-    const shuffled = [...array].sort(() => 0.5 - Math.random());
-    const result = [];
-    for (let i = 0; i < n; i++) {
-      result.push(shuffled[i % shuffled.length]);
-    }
-    return result;
-  };
+    // Shuffle options and track where the correct answer ends up
+    const indexed = rawOptions.map((opt, i) => ({ opt, isCorrect: i === correctIdx }));
+    const shuffledIndexed = [...indexed].sort(() => 0.5 - Math.random());
+    const newCorrectIndex = shuffledIndexed.findIndex((x) => x.isCorrect);
 
-  const allComps = tierPool.comprehension || [];
-
-  const sampledComprehension = sampleWithCycling(allComps, 10).map(q => {
-    const shuffledOpts = [...q.options].sort(() => 0.5 - Math.random());
-    const newCorrectIndex = shuffledOpts.indexOf(q.correctOption);
     return {
-      ...q,
+      id: q.id,
       type: "comprehension",
-      options: shuffledOpts,
-      correctIndex: newCorrectIndex
+      question: questionText,
+      options: shuffledIndexed.map((x) => x.opt),
+      correctIndex: newCorrectIndex,
     };
   });
 
-  const sampledReading = sampleWithCycling(tierPool.reading, 1).map(q => ({ ...q, type: "reading" }));
-  const sampledWriting = sampleWithCycling(tierPool.writing, 1).map(q => ({ ...q, type: "writing" }));
+  // ── Reading & Writing ───────────────────────────────────────────
+  // Fallback chain: exact key → same group level 1 → adult_level_1
+  const rwPool =
+    assessmentReadingWriting[key] ||
+    assessmentReadingWriting[`${ageGroup}_level_1`] ||
+    assessmentReadingWriting["adult_level_1"];
 
-  const combinedQuestions = [
-    ...sampledComprehension,
-    ...sampledReading,
-    ...sampledWriting
-  ];
+  const readingText = (rwPool?.reading && (rwPool.reading[lang] || rwPool.reading["English"])) || "Read this text aloud.";
+  const writingPrompt = (rwPool?.writing && (rwPool.writing[lang] || rwPool.writing["English"])) || "Write a short sentence.";
+
+  const readingQuestion = {
+    id: `${key}_reading`,
+    type: "reading",
+    targetText: readingText,
+  };
+
+  const writingQuestion = {
+    id: `${key}_writing`,
+    type: "writing",
+    prompt: writingPrompt,
+    evaluator: (text) => {
+      const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
+      if (wordCount >= 5) return { score: 10, feedback: "Great effort!" };
+      if (wordCount >= 2) return { score: 6, feedback: "Good start, try writing a bit more." };
+      return { score: 3, feedback: "Please write at least a few words." };
+    },
+  };
 
   return {
-    tier,
-    questions: combinedQuestions
+    tier: `${ageGroup}_level_${level}`,
+    questions: [...comprehensionQuestions, readingQuestion, writingQuestion],
   };
 };
