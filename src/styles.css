@@ -1359,25 +1359,14 @@ select:focus {
 }
 
 /* ==========================================
-   STUDENT SIDEBAR DASHBOARD LAYOUT (REDESIGNED)
+   STUDENT TOPBAR DASHBOARD LAYOUT (REDESIGNED)
    ========================================== */
 .dashboard-container {
-  display: grid;
-  grid-template-columns: 300px 1fr;
+  display: flex;
+  flex-direction: column;
   height: 100vh;
   overflow: hidden;
   background: #f7f9fc; /* Light clean grey/blue background */
-}
-
-.dashboard-sidebar {
-  background: #0f0e1c; /* Deep dark violet */
-  color: white;
-  padding: 24px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 28px;
-  border-right: 1px solid rgba(255, 255, 255, 0.05);
-  justify-content: space-between; /* Space out sidebar content vs footer */
 }
 
 /* Sidebar Branding */
@@ -1986,14 +1975,6 @@ select:focus {
 
 /* Media query responsiveness for tablet / mobile devices */
 @media (max-width: 768px) {
-  .dashboard-container {
-    grid-template-columns: 1fr;
-  }
-  
-  .dashboard-sidebar {
-    display: none; /* Collapsed on mobile, or can use overlay drawer in future */
-  }
-
   .stats-header-grid {
     grid-template-columns: 1fr;
   }
