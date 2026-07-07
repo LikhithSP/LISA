@@ -208,6 +208,36 @@ select:focus {
   box-shadow: none;
 }
 
+.primary-btn:disabled {
+  background: #e2e8f0;
+  background-image: none;
+  color: #94a3b8;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.secondary-btn {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 15px 18px;
+  background: var(--panel-strong);
+  color: var(--text);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.secondary-btn:hover {
+  background: rgba(0, 0, 0, 0.04);
+  transform: translateY(-1px);
+}
+
 .helper-text {
   font-size: 0.92rem;
   color: var(--muted);
