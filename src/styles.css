@@ -1014,6 +1014,170 @@ select:focus {
   margin-bottom: 16px;
 }
 
+.welcome-banner-mascot {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-align: left;
+}
+
+.welcome-mascot {
+  width: 160px;
+  height: 160px;
+  object-fit: contain;
+  flex-shrink: 0;
+  margin: 0 0 0 0;
+  filter: drop-shadow(0 12px 20px rgba(0, 0, 0, 0.14));
+}
+
+/* Assessment question mascot (as2) - top right, same pattern as welcome mascot */
+.assessment-header-with-mascot {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.assessment-header-content {
+  min-width: 0;
+}
+
+.assessment-mascot {
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+  flex-shrink: 0;
+  margin-top: 4px;
+  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.14));
+}
+
+[data-theme="dark"] .assessment-mascot {
+  filter:
+    saturate(0.75) drop-shadow(0 0 1px rgba(190, 190, 195, 0.85)) drop-shadow(0 0 6px rgba(190, 190, 195, 0.3)) drop-shadow(0 8px 14px rgba(0, 0, 0, 0.5));
+}
+
+/* Results page mascot (as3) - top right, same pattern */
+.results-hero-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 20px 28px;
+  margin-bottom: 24px;
+  background: var(--panel-strong);
+  border-radius: 24px;
+  border: 1px solid var(--line);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.02);
+  box-sizing: border-box;
+}
+
+.results-hero-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+}
+
+.results-hero-right {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.results-mascot-medium {
+  width: 165px;
+  height: 165px;
+}
+
+.results-hero-center-score {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--panel-strong);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 22px 30px;
+  min-width: 120px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.hero-score-label {
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.hero-score-val {
+  font-size: 2.6rem;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.results-hero-left .results-percentage-circle {
+  width: 70px;
+  height: 70px;
+  box-shadow: 0 6px 18px rgba(198, 95, 45, 0.2);
+}
+
+.results-hero-left .percent-val {
+  font-size: 1.4rem;
+}
+
+.results-card .results-completed-title {
+  font-size: 1.3rem !important;
+  margin: 0;
+  font-weight: 700;
+  text-align: center;
+  color: var(--text);
+}
+
+@media (max-width: 580px) {
+  .results-hero-section {
+    flex-direction: column-reverse;
+    gap: 16px;
+    text-align: center;
+    align-items: center;
+  }
+
+  .results-hero-left {
+    align-items: center;
+    text-align: center;
+  }
+
+  .results-card .results-completed-title {
+    text-align: center;
+  }
+}
+
+
+[data-theme="dark"] .welcome-mascot {
+  filter:
+    saturate(0.77) drop-shadow(0 0 1px rgba(190, 190, 195, 0.85)) drop-shadow(0 0 6px rgba(190, 190, 195, 0.3)) drop-shadow(0 12px 20px rgba(0, 0, 0, 0.5));
+}
+
+.welcome-banner-text {
+  text-align: left;
+  flex: none;
+}
+
+.welcome-banner-text h1 {
+  font-size: 2.2rem;
+  margin: 0 0 6px 0;
+}
+
+.welcome-banner-text h2 {
+  margin: 0;
+}
+
+.welcome-banner-text h2 {
+  margin: 0;
+}
+
 .welcome-banner h1 {
   font-size: 2.2rem;
   margin: 20px 0 6px 0;
@@ -1188,9 +1352,9 @@ select:focus {
   align-items: center;
   gap: 24px;
   width: 840px;
-  height: 580px;
+  height: auto;
   max-width: 100%;
-  overflow-y: auto;
+  overflow: visible;
 }
 
 .assessment-tours {
