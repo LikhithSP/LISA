@@ -896,10 +896,25 @@ export const getRandomAssessment = (age, educationLevel, language = "English") =
     type: "writing",
     rawQuestion: rwPool,
     evaluator: (text) => {
-      const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
-      if (wordCount >= 5) return { score: 10, feedback: "Great effort!" };
-      if (wordCount >= 2) return { score: 6, feedback: "Good start, try writing a bit more." };
-      return { score: 3, feedback: "Please write at least a few words." };
+      const target = (rwPool?.dictation || "").trim();
+      const targetWords = target.toLowerCase().split(/\s+/).filter(Boolean);
+      const userWords = text.trim().toLowerCase().split(/\s+/).filter(Boolean);
+
+      if (userWords.length === 0) {
+        return { score: 0, feedback: "Please write the sentence you heard." };
+      }
+      if (targetWords.length === 0) {
+        return { score: 5, feedback: "Thanks for writing!" };
+      }
+
+      const userSet = new Set(userWords);
+      const matched = targetWords.filter((w) => userSet.has(w)).length;
+      const ratio = matched / targetWords.length;
+
+      if (ratio >= 0.8) return { score: 10, feedback: "Excellent! You wrote the sentence accurately." };
+      if (ratio >= 0.5) return { score: 7, feedback: "Good, but some words are missing or incorrect." };
+      if (ratio >= 0.25) return { score: 4, feedback: "You caught some words. Listen again and try to write more." };
+      return { score: 2, feedback: "Try to write the words you hear more carefully." };
     },
   };
 
