@@ -1135,7 +1135,7 @@ function App() {
       window.speechSynthesis.cancel();
     }
     setSubmitting(true);
-    let totalScore = 0; // max 120 points (10 comp + 1 read + 1 write)
+    let totalScore = 0; // max 30 points (comprehension 10 × 1 + reading 10 + writing 10)
 
     assessmentQuestionsList.forEach((q, idx) => {
       if (q.type === "reading") {
@@ -1147,7 +1147,7 @@ function App() {
       } else if (q.type === "comprehension") {
         const answer = selectedAnswers[idx];
         if (answer === q.correctIndex) {
-          totalScore += 10;
+          totalScore += 1;
         }
       } else if (q.type === "writing") {
         const text = writingAnswers[idx] || "";
@@ -1156,7 +1156,8 @@ function App() {
       }
     });
 
-    const scaledScore = Math.round((totalScore / 120) * 50);
+    // Scale to a 0-50 diagnosis score (equivalent to percentage / 2)
+    const scaledScore = Math.round((totalScore / 30) * 50);
 
     // Diagnose initial level 1 to 5 based on scaledScore (0 to 50)
     let diagnosedLevel = 1;
@@ -1220,7 +1221,7 @@ function App() {
       let readPoints = 0, compPoints = 0, writePoints = 0;
       assessmentQuestionsList.forEach((q, idx) => {
         const points = q.type === "reading" ? (readingAttempts[idx]?.matchedCount / readingAttempts[idx]?.totalWords) * 10 || 0
-          : q.type === "comprehension" ? (selectedAnswers[idx] === q.correctIndex ? 10 : 0)
+          : q.type === "comprehension" ? (selectedAnswers[idx] === q.correctIndex ? 1 : 0)
             : q.evaluator(writingAnswers[idx] || "").score;
 
         if (q.type === "reading") readPoints += points;
@@ -1231,12 +1232,13 @@ function App() {
       const attemptResult = {
         date: new Date().toLocaleDateString(),
         type: "Diagnostic Evaluation",
-        score: scaledScore,
-        maxScore: 50,
+        score: totalScore,
+        maxScore: 30,
+        percentage: Math.round((totalScore / 30) * 100),
         level: diagnosedLevel,
         skills: {
           reading: Math.round((readPoints / 10) * 100),
-          comprehension: Math.round((compPoints / 100) * 100),
+          comprehension: Math.round((compPoints / 10) * 100),
           writing: Math.round((writePoints / 10) * 100)
         },
         passed: true
@@ -2001,14 +2003,14 @@ function App() {
                   <div className="results-hero-section">
                     <div className="results-hero-left">
                       <div className="results-percentage-circle">
-                        <span className="percent-val">{latestAttempt?.score ? Math.round((latestAttempt.score / 50) * 100) : 0}%</span>
+                        <span className="percent-val">{latestAttempt?.percentage ? latestAttempt.percentage : 0}%</span>
                       </div>
                       <span className="results-percent-text">{t("percentage")}</span>
                     </div>
 
                     <div className="results-hero-center-score">
                       <span className="hero-score-label">{t("overallScore")}</span>
-                      <span className="hero-score-val">{latestAttempt?.score || 0} / 50</span>
+                      <span className="hero-score-val">{latestAttempt?.score || 0} / {latestAttempt?.maxScore || 30}</span>
                     </div>
 
                     <div className="results-hero-right">
