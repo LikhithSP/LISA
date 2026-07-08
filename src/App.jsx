@@ -5,6 +5,20 @@ import { levelDefinitions, initialAssessmentPool, getRandomAssessment } from "./
 const languages = ["English", "Hindi", "Kannada", "Telugu", "Tamil"];
 const educationLevels = ["No formal education", "Primary", "Secondary", "Higher secondary"];
 
+const MicGlyph = () => (
+  <svg
+    className="mic-icon"
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    aria-hidden="true"
+  >
+    <path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3z" />
+    <path d="M17 11a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z" />
+  </svg>
+);
+
 // Translation dictionary for regional languages
 const translations = {
   English: {
@@ -76,10 +90,11 @@ const translations = {
     initialAssessmentDesc: "To diagnose your reading, writing, and comprehension skills, please start with the Initial Assessment.",
     takeAssessmentBtn: "Start Initial Assessment",
     stepTitle: "Step {current} of {total}",
+    questionOf: "Question {current} of {total}",
     readingSecTitle: "Reading Section (Voice)",
     compSecTitle: "Comprehension Section (MCQ)",
     writingSecTitle: "Writing Section (Text)",
-    micBtnStart: "Start Reading Aloud",
+    micBtnStart: "Start Reading",
     home: "Home",
     profileSettings: "Profile Settings",
     takeAssessment: "Take Assessment",
@@ -97,7 +112,7 @@ const translations = {
     compSkill: "Comprehension Skill",
     diagnosticPassed: "Assessment analyzed! Based on your performance, you are diagnosed at:",
     continueToDashboard: "Back to Dashboard",
-    skipVoiceBtn: "Skip / Manual Match",
+    skipVoiceBtn: "Manual Match",
     skipVoicePrompt: "Voice recognition issue? Type the exact text instead:",
     writeInEnglishPrompt: "(Please write your response in English)",
     listenBtn: "Listen",
@@ -188,10 +203,11 @@ const translations = {
     initialAssessmentDesc: "आपके पढ़ने, लिखने और समझने के कौशल का आकलन करने के लिए कृपया प्रारंभिक आकलन से शुरुआत करें।",
     takeAssessmentBtn: "प्रारंभिक आकलन शुरू करें",
     stepTitle: "कदम {current} का {total}",
+    questionOf: "प्रश्न {current} का {total}",
     readingSecTitle: "पठन अनुभाग (आवाज़)",
     compSecTitle: "समझ अनुभाग (एमसीक्यू)",
     writingSecTitle: "लेखन अनुभाग (पाठ)",
-    micBtnStart: "जोर से पढ़ना शुरू करें",
+    micBtnStart: "पढ़ना शुरू करें",
     home: "होम",
     profileSettings: "प्रोफ़ाइल सेटिंग्स",
     takeAssessment: "आकलन लें",
@@ -209,7 +225,7 @@ const translations = {
     compSkill: "समझने का कौशल",
     diagnosticPassed: "मूल्यांकन पूरा! आपके प्रदर्शन के आधार पर, आपका स्तर है:",
     continueToDashboard: "डैशबोर्ड पर वापस जाएं",
-    skipVoiceBtn: "छोड़ें / मैनुअल मिलान",
+    skipVoiceBtn: "मैनुअल मिलान",
     skipVoicePrompt: "आवाज़ पहचानने में समस्या? इसके बजाय टेक्स्ट टाइप करें:",
     writeInEnglishPrompt: "(कृपया अपना उत्तर अंग्रेजी में लिखें)",
     listenBtn: "सुनें",
@@ -300,10 +316,11 @@ const translations = {
     initialAssessmentDesc: "ನಿಮ್ಮ ಓದುವ, ಬರೆಯುವ ಮತ್ತು ಗ್ರಹಿಸುವ ಕೌಶಲ್ಯಗಳನ್ನು ನಿರ್ಣಯಿಸಲು ದಯವಿಟ್ಟು ಆರಂಭಿಕ ಮೌಲ್ಯಮಾಪನದೊಂದಿಗೆ ಪ್ರಾರಂಭಿಸಿ।",
     takeAssessmentBtn: "ಆರಂಭಿಕ ಮೌಲ್ಯಮಾಪನ ಪ್ರಾರಂಭಿಸಿ",
     stepTitle: "ಹಂತ {current} ರ {total}",
+    questionOf: "ಪ್ರಶ್ನೆ {current} ರಲ್ಲಿ {total}",
     readingSecTitle: "ಓದುವಿಕೆ ವಿಭಾಗ (ಧ್ವನಿ)",
     compSecTitle: "ಗ್ರಹಿಕೆ ವಿಭಾಗ (MCQ)",
     writingSecTitle: "ಬರವಣಿಗೆ ವಿಭಾಗ (ಪಠ್ಯ)",
-    micBtnStart: "ಜೋರಾಗಿ ಓದಲು ಪ್ರಾರಂಭಿಸಿ",
+    micBtnStart: "ಓದಲು ಪ್ರಾರಂಭಿಸಿ",
     home: "ಮುಖಪುಟ",
     profileSettings: "ಪ್ರೊಫೈಲ್ ಸೆಟ್ಟಿಂಗ್ಸ್",
     takeAssessment: "ಮೌಲ್ಯಮಾಪನ ತೆಗೆದುಕೊಳ್ಳಿ",
@@ -321,7 +338,7 @@ const translations = {
     compSkill: "ಗ್ರಹಿಕೆಯ ಕೌಶಲ್ಯ",
     diagnosticPassed: "ಮೌಲ್ಯಮಾಪನ ವಿಶ್ಲೇಷಿಸಲಾಗಿದೆ! ನಿಮ್ಮ ಪ್ರದರ್ಶನದ ಆಧಾರದ ಮೇಲೆ, ನೀವು ಇಲ್ಲಿಂದ ಪ್ರಾರಂಭಿಸುತ್ತೀರಿ:",
     continueToDashboard: "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗೆ ಹಿಂತಿರುಗಿ",
-    skipVoiceBtn: "ಹೊರಗುಳಿಯಿರಿ / ಹಸ್ತಚಾಲಿತ ಹೊಂದಾಣಿಕೆ",
+    skipVoiceBtn: "ಹಸ್ತಚಾಲಿತ ಹೊಂದಾಣಿಕೆ",
     skipVoicePrompt: "ಧ್ವನಿ ಗುರುತಿಸುವಿಕೆ ಸಮಸ್ಯೆಯೇ? ಬದಲಿಗೆ ಪಠ್ಯವನ್ನು ಟೈಪ್ ಮಾಡಿ:",
     writeInEnglishPrompt: "(ದಯವಿಟ್ಟು ನಿಮ್ಮ ಉತ್ತರವನ್ನು ಇಂಗ್ಲಿಷ್‌ನಲ್ಲಿ ಬರೆಯಿರಿ)",
     listenBtn: "ಆಲಿಸಿ",
@@ -412,10 +429,11 @@ const translations = {
     initialAssessmentDesc: "మీ చదవడం, రాయడం మరియు గ్రహించే నైపుణ్యాలను అంచనా వేయడానికి దయచేసి ప్రారంభ అంచనాతో ప్రారంభించండి.",
     takeAssessmentBtn: "ప్రారంభ అంచనాను ప్రారంభించండి",
     stepTitle: "ప్రశ్న {current} యొక్క {total}",
+    questionOf: "ప్రశ్న {current} / {total}",
     readingSecTitle: "పఠనం విభాగం (వాయిస్)",
     compSecTitle: "గ్రహణశక్తి విభాగం (MCQ)",
     writingSecTitle: "రాయడం విభాగం (టెక్స్ట్)",
-    micBtnStart: "గట్టిగా చదవడం ప్రారంభించండి",
+    micBtnStart: "చదవడం ప్రారంభించండి",
     home: "హోమ్",
     profileSettings: "ప్రొఫైల్ సెట్టింగ్స్",
     takeAssessment: "అంచనా తీసుకోండి",
@@ -433,7 +451,7 @@ const translations = {
     compSkill: "గ్రహణశక్తి నైపుణ్యం",
     diagnosticPassed: "అంచనా విశ్లేషించబడింది! మీ ప్రదర్శన ఆధారంగా మీ స్థాయి:",
     continueToDashboard: "డాష్‌బోర్డ్‌కు తిరిగి వెళ్లండి",
-    skipVoiceBtn: "దాటవేయి / మాన్యువల్ మ్యాచ్",
+    skipVoiceBtn: "మాన్యువల్ మ్యాచ్",
     skipVoicePrompt: "వాయిస్ గుర్తింపు సమస్య ఉందా? బదులుగా టెక్స్ట్ టైప్ చేయండి:",
     writeInEnglishPrompt: "(దయచేసి మీ సమాధానాన్ని ఇంగ్లీషులో రాయండి)",
     listenBtn: "వినండి",
@@ -524,10 +542,11 @@ const translations = {
     initialAssessmentDesc: "உங்கள் வாசிப்பு, எழுதுதல் மற்றும் புரிதல் திறனை மதிப்பிடுவதற்கு தயவுசெய்து ஆரம்ப மதிப்பீட்டுடன் தொடங்குங்கள்.",
     takeAssessmentBtn: "ஆரம்ப மதிப்பீட்டைத் தொடங்கு",
     stepTitle: "கேள்வி {current}-ல் {total}",
+    questionOf: "கேள்வி {current} / {total}",
     readingSecTitle: "வாசிப்புப் பிரிவு (குரல்)",
     compSecTitle: "புரிதல் பிரிவு (MCQ)",
     writingSecTitle: "எழுதுதல் பிரிவு (உரை)",
-    micBtnStart: "சத்தமாக வாசிக்கத் தொடங்குங்கள்",
+    micBtnStart: "வாசிக்கத் தொடங்குங்கள்",
     home: "முகப்பு",
     profileSettings: "சுயவிவர அமைப்புகள்",
     takeAssessment: "மதிப்பீடு செய்ய",
@@ -545,7 +564,7 @@ const translations = {
     compSkill: "புரிதல் திறன்",
     diagnosticPassed: "மதிப்பீடு பகுப்பாய்வு செய்யப்பட்டது! உங்கள் திறமையின் அடிப்படையில் உங்களது நிலை:",
     continueToDashboard: "டாஷ்போர்டுக்குத் திரும்பு",
-    skipVoiceBtn: "தவிர்க்கவும் / கைமுறை பொருத்தம்",
+    skipVoiceBtn: "கைமுறை பொருத்தம்",
     skipVoicePrompt: "குரல் ஏற்பிப் பிரச்சனையா? அதற்குப் பதிலாக டைப் செய்யவும் செய்தி:",
     writeInEnglishPrompt: "(தயவுசெய்து உங்கள் பதிலை ஆங்கிலத்தில் எழுதவும்)",
     listenBtn: "கேளுங்கள்",
@@ -1487,21 +1506,23 @@ function App() {
 
           {/* Navigation Links */}
           <nav className="top-nav-menu" style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-            <button
-              className={`menu-item ${dashboardTab === "home" ? "active" : ""}`}
-              onClick={() => setDashboardTab("home")}
-              style={{
-                background: dashboardTab === 'home' ? 'rgba(198, 95, 45, 0.08)' : 'none',
-                color: dashboardTab === 'home' ? 'var(--accent)' : 'var(--text)',
-                border: 'none',
-                padding: '8px 16px',
-                borderRadius: '8px',
-                fontWeight: '600',
-                cursor: 'pointer'
-              }}
-            >
-              <span>🏠 {t("home")}</span>
-            </button>
+            {hasDiagnosed && (
+              <button
+                className={`menu-item ${dashboardTab === "home" ? "active" : ""}`}
+                onClick={() => setDashboardTab("home")}
+                style={{
+                  background: dashboardTab === 'home' ? 'rgba(198, 95, 45, 0.08)' : 'none',
+                  color: dashboardTab === 'home' ? 'var(--accent)' : 'var(--text)',
+                  border: 'none',
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  fontWeight: '600',
+                  cursor: 'pointer'
+                }}
+              >
+                <span>🏠 {t("home")}</span>
+              </button>
+            )}
           </nav>
 
           {/* Right User Actions Area */}
@@ -1558,8 +1579,8 @@ function App() {
                           <span className="profile-detail-value">{profile?.age || "N/A"}</span>
                         </div>
                         <div className="profile-detail-row">
-                          <span className="profile-detail-label">Preferred Language</span>
-                          <span className="profile-detail-value">{profile?.preferred_language || "English"}</span>
+                          <span className="profile-detail-label">Education Level</span>
+                          <span className="profile-detail-value">{profile?.education_level || "N/A"}</span>
                         </div>
                       </div>
 
@@ -1702,6 +1723,27 @@ function App() {
               const isCompMCQ = q?.type === "comprehension";
               const isWriting = q?.type === "writing";
 
+              // Group question indices by section type for the 3-step stepper
+              const typeIndices = { comprehension: [], reading: [], writing: [] };
+              assessmentQuestionsList.forEach((item, i) => {
+                if (typeIndices[item.type]) typeIndices[item.type].push(i);
+              });
+              const compIdx = typeIndices.comprehension;
+              const readIdx = typeIndices.reading[0];
+              const writeIdx = typeIndices.writing[0];
+
+              const currentSectionNum = isWriting ? 3 : isVoiceReading ? 2 : 1;
+
+              const compCompleted = compIdx.length > 0 && compIdx.every((i) => selectedAnswers[i] !== undefined);
+              const readCompleted = !!readingAttempts[readIdx];
+              const writeCompleted = !!(writingAnswers[writeIdx] || "").trim();
+
+              const sectionMeta = [
+                { num: 1, title: t("compSecTitle"), done: compCompleted },
+                { num: 2, title: t("readingSecTitle"), done: readCompleted },
+                { num: 3, title: t("writingSecTitle"), done: writeCompleted },
+              ];
+
               // 1. Resolve reading targetText
               const readingTargetText = isVoiceReading
                 ? (q.rawQuestion?.reading?.["English"] || "Read this text aloud.")
@@ -1766,17 +1808,29 @@ function App() {
                 <div className="assessment-card" style={{ maxWidth: '800px', margin: '20px auto' }}>
                   <div className="assessment-card-header assessment-header-with-mascot">
                     <div className="assessment-header-content">
-                      <div className="step-tag">
-                        {t("stepTitle").replace("{current}", currentStep + 1).replace("{total}", assessmentQuestionsList.length)}
+                      <div className="step-tag-row">
+                        <div className="step-tag">
+                          {t("stepTitle").replace("{current}", currentSectionNum).replace("{total}", 3)}
+                        </div>
+                        <span className="step-subtitle">Initial Assessment</span>
                       </div>
                       <h2>
                         {isVoiceReading && t("readingSecTitle")}
                         {isCompMCQ && t("compSecTitle")}
                         {isWriting && t("writingSecTitle")}
                       </h2>
-                      <div className="progress-bar-bg">
-                        <div className="progress-bar-fill" style={{ width: `${((currentStep + 1) / assessmentQuestionsList.length) * 100}%` }}></div>
-                      </div>
+                      {isCompMCQ && compIdx.length > 0 && (
+                        <p className="section-sub-progress">
+                          {t("questionOf").replace("{current}", compIdx.indexOf(currentStep) + 1).replace("{total}", compIdx.length)}
+                        </p>
+                      )}
+                    </div>
+                    <div className="section-stepper">
+                      {sectionMeta.map((s) => (
+                        <div key={s.num} className={`step-node ${s.done ? "done" : currentSectionNum === s.num ? "active" : "pending"}`}>
+                          <span className="step-circle">{s.done ? "✓" : s.num}</span>
+                        </div>
+                      ))}
                     </div>
                     <img
                       src="/as2.png"
@@ -1830,7 +1884,7 @@ function App() {
                               className="mic-btn"
                               onClick={() => startListening(readingTargetText)}
                             >
-                              <span className="mic-icon">🎤</span>
+                              <MicGlyph />
                               {t("micBtnStart")}
                             </button>
                           ) : (
@@ -1839,8 +1893,10 @@ function App() {
                               className="mic-btn listening"
                               onClick={stopListening}
                             >
-                              <div className="pulse-ring"></div>
-                              <span className="mic-icon">🔴</span>
+                              <MicGlyph />
+                              <span className="voice-wave" aria-hidden="true">
+                                <span></span><span></span><span></span><span></span><span></span>
+                              </span>
                               {t("micBtnListening")}
                             </button>
                           )}
