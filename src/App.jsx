@@ -633,6 +633,28 @@ const getLevelCategoryAndDescription = (level, lang) => {
   };
 };
 
+const levelBadgeColor = (level) => {
+  const colors = {
+    1: "#10b981",
+    2: "#3b82f6",
+    3: "#f59e0b",
+    4: "#a855f7",
+    5: "#ef4444"
+  };
+  return colors[level] || "#6b7280";
+};
+
+const levelBadgeIcon = (level) => {
+  const icons = {
+    1: "🌱",
+    2: "📖",
+    3: "✍️",
+    4: "🧠",
+    5: "👑"
+  };
+  return icons[level] || "📚";
+};
+
 function App() {
   const [selectedLanguage, setSelectedLanguage] = useState(
     localStorage.getItem("lisa_lang") || null
@@ -2156,13 +2178,12 @@ function App() {
                       const level = getLiteracyLevel(profile) || 1;
                       const levelCategory = getLevelCategoryAndDescription(level, selectedLanguage).category;
 
-                      const achievementsList = [
-                        { label: "First Steps", icon: "🌟", earned: true },
-                        { label: "Reading Star", icon: "📖", earned: calculateSkillProficiency("reading") >= 75 },
-                        { label: "Comprehension Pro", icon: "🧠", earned: calculateSkillProficiency("comprehension") >= 75 },
-                        { label: "Wordsmith", icon: "✍️", earned: calculateSkillProficiency("writing") >= 75 },
-                      ];
-                      const achievementsCount = achievementsList.filter((a) => a.earned).length;
+                       const achievementsList = [
+                         { id: 1, title: "First Steps", desc: "Complete your first assessment", icon: "🌟", earned: true, progress: 1, total: 1, color: "#f59e0b", level: 1 },
+                         { id: 2, title: "Reading Star", desc: "Score 75% or higher in reading", icon: "📖", earned: calculateSkillProficiency("reading") >= 75, progress: 0, total: 1, color: "#3b82f6", level: 2 },
+                         { id: 3, title: "Comprehension Pro", desc: "Score 75% or higher in comprehension", icon: "🧠", earned: calculateSkillProficiency("comprehension") >= 75, progress: 0, total: 1, color: "#10b981", level: 3 },
+                         { id: 4, title: "Wordsmith", desc: "Score 75% or higher in writing", icon: "✍️", earned: calculateSkillProficiency("writing") >= 75, progress: 0, total: 1, color: "#a855f7", level: 4 },
+                       ];
 
                       return (
                         <>
@@ -2204,69 +2225,73 @@ function App() {
                               </div>
                             </div>
                           </div>
-                          {/* Top Row: Stats | Achievements | Streak */}
-                          <div className="dashboard-top-row">
-                          {/* Stat Cards Row */}
-                          <div className="metric-stats-grid">
-                            <div className="metric-stat-box">
-                              <div className="metric-icon-circle" style={{ background: '#eff6ff', color: '#3b82f6' }}>📖</div>
-                              <div className="metric-text-wrapper">
-                                <span className="metric-number">{historyAttempts.length}</span>
-                                <span className="metric-label">Evaluations Done</span>
-                              </div>
+
+                          <div className="current-level-card">
+                            <div className="current-level-header">
+                              <h3 className="current-level-title">Current Level</h3>
                             </div>
-                            <div className="metric-stat-box">
-                              <div className="metric-icon-circle" style={{ background: '#ecfdf5', color: '#059669' }}>⏱️</div>
-                              <div className="metric-text-wrapper">
-                                <span className="metric-number">{hoursLearned}h</span>
-                                <span className="metric-label">Hours Learned</span>
+                            <div className="current-level-body">
+                              <div className="current-level-badge" style={{ background: levelBadgeColor(level) }}>
+                                <span className="current-level-badge-icon">{levelBadgeIcon(level)}</span>
+                                <span className="current-level-badge-level">LEVEL {level}</span>
                               </div>
-                            </div>
-                            <div className="metric-stat-box">
-                              <div className="metric-icon-circle" style={{ background: '#fef3c7', color: '#d97706' }}>🎯</div>
-                              <div className="metric-text-wrapper">
-                                <span className="metric-number">{levelCategory}</span>
-                                <span className="metric-label">Current Level</span>
+                              <div className="current-level-info">
+                                <p className="current-level-name">{levelCategory}</p>
+                                <p className="current-level-msg">Keep it up good going</p>
                               </div>
                             </div>
                           </div>
 
                           {/* Two Columns: Achievements & Day Streak */}
                           <div className="dashboard-dual-grid">
-                            <div className="achievements-card">
-                              <div className="achievements-card-header">
-                                <h4>🏆 Achievements</h4>
-                                <span className="achievements-count">{achievementsCount} unlocked</span>
-                              </div>
-                              <div className="achievements-list">
-                                {achievementsList.map((a, i) => (
-                                  <div key={i} className={`achievement-item ${a.earned ? "earned" : "locked"}`}>
-                                    <span className="achievement-icon">{a.earned ? a.icon : "🔒"}</span>
-                                    <span className="achievement-label">{a.label}</span>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
+                             <div className="achievements-card achievements-card-dark">
+                               <div className="achievements-card-header">
+                                 <h4>All achievements</h4>
+                               </div>
+                               <div className="achievements-list">
+                                 {achievementsList.map((a) => {
+                                   const progressPercent = a.total > 0 ? (a.progress / a.total) * 100 : 0;
+                                   return (
+                                     <div key={a.id} className={`achievement-row ${a.earned ? "earned" : ""}`}>
+                                       <div className="achievement-badge-box" style={{ background: a.color }}>
+                                         <span className="achievement-badge-icon">{a.icon}</span>
+                                         <span className="achievement-level-badge">LEVEL {a.level}</span>
+                                       </div>
+                                       <div className="achievement-info">
+                                         <div className="achievement-info-header">
+                                           <span className="achievement-title">{a.title}</span>
+                                           <span className="achievement-progress-counter">{a.progress}/{a.total}</span>
+                                         </div>
+                                         <p className="achievement-desc">{a.desc}</p>
+                                         <div className="achievement-progress-track">
+                                           <div className="achievement-progress-fill" style={{ width: `${progressPercent}%` }}></div>
+                                         </div>
+                                       </div>
+                                     </div>
+                                   );
+                                 })}
+                               </div>
+                             </div>
 
-                            <div className="streak-widget-card">
-                              <div className="streak-card-header">
-                                <h4>🔥 Day Streak</h4>
-                                <span className="streak-badge">
-                                  {historyAttempts.length > 0 ? "3" : "0"} Days Active
-                                </span>
+                            <div className="streak-widget-card streak-society-card">
+                              <div className="streak-society-header">
+                                <span className="streak-society-badge">STREAK SOCIETY</span>
+                                <div className="streak-society-icon">🔥</div>
                               </div>
-                              <div className="streak-days-list">
-                                {["S", "M", "T", "W", "T", "F", "S"].map((day, idx) => {
-                                  const isActive = historyAttempts.length > 0 && [1, 2, 3].includes(idx);
-                                  return (
-                                    <div key={idx} className={`streak-day-bubble ${isActive ? "active" : ""}`}>
-                                      {isActive ? "✓" : day}
-                                    </div>
-                                  );
-                                })}
+                              <h4 className="streak-society-title">36 day streak</h4>
+                              <p className="streak-society-message">You extended your streak before 95.82% of all learners yesterday!</p>
+                              <div className="streak-society-bar">
+                                <div className="streak-society-days">
+                                  {["S", "M", "T", "W", "T", "F", "S"].map((day, idx) => (
+                                    <div key={idx} className="streak-society-day">{day}</div>
+                                  ))}
+                                </div>
+                                <div className="streak-society-progress-track">
+                                  <div className="streak-society-progress-fill"></div>
+                                  <div className="streak-society-star">⭐</div>
+                                </div>
                               </div>
                             </div>
-                          </div>
                           </div>
                         </>
                       );
