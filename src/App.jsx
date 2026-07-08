@@ -5,19 +5,7 @@ import { levelDefinitions, initialAssessmentPool, getRandomAssessment } from "./
 const languages = ["English", "Hindi", "Kannada", "Telugu", "Tamil"];
 const educationLevels = ["No formal education", "Primary", "Secondary", "Higher secondary"];
 
-const MicGlyph = () => (
-  <svg
-    className="mic-icon"
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="currentColor"
-    aria-hidden="true"
-  >
-    <path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3z" />
-    <path d="M17 11a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z" />
-  </svg>
-);
+
 
 // Translation dictionary for regional languages
 const translations = {
@@ -94,7 +82,7 @@ const translations = {
     readingSecTitle: "Reading Section (Voice)",
     compSecTitle: "Comprehension Section (MCQ)",
     writingSecTitle: "Writing Section (Dictation)",
-    micBtnStart: "Start Reading",
+    micBtnStart: "CLICK TO SPEAK",
     home: "Home",
     profileSettings: "Profile Settings",
     takeAssessment: "Take Assessment",
@@ -1898,26 +1886,31 @@ function App() {
 
                         <div className="voice-mic-controls">
                           {!isListening ? (
-                            <button
-                              type="button"
-                              className="mic-btn"
-                              onClick={() => startListening(readingTargetText)}
-                            >
-                              <MicGlyph />
-                              {t("micBtnStart")}
-                            </button>
+                            <div className="mic-outer-container">
+                              <button
+                                type="button"
+                                className="mic-btn"
+                                onClick={() => startListening(readingTargetText)}
+                              >
+                                <svg className="mic-icon" width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                  <path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3z" />
+                                  <path d="M17 11a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z" />
+                                </svg>
+                                <span className="mic-btn-text">CLICK TO SPEAK</span>
+                              </button>
+                            </div>
                           ) : (
-                            <button
-                              type="button"
-                              className="mic-btn listening"
-                              onClick={stopListening}
-                            >
-                              <MicGlyph />
-                              <span className="voice-wave" aria-hidden="true">
-                                <span></span><span></span><span></span><span></span><span></span>
-                              </span>
-                              {t("micBtnListening")}
-                            </button>
+                            <div className="mic-outer-container">
+                              <button
+                                type="button"
+                                className="mic-btn"
+                                onClick={stopListening}
+                              >
+                                <span className="voice-wave" aria-hidden="true">
+                                  <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+                                </span>
+                              </button>
+                            </div>
                           )}
                         </div>
 
@@ -2173,6 +2166,44 @@ function App() {
 
                       return (
                         <>
+                          <div className="daily-quests-card">
+                            <div className="daily-quests-header">
+                              <h3>Daily Quests</h3>
+                              <span className="daily-quests-timer">22 HOURS</span>
+                            </div>
+                            <div className="quest-list">
+                              <div className="quest-item">
+                                <div className="quest-icon">⚡</div>
+                                <div className="quest-content">
+                                  <div className="quest-title">Earn 20 XP</div>
+                                  <div className="quest-progress-bg">
+                                    <div className="quest-progress-fill" style={{ width: '0%' }}></div>
+                                  </div>
+                                </div>
+                                <div className="quest-reward">📦</div>
+                              </div>
+                              <div className="quest-item">
+                                <div className="quest-icon">⚡</div>
+                                <div className="quest-content">
+                                  <div className="quest-title">Earn 10 Combo Bonus XP</div>
+                                  <div className="quest-progress-bg">
+                                    <div className="quest-progress-fill" style={{ width: '0%' }}></div>
+                                  </div>
+                                </div>
+                                <div className="quest-reward">📦</div>
+                              </div>
+                              <div className="quest-item">
+                                <div className="quest-icon">⏱️</div>
+                                <div className="quest-content">
+                                  <div className="quest-title">Spend 15 minutes learning</div>
+                                  <div className="quest-progress-bg">
+                                    <div className="quest-progress-fill" style={{ width: '0%' }}></div>
+                                  </div>
+                                </div>
+                                <div className="quest-reward">📦</div>
+                              </div>
+                            </div>
+                          </div>
                           {/* Top Row: Stats | Achievements | Streak */}
                           <div className="dashboard-top-row">
                           {/* Stat Cards Row */}
