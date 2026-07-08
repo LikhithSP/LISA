@@ -2694,21 +2694,39 @@ select:focus {
 }
 
 /* 4-Metric Statistics Grid */
+.dashboard-top-row {
+  display: flex;
+  align-items: stretch;
+  gap: 16px;
+  margin-bottom: 40px;
+  flex-wrap: wrap;
+}
+
+.dashboard-top-row .metric-stats-grid {
+  flex: 0 0 260px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 0;
+  max-width: 260px;
+}
+
 .metric-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 20px;
-  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+  max-width: 320px;
 }
 
 .metric-stat-box {
   background: white;
   border: 1px solid rgba(0, 0, 0, 0.04);
-  border-radius: 20px;
-  padding: 24px;
+  border-radius: 14px;
+  padding: 14px;
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 10px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -2719,13 +2737,13 @@ select:focus {
 }
 
 .metric-icon-circle {
-  width: 46px;
-  height: 46px;
+  width: 34px;
+  height: 34px;
   background: #f3f4f6;
-  border-radius: 14px;
+  border-radius: 10px;
   display: grid;
   place-items: center;
-  font-size: 1.25rem;
+  font-size: 1rem;
   color: var(--text);
 }
 
@@ -2736,18 +2754,18 @@ select:focus {
 }
 
 .metric-number {
-  font-size: 1.6rem;
+  font-size: 1.2rem;
   font-weight: 950;
   color: var(--text);
   line-height: 1;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .metric-label {
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   color: var(--muted);
   font-weight: 600;
 }
@@ -2764,10 +2782,11 @@ select:focus {
 
 /* Two-Column Side-by-Side Section (Day Streak & Achievements) */
 .dashboard-dual-grid {
+  flex: 1 1 0;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 24px;
-  margin-bottom: 40px;
+  gap: 16px;
+  margin-bottom: 0;
 }
 
 /* Streak Widget Tracker */
@@ -3025,6 +3044,15 @@ select:focus {
 
   .dashboard-dual-grid {
     grid-template-columns: 1fr;
+  }
+
+  .dashboard-top-row {
+    flex-direction: column;
+  }
+
+  .dashboard-top-row .metric-stats-grid {
+    flex: 1 1 auto;
+    max-width: none;
   }
 }
 

@@ -2137,15 +2137,6 @@ function App() {
               <>
                 {(dashboardTab === "dashboard" || (dashboardTab === "home" && hasDiagnosed)) && (
                   <div className="home-tab-wrapper">
-                    {/* Tutor Announcement Bar */}
-                    <div className="tutor-announcement-bar">
-                      <div className="tutor-icon-box">🤖</div>
-                      <div className="tutor-text-wrapper">
-                        <h5>LISA AI Tutor</h5>
-                        <p>Hi {profile?.full_name || "Learner"}! You're making great progress — practice a little each day to keep your streak alive and unlock new achievements. 💪</p>
-                      </div>
-                    </div>
-
                     {/* Stat Cards Row + Two-Column Section */}
                     {(() => {
                       const hoursLearned = (historyAttempts.length * 0.5).toFixed(1);
@@ -2162,6 +2153,8 @@ function App() {
 
                       return (
                         <>
+                          {/* Top Row: Stats | Achievements | Streak */}
+                          <div className="dashboard-top-row">
                           {/* Stat Cards Row */}
                           <div className="metric-stats-grid">
                             <div className="metric-stat-box">
@@ -2187,8 +2180,23 @@ function App() {
                             </div>
                           </div>
 
-                          {/* Two Columns: Day Streak & Achievements */}
+                          {/* Two Columns: Achievements & Day Streak */}
                           <div className="dashboard-dual-grid">
+                            <div className="achievements-card">
+                              <div className="achievements-card-header">
+                                <h4>🏆 Achievements</h4>
+                                <span className="achievements-count">{achievementsCount} unlocked</span>
+                              </div>
+                              <div className="achievements-list">
+                                {achievementsList.map((a, i) => (
+                                  <div key={i} className={`achievement-item ${a.earned ? "earned" : "locked"}`}>
+                                    <span className="achievement-icon">{a.earned ? a.icon : "🔒"}</span>
+                                    <span className="achievement-label">{a.label}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+
                             <div className="streak-widget-card">
                               <div className="streak-card-header">
                                 <h4>🔥 Day Streak</h4>
@@ -2207,96 +2215,12 @@ function App() {
                                 })}
                               </div>
                             </div>
-
-                            <div className="achievements-card">
-                              <div className="achievements-card-header">
-                                <h4>🏆 Achievements</h4>
-                                <span className="achievements-count">{achievementsCount} unlocked</span>
-                              </div>
-                              <div className="achievements-list">
-                                {achievementsList.map((a, i) => (
-                                  <div key={i} className={`achievement-item ${a.earned ? "earned" : "locked"}`}>
-                                    <span className="achievement-icon">{a.earned ? a.icon : "🔒"}</span>
-                                    <span className="achievement-label">{a.label}</span>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
+                          </div>
                           </div>
                         </>
                       );
                     })()}
 
-                    {/* Lessons Section Grid */}
-                    <div className="lessons-section-header">
-                      <h3>📚 Practice Modules</h3>
-                    </div>
-                    <div className="lessons-card-grid">
-                      <div className="lesson-card-item active" onClick={() => alert("Practice modules are under development. Keep practicing with your current level!")}>
-                        <div className="lesson-card-header">
-                          <div className="lesson-card-icon-box" style={{ background: '#eff6ff', color: '#3b82f6' }}>🎤</div>
-                          <span className="lesson-active-badge">Active</span>
-                        </div>
-                        <div>
-                          <h4 className="lesson-card-title">Reading Foundations</h4>
-                          <p className="lesson-card-desc">Practice sentence articulation and clear regional speaking.</p>
-                        </div>
-                        <div className="lesson-card-footer">
-                          <div className="bar-bg" style={{ height: '6px' }}>
-                            <div className="bar-fill reading" style={{ width: `${calculateSkillProficiency("reading")}%` }}></div>
-                          </div>
-                          <span className="lesson-card-duration">⏱ 15 min | {calculateSkillProficiency("reading")}% Mastery</span>
-                        </div>
-                      </div>
-
-                      <div className="lesson-card-item" onClick={() => alert("Practice modules are under development. Keep practicing with your current level!")}>
-                        <div className="lesson-card-header">
-                          <div className="lesson-card-icon-box" style={{ background: '#fef3c7', color: '#d97706' }}>❓</div>
-                        </div>
-                        <div>
-                          <h4 className="lesson-card-title">Comprehension Practice</h4>
-                          <p className="lesson-card-desc">Answer interactive MCQs on everyday warnings, signs, and texts.</p>
-                        </div>
-                        <div className="lesson-card-footer">
-                          <div className="bar-bg" style={{ height: '6px' }}>
-                            <div className="bar-fill comprehension" style={{ width: `${calculateSkillProficiency("comprehension")}%` }}></div>
-                          </div>
-                          <span className="lesson-card-duration">⏱ 12 min | {calculateSkillProficiency("comprehension")}% Mastery</span>
-                        </div>
-                      </div>
-
-                      <div className="lesson-card-item" onClick={() => alert("Practice modules are under development. Keep practicing with your current level!")}>
-                        <div className="lesson-card-header">
-                          <div className="lesson-card-icon-box" style={{ background: '#ecfdf5', color: '#059669' }}>✍️</div>
-                        </div>
-                        <div>
-                          <h4 className="lesson-card-title">Writing & Literacy</h4>
-                          <p className="lesson-card-desc">Write short descriptive texts about prompts and daily routines.</p>
-                        </div>
-                        <div className="lesson-card-footer">
-                          <div className="bar-bg" style={{ height: '6px' }}>
-                            <div className="bar-fill writing" style={{ width: `${calculateSkillProficiency("writing")}%` }}></div>
-                          </div>
-                          <span className="lesson-card-duration">⏱ 10 min | {calculateSkillProficiency("writing")}% Mastery</span>
-                        </div>
-                      </div>
-
-                      <div className="lesson-card-item" onClick={() => alert("Practice modules are under development. Keep practicing with your current level!")}>
-                        <div className="lesson-card-header">
-                          <div className="lesson-card-icon-box" style={{ background: '#f5f3ff', color: '#8b5cf6' }}>🎓</div>
-                        </div>
-                        <div>
-                          <h4 className="lesson-card-title">Language Practice</h4>
-                          <p className="lesson-card-desc">Combine elements of syntax and vocabulary structures.</p>
-                        </div>
-                        <div className="lesson-card-footer">
-                          <div className="bar-bg" style={{ height: '6px' }}>
-                            <div className="bar-fill reading" style={{ width: '0%', background: '#a78bfa' }}></div>
-                          </div>
-                          <span className="lesson-card-duration">⏱ 18 min | 0% Mastery</span>
-                        </div>
-                      </div>
-                    </div>
                   </div>
                 )}
               </>
