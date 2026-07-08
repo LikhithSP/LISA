@@ -93,7 +93,7 @@ const translations = {
     questionOf: "Question {current} of {total}",
     readingSecTitle: "Reading Section (Voice)",
     compSecTitle: "Comprehension Section (MCQ)",
-    writingSecTitle: "Writing Section (Text)",
+    writingSecTitle: "Writing Section (Dictation)",
     micBtnStart: "Start Reading",
     home: "Home",
     profileSettings: "Profile Settings",
@@ -116,6 +116,7 @@ const translations = {
     skipVoicePrompt: "Voice recognition issue? Type the exact text instead:",
     writeInEnglishPrompt: "(Please write your response in English)",
     listenBtn: "Listen",
+    dictationTip: "Press play and write the sentence you hear.",
     myProfile: "My Profile",
     dashboard: "Dashboard",
     prevBtn: "Previous",
@@ -206,7 +207,7 @@ const translations = {
     questionOf: "प्रश्न {current} का {total}",
     readingSecTitle: "पठन अनुभाग (आवाज़)",
     compSecTitle: "समझ अनुभाग (एमसीक्यू)",
-    writingSecTitle: "लेखन अनुभाग (पाठ)",
+    writingSecTitle: "लेखन अनुभाग (डिक्टेशन)",
     micBtnStart: "पढ़ना शुरू करें",
     home: "होम",
     profileSettings: "प्रोफ़ाइल सेटिंग्स",
@@ -229,6 +230,7 @@ const translations = {
     skipVoicePrompt: "आवाज़ पहचानने में समस्या? इसके बजाय टेक्स्ट टाइप करें:",
     writeInEnglishPrompt: "(कृपया अपना उत्तर अंग्रेजी में लिखें)",
     listenBtn: "सुनें",
+    dictationTip: "प्ले दबाएं और जो वाक्य सुनें वह लिखें।",
     myProfile: "मेरी प्रोफ़ाइल",
     dashboard: "डैशबोर्ड",
     prevBtn: "पिछला",
@@ -319,7 +321,7 @@ const translations = {
     questionOf: "ಪ್ರಶ್ನೆ {current} ರಲ್ಲಿ {total}",
     readingSecTitle: "ಓದುವಿಕೆ ವಿಭಾಗ (ಧ್ವನಿ)",
     compSecTitle: "ಗ್ರಹಿಕೆ ವಿಭಾಗ (MCQ)",
-    writingSecTitle: "ಬರವಣಿಗೆ ವಿಭಾಗ (ಪಠ್ಯ)",
+    writingSecTitle: "ಬರವಣಿಗೆ ವಿಭಾಗ (ಡಿಕ್ಟೇಷನ್)",
     micBtnStart: "ಓದಲು ಪ್ರಾರಂಭಿಸಿ",
     home: "ಮುಖಪುಟ",
     profileSettings: "ಪ್ರೊಫೈಲ್ ಸೆಟ್ಟಿಂಗ್ಸ್",
@@ -342,6 +344,7 @@ const translations = {
     skipVoicePrompt: "ಧ್ವನಿ ಗುರುತಿಸುವಿಕೆ ಸಮಸ್ಯೆಯೇ? ಬದಲಿಗೆ ಪಠ್ಯವನ್ನು ಟೈಪ್ ಮಾಡಿ:",
     writeInEnglishPrompt: "(ದಯವಿಟ್ಟು ನಿಮ್ಮ ಉತ್ತರವನ್ನು ಇಂಗ್ಲಿಷ್‌ನಲ್ಲಿ ಬರೆಯಿರಿ)",
     listenBtn: "ಆಲಿಸಿ",
+    dictationTip: "ಪ್ಲೇ ಒತ್ತಿ ಮತ್ತು ನೀವು ಕೇಳಿದ ವಾಕ್ಯವನ್ನು ಬರೆಯಿರಿ.",
     myProfile: "ನನ್ನ ಪ್ರೊಫೈಲ್",
     dashboard: "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
     prevBtn: "ಹಿಂದಿನ",
@@ -432,7 +435,7 @@ const translations = {
     questionOf: "ప్రశ్న {current} / {total}",
     readingSecTitle: "పఠనం విభాగం (వాయిస్)",
     compSecTitle: "గ్రహణశక్తి విభాగం (MCQ)",
-    writingSecTitle: "రాయడం విభాగం (టెక్స్ట్)",
+    writingSecTitle: "రాయడం విభాగం (డిక్టేషన్)",
     micBtnStart: "చదవడం ప్రారంభించండి",
     home: "హోమ్",
     profileSettings: "ప్రొఫైల్ సెట్టింగ్స్",
@@ -455,6 +458,7 @@ const translations = {
     skipVoicePrompt: "వాయిస్ గుర్తింపు సమస్య ఉందా? బదులుగా టెక్స్ట్ టైప్ చేయండి:",
     writeInEnglishPrompt: "(దయచేసి మీ సమాధానాన్ని ఇంగ్లీషులో రాయండి)",
     listenBtn: "వినండి",
+    dictationTip: "ప్లే నొక్కి, మీరు విన్న వాక్యాన్ని రాయండి.",
     myProfile: "నా ప్రొఫైల్",
     dashboard: "డాష్‌బోర్డ్",
     prevBtn: "మునుపటి",
@@ -545,7 +549,7 @@ const translations = {
     questionOf: "கேள்வி {current} / {total}",
     readingSecTitle: "வாசிப்புப் பிரிவு (குரல்)",
     compSecTitle: "புரிதல் பிரிவு (MCQ)",
-    writingSecTitle: "எழுதுதல் பிரிவு (உரை)",
+    writingSecTitle: "எழுதுதல் பிரிவு (டிக்டேஷன்)",
     micBtnStart: "வாசிக்கத் தொடங்குங்கள்",
     home: "முகப்பு",
     profileSettings: "சுயவிவர அமைப்புகள்",
@@ -568,6 +572,7 @@ const translations = {
     skipVoicePrompt: "குரல் ஏற்பிப் பிரச்சனையா? அதற்குப் பதிலாக டைப் செய்யவும் செய்தி:",
     writeInEnglishPrompt: "(தயவுசெய்து உங்கள் பதிலை ஆங்கிலத்தில் எழுதவும்)",
     listenBtn: "கேளுங்கள்",
+    dictationTip: "பிளேயை அழுத்தி, நீங்கள் கேட்ட வாக்கியத்தை எழுதுங்கள்.",
     myProfile: "என் சுயவிவரம்",
     dashboard: "டாஷ்போர்டு",
     prevBtn: "முந்தைய",
@@ -775,6 +780,16 @@ function App() {
     };
   }, []);
 
+  // Auto-play the dictation sentence when the writing section is opened
+  useEffect(() => {
+    if (assessmentState !== "answering") return;
+    const cq = assessmentQuestionsList[currentStep];
+    if (cq?.type !== "writing") return;
+    const dText = cq.rawQuestion?.dictation || "";
+    if (!dText) return;
+    const id = setTimeout(() => speakText(dText), 400);
+    return () => clearTimeout(id);
+  }, [assessmentState, currentStep, selectedLanguage, assessmentQuestionsList]);
   const fetchProfile = async (userId) => {
     try {
       const { data, error } = await supabase
@@ -1799,9 +1814,13 @@ function App() {
                 })
                 : [];
 
-              // 3. Resolve writing prompt
+              // 3. Resolve writing prompt + dictation sentence
               const writingPromptText = isWriting
                 ? (q.rawQuestion?.writing?.[selectedLanguage] || q.rawQuestion?.writing?.["English"] || "")
+                : "";
+
+              const dictationText = isWriting
+                ? (q.rawQuestion?.dictation || "")
                 : "";
 
               return (
@@ -1965,25 +1984,26 @@ function App() {
                       </div>
                     )}
 
-                    {/* WRITING PROMPT SECTION */}
+                    {/* WRITING DICTATION SECTION */}
                     {isWriting && (
                       <div className="writing-q-container">
                         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px', justifyContent: 'space-between', width: '100%' }}>
                           <div style={{ flex: 1 }}>
                             <p className="writing-prompt" style={{ margin: 0, fontWeight: 700, fontSize: "1.2rem" }}>{writingPromptText}</p>
+                            <p className="helper-text" style={{ margin: '8px 0 0' }}>{t("dictationTip") || "Press play and write the sentence you hear."}</p>
                           </div>
                           <button
                             type="button"
-                            className="tts-btn"
-                            onClick={() => speakText(writingPromptText)}
-                            title="Listen to prompt"
+                            className="tts-btn dictation-play"
+                            onClick={() => speakText(dictationText)}
+                            title="Listen to the sentence"
                           >
                             🔊 {t("listenBtn") || "Listen"}
                           </button>
                         </div>
                         <textarea
                           className="writing-textarea"
-                          placeholder="Start typing your response here..."
+                          placeholder="Write the sentence you heard here..."
                           rows={6}
                           value={writingAnswers[currentStep] || ""}
                           onChange={(e) => setWritingAnswers({ ...writingAnswers, [currentStep]: e.target.value })}
