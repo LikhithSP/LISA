@@ -684,7 +684,7 @@ function App() {
 
   useEffect(() => {
     const handleClick = (e) => {
-      if (!e.target.closest(".lesson-node-wrapper, .lesson-popover-card")) {
+      if (!e.target.closest(".lesson-card, .lesson-popover-card")) {
         setActiveLesson(null);
       }
     };
@@ -2259,60 +2259,66 @@ function App() {
                     </div>
                   </div>
 
-                  <div className="lesson-path-map">
-                    <div className="lesson-path-line"></div>
+                  <div className="lesson-journey">
                     {(lessonsData[currentLevelNum] || []).map((lesson, idx) => {
                       const isCompleted = completedLessons.includes(lesson.id);
                       const isUnlocked = idx === 0 || completedLessons.includes((lessonsData[currentLevelNum] || []).slice(0, idx).every(l => completedLessons.includes(l.id)));
                       const status = isCompleted ? "completed" : isUnlocked ? "unlocked" : "locked";
-                      const positions = ["offset-center", "offset-left", "offset-center", "offset-right", "offset-center"];
-                      const alignment = positions[idx % positions.length];
-                      const extraShift =
-                        lesson.id === "l5_2" ? "extra-offset-left"
-                        : lesson.id === "l5_4" ? "extra-offset-right"
-                        : "";
+                      const isActive = activeLesson?.id === lesson.id;
 
                       return (
-                        <div key={lesson.id} className={`lesson-node-wrapper ${alignment} ${extraShift} ${activeLesson?.id === lesson.id ? "active-popover" : ""}`}>
-                          <div className="lesson-node-inner">
-                            <button
-                              type="button"
-                              className={`lesson-node-btn ${status}`}
-                              onClick={() => {
-                                if (status !== "locked") {
-                                  setActiveLesson({ ...lesson, idx, status });
-                                }
-                              }}
-                              disabled={status === "locked"}
-                            >
-                              {lesson.icon}
-                              {status === "locked" && <span className="lesson-node-lock">🔒</span>}
-                            </button>
+                        <div key={lesson.id} className={`lesson-card ${status} ${isActive ? "active" : ""}`}>
+                          <div className="lesson-card-spine">
+                            <span className="lesson-card-node">{status === "completed" ? "✓" : idx + 1}</span>
+                          </div>
 
-                            {lesson.icon === "💡" && (
-                              <img
-                                src="/as4.png"
-                                alt="LISA mascot"
-                                className="lesson-path-mascot"
-                              />
+                          <div className="lesson-card-main">
+                            <div className="lesson-card-icon">
+                              {lesson.icon}
+                              {status === "locked" && <span className="lesson-card-lock">🔒</span>}
+                            </div>
+
+                            <div className="lesson-card-body">
+                              <h4 className="lesson-card-title">{lesson.title}</h4>
+                              <p className="lesson-card-desc">{lesson.desc}</p>
+                            </div>
+
+                            <div className="lesson-card-action">
+                              <span className={`lesson-card-pill ${status}`}>
+                                {status === "completed" ? "Completed" : status === "unlocked" ? "In Progress" : "Locked"}
+                              </span>
+                              <button
+                                type="button"
+                                className="lesson-card-btn"
+                                onClick={() => {
+                                  if (status !== "locked") setActiveLesson({ ...lesson, idx, status });
+                                }}
+                                disabled={status === "locked"}
+                              >
+                                {status === "completed" ? "Review" : "Start"}
+                              </button>
+                            </div>
+
+                            {isActive && (
+                              <div className="lesson-popover-card">
+                                <h4 className="lesson-popover-title">{lesson.title}</h4>
+                                <p className="lesson-popover-desc">Lesson {idx + 1} of {lessonsData[currentLevelNum]?.length || 5}</p>
+                                <button
+                                  type="button"
+                                  className="lesson-popover-btn"
+                                  onClick={() => {
+                                    alert(`Starting Lesson Preview: ${lesson.title}`);
+                                    setActiveLesson(null);
+                                  }}
+                                >
+                                  START +10 XP
+                                </button>
+                              </div>
                             )}
                           </div>
 
-                          {activeLesson?.id === lesson.id && (
-                            <div className="lesson-popover-card">
-                              <h4 className="lesson-popover-title">{lesson.title}</h4>
-                              <p className="lesson-popover-desc">Lesson {idx + 1} of {lessonsData[currentLevelNum]?.length || 5}</p>
-                              <button
-                                type="button"
-                                className="lesson-popover-btn"
-                                onClick={() => {
-                                  alert(`Starting Lesson Preview: ${lesson.title}`);
-                                  setActiveLesson(null);
-                                }}
-                              >
-                                START +10 XP
-                              </button>
-                            </div>
+                          {lesson.icon === "💡" && (
+                            <img src="/as4.png" alt="LISA mascot" className="lesson-journey-mascot" />
                           )}
                         </div>
                       );
