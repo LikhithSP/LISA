@@ -1562,17 +1562,44 @@ select:focus {
   animation: voiceBar 0.9s ease-in-out infinite;
 }
 
-.mic-btn .voice-wave span:nth-child(1) { animation-delay: 0s; }
-.mic-btn .voice-wave span:nth-child(2) { animation-delay: 0.12s; }
-.mic-btn .voice-wave span:nth-child(3) { animation-delay: 0.24s; }
-.mic-btn .voice-wave span:nth-child(4) { animation-delay: 0.36s; }
-.mic-btn .voice-wave span:nth-child(5) { animation-delay: 0.48s; }
-.mic-btn .voice-wave span:nth-child(6) { animation-delay: 0.6s; }
-.mic-btn .voice-wave span:nth-child(7) { animation-delay: 0.72s; }
+.mic-btn .voice-wave span:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.mic-btn .voice-wave span:nth-child(2) {
+  animation-delay: 0.12s;
+}
+
+.mic-btn .voice-wave span:nth-child(3) {
+  animation-delay: 0.24s;
+}
+
+.mic-btn .voice-wave span:nth-child(4) {
+  animation-delay: 0.36s;
+}
+
+.mic-btn .voice-wave span:nth-child(5) {
+  animation-delay: 0.48s;
+}
+
+.mic-btn .voice-wave span:nth-child(6) {
+  animation-delay: 0.6s;
+}
+
+.mic-btn .voice-wave span:nth-child(7) {
+  animation-delay: 0.72s;
+}
 
 @keyframes voiceBar {
-  0%, 100% { transform: scaleY(0.3); }
-  50% { transform: scaleY(1); }
+
+  0%,
+  100% {
+    transform: scaleY(0.3);
+  }
+
+  50% {
+    transform: scaleY(1);
+  }
 }
 
 [data-theme="dark"] .mic-outer-container {
@@ -2813,6 +2840,7 @@ select:focus {
     color: rgba(255, 255, 255, 0.85);
   }
 }
+
 .dashboard-top-row {
   display: flex;
   align-items: stretch;
@@ -3927,7 +3955,8 @@ select:focus {
   background: rgba(198, 95, 45, 0.08);
   color: var(--accent);
   border: 2px solid var(--accent);
-  padding: 12px 18px; /* Offset border width */
+  padding: 12px 18px;
+  /* Offset border width */
 }
 
 [data-theme="dark"] .sidebar-item:hover {
@@ -4049,6 +4078,25 @@ select:focus {
   padding: 20px 0;
 }
 
+/* Mascot shown to the left of the bulb (💡) lesson node */
+.lesson-path-mascot {
+  position: absolute;
+  top: 50%;
+  right: calc(100% + 120px);
+  transform: translateY(-50%);
+  width: 230px;
+  height: 230px;
+  object-fit: contain;
+  flex-shrink: 0;
+  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.14));
+  z-index: 3;
+}
+
+[data-theme="dark"] .lesson-path-mascot {
+  filter:
+    saturate(0.77) drop-shadow(0 0 1px rgba(190, 190, 195, 0.85)) drop-shadow(0 0 6px rgba(190, 190, 195, 0.3)) drop-shadow(0 8px 14px rgba(0, 0, 0, 0.5));
+}
+
 /* Lesson connection line */
 .lesson-path-line {
   position: absolute;
@@ -4068,13 +4116,21 @@ select:focus {
   transition: transform 0.2s ease;
 }
 
+.lesson-node-inner {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
 /* Horizontal Offsets for Serpentine Effect */
 .offset-left {
   transform: translateX(-60px);
 }
+
 .offset-right {
   transform: translateX(60px);
 }
+
 .offset-center {
   transform: translateX(0);
 }
@@ -4142,7 +4198,7 @@ select:focus {
   display: flex;
   justify-content: center;
   align-items: center;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
 [data-theme="dark"] .lesson-node-lock {
@@ -4160,15 +4216,22 @@ select:focus {
   border: 2px solid var(--line);
   border-radius: 16px;
   padding: 16px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
   text-align: center;
   z-index: 10;
   animation: popIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 @keyframes popIn {
-  from { opacity: 0; transform: translateX(-50%) scale(0.8); }
-  to { opacity: 1; transform: translateX(-50%) scale(1); }
+  from {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.8);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+  }
 }
 
 .lesson-popover-card::after {
@@ -4385,13 +4448,13 @@ select:focus {
   flex-grow: 1;
   margin: 0 32px;
   height: 16px;
-  background: rgba(0,0,0,0.06);
+  background: rgba(0, 0, 0, 0.06);
   border-radius: 8px;
   overflow: hidden;
 }
 
 [data-theme="dark"] .lesson-progress-container {
-  background: rgba(255,255,255,0.08);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .lesson-progress-bar {
@@ -4508,8 +4571,13 @@ select:focus {
 }
 
 @keyframes slideUp {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
 }
 
 .lesson-feedback-banner.correct {
@@ -4545,4 +4613,4 @@ select:focus {
 .lesson-feedback-info p {
   margin: 0;
   font-size: 0.95rem;
-}
+}

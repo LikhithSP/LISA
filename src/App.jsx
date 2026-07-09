@@ -2240,8 +2240,82 @@ function App() {
             {/* 3.1. Learn Tab (Duolingo Style Dashboard Widgets - No lessons path rendered yet) */}
             {(dashboardTab === "learn" || dashboardTab === "home") && (
               <div className="learn-grid-layout">
-                {/* Left/Center Column - Current Level, Daily Quests */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                {/* Left/Center Column - Serpentine Lesson Tree */}
+                <div className="lesson-path-column">
+                  <div className="level-header-banner">
+                    <div className="level-header-info">
+                      <h2>{getLevelCategoryAndDescription(currentLevelNum, selectedLanguage).category}</h2>
+                      <p>{getLevelCategoryAndDescription(currentLevelNum, selectedLanguage).description}</p>
+                    </div>
+                  </div>
+
+                  <div className="lesson-path-map">
+                    <div className="lesson-path-line"></div>
+                    {(lessonsData[currentLevelNum] || []).map((lesson, idx) => {
+                      const isCompleted = completedLessons.includes(lesson.id);
+                      const isUnlocked = idx === 0 || completedLessons.includes((lessonsData[currentLevelNum] || []).slice(0, idx).every(l => completedLessons.includes(l.id)));
+                      const status = isCompleted ? "completed" : isUnlocked ? "unlocked" : "locked";
+                      const positions = ["offset-center", "offset-left", "offset-center", "offset-right", "offset-center"];
+                      const alignment = positions[idx % positions.length];
+
+                      return (
+                        <div key={lesson.id} className={`lesson-node-wrapper ${alignment}`}>
+                          <div className="lesson-node-inner">
+                          <button
+                            type="button"
+                            className={`lesson-node-btn ${status}`}
+                            onClick={() => {
+                              if (status !== "locked") {
+                                setActiveLesson({ ...lesson, idx, status });
+                              }
+                            }}
+                            disabled={status === "locked"}
+                          >
+                            {lesson.icon}
+                            {status === "locked" && <span className="lesson-node-lock">🔒</span>}
+                          </button>
+
+                          {lesson.icon === "💡" && (
+                            <img
+                              src="/as4.png"
+                              alt="LISA mascot"
+                              className="lesson-path-mascot"
+                            />
+                          )}
+                          </div>
+
+                          {activeLesson?.id === lesson.id && (
+                            <div className="lesson-popover-card">
+                              <h4 className="lesson-popover-title">{lesson.title}</h4>
+                              <p className="lesson-popover-desc">{lesson.desc}</p>
+                              <button
+                                type="button"
+                                className="lesson-popover-btn primary-btn"
+                                onClick={() => {
+                                  alert(`Starting Lesson Preview: ${lesson.title}`);
+                                  setActiveLesson(null);
+                                }}
+                              >
+                                {status === "completed" ? "Review" : "Start"}
+                              </button>
+                              <button
+                                type="button"
+                                className="secondary-btn"
+                                style={{ marginTop: "8px", width: "100%", padding: "6px", fontSize: "0.85rem" }}
+                                onClick={() => setActiveLesson(null)}
+                              >
+                                Close
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Right Column - Stacked Widgets */}
+                <div className="learn-right-sidebar">
                   <div className="current-level-card" style={{ margin: 0 }}>
                     <div className="current-level-header">
                       <h3 className="current-level-title">Current Level</h3>
@@ -2256,6 +2330,15 @@ function App() {
                         <p className="current-level-msg">Keep it up good going</p>
                       </div>
                     </div>
+                  </div>
+
+                  <div className="streak-widget-card streak-society-card" style={{ margin: 0 }}>
+                    <div className="streak-society-header">
+                      <span className="streak-society-badge">STREAK SOCIETY</span>
+                      <div className="streak-society-icon">🔥</div>
+                    </div>
+                    <h4 className="streak-society-title">36 day streak</h4>
+                    <p className="streak-society-message">You extended your streak before 95.82% of all learners yesterday!</p>
                   </div>
 
                   <div className="daily-quests-card" style={{ margin: 0 }}>
@@ -2275,18 +2358,6 @@ function App() {
                         <div className="quest-reward">📦</div>
                       </div>
                     </div>
-                  </div>
-                </div>
-
-                {/* Right Column - Streak, Achievements */}
-                <div className="learn-right-sidebar">
-                  <div className="streak-widget-card streak-society-card" style={{ margin: 0 }}>
-                    <div className="streak-society-header">
-                      <span className="streak-society-badge">STREAK SOCIETY</span>
-                      <div className="streak-society-icon">🔥</div>
-                    </div>
-                    <h4 className="streak-society-title">36 day streak</h4>
-                    <p className="streak-society-message">You extended your streak before 95.82% of all learners yesterday!</p>
                   </div>
 
                   <div className="achievements-card" style={{ margin: 0 }}>
