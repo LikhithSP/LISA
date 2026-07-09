@@ -2186,7 +2186,7 @@ function App() {
         {/* Left Navigation Sidebar */}
         <aside className="dashboard-sidebar">
           <div className="sidebar-logo" style={{ color: 'var(--accent)', cursor: 'default' }}>
-            <span className="sidebar-logo-icon">📖</span> LISA
+            LISA
           </div>
           <div className="sidebar-menu">
             <button

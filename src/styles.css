@@ -2810,7 +2810,7 @@ select:focus {
 }
 
 [data-theme="dark"] .current-level-card {
-  background: #1a1d23;
+  background: #5e4a87;
   border-color: rgba(255, 255, 255, 0.06);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
 }
@@ -3585,7 +3585,6 @@ select:focus {
 [data-theme="dark"] .metric-stat-box,
 [data-theme="dark"] .streak-widget-card,
 [data-theme="dark"] .streak-society-card,
-[data-theme="dark"] .current-level-card,
 [data-theme="dark"] .achievements-card,
 [data-theme="dark"] .lesson-card-item,
 [data-theme="dark"] .daily-quests-card,
@@ -4084,8 +4083,8 @@ select:focus {
   top: 50%;
   right: calc(100% + 120px);
   transform: translateY(-50%);
-  width: 240px;
-  height: 240px;
+  width: 200px;
+  height: 200px;
   object-fit: contain;
   flex-shrink: 0;
   filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.14));
@@ -4145,8 +4144,8 @@ select:focus {
 }
 
 .lesson-node-btn {
-  width: 80px;
-  height: 80px;
+  width: 90px;
+  height: 75px;
   border-radius: 50%;
   border: none;
   font-size: 2.2rem;
@@ -4314,7 +4313,7 @@ select:focus {
   display: grid;
   grid-template-columns: 1fr 360px;
   gap: 40px;
-  padding: 16px 48px 40px;
+  padding: 0 48px 40px;
   max-width: 1200px;
   margin: 0 auto;
   width: 100%;
@@ -4403,11 +4402,11 @@ select:focus {
 }
 
 .perfect-pronunciation-mascot {
-  width: 140px;
-  height: 140px;
+  width: 170px;
+  height: 170px;
   object-fit: contain;
   z-index: 2;
-  filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.25));
+  filter: drop-shadow(0 0 4px rgb(236, 236, 236)) drop-shadow(0 8px 12px rgba(0, 0, 0, 0.25));
 }
 
 /* Practice Row Cards */
@@ -4488,15 +4487,19 @@ select:focus {
 .speak-icon {
   color: #10b981;
 }
+
 .listen-icon {
   color: #ef4444;
 }
+
 .mistakes-icon {
   color: #f59e0b;
 }
+
 .words-icon {
   color: #3b82f6;
 }
+
 .stories-icon {
   color: #a855f7;
 }
