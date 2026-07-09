@@ -3,87 +3,55 @@ import { assessmentQuestions } from "./assessmentQuestionsData.js";
 import { assessmentReadingWriting } from "./assessmentReadingWritingData.js";
 
 
+// Curriculum structure: Level -> [ Section -> [ Unit -> [ Lesson ] ] ]
+// Topics are placeholders ("... topic") to be replaced by AI-generated content.
+const LESSON_ICONS = [
+  "🌱", "🍎", "🐱", "🔔", "🏆", "📝", "🚸", "🔤", "💬", "📖",
+  "✏️", "🏡", "🏃", "👥", "✍️", "👋", "📢", "😊", "🕒", "❓",
+  "💡", "🚦", "⚠️", "🧾", "📋", "🛒", "💊", "🚉", "🆘", "📱",
+  "📧", "📄", "🛡️", "⚡", "📚", "🎵", "✨", "🔍", "🧠", "🌟"
+];
+
+const SECTIONS_PER_LEVEL = 2;
+const UNITS_PER_SECTION = 3;
+const LESSONS_PER_UNIT = 5;
+
+const buildLevel = (level) => {
+  const sections = [];
+  for (let s = 1; s <= SECTIONS_PER_LEVEL; s++) {
+    const units = [];
+    for (let u = 1; u <= UNITS_PER_SECTION; u++) {
+      const lessons = [];
+      for (let n = 1; n <= LESSONS_PER_UNIT; n++) {
+        const flatIdx = (s - 1) * UNITS_PER_SECTION * LESSONS_PER_UNIT + (u - 1) * LESSONS_PER_UNIT + (n - 1);
+        lessons.push({
+          id: `l${level}_s${s}_u${u}_l${n}`,
+          title: `Lesson ${n}`,
+          desc: `Placeholder for Section ${s}, Unit ${u}, Lesson ${n}. Replace with AI-generated topic.`,
+          icon: LESSON_ICONS[flatIdx % LESSON_ICONS.length],
+        });
+      }
+      units.push({
+        id: `l${level}_s${s}_u${u}`,
+        title: `Unit ${u} topic`, // placeholder — AI fills real topic
+        lessons,
+      });
+    }
+    sections.push({
+      id: `l${level}_s${s}`,
+      title: `Section ${s} topic`, // placeholder — AI fills real topic
+      units,
+    });
+  }
+  return sections;
+};
+
 export const lessonsData = {
-  1: [
-    [
-      { id: "l1_1", title: "Alphabet Basics", desc: "Learn to identify letters and basic shapes.", icon: "🌱" },
-      { id: "l1_2", title: "Vowels & Consonants", desc: "Recognize vowel and consonant sounds.", icon: "🍎" },
-      { id: "l1_3", title: "Object Naming", desc: "Name common household items and animals.", icon: "🐱" },
-      { id: "l1_4", title: "Sound Matching", desc: "Match sounds to letters correctly.", icon: "🔔" },
-      { id: "l1_5", title: "Emerging Checkpoint", desc: "Review emerging reader skills.", icon: "🏆" }
-    ],
-    [
-      { id: "l1_6", title: "Everyday Reading", desc: "Read short everyday texts with confidence.", icon: "📝" },
-      { id: "l1_7", title: "Sign & Symbol Hunt", desc: "Recognize common signs and symbols around you.", icon: "🚸" },
-      { id: "l1_8", title: "Word Builder", desc: "Combine sounds to form new words.", icon: "🔤" },
-      { id: "l1_9", title: "Quick Conversations", desc: "Practice tiny real-life conversations.", icon: "💬" },
-      { id: "l1_10", title: "Section 2 Checkpoint", desc: "Check your learning from the units above.", icon: "🏆" }
-    ]
-  ],
-  2: [
-    [
-      { id: "l2_1", title: "Two-Letter Blends", desc: "Blend sounds into simple 2-letter words.", icon: "📖" },
-      { id: "l2_2", title: "Three-Letter Words", desc: "Form and spell 3-letter nouns.", icon: "✏️" },
-      { id: "l2_3", title: "Common Nouns", desc: "Identify names of places, people, and things.", icon: "🏡" },
-      { id: "l2_4", title: "Action Verbs", desc: "Learn common daily action verbs.", icon: "🏃" },
-      { id: "l2_5", title: "Developing Checkpoint", desc: "Review developing reader skills.", icon: "🏆" }
-    ],
-    [
-      { id: "l2_6", title: "Label Reading", desc: "Read labels on packages and products.", icon: "🏷️" },
-      { id: "l2_7", title: "Rhyme Time", desc: "Spot rhymes to build sound awareness.", icon: "🎵" },
-      { id: "l2_8", title: "Sentence Starters", desc: "Begin building simple sentences.", icon: "✨" },
-      { id: "l2_9", title: "Story Sounds", desc: "Follow sounds in short stories.", icon: "📚" },
-      { id: "l2_10", title: "Section 2 Checkpoint", desc: "Check your learning from the units above.", icon: "🏆" }
-    ]
-  ],
-  3: [
-    [
-      { id: "l3_1", title: "Simple Pronouns", desc: "Learn he, she, they, I, we, it.", icon: "👥" },
-      { id: "l3_2", title: "Action Phrases", desc: "Create simple action sentences.", icon: "✍️" },
-      { id: "l3_3", title: "Daily Greetings", desc: "Practice hello, good morning, thank you.", icon: "👋" },
-      { id: "l3_4", title: "Giving Commands", desc: "Form simple instructions and commands.", icon: "📢" },
-      { id: "l3_5", title: "Constructor Checkpoint", desc: "Review sentence construction skills.", icon: "🏆" }
-    ],
-    [
-      { id: "l3_6", title: "Feelings Talk", desc: "Express feelings in simple words.", icon: "😊" },
-      { id: "l3_7", title: "Time & Place", desc: "Use words for time and location.", icon: "🕒" },
-      { id: "l3_8", title: "Question Words", desc: "Ask who, what, where, when.", icon: "❓" },
-      { id: "l3_9", title: "Mini Dialogues", desc: "Hold short two-line conversations.", icon: "💡" },
-      { id: "l3_10", title: "Section 2 Checkpoint", desc: "Check your learning from the units above.", icon: "🏆" }
-    ]
-  ],
-  4: [
-    [
-      { id: "l4_1", title: "Street & Road Signs", desc: "Read and understand common street signs.", icon: "🚦" },
-      { id: "l4_2", title: "Safety Warnings", desc: "Identify warnings and danger notices.", icon: "⚠️" },
-      { id: "l4_3", title: "Bills & Receipts", desc: "Understand prices, quantities, and totals.", icon: "🧾" },
-      { id: "l4_4", title: "Instruction Cards", desc: "Read simple medicine or item instructions.", icon: "📋" },
-      { id: "l4_5", title: "Comprehender Checkpoint", desc: "Review practical comprehension skills.", icon: "🏆" }
-    ],
-    [
-      { id: "l4_6", title: "Shop Smart", desc: "Read prices and offers while shopping.", icon: "🛒" },
-      { id: "l4_7", title: "Medicine Guide", desc: "Read dosage and caution notes safely.", icon: "💊" },
-      { id: "l4_8", title: "Travel Words", desc: "Read boards and tickets with ease.", icon: "🚉" },
-      { id: "l4_9", title: "Help Notes", desc: "Read and write simple help requests.", icon: "🆘" },
-      { id: "l4_10", title: "Section 2 Checkpoint", desc: "Check your learning from the units above.", icon: "🏆" }
-    ]
-  ],
-  5: [
-    [
-      { id: "l5_1", title: "Mobile Notifications", desc: "Read and react to app alerts and SMS.", icon: "📱" },
-      { id: "l5_2", title: "Basic Forms", desc: "Fill basic details on registration forms.", icon: "📝" },
-      { id: "l5_3", title: "Utility Bills", desc: "Understand electricity, water, and internet bills.", icon: "💡" },
-      { id: "l5_4", title: "Replying to Texts", desc: "Type quick correct responses to questions.", icon: "💬" },
-      { id: "l5_5", title: "Independent Checkpoint", desc: "Review independent reader skills.", icon: "🏆" }
-    ],
-    [
-      { id: "l5_6", title: "Email Essentials", desc: "Read and draft short emails clearly.", icon: "📧" },
-      { id: "l5_7", title: "Doc Reading", desc: "Understand simple official documents.", icon: "📄" },
-      { id: "l5_8", title: "Online Safety", desc: "Spot scams and stay safe online.", icon: "🛡️" },
-      { id: "l5_9", title: "Smart Replies", desc: "Write confident replies to messages.", icon: "⚡" },
-      { id: "l5_10", title: "Section 2 Checkpoint", desc: "Check your learning from the units above.", icon: "🏆" }
-    ]
-  ]
+  1: buildLevel(1),
+  2: buildLevel(2),
+  3: buildLevel(3),
+  4: buildLevel(4),
+  5: buildLevel(5),
 };
 
 export const levelDefinitions = {
