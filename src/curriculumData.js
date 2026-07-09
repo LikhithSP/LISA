@@ -3,6 +3,44 @@ import { assessmentQuestions } from "./assessmentQuestionsData.js";
 import { assessmentReadingWriting } from "./assessmentReadingWritingData.js";
 
 
+export const lessonsData = {
+  1: [
+    { id: "l1_1", title: "Alphabet Basics", desc: "Learn to identify letters and basic shapes.", icon: "🌱" },
+    { id: "l1_2", title: "Vowels & Consonants", desc: "Recognize vowel and consonant sounds.", icon: "🍎" },
+    { id: "l1_3", title: "Object Naming", desc: "Name common household items and animals.", icon: "🐱" },
+    { id: "l1_4", title: "Sound Matching", desc: "Match sounds to letters correctly.", icon: "🔔" },
+    { id: "l1_5", title: "Emerging Checkpoint", desc: "Review emerging reader skills.", icon: "🏆" }
+  ],
+  2: [
+    { id: "l2_1", title: "Two-Letter Blends", desc: "Blend sounds into simple 2-letter words.", icon: "📖" },
+    { id: "l2_2", title: "Three-Letter Words", desc: "Form and spell 3-letter nouns.", icon: "✏️" },
+    { id: "l2_3", title: "Common Nouns", desc: "Identify names of places, people, and things.", icon: "🏡" },
+    { id: "l2_4", title: "Action Verbs", desc: "Learn common daily action verbs.", icon: "🏃" },
+    { id: "l2_5", title: "Developing Checkpoint", desc: "Review developing reader skills.", icon: "🏆" }
+  ],
+  3: [
+    { id: "l3_1", title: "Simple Pronouns", desc: "Learn he, she, they, I, we, it.", icon: "👥" },
+    { id: "l3_2", title: "Action Phrases", desc: "Create simple action sentences.", icon: "✍️" },
+    { id: "l3_3", title: "Daily Greetings", desc: "Practice hello, good morning, thank you.", icon: "👋" },
+    { id: "l3_4", title: "Giving Commands", desc: "Form simple instructions and commands.", icon: "📢" },
+    { id: "l3_5", title: "Constructor Checkpoint", desc: "Review sentence construction skills.", icon: "🏆" }
+  ],
+  4: [
+    { id: "l4_1", title: "Street & Road Signs", desc: "Read and understand common street signs.", icon: "🚦" },
+    { id: "l4_2", title: "Safety Warnings", desc: "Identify warnings and danger notices.", icon: "⚠️" },
+    { id: "l4_3", title: "Bills & Receipts", desc: "Understand prices, quantities, and totals.", icon: "🧾" },
+    { id: "l4_4", title: "Instruction Cards", desc: "Read simple medicine or item instructions.", icon: "📋" },
+    { id: "l4_5", title: "Comprehender Checkpoint", desc: "Review practical comprehension skills.", icon: "🏆" }
+  ],
+  5: [
+    { id: "l5_1", title: "Mobile Notifications", desc: "Read and react to app alerts and SMS.", icon: "📱" },
+    { id: "l5_2", title: "Basic Forms", desc: "Fill basic details on registration forms.", icon: "📝" },
+    { id: "l5_3", title: "Utility Bills", desc: "Understand electricity, water, and internet bills.", icon: "💡" },
+    { id: "l5_4", title: "Replying to Texts", desc: "Type quick correct responses to questions.", icon: "💬" },
+    { id: "l5_5", title: "Independent Checkpoint", desc: "Review independent reader skills.", icon: "🏆" }
+  ]
+};
+
 export const levelDefinitions = {
   English: [
     { level: 1, name: "Emerging Reader", desc: "Identify letter shapes, basic vowel/consonant sounds, and animal/object naming." },
