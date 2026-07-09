@@ -4115,6 +4115,10 @@ select:focus {
   transition: transform 0.2s ease;
 }
 
+.lesson-node-wrapper.active-popover {
+  z-index: 100;
+}
+
 .lesson-node-inner {
   position: relative;
   display: inline-flex;
@@ -4216,15 +4220,16 @@ select:focus {
 /* Lesson Popover Style */
 .lesson-popover-card {
   position: absolute;
-  top: -140px;
+  top: auto;
+  bottom: -170px;
   left: 50%;
   transform: translateX(-50%);
   width: 280px;
-  background: var(--panel);
-  border: 2px solid var(--line);
-  border-radius: 16px;
-  padding: 16px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  background: #3b9dff;
+  border: none;
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 10px 25px rgba(59, 157, 255, 0.35);
   text-align: center;
   z-index: 10;
   animation: popIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -4245,12 +4250,12 @@ select:focus {
 .lesson-popover-card::after {
   content: '';
   position: absolute;
-  bottom: -10px;
+  top: -10px;
   left: 50%;
   transform: translateX(-50%);
-  border-width: 10px 10px 0;
+  border-width: 0 10px 10px;
   border-style: solid;
-  border-color: var(--panel) transparent;
+  border-color: #3b9dff transparent;
   display: block;
   width: 0;
 }
@@ -4258,12 +4263,12 @@ select:focus {
 .lesson-popover-card::before {
   content: '';
   position: absolute;
-  bottom: -12px;
+  top: -12px;
   left: 50%;
   transform: translateX(-50%);
-  border-width: 11px 11px 0;
+  border-width: 0 11px 11px;
   border-style: solid;
-  border-color: var(--line) transparent;
+  border-color: transparent transparent;
   display: block;
   width: 0;
   z-index: -1;
@@ -4273,23 +4278,28 @@ select:focus {
   font-weight: 800;
   font-size: 1.1rem;
   margin: 0 0 6px 0;
-  color: var(--text);
+  color: #ffffff;
 }
 
 .lesson-popover-desc {
   font-size: 0.85rem;
-  color: var(--muted);
-  margin: 0 0 12px 0;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0 0 14px 0;
 }
 
 .lesson-popover-btn {
   width: 100%;
-  padding: 10px 0;
-  border-radius: 12px;
+  padding: 12px 0;
+  border-radius: 14px;
   border: none;
-  font-weight: 700;
+  background: #ffffff;
+  color: #3b9dff;
+  font-weight: 800;
   cursor: pointer;
   text-transform: uppercase;
+  font-size: 0.95rem;
+  letter-spacing: 0.3px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
 /* Right Sidebar Grid Layout */
