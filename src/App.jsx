@@ -683,6 +683,16 @@ function App() {
   const [lessonSession, setLessonSession] = useState(null);
 
   useEffect(() => {
+    const handleClick = (e) => {
+      if (!e.target.closest(".lesson-node-wrapper, .lesson-popover-card")) {
+        setActiveLesson(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  useEffect(() => {
     if (session?.user?.id) {
       const userId = session.user.id;
       const storedXp = localStorage.getItem(`lisa_user_xp_${userId}`);
@@ -2263,7 +2273,7 @@ function App() {
                         : "";
 
                       return (
-                        <div key={lesson.id} className={`lesson-node-wrapper ${alignment} ${extraShift}`}>
+                        <div key={lesson.id} className={`lesson-node-wrapper ${alignment} ${extraShift} ${activeLesson?.id === lesson.id ? "active-popover" : ""}`}>
                           <div className="lesson-node-inner">
                             <button
                               type="button"
@@ -2291,24 +2301,16 @@ function App() {
                           {activeLesson?.id === lesson.id && (
                             <div className="lesson-popover-card">
                               <h4 className="lesson-popover-title">{lesson.title}</h4>
-                              <p className="lesson-popover-desc">{lesson.desc}</p>
+                              <p className="lesson-popover-desc">Lesson {idx + 1} of {lessonsData[currentLevelNum]?.length || 5}</p>
                               <button
                                 type="button"
-                                className="lesson-popover-btn primary-btn"
+                                className="lesson-popover-btn"
                                 onClick={() => {
                                   alert(`Starting Lesson Preview: ${lesson.title}`);
                                   setActiveLesson(null);
                                 }}
                               >
-                                {status === "completed" ? "Review" : "Start"}
-                              </button>
-                              <button
-                                type="button"
-                                className="secondary-btn"
-                                style={{ marginTop: "8px", width: "100%", padding: "6px", fontSize: "0.85rem" }}
-                                onClick={() => setActiveLesson(null)}
-                              >
-                                Close
+                                START +10 XP
                               </button>
                             </div>
                           )}
