@@ -2452,6 +2452,7 @@ function App() {
                                   const isUnlocked = globalIdx === 0 || currentLevelLessons.slice(0, globalIdx).every((l) => completedLessons.includes(l.id));
                                   const status = isCompleted ? "completed" : isUnlocked ? "unlocked" : "locked";
                                   const isCheckpoint = /checkpoint/i.test(lesson.title);
+                                  const lessonXp = idx === 4 ? 60 : 10;
 
                                   return (
                                     <div key={lesson.id} className={`lesson-card ${status} ${aIdx > 0 ? "alt" : ""} ${isCheckpoint ? "checkpoint" : ""}`}>
@@ -2482,7 +2483,7 @@ function App() {
                                             }}
                                             disabled={status === "locked"}
                                           >
-                                            {status === "completed" ? "Review +10 XP" : "Start +10 XP"}
+                                            {status === "completed" ? `Review +${lessonXp} XP` : `Start +${lessonXp} XP`}
                                           </button>
                                         </div>
                                       </div>
