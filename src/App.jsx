@@ -716,7 +716,7 @@ function App() {
   const generateLessonQuestions = (lessonId, lang) => {
     const match = lessonId.match(/l(\d+)_/);
     const lvl = match ? parseInt(match[1], 10) : 1;
-    
+
     const levelQuestions = {
       1: {
         English: [
@@ -1718,466 +1718,466 @@ function App() {
           {/* Main Content Area */}
           <div className="dashboard-content-area" style={{ flexGrow: 1 }}>
             <main className="dashboard-main-view centered-layout">
-            {/* 1. Welcome state when not diagnosed and assessment not started */}
-            {!hasDiagnosed && assessmentState === "not_started" && (
-              <div className="diagnostic-welcome-wrapper" style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
-                <div className="welcome-banner welcome-banner-mascot">
-                  <img
-                    src="/as1.png"
-                    alt="LISA mascot"
-                    className="welcome-mascot"
-                  />
-                  <div className="welcome-banner-text">
-                    <h1>{t("hello")}, {profile?.full_name || "Learner"} 👋</h1>
-                    <h2 style={{ fontSize: "1.3rem", marginTop: "8px", color: "var(--muted)", fontWeight: 600 }}>{t("welcomeToLisa")}!</h2>
-                  </div>
-                </div>
-                <div className="empty-state-assessment">
-                  <p className="intro-copy">{t("initialAssessmentDesc")}</p>
-                  <div className="assessment-tours">
-                    <div className="tour-badge">📃 {t("compSecTitle")}</div>
-                    <div className="tour-badge">🗣️ {t("readingSecTitle")}</div>
-                    <div className="tour-badge">✍️ {t("writingSecTitle")}</div>
-                  </div>
-                  <button
-                    type="button"
-                    className="primary-btn start-assessment-btn"
-                    onClick={handleStartInitialAssessment}
-                  >
-                    {t("takeAssessmentBtn")}
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* 2. Answering state */}
-            {assessmentState === "answering" && (() => {
-              const q = assessmentQuestionsList[currentStep];
-              const isVoiceReading = q?.type === "reading";
-              const isCompMCQ = q?.type === "comprehension";
-              const isWriting = q?.type === "writing";
-
-              // Group question indices by section type for the 3-step stepper
-              const typeIndices = { comprehension: [], reading: [], writing: [] };
-              assessmentQuestionsList.forEach((item, i) => {
-                if (typeIndices[item.type]) typeIndices[item.type].push(i);
-              });
-              const compIdx = typeIndices.comprehension;
-              const readIdx = typeIndices.reading[0];
-              const writeIdx = typeIndices.writing[0];
-
-              const currentSectionNum = isWriting ? 3 : isVoiceReading ? 2 : 1;
-
-              const compCompleted = compIdx.length > 0 && compIdx.every((i) => selectedAnswers[i] !== undefined);
-              const readCompleted = !!readingAttempts[readIdx];
-              const writeCompleted = !!(writingAnswers[writeIdx] || "").trim();
-
-              const sectionMeta = [
-                { num: 1, title: t("compSecTitle"), done: compCompleted },
-                { num: 2, title: t("readingSecTitle"), done: readCompleted },
-                { num: 3, title: t("writingSecTitle"), done: writeCompleted },
-              ];
-
-              // 1. Resolve reading targetText
-              const readingTargetText = isVoiceReading
-                ? (q.rawQuestion?.reading?.["English"] || "Read this text aloud.")
-                : "";
-
-              // 2. Resolve comprehension question & options
-              const compQuestionText = isCompMCQ
-                ? (q.rawQuestion?.question?.[selectedLanguage] || q.rawQuestion?.question?.["English"] || "")
-                : "";
-
-              const optionTranslationMap = {
-                Ship: { Hindi: "जहाज", Kannada: "ಹಡಗು", Telugu: "ఓడ", Tamil: "கப்பல்" },
-                Crop: { Hindi: "फसल", Kannada: "ಬೆಳೆ", Telugu: "పంట", Tamil: "பயிர்" },
-                Soap: { Hindi: "साबुन", Kannada: "ಸೋಪು", Telugu: "సబ్బు", Tamil: "சோப்பு" },
-                Shut: { Hindi: "बंद", Kannada: "ಮುಚ್ಚು", Telugu: "మూసిವೇయి", Tamil: "மூடு" },
-                Shop: { Hindi: "दुकान", Kannada: "ಅಂಗಡಿ", Telugu: "ದುಕಾణం", Tamil: "கடை" },
-                Book: { Hindi: "किताब", Kannada: "ಪುಸ್ತಕ", Telugu: "ಪುಸ್ತಕಂ", Tamil: "புத்தகம்" },
-                Pen: { Hindi: "कलम", Kannada: "ಪೇನಾ", Telugu: "పెన్ను", Tamil: "பேனா" },
-                Read: { Hindi: "पढ़ना", Kannada: "ಓದು", Telugu: "చదవడం", Tamil: "வாசி" },
-                Write: { Hindi: "लिखना", Kannada: "ಬರೆ", Telugu: "రాయడం", Tamil: "எழுது" },
-                Speak: { Hindi: "बोलना", Kannada: "ಮಾತನಾಡು", Telugu: "ಮಾట్లాಡటం", Tamil: "பேசு" },
-                Listen: { Hindi: "सुनना", Kannada: "ಕೇಳು", Telugu: "వినడం", Tamil: "கேள்" },
-                Word: { Hindi: "शब्द", Kannada: "ಪದ", Telugu: "పదం", Tamil: "வார்த்தை" },
-                Letter: { Hindi: "अक्षर", Kannada: "ಅಕ್ಷರ", Telugu: "అక్షరం", Tamil: "எழுத்து" },
-                Sentence: { Hindi: "वाक्य", Kannada: "ವಾಕ್ಯ", Telugu: "వాక్యం", Tamil: "வாக்கியம்" },
-                Name: { Hindi: "नाम", Kannada: "ಹೆಸರು", Telugu: "పేరు", Tamil: "பெயர்" },
-                Day: { Hindi: "दिन", Kannada: "ದಿನ", Telugu: "రోజు", Tamil: "நாள்" },
-                Night: { Hindi: "रात", Kannada: "ರಾತ್ರಿ", Telugu: "రాత్రి", Tamil: "இரவு" },
-                Food: { Hindi: "भोजन", Kannada: "आहार", Telugu: "ఆహారం", Tamil: "உணவு" },
-                Water: { Hindi: "पानी", Kannada: "ನೀರು", Telugu: "నీరు", Tamil: "தண்ணீர்" },
-                Milk: { Hindi: "दूध", Kannada: "ಹಾಲು", Telugu: "పాలు", Tamil: "பால்" }
-              };
-
-              const compOptions = isCompMCQ
-                ? q.shuffledIndices.map((originalIdx) => {
-                  const engOpt = q.rawQuestion?.options?.["English"]?.[originalIdx] || "";
-                  const transOpt = q.rawQuestion?.options?.[selectedLanguage]?.[originalIdx] || "";
-
-                  if (selectedLanguage === "English") return engOpt;
-
-                  // If transOpt already includes regional translations like "Lose (ಕಳೆದುಕೋ)", just use it directly
-                  if (transOpt && engOpt !== transOpt) {
-                    return transOpt;
-                  }
-
-                  // Otherwise check our translation fallback
-                  const cleanKey = engOpt.trim();
-                  const fallbackTrans = optionTranslationMap[cleanKey]?.[selectedLanguage];
-                  if (fallbackTrans) {
-                    return `${engOpt} (${fallbackTrans})`;
-                  }
-                  return engOpt;
-                })
-                : [];
-
-              // 3. Resolve writing prompt + dictation sentence
-              const writingPromptText = isWriting
-                ? (q.rawQuestion?.writing?.[selectedLanguage] || q.rawQuestion?.writing?.["English"] || "")
-                : "";
-
-              const dictationText = isWriting
-                ? (q.rawQuestion?.dictation || "")
-                : "";
-
-              return (
-                <div className="assessment-card" style={{ maxWidth: '800px', margin: '20px auto' }}>
-                  <div className="assessment-card-header assessment-header-with-mascot">
-                    <div className="assessment-header-content">
-                      <div className="step-tag-row">
-                        <div className="step-tag">
-                          {t("stepTitle").replace("{current}", currentSectionNum).replace("{total}", 3)}
-                        </div>
-                        <span className="step-subtitle">Initial Assessment</span>
-                      </div>
-                      <h2>
-                        {isVoiceReading && t("readingSecTitle")}
-                        {isCompMCQ && t("compSecTitle")}
-                        {isWriting && t("writingSecTitle")}
-                      </h2>
-                      {isCompMCQ && compIdx.length > 0 && (
-                        <p className="section-sub-progress">
-                          {t("questionOf").replace("{current}", compIdx.indexOf(currentStep) + 1).replace("{total}", compIdx.length)}
-                        </p>
-                      )}
-                    </div>
-                    <div className="section-stepper">
-                      {sectionMeta.map((s) => (
-                        <div key={s.num} className={`step-node ${s.done ? "done" : currentSectionNum === s.num ? "active" : "pending"}`}>
-                          <span className="step-circle">{s.done ? "✓" : s.num}</span>
-                        </div>
-                      ))}
-                    </div>
+              {/* 1. Welcome state when not diagnosed and assessment not started */}
+              {!hasDiagnosed && assessmentState === "not_started" && (
+                <div className="diagnostic-welcome-wrapper" style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
+                  <div className="welcome-banner welcome-banner-mascot">
                     <img
-                      src="/as2.png"
+                      src="/as1.png"
                       alt="LISA mascot"
-                      className="assessment-mascot"
+                      className="welcome-mascot"
                     />
-                  </div>
-
-                  <div className="question-content-box">
-                    {/* READING VOICE TO TEXT WITH MONKEYTYPE UI */}
-                    {isVoiceReading && (
-                      <div className="reading-q-container">
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-                          <p className="helper-text" style={{ margin: 0 }}>{t("monkeyTypeTip")}</p>
-                          <button
-                            type="button"
-                            className="tts-btn"
-                            onClick={() => speakText(readingTargetText)}
-                            title="Listen to pronunciation"
-                          >
-                            🔊 {t("listenBtn") || "Listen"}
-                          </button>
-                        </div>
-
-                        <div className="monkeytype-text-block">
-                          {readingTargetText.split(/\s+/).map((word, idx) => {
-                            const cleaned = cleanWord(word);
-                            const attempt = readingAttempts[currentStep];
-                            let wordClass = "unspoken";
-                            if (attempt && attempt.scores) {
-                              const targetWordsCleaned = readingTargetText.split(/\s+/).map(cleanWord);
-                              const cleanIdx = targetWordsCleaned.indexOf(cleaned);
-                              if (cleanIdx !== -1 && attempt.scores[cleanIdx]) {
-                                wordClass = "correct";
-                              } else if (!isListening) {
-                                wordClass = "incorrect";
-                              }
-                            }
-                            return (
-                              <span key={idx} className={`mt-word ${wordClass}`}>
-                                {word}{" "}
-                              </span>
-                            );
-                          })}
-                        </div>
-
-                        <div className="voice-mic-controls">
-                          {!isListening ? (
-                            <div className="mic-outer-container">
-                              <button
-                                type="button"
-                                className="mic-btn"
-                                onClick={() => startListening(readingTargetText)}
-                              >
-                                <svg className="mic-icon" width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                                  <path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3z" />
-                                  <path d="M17 11a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z" />
-                                </svg>
-                                <span className="mic-btn-text">CLICK TO SPEAK</span>
-                              </button>
-                            </div>
-                          ) : (
-                            <div className="mic-outer-container">
-                              <button
-                                type="button"
-                                className="mic-btn"
-                                onClick={stopListening}
-                              >
-                                <span className="voice-wave" aria-hidden="true">
-                                  <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
-                                </span>
-                              </button>
-                            </div>
-                          )}
-                        </div>
-
-                        {spokenTranscript && (
-                          <div className="voice-transcript-log">
-                            <strong>Spoken:</strong> "{spokenTranscript}"
-                          </div>
-                        )}
-
-                        {micError && <p className="mic-error-text">{micError}</p>}
-
-                        {/* Manual fallback input */}
-                        <div className="voice-fallback-area">
-                          <label className="fallback-label">{t("skipVoicePrompt")}</label>
-                          <div className="fallback-input-row">
-                            <input
-                              type="text"
-                              placeholder="Type sentence here if mic fails..."
-                              value={manualTextFallback}
-                              onChange={(e) => setManualTextFallback(e.target.value)}
-                            />
-                            <button
-                              type="button"
-                              className="secondary-btn"
-                              onClick={() => handleManualTextSubmit(readingTargetText)}
-                            >
-                              {t("skipVoiceBtn")}
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* COMPREHENSION SHUFFLED MCQS */}
-                    {isCompMCQ && (
-                      <div className="comprehension-q-container">
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
-                          <p className="comprehension-question" style={{ margin: 0, flex: 1, fontWeight: 700, fontSize: "1.2rem" }}>{compQuestionText}</p>
-                          <button
-                            type="button"
-                            className="tts-btn"
-                            onClick={() => speakText(compQuestionText)}
-                            title="Listen to question"
-                          >
-                            🔊 {t("listenBtn") || "Listen"}
-                          </button>
-                        </div>
-                        <div className="options-grid">
-                          {compOptions.map((opt, idx) => {
-                            const isSelected = selectedAnswers[currentStep] === idx;
-                            return (
-                              <button
-                                key={idx}
-                                type="button"
-                                className={`option-btn ${isSelected ? "selected" : ""}`}
-                                onClick={() => setSelectedAnswers({ ...selectedAnswers, [currentStep]: idx })}
-                              >
-                                <span className="option-indicator">{String.fromCharCode(65 + idx)}</span>
-                                <span className="option-label">{opt}</span>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* WRITING DICTATION SECTION */}
-                    {isWriting && (
-                      <div className="writing-q-container">
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px', justifyContent: 'space-between', width: '100%' }}>
-                          <div style={{ flex: 1 }}>
-                            <p className="writing-prompt" style={{ margin: 0, fontWeight: 700, fontSize: "1.2rem" }}>{writingPromptText}</p>
-                            <p className="helper-text" style={{ margin: '8px 0 0' }}>{t("dictationTip") || "Press play and write the sentence you hear."}</p>
-                          </div>
-                          <button
-                            type="button"
-                            className="tts-btn dictation-play"
-                            onClick={() => speakText(dictationText)}
-                            title="Listen to the sentence"
-                          >
-                            🔊 {t("listenBtn") || "Listen"}
-                          </button>
-                        </div>
-                        <textarea
-                          className="writing-textarea"
-                          placeholder="Write the sentence you heard here..."
-                          rows={6}
-                          value={writingAnswers[currentStep] || ""}
-                          onChange={(e) => setWritingAnswers({ ...writingAnswers, [currentStep]: e.target.value })}
-                        />
-                        <div className="text-counter">
-                          Characters: {(writingAnswers[currentStep] || "").length} | Words: {(writingAnswers[currentStep] || "").split(/\s+/).filter(Boolean).length}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="assessment-nav-bar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', gap: '12px' }}>
-                    <div>
-                      {currentStep > 0 && (
-                        <button
-                          type="button"
-                          className="secondary-btn nav-btn"
-                          onClick={() => {
-                            setCurrentStep(currentStep - 1);
-                            setSpokenTranscript("");
-                            setMicError("");
-                            setManualTextFallback("");
-                          }}
-                        >
-                          <span style={{ display: 'inline-block', transform: 'scaleX(-1)' }}>➜</span> {t("prevBtn")}
-                        </button>
-                      )}
+                    <div className="welcome-banner-text">
+                      <h1>{t("hello")}, {profile?.full_name || "Learner"} 👋</h1>
+                      <h2 style={{ fontSize: "1.3rem", marginTop: "8px", color: "var(--muted)", fontWeight: 600 }}>{t("welcomeToLisa")}!</h2>
                     </div>
-
-                    <div>
-                      {currentStep < assessmentQuestionsList.length - 1 ? (
-                        <button
-                          type="button"
-                          className="primary-btn nav-btn"
-                          onClick={handleNextStep}
-                          disabled={
-                            (isVoiceReading && !readingAttempts[currentStep]) ||
-                            (isCompMCQ && selectedAnswers[currentStep] === undefined) ||
-                            (isWriting && !(writingAnswers[currentStep] || "").trim())
-                          }
-                        >
-                          {t("nextQuestion")} ➜
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          className="primary-btn submit-btn"
-                          onClick={submitInitialAssessment}
-                          disabled={
-                            submitting ||
-                            (isVoiceReading && !readingAttempts[currentStep]) ||
-                            (isCompMCQ && selectedAnswers[currentStep] === undefined) ||
-                            (isWriting && !(writingAnswers[currentStep] || "").trim())
-                          }
-                        >
-                          {submitting ? t("submittingAssessment") : t("submitAssessmentBtn")}
-                        </button>
-                      )}
+                  </div>
+                  <div className="empty-state-assessment">
+                    <p className="intro-copy">{t("initialAssessmentDesc")}</p>
+                    <div className="assessment-tours">
+                      <div className="tour-badge">📃 {t("compSecTitle")}</div>
+                      <div className="tour-badge">🗣️ {t("readingSecTitle")}</div>
+                      <div className="tour-badge">✍️ {t("writingSecTitle")}</div>
                     </div>
+                    <button
+                      type="button"
+                      className="primary-btn start-assessment-btn"
+                      onClick={handleStartInitialAssessment}
+                    >
+                      {t("takeAssessmentBtn")}
+                    </button>
                   </div>
                 </div>
-              );
-            })()}
+              )}
 
-            {/* 3. Results feedback state */}
-            {assessmentState === "results" && (() => {
-              const currentLevelIndex = getLiteracyLevel(profile) || 1;
-              const latestAttempt = historyAttempts[0];
+              {/* 2. Answering state */}
+              {assessmentState === "answering" && (() => {
+                const q = assessmentQuestionsList[currentStep];
+                const isVoiceReading = q?.type === "reading";
+                const isCompMCQ = q?.type === "comprehension";
+                const isWriting = q?.type === "writing";
 
-              return (
-                <div className="results-card" style={{ maxWidth: '800px', margin: '20px auto' }}>
-                  <h2 className="results-completed-title">{t("resultsTitle")}</h2>
-                  <div className="results-hero-section">
-                    <div className="results-hero-left">
-                      <div className="results-percentage-circle">
-                        <span className="percent-val">{latestAttempt?.percentage ? latestAttempt.percentage : 0}%</span>
+                // Group question indices by section type for the 3-step stepper
+                const typeIndices = { comprehension: [], reading: [], writing: [] };
+                assessmentQuestionsList.forEach((item, i) => {
+                  if (typeIndices[item.type]) typeIndices[item.type].push(i);
+                });
+                const compIdx = typeIndices.comprehension;
+                const readIdx = typeIndices.reading[0];
+                const writeIdx = typeIndices.writing[0];
+
+                const currentSectionNum = isWriting ? 3 : isVoiceReading ? 2 : 1;
+
+                const compCompleted = compIdx.length > 0 && compIdx.every((i) => selectedAnswers[i] !== undefined);
+                const readCompleted = !!readingAttempts[readIdx];
+                const writeCompleted = !!(writingAnswers[writeIdx] || "").trim();
+
+                const sectionMeta = [
+                  { num: 1, title: t("compSecTitle"), done: compCompleted },
+                  { num: 2, title: t("readingSecTitle"), done: readCompleted },
+                  { num: 3, title: t("writingSecTitle"), done: writeCompleted },
+                ];
+
+                // 1. Resolve reading targetText
+                const readingTargetText = isVoiceReading
+                  ? (q.rawQuestion?.reading?.["English"] || "Read this text aloud.")
+                  : "";
+
+                // 2. Resolve comprehension question & options
+                const compQuestionText = isCompMCQ
+                  ? (q.rawQuestion?.question?.[selectedLanguage] || q.rawQuestion?.question?.["English"] || "")
+                  : "";
+
+                const optionTranslationMap = {
+                  Ship: { Hindi: "जहाज", Kannada: "ಹಡಗು", Telugu: "ఓడ", Tamil: "கப்பல்" },
+                  Crop: { Hindi: "फसल", Kannada: "ಬೆಳೆ", Telugu: "పంట", Tamil: "பயிர்" },
+                  Soap: { Hindi: "साबुन", Kannada: "ಸೋಪು", Telugu: "సబ్బు", Tamil: "சோப்பு" },
+                  Shut: { Hindi: "बंद", Kannada: "ಮುಚ್ಚು", Telugu: "మూసిವೇయి", Tamil: "மூடு" },
+                  Shop: { Hindi: "दुकान", Kannada: "ಅಂಗಡಿ", Telugu: "ದುಕಾణం", Tamil: "கடை" },
+                  Book: { Hindi: "किताब", Kannada: "ಪುಸ್ತಕ", Telugu: "ಪುಸ್ತಕಂ", Tamil: "புத்தகம்" },
+                  Pen: { Hindi: "कलम", Kannada: "ಪೇನಾ", Telugu: "పెన్ను", Tamil: "பேனா" },
+                  Read: { Hindi: "पढ़ना", Kannada: "ಓದು", Telugu: "చదవడం", Tamil: "வாசி" },
+                  Write: { Hindi: "लिखना", Kannada: "ಬರೆ", Telugu: "రాయడం", Tamil: "எழுது" },
+                  Speak: { Hindi: "बोलना", Kannada: "ಮಾತನಾಡು", Telugu: "ಮಾట్లాಡటం", Tamil: "பேசு" },
+                  Listen: { Hindi: "सुनना", Kannada: "ಕೇಳು", Telugu: "వినడం", Tamil: "கேள்" },
+                  Word: { Hindi: "शब्द", Kannada: "ಪದ", Telugu: "పదం", Tamil: "வார்த்தை" },
+                  Letter: { Hindi: "अक्षर", Kannada: "ಅಕ್ಷರ", Telugu: "అక్షరం", Tamil: "எழுத்து" },
+                  Sentence: { Hindi: "वाक्य", Kannada: "ವಾಕ್ಯ", Telugu: "వాక్యం", Tamil: "வாக்கியம்" },
+                  Name: { Hindi: "नाम", Kannada: "ಹೆಸರು", Telugu: "పేరు", Tamil: "பெயர்" },
+                  Day: { Hindi: "दिन", Kannada: "ದಿನ", Telugu: "రోజు", Tamil: "நாள்" },
+                  Night: { Hindi: "रात", Kannada: "ರಾತ್ರಿ", Telugu: "రాత్రి", Tamil: "இரவு" },
+                  Food: { Hindi: "भोजन", Kannada: "आहार", Telugu: "ఆహారం", Tamil: "உணவு" },
+                  Water: { Hindi: "पानी", Kannada: "ನೀರು", Telugu: "నీరు", Tamil: "தண்ணீர்" },
+                  Milk: { Hindi: "दूध", Kannada: "ಹಾಲು", Telugu: "పాలు", Tamil: "பால்" }
+                };
+
+                const compOptions = isCompMCQ
+                  ? q.shuffledIndices.map((originalIdx) => {
+                    const engOpt = q.rawQuestion?.options?.["English"]?.[originalIdx] || "";
+                    const transOpt = q.rawQuestion?.options?.[selectedLanguage]?.[originalIdx] || "";
+
+                    if (selectedLanguage === "English") return engOpt;
+
+                    // If transOpt already includes regional translations like "Lose (ಕಳೆದುಕೋ)", just use it directly
+                    if (transOpt && engOpt !== transOpt) {
+                      return transOpt;
+                    }
+
+                    // Otherwise check our translation fallback
+                    const cleanKey = engOpt.trim();
+                    const fallbackTrans = optionTranslationMap[cleanKey]?.[selectedLanguage];
+                    if (fallbackTrans) {
+                      return `${engOpt} (${fallbackTrans})`;
+                    }
+                    return engOpt;
+                  })
+                  : [];
+
+                // 3. Resolve writing prompt + dictation sentence
+                const writingPromptText = isWriting
+                  ? (q.rawQuestion?.writing?.[selectedLanguage] || q.rawQuestion?.writing?.["English"] || "")
+                  : "";
+
+                const dictationText = isWriting
+                  ? (q.rawQuestion?.dictation || "")
+                  : "";
+
+                return (
+                  <div className="assessment-card" style={{ maxWidth: '800px', margin: '20px auto' }}>
+                    <div className="assessment-card-header assessment-header-with-mascot">
+                      <div className="assessment-header-content">
+                        <div className="step-tag-row">
+                          <div className="step-tag">
+                            {t("stepTitle").replace("{current}", currentSectionNum).replace("{total}", 3)}
+                          </div>
+                          <span className="step-subtitle">Initial Assessment</span>
+                        </div>
+                        <h2>
+                          {isVoiceReading && t("readingSecTitle")}
+                          {isCompMCQ && t("compSecTitle")}
+                          {isWriting && t("writingSecTitle")}
+                        </h2>
+                        {isCompMCQ && compIdx.length > 0 && (
+                          <p className="section-sub-progress">
+                            {t("questionOf").replace("{current}", compIdx.indexOf(currentStep) + 1).replace("{total}", compIdx.length)}
+                          </p>
+                        )}
                       </div>
-                      <span className="results-percent-text">{t("percentage")}</span>
-                    </div>
-
-                    <div className="results-hero-center-score">
-                      <span className="hero-score-label">{t("overallScore")}</span>
-                      <span className="hero-score-val">{latestAttempt?.score || 0} / {latestAttempt?.maxScore || 30}</span>
-                    </div>
-
-                    <div className="results-hero-right">
+                      <div className="section-stepper">
+                        {sectionMeta.map((s) => (
+                          <div key={s.num} className={`step-node ${s.done ? "done" : currentSectionNum === s.num ? "active" : "pending"}`}>
+                            <span className="step-circle">{s.done ? "✓" : s.num}</span>
+                          </div>
+                        ))}
+                      </div>
                       <img
-                        src="/as3.png"
+                        src="/as2.png"
                         alt="LISA mascot"
-                        className="assessment-mascot results-mascot-medium"
+                        className="assessment-mascot"
                       />
                     </div>
-                  </div>
 
-                  <div className="results-detail-row">
-                    <div className="benchmark-card">
-                      <div className="benchmark-badge-icon">🎖️</div>
-                      <h3 className="benchmark-title">{getLevelCategoryAndDescription(currentLevelIndex, currentLang).category}</h3>
-                      <p className="benchmark-desc">
-                        {getLevelCategoryAndDescription(currentLevelIndex, currentLang).description}
-                      </p>
+                    <div className="question-content-box">
+                      {/* READING VOICE TO TEXT WITH MONKEYTYPE UI */}
+                      {isVoiceReading && (
+                        <div className="reading-q-container">
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                            <p className="helper-text" style={{ margin: 0 }}>{t("monkeyTypeTip")}</p>
+                            <button
+                              type="button"
+                              className="tts-btn"
+                              onClick={() => speakText(readingTargetText)}
+                              title="Listen to pronunciation"
+                            >
+                              🔊 {t("listenBtn") || "Listen"}
+                            </button>
+                          </div>
+
+                          <div className="monkeytype-text-block">
+                            {readingTargetText.split(/\s+/).map((word, idx) => {
+                              const cleaned = cleanWord(word);
+                              const attempt = readingAttempts[currentStep];
+                              let wordClass = "unspoken";
+                              if (attempt && attempt.scores) {
+                                const targetWordsCleaned = readingTargetText.split(/\s+/).map(cleanWord);
+                                const cleanIdx = targetWordsCleaned.indexOf(cleaned);
+                                if (cleanIdx !== -1 && attempt.scores[cleanIdx]) {
+                                  wordClass = "correct";
+                                } else if (!isListening) {
+                                  wordClass = "incorrect";
+                                }
+                              }
+                              return (
+                                <span key={idx} className={`mt-word ${wordClass}`}>
+                                  {word}{" "}
+                                </span>
+                              );
+                            })}
+                          </div>
+
+                          <div className="voice-mic-controls">
+                            {!isListening ? (
+                              <div className="mic-outer-container">
+                                <button
+                                  type="button"
+                                  className="mic-btn"
+                                  onClick={() => startListening(readingTargetText)}
+                                >
+                                  <svg className="mic-icon" width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                    <path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3z" />
+                                    <path d="M17 11a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z" />
+                                  </svg>
+                                  <span className="mic-btn-text">CLICK TO SPEAK</span>
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="mic-outer-container">
+                                <button
+                                  type="button"
+                                  className="mic-btn"
+                                  onClick={stopListening}
+                                >
+                                  <span className="voice-wave" aria-hidden="true">
+                                    <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+                                  </span>
+                                </button>
+                              </div>
+                            )}
+                          </div>
+
+                          {spokenTranscript && (
+                            <div className="voice-transcript-log">
+                              <strong>Spoken:</strong> "{spokenTranscript}"
+                            </div>
+                          )}
+
+                          {micError && <p className="mic-error-text">{micError}</p>}
+
+                          {/* Manual fallback input */}
+                          <div className="voice-fallback-area">
+                            <label className="fallback-label">{t("skipVoicePrompt")}</label>
+                            <div className="fallback-input-row">
+                              <input
+                                type="text"
+                                placeholder="Type sentence here if mic fails..."
+                                value={manualTextFallback}
+                                onChange={(e) => setManualTextFallback(e.target.value)}
+                              />
+                              <button
+                                type="button"
+                                className="secondary-btn"
+                                onClick={() => handleManualTextSubmit(readingTargetText)}
+                              >
+                                {t("skipVoiceBtn")}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* COMPREHENSION SHUFFLED MCQS */}
+                      {isCompMCQ && (
+                        <div className="comprehension-q-container">
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
+                            <p className="comprehension-question" style={{ margin: 0, flex: 1, fontWeight: 700, fontSize: "1.2rem" }}>{compQuestionText}</p>
+                            <button
+                              type="button"
+                              className="tts-btn"
+                              onClick={() => speakText(compQuestionText)}
+                              title="Listen to question"
+                            >
+                              🔊 {t("listenBtn") || "Listen"}
+                            </button>
+                          </div>
+                          <div className="options-grid">
+                            {compOptions.map((opt, idx) => {
+                              const isSelected = selectedAnswers[currentStep] === idx;
+                              return (
+                                <button
+                                  key={idx}
+                                  type="button"
+                                  className={`option-btn ${isSelected ? "selected" : ""}`}
+                                  onClick={() => setSelectedAnswers({ ...selectedAnswers, [currentStep]: idx })}
+                                >
+                                  <span className="option-indicator">{String.fromCharCode(65 + idx)}</span>
+                                  <span className="option-label">{opt}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* WRITING DICTATION SECTION */}
+                      {isWriting && (
+                        <div className="writing-q-container">
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px', justifyContent: 'space-between', width: '100%' }}>
+                            <div style={{ flex: 1 }}>
+                              <p className="writing-prompt" style={{ margin: 0, fontWeight: 700, fontSize: "1.2rem" }}>{writingPromptText}</p>
+                              <p className="helper-text" style={{ margin: '8px 0 0' }}>{t("dictationTip") || "Press play and write the sentence you hear."}</p>
+                            </div>
+                            <button
+                              type="button"
+                              className="tts-btn dictation-play"
+                              onClick={() => speakText(dictationText)}
+                              title="Listen to the sentence"
+                            >
+                              🔊 {t("listenBtn") || "Listen"}
+                            </button>
+                          </div>
+                          <textarea
+                            className="writing-textarea"
+                            placeholder="Write the sentence you heard here..."
+                            rows={6}
+                            value={writingAnswers[currentStep] || ""}
+                            onChange={(e) => setWritingAnswers({ ...writingAnswers, [currentStep]: e.target.value })}
+                          />
+                          <div className="text-counter">
+                            Characters: {(writingAnswers[currentStep] || "").length} | Words: {(writingAnswers[currentStep] || "").split(/\s+/).filter(Boolean).length}
+                          </div>
+                        </div>
+                      )}
                     </div>
 
-                    <div className="skill-breakdowns-box">
-                      <h3>{t("skillBreakdown")}</h3>
-                      <div className="skill-progress-bar">
-                        <div className="skill-progress-label">
-                          <span>{t("readingSkill")}</span>
-                          <span>{latestAttempt?.skills?.reading || 0}%</span>
-                        </div>
-                        <div className="bar-bg">
-                          <div className="bar-fill reading" style={{ width: `${latestAttempt?.skills?.reading || 0}%` }}></div>
-                        </div>
+                    <div className="assessment-nav-bar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', gap: '12px' }}>
+                      <div>
+                        {currentStep > 0 && (
+                          <button
+                            type="button"
+                            className="secondary-btn nav-btn"
+                            onClick={() => {
+                              setCurrentStep(currentStep - 1);
+                              setSpokenTranscript("");
+                              setMicError("");
+                              setManualTextFallback("");
+                            }}
+                          >
+                            <span style={{ display: 'inline-block', transform: 'scaleX(-1)' }}>➜</span> {t("prevBtn")}
+                          </button>
+                        )}
                       </div>
-                      <div className="skill-progress-bar">
-                        <div className="skill-progress-label">
-                          <span>{t("compSkill")}</span>
-                          <span>{latestAttempt?.skills?.comprehension || 0}%</span>
-                        </div>
-                        <div className="bar-bg">
-                          <div className="bar-fill comprehension" style={{ width: `${latestAttempt?.skills?.comprehension || 0}%` }}></div>
-                        </div>
-                      </div>
-                      <div className="skill-progress-bar">
-                        <div className="skill-progress-label">
-                          <span>{t("writingSkill")}</span>
-                          <span>{latestAttempt?.skills?.writing || 0}%</span>
-                        </div>
-                        <div className="bar-bg">
-                          <div className="bar-fill writing" style={{ width: `${latestAttempt?.skills?.writing || 0}%` }}></div>
-                        </div>
+
+                      <div>
+                        {currentStep < assessmentQuestionsList.length - 1 ? (
+                          <button
+                            type="button"
+                            className="primary-btn nav-btn"
+                            onClick={handleNextStep}
+                            disabled={
+                              (isVoiceReading && !readingAttempts[currentStep]) ||
+                              (isCompMCQ && selectedAnswers[currentStep] === undefined) ||
+                              (isWriting && !(writingAnswers[currentStep] || "").trim())
+                            }
+                          >
+                            {t("nextQuestion")} ➜
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            className="primary-btn submit-btn"
+                            onClick={submitInitialAssessment}
+                            disabled={
+                              submitting ||
+                              (isVoiceReading && !readingAttempts[currentStep]) ||
+                              (isCompMCQ && selectedAnswers[currentStep] === undefined) ||
+                              (isWriting && !(writingAnswers[currentStep] || "").trim())
+                            }
+                          >
+                            {submitting ? t("submittingAssessment") : t("submitAssessmentBtn")}
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
+                );
+              })()}
 
-                  <button
-                    type="button"
-                    className="primary-btn dashboard-enter-btn"
-                    onClick={() => {
-                      setAssessmentState("not_started");
-                    }}
-                  >
-                    {t("continueToDashboard")}
-                  </button>
-                </div>
-              );
-            })()}
-          </main>
+              {/* 3. Results feedback state */}
+              {assessmentState === "results" && (() => {
+                const currentLevelIndex = getLiteracyLevel(profile) || 1;
+                const latestAttempt = historyAttempts[0];
+
+                return (
+                  <div className="results-card" style={{ maxWidth: '800px', margin: '20px auto' }}>
+                    <h2 className="results-completed-title">{t("resultsTitle")}</h2>
+                    <div className="results-hero-section">
+                      <div className="results-hero-left">
+                        <div className="results-percentage-circle">
+                          <span className="percent-val">{latestAttempt?.percentage ? latestAttempt.percentage : 0}%</span>
+                        </div>
+                        <span className="results-percent-text">{t("percentage")}</span>
+                      </div>
+
+                      <div className="results-hero-center-score">
+                        <span className="hero-score-label">{t("overallScore")}</span>
+                        <span className="hero-score-val">{latestAttempt?.score || 0} / {latestAttempt?.maxScore || 30}</span>
+                      </div>
+
+                      <div className="results-hero-right">
+                        <img
+                          src="/as3.png"
+                          alt="LISA mascot"
+                          className="assessment-mascot results-mascot-medium"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="results-detail-row">
+                      <div className="benchmark-card">
+                        <div className="benchmark-badge-icon">🎖️</div>
+                        <h3 className="benchmark-title">{getLevelCategoryAndDescription(currentLevelIndex, currentLang).category}</h3>
+                        <p className="benchmark-desc">
+                          {getLevelCategoryAndDescription(currentLevelIndex, currentLang).description}
+                        </p>
+                      </div>
+
+                      <div className="skill-breakdowns-box">
+                        <h3>{t("skillBreakdown")}</h3>
+                        <div className="skill-progress-bar">
+                          <div className="skill-progress-label">
+                            <span>{t("readingSkill")}</span>
+                            <span>{latestAttempt?.skills?.reading || 0}%</span>
+                          </div>
+                          <div className="bar-bg">
+                            <div className="bar-fill reading" style={{ width: `${latestAttempt?.skills?.reading || 0}%` }}></div>
+                          </div>
+                        </div>
+                        <div className="skill-progress-bar">
+                          <div className="skill-progress-label">
+                            <span>{t("compSkill")}</span>
+                            <span>{latestAttempt?.skills?.comprehension || 0}%</span>
+                          </div>
+                          <div className="bar-bg">
+                            <div className="bar-fill comprehension" style={{ width: `${latestAttempt?.skills?.comprehension || 0}%` }}></div>
+                          </div>
+                        </div>
+                        <div className="skill-progress-bar">
+                          <div className="skill-progress-label">
+                            <span>{t("writingSkill")}</span>
+                            <span>{latestAttempt?.skills?.writing || 0}%</span>
+                          </div>
+                          <div className="bar-bg">
+                            <div className="bar-fill writing" style={{ width: `${latestAttempt?.skills?.writing || 0}%` }}></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      className="primary-btn dashboard-enter-btn"
+                      onClick={() => {
+                        setAssessmentState("not_started");
+                      }}
+                    >
+                      {t("continueToDashboard")}
+                    </button>
+                  </div>
+                );
+              })()}
+            </main>
+          </div>
         </div>
-      </div>
       );
     }
 
@@ -2257,31 +2257,35 @@ function App() {
                       const status = isCompleted ? "completed" : isUnlocked ? "unlocked" : "locked";
                       const positions = ["offset-center", "offset-left", "offset-center", "offset-right", "offset-center"];
                       const alignment = positions[idx % positions.length];
+                      const extraShift =
+                        lesson.id === "l5_2" ? "extra-offset-left"
+                        : lesson.id === "l5_4" ? "extra-offset-right"
+                        : "";
 
                       return (
-                        <div key={lesson.id} className={`lesson-node-wrapper ${alignment}`}>
+                        <div key={lesson.id} className={`lesson-node-wrapper ${alignment} ${extraShift}`}>
                           <div className="lesson-node-inner">
-                          <button
-                            type="button"
-                            className={`lesson-node-btn ${status}`}
-                            onClick={() => {
-                              if (status !== "locked") {
-                                setActiveLesson({ ...lesson, idx, status });
-                              }
-                            }}
-                            disabled={status === "locked"}
-                          >
-                            {lesson.icon}
-                            {status === "locked" && <span className="lesson-node-lock">🔒</span>}
-                          </button>
+                            <button
+                              type="button"
+                              className={`lesson-node-btn ${status}`}
+                              onClick={() => {
+                                if (status !== "locked") {
+                                  setActiveLesson({ ...lesson, idx, status });
+                                }
+                              }}
+                              disabled={status === "locked"}
+                            >
+                              {lesson.icon}
+                              {status === "locked" && <span className="lesson-node-lock">🔒</span>}
+                            </button>
 
-                          {lesson.icon === "💡" && (
-                            <img
-                              src="/as4.png"
-                              alt="LISA mascot"
-                              className="lesson-path-mascot"
-                            />
-                          )}
+                            {lesson.icon === "💡" && (
+                              <img
+                                src="/as4.png"
+                                alt="LISA mascot"
+                                className="lesson-path-mascot"
+                              />
+                            )}
                           </div>
 
                           {activeLesson?.id === lesson.id && (
@@ -2327,7 +2331,7 @@ function App() {
                       </div>
                       <div className="current-level-info">
                         <p className="current-level-name">{getLevelCategoryAndDescription(currentLevelNum, selectedLanguage).category}</p>
-                        <p className="current-level-msg">Keep it up good going</p>
+                        <p className="current-level-msg">Keep it up! Good Work</p>
                       </div>
                     </div>
                   </div>
@@ -2389,126 +2393,252 @@ function App() {
               </div>
             )}
 
-                {/* 3.2. Practice Tab */}
-                {dashboardTab === "practice" && (
-                  <div className="practice-view-container">
-                    <h2>Skill Practice</h2>
-                    <p style={{ color: "var(--muted)" }}>Practice core skills to earn extra XP and master your language path.</p>
-                    <div className="practice-grid">
-                      <div className="practice-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_read_practice`, title: "Reading Practice", desc: "Speak out sentences aloud" })}>
-                        <div className="practice-card-icon">🔊</div>
-                        <h3>Reading Practice</h3>
-                        <p>Read out loud and improve your pronunciation.</p>
-                        <button className="practice-start-btn">Start (+5 XP)</button>
+            {/* 3.2. Practice Tab */}
+            {dashboardTab === "practice" && (
+              <div className="practice-grid-layout">
+                {/* Left/Center Column - Custom Practice Sections */}
+                <div className="practice-content-column">
+                  
+                  {/* Today's Review Section */}
+                  <div className="practice-section">
+                    <h2 className="practice-section-title">Today's Review</h2>
+                    <div className="perfect-pronunciation-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_read_practice`, title: "Perfect Pronunciation", desc: "Speak out sentences aloud" })}>
+                      <div className="perfect-pronunciation-info">
+                        <h3 className="perfect-pronunciation-title">Perfect Pronunciation</h3>
+                        <p className="perfect-pronunciation-desc">Finish this session to build confidence with speaking!</p>
+                        <button type="button" className="perfect-pronunciation-btn">START</button>
                       </div>
-                      <div className="practice-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_write_practice`, title: "Writing Practice", desc: "Practice typing and spelling" })}>
-                        <div className="practice-card-icon">✍️</div>
-                        <h3>Writing Practice</h3>
-                        <p>Type out words correctly to improve your spelling.</p>
-                        <button className="practice-start-btn">Start (+5 XP)</button>
+                      <img src="/as4.png" alt="Mascot" className="perfect-pronunciation-mascot" />
+                    </div>
+                  </div>
+
+                  {/* Conversation Section */}
+                  <div className="practice-section">
+                    <h2 className="practice-section-title">Conversation</h2>
+                    <div className="practice-row-cards">
+                      <div className="practice-row-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_read_practice`, title: "Speak Practice", desc: "Improve your speaking skills with these phrases" })}>
+                        <div className="practice-row-card-content">
+                          <h3 className="practice-row-card-title">Speak</h3>
+                          <p className="practice-row-card-desc">Improve your speaking skills with these phrases</p>
+                        </div>
+                        <div className="practice-row-card-icon speak-icon">🎙️</div>
                       </div>
-                      <div className="practice-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_comp_practice`, title: "Comprehension Practice", desc: "Answer simple MCQs" })}>
-                        <div className="practice-card-icon">🧠</div>
-                        <h3>Comprehension</h3>
-                        <p>Answer questions to build understanding.</p>
-                        <button className="practice-start-btn">Start (+5 XP)</button>
+                      <div className="practice-row-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_write_practice`, title: "Listen Practice", desc: "Boost your listening skills with an audio-only session" })}>
+                        <div className="practice-row-card-content">
+                          <h3 className="practice-row-card-title">Listen</h3>
+                          <p className="practice-row-card-desc">Boost your listening skills with an audio-only session</p>
+                        </div>
+                        <div className="practice-row-card-icon listen-icon">🎧</div>
                       </div>
                     </div>
                   </div>
-                )}
 
-                {/* 3.3. Profile Tab */}
-                {dashboardTab === "profile" && (
-                  <div className="profile-view-container">
-                    <div className="profile-card-large">
-                      <div className="profile-avatar-large">
-                        {getUserInitials(profile?.full_name)}
-                      </div>
-                      <div className="profile-info-large">
-                        <h2>{profile?.full_name || "Learner"}</h2>
-                        <p>{session.user.email}</p>
-                        <div style={{ display: "flex", gap: "16px", marginTop: "12px" }}>
-                          <span style={{ fontWeight: 700 }}>Age: {profile?.age || "N/A"}</span>
-                          <span style={{ fontWeight: 700 }}>Education: {profile?.education_level || "N/A"}</span>
+                  {/* Your collections Section */}
+                  <div className="practice-section">
+                    <h2 className="practice-section-title">Your collections</h2>
+                    <div className="practice-row-cards">
+                      <div className="practice-row-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_write_practice`, title: "Mistakes Practice", desc: "Start a personalized lesson to practice your mistakes" })}>
+                        <div className="practice-row-card-content">
+                          <h3 className="practice-row-card-title">
+                            Mistakes
+                            <span className="practice-badge">7</span>
+                          </h3>
+                          <p className="practice-row-card-desc">Start a personalized lesson to practice your mistakes</p>
                         </div>
+                        <div className="practice-row-card-icon mistakes-icon">🔄</div>
                       </div>
-                    </div>
-
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px" }}>
-                      <div className="achievements-card" style={{ margin: 0, padding: "24px" }}>
-                        <h3 style={{ fontSize: "1.2rem", fontWeight: 800, marginBottom: "20px" }}>Update Profile Settings</h3>
-                        <form onSubmit={handleSaveProfileEdit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                          <label className="profile-dropdown-label">
-                            Full Name
-                            <input
-                              type="text"
-                              required
-                              value={editFullName}
-                              onChange={(e) => setEditFullName(e.target.value)}
-                              style={{ width: "100%", boxSizing: "border-box" }}
-                            />
-                          </label>
-                          <label className="profile-dropdown-label">
-                            Age
-                            <input
-                              type="number"
-                              min="5"
-                              max="120"
-                              required
-                              value={editAge}
-                              onChange={(e) => setEditAge(e.target.value)}
-                              style={{ width: "100%", boxSizing: "border-box" }}
-                            />
-                          </label>
-                          <label className="profile-dropdown-label">
-                            Preferred Language
-                            <select
-                              required
-                              value={editPreferredLang}
-                              onChange={(e) => setEditPreferredLang(e.target.value)}
-                              style={{ width: "100%", boxSizing: "border-box" }}
-                            >
-                              {languages.map((l) => (
-                                <option key={l} value={l}>{t(l + "Option")}</option>
-                              ))}
-                            </select>
-                          </label>
-                          <label className="profile-dropdown-label">
-                            Current Education Status
-                            <select
-                              required
-                              value={editEdLevel}
-                              onChange={(e) => setEditEdLevel(e.target.value)}
-                              style={{ width: "100%", boxSizing: "border-box" }}
-                            >
-                              {educationLevels.map((ed) => (
-                                <option key={ed} value={ed}>{t(ed + "Option")}</option>
-                              ))}
-                            </select>
-                          </label>
-                          <button type="submit" className="primary-btn" disabled={submitting}>
-                            {submitting ? "Saving..." : "Save Changes"}
-                          </button>
-                        </form>
-                      </div>
-
-                      <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-                        <div className="current-level-card" style={{ margin: 0, padding: "24px" }}>
-                          <h3 className="current-level-title">Diagnostic Control</h3>
-                          <p style={{ fontSize: "0.85rem", color: "var(--muted)", marginBottom: "16px" }}>Reset your assessment status to take the initial diagnostic test again.</p>
-                          <button
-                            type="button"
-                            className="secondary-btn"
-                            style={{ borderColor: "rgba(239, 68, 68, 0.4)", color: "#ef4444", width: "100%" }}
-                            onClick={() => handleResetAssessmentStatus()}
-                          >
-                            Reset Assessment Status
-                          </button>
+                      
+                      <div className="practice-row-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_write_practice`, title: "Words Practice", desc: "Review your vocabulary at any time" })}>
+                        <div className="practice-row-card-content">
+                          <h3 className="practice-row-card-title">
+                            Words
+                            <span className="practice-badge">30+</span>
+                          </h3>
+                          <p className="practice-row-card-desc">Review your {selectedLanguage || "English"} vocabulary at any time</p>
                         </div>
+                        <div className="practice-row-card-icon words-icon">✨</div>
+                      </div>
+
+                      <div className="practice-row-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_comp_practice`, title: "Stories Practice", desc: "Reread a story to review words in context" })}>
+                        <div className="practice-row-card-content">
+                          <h3 className="practice-row-card-title">Stories</h3>
+                          <p className="practice-row-card-desc">Reread a story to review words in context</p>
+                        </div>
+                        <div className="practice-row-card-icon stories-icon">📖</div>
                       </div>
                     </div>
                   </div>
-                )}
+
+                </div>
+
+                {/* Right Column - Stacked Widgets (Same as Dashboard) */}
+                <div className="learn-right-sidebar">
+                  <div className="current-level-card" style={{ margin: 0 }}>
+                    <div className="current-level-header">
+                      <h3 className="current-level-title">Current Level</h3>
+                    </div>
+                    <div className="current-level-body">
+                      <div className="current-level-badge" style={{ background: levelBadgeColor(currentLevelNum) }}>
+                        <span className="current-level-badge-icon">{levelBadgeIcon(currentLevelNum)}</span>
+                        <span className="current-level-badge-level">LEVEL {currentLevelNum}</span>
+                      </div>
+                      <div className="current-level-info">
+                        <p className="current-level-name">{getLevelCategoryAndDescription(currentLevelNum, selectedLanguage).category}</p>
+                        <p className="current-level-msg">Keep it up! Good Work</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="streak-widget-card streak-society-card" style={{ margin: 0 }}>
+                    <div className="streak-society-header">
+                      <span className="streak-society-badge">STREAK SOCIETY</span>
+                      <div className="streak-society-icon">🔥</div>
+                    </div>
+                    <h4 className="streak-society-title">36 day streak</h4>
+                    <p className="streak-society-message">You extended your streak before 95.82% of all learners yesterday!</p>
+                  </div>
+
+                  <div className="daily-quests-card" style={{ margin: 0 }}>
+                    <div className="daily-quests-header">
+                      <h3>Daily Quests</h3>
+                      <span className="daily-quests-timer">22 HOURS</span>
+                    </div>
+                    <div className="quest-list">
+                      <div className="quest-item">
+                        <div className="quest-icon">⚡</div>
+                        <div className="quest-content">
+                          <div className="quest-title">Earn 20 XP</div>
+                          <div className="quest-progress-bg">
+                            <div className="quest-progress-fill" style={{ width: `${Math.min((userXp / 20) * 100, 100)}%` }}></div>
+                          </div>
+                        </div>
+                        <div className="quest-reward">📦</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="achievements-card" style={{ margin: 0 }}>
+                    <div className="achievements-card-header">
+                      <h4>Achievements</h4>
+                    </div>
+                    <div className="achievements-list">
+                      {[
+                        { id: 1, title: "First Steps", desc: "Complete your first assessment", icon: "🌟", earned: true, color: "#f59e0b" },
+                        { id: 2, title: "Reading Star", desc: "Score 75% or higher in reading", icon: "📖", earned: calculateSkillProficiency("reading") >= 75, color: "#3b82f6" },
+                        { id: 3, title: "Comprehension Pro", desc: "Score 75% or higher in comprehension", icon: "🧠", earned: calculateSkillProficiency("comprehension") >= 75, color: "#10b981" },
+                        { id: 4, title: "Wordsmith", desc: "Score 75% or higher in writing", icon: "✍️", earned: calculateSkillProficiency("writing") >= 75, color: "#a855f7" },
+                      ].map((a) => (
+                        <div key={a.id} className={`achievement-row ${a.earned ? "earned" : ""}`}>
+                          <div className="achievement-badge-box" style={{ background: a.color }}>
+                            <span className="achievement-badge-icon">{a.icon}</span>
+                          </div>
+                          <div className="achievement-info">
+                            <div className="achievement-info-header">
+                              <span className="achievement-title">{a.title}</span>
+                            </div>
+                            <p className="achievement-desc">{a.desc}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            )}
+
+            {/* 3.3. Profile Tab */}
+            {dashboardTab === "profile" && (
+              <div className="profile-view-container">
+                <div className="profile-card-large">
+                  <div className="profile-avatar-large">
+                    {getUserInitials(profile?.full_name)}
+                  </div>
+                  <div className="profile-info-large">
+                    <h2>{profile?.full_name || "Learner"}</h2>
+                    <p>{session.user.email}</p>
+                    <div style={{ display: "flex", gap: "16px", marginTop: "12px" }}>
+                      <span style={{ fontWeight: 700 }}>Age: {profile?.age || "N/A"}</span>
+                      <span style={{ fontWeight: 700 }}>Education: {profile?.education_level || "N/A"}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px" }}>
+                  <div className="achievements-card" style={{ margin: 0, padding: "24px" }}>
+                    <h3 style={{ fontSize: "1.2rem", fontWeight: 800, marginBottom: "20px" }}>Update Profile Settings</h3>
+                    <form onSubmit={handleSaveProfileEdit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                      <label className="profile-dropdown-label">
+                        Full Name
+                        <input
+                          type="text"
+                          required
+                          value={editFullName}
+                          onChange={(e) => setEditFullName(e.target.value)}
+                          style={{ width: "100%", boxSizing: "border-box" }}
+                        />
+                      </label>
+                      <label className="profile-dropdown-label">
+                        Age
+                        <input
+                          type="number"
+                          min="5"
+                          max="120"
+                          required
+                          value={editAge}
+                          onChange={(e) => setEditAge(e.target.value)}
+                          style={{ width: "100%", boxSizing: "border-box" }}
+                        />
+                      </label>
+                      <label className="profile-dropdown-label">
+                        Preferred Language
+                        <select
+                          required
+                          value={editPreferredLang}
+                          onChange={(e) => setEditPreferredLang(e.target.value)}
+                          style={{ width: "100%", boxSizing: "border-box" }}
+                        >
+                          {languages.map((l) => (
+                            <option key={l} value={l}>{t(l + "Option")}</option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="profile-dropdown-label">
+                        Current Education Status
+                        <select
+                          required
+                          value={editEdLevel}
+                          onChange={(e) => setEditEdLevel(e.target.value)}
+                          style={{ width: "100%", boxSizing: "border-box" }}
+                        >
+                          {educationLevels.map((ed) => (
+                            <option key={ed} value={ed}>{t(ed + "Option")}</option>
+                          ))}
+                        </select>
+                      </label>
+                      <button type="submit" className="primary-btn" disabled={submitting}>
+                        {submitting ? "Saving..." : "Save Changes"}
+                      </button>
+                    </form>
+                  </div>
+
+                  <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+                    <div className="current-level-card" style={{ margin: 0, padding: "24px" }}>
+                      <h3 className="current-level-title">Diagnostic Control</h3>
+                      <p style={{ fontSize: "0.85rem", color: "var(--muted)", marginBottom: "16px" }}>Reset your assessment status to take the initial diagnostic test again.</p>
+                      <button
+                        type="button"
+                        className="secondary-btn"
+                        style={{ borderColor: "rgba(239, 68, 68, 0.4)", color: "#ef4444", width: "100%" }}
+                        onClick={() => handleResetAssessmentStatus()}
+                      >
+                        Reset Assessment Status
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </main>
         </div>
 
