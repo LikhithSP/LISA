@@ -676,7 +676,7 @@ function App() {
   const [session, setSession] = useState(null);
   const [profile, setProfile] = useState(null);
   const [activeTab, setActiveTab] = useState("login"); // "login", "register", "forgot"
-  const [dashboardTab, setDashboardTab] = useState("learn"); // "learn", "practice", "profile"
+  const [dashboardTab, setDashboardTab] = useState("dashboard"); // "dashboard", "learn", "practice", "profile"
   const [userXp, setUserXp] = useState(0);
   const [completedLessons, setCompletedLessons] = useState([]);
   const [lessonSession, setLessonSession] = useState(null);
@@ -1460,7 +1460,7 @@ function App() {
       setHistoryAttempts(updatedHistory);
       localStorage.setItem("lisa_attempts_history", JSON.stringify(updatedHistory));
 
-      setDashboardTab("home");
+      setDashboardTab("dashboard");
       setAssessmentState("results");
     } catch (err) {
       console.error("Error updating test results:", err);
@@ -1686,6 +1686,27 @@ function App() {
     const hasDiagnosed = hasCompletedAssessment(profile);
     const currentLevelNum = getLiteracyLevel(profile) || 1;
     const currentLang = selectedLanguage || "English";
+
+    const currentLevelLessons = lessonsData[currentLevelNum] || [];
+    const currentUnitIdx = (() => {
+      const firstIncomplete = currentLevelLessons.findIndex((l) => !completedLessons.includes(l.id));
+      return firstIncomplete === -1 ? Math.max(currentLevelLessons.length - 1, 0) : firstIncomplete;
+    })();
+    const currentUnit = currentLevelLessons[currentUnitIdx];
+
+    const wordOfDay = {
+      word: "Diligent",
+      example: "A diligent student practices reading a little every day.",
+    };
+
+    const speakWord = (text) => {
+      if (typeof window !== "undefined" && window.speechSynthesis) {
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = selectedLanguage === "English" ? "en-US" : selectedLanguage || "en-US";
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(u);
+      }
+    };
 
     if (!hasDiagnosed || assessmentState !== "not_started") {
       return (
@@ -2189,7 +2210,14 @@ function App() {
           <div className="sidebar-menu">
             <button
               type="button"
-              className={`sidebar-item ${dashboardTab === "learn" || dashboardTab === "home" ? "active" : ""}`}
+              className={`sidebar-item ${dashboardTab === "dashboard" ? "active" : ""}`}
+              onClick={() => setDashboardTab("dashboard")}
+            >
+              📊 Dashboard
+            </button>
+            <button
+              type="button"
+              className={`sidebar-item ${dashboardTab === "learn" ? "active" : ""}`}
               onClick={() => setDashboardTab("learn")}
             >
               🏠 Learn
@@ -2235,10 +2263,131 @@ function App() {
 
           {/* Main View Area */}
           <main className="dashboard-main-view">
-            {/* 3.1. Learn Tab (Duolingo Style Dashboard Widgets - No lessons path rendered yet) */}
-            {(dashboardTab === "learn" || dashboardTab === "home") && (
+            {/* Dashboard / Home - overview widgets */}
+            {dashboardTab === "dashboard" && (
+              <div className="dashboard-overview">
+                <div className="dashboard-col dashboard-col-left">
+                  <div className="dashboard-greeting">
+                    <h1>Hello, {profile?.full_name || "Learner"} 👋</h1>
+                    <p>Welcome back! Pick up right where you left off.</p>
+                  </div>
+
+                  <div className="resume-card">
+                    <div className="resume-card-info">
+                      <span className="resume-card-label">Continue learning</span>
+                      <h3 className="resume-card-title">{currentUnit?.title}</h3>
+                      <p className="resume-card-sub">
+                        Section 1, Unit {currentUnitIdx + 1}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      className="resume-btn"
+                      onClick={() => {
+                        setDashboardTab("learn");
+                      }}
+                    >
+                      ▶ Resume
+                    </button>
+                  </div>
+
+                  <div className="word-of-day-card">
+                    <div className="word-of-day-head">
+                      <span className="word-of-day-label">Word of the Day</span>
+                      <button
+                        type="button"
+                        className="word-of-day-speak"
+                        onClick={() => speakWord(wordOfDay.word)}
+                        aria-label="Listen to word"
+                      >
+                        🔊
+                      </button>
+                    </div>
+                    <h3 className="word-of-day-word">{wordOfDay.word}</h3>
+                    <p className="word-of-day-example">"{wordOfDay.example}"</p>
+                  </div>
+                </div>
+
+                <div className="dashboard-col dashboard-col-right">
+                  <div className="current-level-card" style={{ margin: 0 }}>
+                    <div className="current-level-header">
+                      <h3 className="current-level-title">Current Level</h3>
+                    </div>
+                    <div className="current-level-body">
+                      <div className="current-level-badge" style={{ background: levelBadgeColor(currentLevelNum) }}>
+                        <span className="current-level-badge-icon">{levelBadgeIcon(currentLevelNum)}</span>
+                        <span className="current-level-badge-level">LEVEL {currentLevelNum}</span>
+                      </div>
+                      <div className="current-level-info">
+                        <p className="current-level-name">{getLevelCategoryAndDescription(currentLevelNum, selectedLanguage).category}</p>
+                        <p className="current-level-msg">Keep it up! Good Work</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="dashboard-overview-row">
+                    <div className="streak-widget-card streak-society-card" style={{ margin: 0 }}>
+                      <div className="streak-society-header">
+                        <span className="streak-society-badge">STREAK SOCIETY</span>
+                        <div className="streak-society-icon">🔥</div>
+                      </div>
+                      <h4 className="streak-society-title">36 day streak</h4>
+                      <p className="streak-society-message">You're on fire. Keep the momentum going!</p>
+                    </div>
+
+                    <div className="daily-quests-card" style={{ margin: 0 }}>
+                      <div className="daily-quests-header">
+                        <h3>Daily Quests</h3>
+                        <span className="daily-quests-timer">22 HOURS</span>
+                      </div>
+                      <div className="quest-list">
+                        <div className="quest-item">
+                          <div className="quest-icon">⚡</div>
+                          <div className="quest-content">
+                            <div className="quest-title">Earn 20 XP</div>
+                            <div className="quest-progress-bg">
+                              <div className="quest-progress-fill" style={{ width: `${Math.min((userXp / 20) * 100, 100)}%` }}></div>
+                            </div>
+                          </div>
+                          <div className="quest-reward">📦</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="achievements-card" style={{ margin: 0 }}>
+                    <div className="achievements-card-header">
+                      <h4>Achievements</h4>
+                    </div>
+                    <div className="achievements-list">
+                      {[
+                        { id: 1, title: "First Steps", desc: "Complete your first assessment", icon: "🌟", earned: true, color: "#f59e0b" },
+                        { id: 2, title: "Reading Star", desc: "Score 75% or higher in reading", icon: "📖", earned: calculateSkillProficiency("reading") >= 75, color: "#3b82f6" },
+                        { id: 3, title: "Comprehension Pro", desc: "Score 75% or higher in comprehension", icon: "🧠", earned: calculateSkillProficiency("comprehension") >= 75, color: "#10b981" },
+                        { id: 4, title: "Wordsmith", desc: "Score 75% or higher in writing", icon: "✍️", earned: calculateSkillProficiency("writing") >= 75, color: "#a855f7" },
+                      ].map((a) => (
+                        <div key={a.id} className={`achievement-row ${a.earned ? "earned" : ""}`}>
+                          <div className="achievement-badge-box" style={{ background: a.color }}>
+                            <span className="achievement-badge-icon">{a.icon}</span>
+                          </div>
+                          <div className="achievement-info">
+                            <div className="achievement-info-header">
+                              <span className="achievement-title">{a.title}</span>
+                            </div>
+                            <p className="achievement-desc">{a.desc}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 3.1. Learn Tab */}
+            {dashboardTab === "learn" && (
               <div className="learn-grid-layout">
-                {/* Left/Center Column - Serpentine Lesson Tree */}
+                {/* Center Column - Lesson Journey */}
                 <div className="lesson-path-column">
                   <div className="level-header-banner">
                     <div className="level-header-info">
@@ -2291,79 +2440,6 @@ function App() {
                     })}
                   </div>
                 </div>
-
-                {/* Right Column - Stacked Widgets */}
-                <div className="learn-right-sidebar">
-                  <div className="current-level-card" style={{ margin: 0 }}>
-                    <div className="current-level-header">
-                      <h3 className="current-level-title">Current Level</h3>
-                    </div>
-                    <div className="current-level-body">
-                      <div className="current-level-badge" style={{ background: levelBadgeColor(currentLevelNum) }}>
-                        <span className="current-level-badge-icon">{levelBadgeIcon(currentLevelNum)}</span>
-                        <span className="current-level-badge-level">LEVEL {currentLevelNum}</span>
-                      </div>
-                      <div className="current-level-info">
-                        <p className="current-level-name">{getLevelCategoryAndDescription(currentLevelNum, selectedLanguage).category}</p>
-                        <p className="current-level-msg">Keep it up! Good Work</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="streak-widget-card streak-society-card" style={{ margin: 0 }}>
-                    <div className="streak-society-header">
-                      <span className="streak-society-badge">STREAK SOCIETY</span>
-                      <div className="streak-society-icon">🔥</div>
-                    </div>
-                    <h4 className="streak-society-title">36 day streak</h4>
-                    <p className="streak-society-message">You extended your streak before 95.82% of all learners yesterday!</p>
-                  </div>
-
-                  <div className="daily-quests-card" style={{ margin: 0 }}>
-                    <div className="daily-quests-header">
-                      <h3>Daily Quests</h3>
-                      <span className="daily-quests-timer">22 HOURS</span>
-                    </div>
-                    <div className="quest-list">
-                      <div className="quest-item">
-                        <div className="quest-icon">⚡</div>
-                        <div className="quest-content">
-                          <div className="quest-title">Earn 20 XP</div>
-                          <div className="quest-progress-bg">
-                            <div className="quest-progress-fill" style={{ width: `${Math.min((userXp / 20) * 100, 100)}%` }}></div>
-                          </div>
-                        </div>
-                        <div className="quest-reward">📦</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="achievements-card" style={{ margin: 0 }}>
-                    <div className="achievements-card-header">
-                      <h4>Achievements</h4>
-                    </div>
-                    <div className="achievements-list">
-                      {[
-                        { id: 1, title: "First Steps", desc: "Complete your first assessment", icon: "🌟", earned: true, color: "#f59e0b" },
-                        { id: 2, title: "Reading Star", desc: "Score 75% or higher in reading", icon: "📖", earned: calculateSkillProficiency("reading") >= 75, color: "#3b82f6" },
-                        { id: 3, title: "Comprehension Pro", desc: "Score 75% or higher in comprehension", icon: "🧠", earned: calculateSkillProficiency("comprehension") >= 75, color: "#10b981" },
-                        { id: 4, title: "Wordsmith", desc: "Score 75% or higher in writing", icon: "✍️", earned: calculateSkillProficiency("writing") >= 75, color: "#a855f7" },
-                      ].map((a) => (
-                        <div key={a.id} className={`achievement-row ${a.earned ? "earned" : ""}`}>
-                          <div className="achievement-badge-box" style={{ background: a.color }}>
-                            <span className="achievement-badge-icon">{a.icon}</span>
-                          </div>
-                          <div className="achievement-info">
-                            <div className="achievement-info-header">
-                              <span className="achievement-title">{a.title}</span>
-                            </div>
-                            <p className="achievement-desc">{a.desc}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
               </div>
             )}
 
@@ -2372,7 +2448,7 @@ function App() {
               <div className="practice-grid-layout">
                 {/* Left/Center Column - Custom Practice Sections */}
                 <div className="practice-content-column">
-                  
+
                   {/* Today's Review Section */}
                   <div className="practice-section">
                     <h2 className="practice-section-title">Today's Review</h2>
@@ -2421,7 +2497,7 @@ function App() {
                         </div>
                         <div className="practice-row-card-icon mistakes-icon">🔄</div>
                       </div>
-                      
+
                       <div className="practice-row-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_write_practice`, title: "Words Practice", desc: "Review your vocabulary at any time" })}>
                         <div className="practice-row-card-content">
                           <h3 className="practice-row-card-title">
@@ -2444,80 +2520,6 @@ function App() {
                   </div>
 
                 </div>
-
-                {/* Right Column - Stacked Widgets (Same as Dashboard) */}
-                <div className="learn-right-sidebar">
-                  <div className="current-level-card" style={{ margin: 0 }}>
-                    <div className="current-level-header">
-                      <h3 className="current-level-title">Current Level</h3>
-                    </div>
-                    <div className="current-level-body">
-                      <div className="current-level-badge" style={{ background: levelBadgeColor(currentLevelNum) }}>
-                        <span className="current-level-badge-icon">{levelBadgeIcon(currentLevelNum)}</span>
-                        <span className="current-level-badge-level">LEVEL {currentLevelNum}</span>
-                      </div>
-                      <div className="current-level-info">
-                        <p className="current-level-name">{getLevelCategoryAndDescription(currentLevelNum, selectedLanguage).category}</p>
-                        <p className="current-level-msg">Keep it up! Good Work</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="streak-widget-card streak-society-card" style={{ margin: 0 }}>
-                    <div className="streak-society-header">
-                      <span className="streak-society-badge">STREAK SOCIETY</span>
-                      <div className="streak-society-icon">🔥</div>
-                    </div>
-                    <h4 className="streak-society-title">36 day streak</h4>
-                    <p className="streak-society-message">You extended your streak before 95.82% of all learners yesterday!</p>
-                  </div>
-
-                  <div className="daily-quests-card" style={{ margin: 0 }}>
-                    <div className="daily-quests-header">
-                      <h3>Daily Quests</h3>
-                      <span className="daily-quests-timer">22 HOURS</span>
-                    </div>
-                    <div className="quest-list">
-                      <div className="quest-item">
-                        <div className="quest-icon">⚡</div>
-                        <div className="quest-content">
-                          <div className="quest-title">Earn 20 XP</div>
-                          <div className="quest-progress-bg">
-                            <div className="quest-progress-fill" style={{ width: `${Math.min((userXp / 20) * 100, 100)}%` }}></div>
-                          </div>
-                        </div>
-                        <div className="quest-reward">📦</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="achievements-card" style={{ margin: 0 }}>
-                    <div className="achievements-card-header">
-                      <h4>Achievements</h4>
-                    </div>
-                    <div className="achievements-list">
-                      {[
-                        { id: 1, title: "First Steps", desc: "Complete your first assessment", icon: "🌟", earned: true, color: "#f59e0b" },
-                        { id: 2, title: "Reading Star", desc: "Score 75% or higher in reading", icon: "📖", earned: calculateSkillProficiency("reading") >= 75, color: "#3b82f6" },
-                        { id: 3, title: "Comprehension Pro", desc: "Score 75% or higher in comprehension", icon: "🧠", earned: calculateSkillProficiency("comprehension") >= 75, color: "#10b981" },
-                        { id: 4, title: "Wordsmith", desc: "Score 75% or higher in writing", icon: "✍️", earned: calculateSkillProficiency("writing") >= 75, color: "#a855f7" },
-                      ].map((a) => (
-                        <div key={a.id} className={`achievement-row ${a.earned ? "earned" : ""}`}>
-                          <div className="achievement-badge-box" style={{ background: a.color }}>
-                            <span className="achievement-badge-icon">{a.icon}</span>
-                          </div>
-                          <div className="achievement-info">
-                            <div className="achievement-info-header">
-                              <span className="achievement-title">{a.title}</span>
-                            </div>
-                            <p className="achievement-desc">{a.desc}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
               </div>
             )}
 
