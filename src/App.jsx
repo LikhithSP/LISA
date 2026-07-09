@@ -900,6 +900,14 @@ function App() {
   const [editPreferredLang, setEditPreferredLang] = useState("");
   const [editEdLevel, setEditEdLevel] = useState("");
 
+  useEffect(() => {
+    if (!profile) return;
+    setEditFullName(profile.full_name || "");
+    setEditAge(profile.age || "");
+    setEditPreferredLang(profile.preferred_language || selectedLanguage || "English");
+    setEditEdLevel(profile.education_level || "No formal education");
+  }, [profile]);
+
   const t = (key) => {
     const lang = selectedLanguage || "English";
     const dict = translations[lang] || translations["English"];
@@ -2688,11 +2696,11 @@ function App() {
                   <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
                     <div className="current-level-card" style={{ margin: 0, padding: "24px" }}>
                       <h3 className="current-level-title">Diagnostic Control</h3>
-                      <p style={{ fontSize: "0.85rem", color: "var(--muted)", marginBottom: "16px" }}>Reset your assessment status to take the initial diagnostic test again.</p>
+                      <p style={{ fontSize: "0.85rem", color: "#ffffff", marginBottom: "16px" }}>Reset your assessment status to take the initial diagnostic test again.</p>
                       <button
                         type="button"
                         className="secondary-btn"
-                        style={{ borderColor: "rgba(239, 68, 68, 0.4)", color: "#ef4444", width: "100%" }}
+                        style={{ borderColor: "#ff1a1a", color: "#ff1a1a", width: "100%" }}
                         onClick={() => handleResetAssessmentStatus()}
                       >
                         Reset Assessment Status
