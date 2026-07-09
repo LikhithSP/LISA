@@ -2254,8 +2254,8 @@ function App() {
                 <div className="lesson-path-column">
                   <div className="level-header-banner">
                     <div className="level-header-info">
-                      <h2>{getLevelCategoryAndDescription(currentLevelNum, selectedLanguage).category}</h2>
-                      <p>{getLevelCategoryAndDescription(currentLevelNum, selectedLanguage).description}</p>
+                      <h2 className="level-header-meta">Section 1, Unit 1</h2>
+                      <p className="level-header-unit">{lessonsData[currentLevelNum]?.[0]?.title}</p>
                     </div>
                   </div>
 
