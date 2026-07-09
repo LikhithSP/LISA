@@ -4055,9 +4055,16 @@ select:focus {
 }
 
 .level-header-info h2 {
-  font-size: 1.6rem;
-  margin: 0 0 6px 0;
+  font-size: 1.1rem;
+  margin: 0 0 4px 0;
+  font-weight: 700;
+}
+
+.level-header-unit {
+  margin: 0 0 6px 0 !important;
+  font-size: 1.4rem !important;
   font-weight: 800;
+  opacity: 1 !important;
 }
 
 .level-header-info p {
@@ -4225,11 +4232,11 @@ select:focus {
   left: 50%;
   transform: translateX(-50%);
   width: 280px;
-  background: #3b9dff;
+  background: #c65f2d;
   border: none;
   border-radius: 20px;
   padding: 20px;
-  box-shadow: 0 10px 25px rgba(59, 157, 255, 0.35);
+  box-shadow: 0 10px 25px rgba(198, 95, 45, 0.35);
   text-align: center;
   z-index: 10;
   animation: popIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -4255,7 +4262,7 @@ select:focus {
   transform: translateX(-50%);
   border-width: 0 10px 10px;
   border-style: solid;
-  border-color: #3b9dff transparent;
+  border-color: #c65f2d transparent;
   display: block;
   width: 0;
 }
@@ -4293,7 +4300,7 @@ select:focus {
   border-radius: 14px;
   border: none;
   background: #ffffff;
-  color: #3b9dff;
+  color: #c65f2d;
   font-weight: 800;
   cursor: pointer;
   text-transform: uppercase;
