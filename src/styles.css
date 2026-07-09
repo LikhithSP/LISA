@@ -4073,162 +4073,227 @@ select:focus {
   font-size: 0.95rem;
 }
 
-.lesson-path-map {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 24px;
+/* Lesson Journey (replaces serpentine tree) */
+.lesson-journey {
   position: relative;
   width: 100%;
-  max-width: 400px;
-  padding: 20px 0;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 8px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
 
-/* Mascot shown to the left of the bulb (💡) lesson node */
-.lesson-path-mascot {
+.lesson-journey::before {
+  content: "";
   position: absolute;
-  top: 50%;
-  right: calc(100% + 120px);
-  transform: translateY(-50%);
-  width: 200px;
-  height: 200px;
+  left: 27px;
+  top: 40px;
+  bottom: 40px;
+  width: 4px;
+  background: var(--line);
+  border-radius: 4px;
+  z-index: 0;
+}
+
+.lesson-card {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: stretch;
+  gap: 18px;
+}
+
+.lesson-card.active {
+  z-index: 50;
+}
+
+.lesson-card-spine {
+  flex: 0 0 auto;
+  width: 56px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 16px;
+}
+
+.lesson-card-node {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 1.05rem;
+  background: var(--panel-strong);
+  border: 3px solid var(--line);
+  color: var(--muted);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  transition: all 0.25s ease;
+}
+
+.lesson-card.completed .lesson-card-node {
+  background: #10b981;
+  border-color: #10b981;
+  color: #fff;
+}
+
+.lesson-card.unlocked .lesson-card-node {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  box-shadow: 0 0 0 6px rgba(198, 95, 45, 0.18), 0 4px 10px rgba(0, 0, 0, 0.12);
+}
+
+.lesson-card-main {
+  position: relative;
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--panel-strong);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 16px 18px;
+  box-shadow: 0 8px 20px rgba(24, 32, 43, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.lesson-card-main:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 26px rgba(24, 32, 43, 0.10);
+}
+
+.lesson-card.active .lesson-card-main {
+  border-color: var(--accent);
+  box-shadow: 0 12px 30px rgba(198, 95, 45, 0.18);
+}
+
+.lesson-card-icon {
+  flex: 0 0 auto;
+  width: 54px;
+  height: 54px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  font-size: 1.7rem;
+  background: var(--accent-soft);
+  position: relative;
+}
+
+.lesson-card.locked .lesson-card-icon {
+  filter: grayscale(0.6);
+  opacity: 0.7;
+}
+
+.lesson-card-lock {
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #9ca3af;
+  color: #fff;
+  font-size: 0.8rem;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.lesson-card-body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.lesson-card-title {
+  margin: 0 0 4px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.lesson-card-desc {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.lesson-card-action {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.lesson-card-pill {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.lesson-card-pill.completed { background: rgba(16, 185, 129, 0.15); color: #0f9d6b; }
+.lesson-card-pill.unlocked { background: rgba(198, 95, 45, 0.15); color: var(--accent-dark); }
+.lesson-card-pill.locked { background: rgba(120, 120, 120, 0.15); color: #8a8f98; }
+
+.lesson-card-btn {
+  border: none;
+  border-radius: 12px;
+  padding: 9px 16px;
+  font-weight: 800;
+  font-size: 0.85rem;
+  cursor: pointer;
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(198, 95, 45, 0.3);
+  transition: all 0.18s ease;
+}
+
+.lesson-card-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.lesson-card-btn:disabled {
+  background: #d1d5db;
+  color: #9ca3af;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.lesson-card.completed .lesson-card-btn {
+  background: #10b981;
+  box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+}
+
+.lesson-journey-mascot {
+  position: absolute;
+  right: -18px;
+  top: -78px;
+  width: 120px;
+  height: 120px;
   object-fit: contain;
-  flex-shrink: 0;
+  pointer-events: none;
   filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.14));
   z-index: 3;
 }
 
-[data-theme="dark"] .lesson-path-mascot {
+[data-theme="dark"] .lesson-journey-mascot {
   filter:
     saturate(0.77) drop-shadow(0 0 1px rgba(190, 190, 195, 0.85)) drop-shadow(0 0 6px rgba(190, 190, 195, 0.3)) drop-shadow(0 8px 14px rgba(0, 0, 0, 0.5));
-}
-
-/* Lesson connection line */
-.lesson-path-line {
-  position: absolute;
-  top: 40px;
-  bottom: 40px;
-  width: 8px;
-  background: var(--line);
-  z-index: 1;
-}
-
-.lesson-node-wrapper {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  justify-content: center;
-  width: 100%;
-  transition: transform 0.2s ease;
-}
-
-.lesson-node-wrapper.active-popover {
-  z-index: 100;
-}
-
-.lesson-node-inner {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-}
-
-/* Horizontal Offsets for Serpentine Effect */
-.offset-left {
-  transform: translateX(-60px);
-}
-
-.offset-right {
-  transform: translateX(60px);
-}
-
-/* Extra shift for specific lessons to deepen the snake pattern */
-.lesson-node-wrapper.extra-offset-left {
-  transform: translateX(-120px);
-}
-
-.lesson-node-wrapper.extra-offset-right {
-  transform: translateX(120px);
-}
-
-.offset-center {
-  transform: translateX(0);
-}
-
-.lesson-node-btn {
-  width: 90px;
-  height: 75px;
-  border-radius: 50%;
-  border: none;
-  font-size: 2.2rem;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-  position: relative;
-  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-/* Node styles depending on status */
-.lesson-node-btn.locked {
-  background: #e5e7eb;
-  color: #9ca3af;
-  box-shadow: 0 8px 0 #d1d5db;
-  cursor: not-allowed;
-}
-
-[data-theme="dark"] .lesson-node-btn.locked {
-  background: #374151;
-  color: #6b7280;
-  box-shadow: 0 8px 0 #1f2937;
-}
-
-.lesson-node-btn.unlocked {
-  background: var(--accent);
-  color: white;
-  box-shadow: 0 8px 0 #a24619;
-}
-
-.lesson-node-btn.unlocked:hover {
-  transform: scale(1.1);
-  box-shadow: 0 6px 0 #a24619;
-}
-
-.lesson-node-btn.completed {
-  background: #10b981;
-  color: white;
-  box-shadow: 0 8px 0 #059669;
-}
-
-.lesson-node-btn.completed:hover {
-  transform: scale(1.1);
-  box-shadow: 0 6px 0 #059669;
-}
-
-.lesson-node-lock {
-  position: absolute;
-  font-size: 1rem;
-  bottom: 0;
-  right: 0;
-  background: #9ca3af;
-  color: white;
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-}
-
-[data-theme="dark"] .lesson-node-lock {
-  background: #4b5563;
 }
 
 /* Lesson Popover Style */
 .lesson-popover-card {
   position: absolute;
-  top: auto;
-  bottom: -170px;
+  top: calc(100% + 14px);
+  bottom: auto;
   left: 50%;
   transform: translateX(-50%);
   width: 280px;
