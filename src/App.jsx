@@ -677,6 +677,8 @@ function App() {
   const [profile, setProfile] = useState(null);
   const [activeTab, setActiveTab] = useState("login"); // "login", "register", "forgot"
   const [dashboardTab, setDashboardTab] = useState("dashboard"); // "dashboard", "learn", "practice", "profile"
+  const [activeSection, setActiveSection] = useState(0); // paginated section in learn tab
+  const learnJourneyRef = useRef(null);
   const [userXp, setUserXp] = useState(0);
   const [completedLessons, setCompletedLessons] = useState([]);
   const [lessonSession, setLessonSession] = useState(null);
@@ -1688,7 +1690,7 @@ function App() {
     const currentLang = selectedLanguage || "English";
 
     const currentLevelSections = lessonsData[currentLevelNum] || [];
-    const currentLevelLessons = currentLevelSections.flat();
+    const currentLevelLessons = currentLevelSections.flatMap((s) => s.units.flatMap((u) => u.lessons));
     const currentUnitIdx = (() => {
       const firstIncomplete = currentLevelLessons.findIndex((l) => !completedLessons.includes(l.id));
       return firstIncomplete === -1 ? Math.max(currentLevelLessons.length - 1, 0) : firstIncomplete;
@@ -1698,11 +1700,19 @@ function App() {
     const currentUnitPos = (() => {
       let remaining = currentUnitIdx;
       for (let s = 0; s < currentLevelSections.length; s++) {
-        const len = currentLevelSections[s].length;
-        if (remaining < len) return { sectionIdx: s, unitIdx: remaining };
-        remaining -= len;
+        const units = currentLevelSections[s].units;
+        const sectionLessonCount = units.reduce((a, u) => a + u.lessons.length, 0);
+        if (remaining < sectionLessonCount) {
+          let r2 = remaining;
+          for (let u = 0; u < units.length; u++) {
+            const len = units[u].lessons.length;
+            if (r2 < len) return { sectionIdx: s, unitIdx: u, lessonIdx: r2 };
+            r2 -= len;
+          }
+        }
+        remaining -= sectionLessonCount;
       }
-      return { sectionIdx: 0, unitIdx: 0 };
+      return { sectionIdx: 0, unitIdx: 0, lessonIdx: 0 };
     })();
 
     const wordOfDay = {
@@ -2400,64 +2410,121 @@ function App() {
               <div className="learn-grid-layout">
                 {/* Center Column - Lesson Journey */}
                 <div className="lesson-path-column">
-                  <div className="lesson-journey">
-                    {currentLevelSections.map((units, sIdx) => {
-                      const prevCount = currentLevelSections.slice(0, sIdx).reduce((a, s) => a + s.length, 0);
+                  <div className="lesson-journey" ref={learnJourneyRef}>
+                    {(() => {
+                      const aIdx = Math.min(activeSection, currentLevelSections.length - 1);
+                      const section = currentLevelSections[aIdx];
+                      if (!section) return null;
+                      const isFirst = aIdx === 0;
+                      const isLast = aIdx >= currentLevelSections.length - 1;
+                      const prevCount = currentLevelSections.slice(0, aIdx).reduce((a, s) => a + s.units.reduce((x, u) => x + u.lessons.length, 0), 0);
+
                       return (
-                        <div key={sIdx} className="lesson-section">
-                          <div className={`lesson-section-banner ${sIdx > 0 ? "alt" : ""}`}>
+                        <div key={section.id} id={section.id} className="lesson-section">
+                          <div className={`lesson-section-banner ${aIdx > 0 ? "alt" : ""}`}>
                             <div className="lesson-section-banner-info">
-                              <h2 className="lesson-section-banner-meta">Section {sIdx + 1}, Unit 1</h2>
-                              <p className="lesson-section-banner-unit">{units[0]?.title}</p>
+                              <h2 className="lesson-section-banner-meta">Section {aIdx + 1}</h2>
+                              <p className="lesson-section-banner-unit">{section.title}</p>
                             </div>
-                            {sIdx > 0 && <span className="lesson-section-banner-tag">New</span>}
+                            {aIdx > 1 && <span className="lesson-section-banner-tag">New</span>}
                           </div>
-                          {units.map((lesson, idx) => {
-                            const globalIdx = prevCount + idx;
-                            const isCompleted = completedLessons.includes(lesson.id);
-                            const isUnlocked = globalIdx === 0 || currentLevelLessons.slice(0, globalIdx).every((l) => completedLessons.includes(l.id));
-                            const status = isCompleted ? "completed" : isUnlocked ? "unlocked" : "locked";
-                            const isCheckpoint = /checkpoint/i.test(lesson.title);
 
+                          {section.units.map((unit, uIdx) => {
+                            const unitOffset = section.units.slice(0, uIdx).reduce((a, u) => a + u.lessons.length, 0);
                             return (
-                              <div key={lesson.id} className={`lesson-card ${status} ${sIdx > 0 ? "alt" : ""} ${isCheckpoint ? "checkpoint" : ""}`}>
-                                <div className="lesson-card-spine">
-                                  <span className="lesson-card-node">{status === "completed" ? "✓" : idx + 1}</span>
+                              <div key={unit.id} className="lesson-unit">
+                                <div className="lesson-unit-header">
+                                  <h3 className="lesson-unit-title">Unit {uIdx + 1}</h3>
+                                  <span className="lesson-unit-topic">{unit.title}</span>
                                 </div>
 
-                                <div className="lesson-card-main">
-                                  <div className="lesson-card-icon">
-                                    {lesson.icon}
-                                    {status === "locked" && <span className="lesson-card-lock">🔒</span>}
-                                  </div>
+                                {unit.lessons.map((lesson, idx) => {
+                                  const globalIdx = prevCount + unitOffset + idx;
+                                  const isCompleted = completedLessons.includes(lesson.id);
+                                  const isUnlocked = globalIdx === 0 || currentLevelLessons.slice(0, globalIdx).every((l) => completedLessons.includes(l.id));
+                                  const status = isCompleted ? "completed" : isUnlocked ? "unlocked" : "locked";
+                                  const isCheckpoint = /checkpoint/i.test(lesson.title);
 
-                                  <div className="lesson-card-body">
-                                    <h4 className="lesson-card-title">{lesson.title}</h4>
-                                    <p className="lesson-card-desc">{lesson.desc}</p>
-                                  </div>
+                                  return (
+                                    <div key={lesson.id} className={`lesson-card ${status} ${aIdx > 0 ? "alt" : ""} ${isCheckpoint ? "checkpoint" : ""}`}>
+                                      <div className="lesson-card-spine">
+                                        <span className="lesson-card-node">{status === "completed" ? "✓" : idx + 1}</span>
+                                      </div>
 
-                                  <div className="lesson-card-action">
-                                    <span className={`lesson-card-pill ${status}`}>
-                                      {status === "completed" ? "Completed" : status === "unlocked" ? "In Progress" : "Locked"}
-                                    </span>
-                                    <button
-                                      type="button"
-                                      className="lesson-card-btn"
-                                      onClick={() => {
-                                        if (status !== "locked") alert(`Starting Lesson Preview: ${lesson.title}`);
-                                      }}
-                                      disabled={status === "locked"}
-                                    >
-                                      {status === "completed" ? "Review +10 XP" : "Start +10 XP"}
-                                    </button>
-                                  </div>
-                                </div>
+                                      <div className="lesson-card-main">
+                                        <div className="lesson-card-icon">
+                                          {lesson.icon}
+                                          {status === "locked" && <span className="lesson-card-lock">🔒</span>}
+                                        </div>
+
+                                        <div className="lesson-card-body">
+                                          <h4 className="lesson-card-title">{lesson.title}</h4>
+                                          <p className="lesson-card-desc">{lesson.desc}</p>
+                                        </div>
+
+                                        <div className="lesson-card-action">
+                                          <span className={`lesson-card-pill ${status}`}>
+                                            {status === "completed" ? "Completed" : status === "unlocked" ? "In Progress" : "Locked"}
+                                          </span>
+                                          <button
+                                            type="button"
+                                            className="lesson-card-btn"
+                                            onClick={() => {
+                                              if (status !== "locked") alert(`Starting Lesson Preview: ${lesson.title}`);
+                                            }}
+                                            disabled={status === "locked"}
+                                          >
+                                            {status === "completed" ? "Review +10 XP" : "Start +10 XP"}
+                                          </button>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
                               </div>
                             );
                           })}
+
+                          <div className="lesson-section-nav">
+                            {!isFirst && (
+                              <button
+                                type="button"
+                                className="lesson-next-section-btn prev"
+                                onClick={() => {
+                                  setActiveSection((i) => i - 1);
+                                  learnJourneyRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                                }}
+                              >
+                                ← Previous Section
+                              </button>
+                            )}
+                            {!isLast ? (
+                              <button
+                                type="button"
+                                className="lesson-next-section-btn"
+                                onClick={() => {
+                                  setActiveSection((i) => i + 1);
+                                  learnJourneyRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                                }}
+                              >
+                                Next: {currentLevelSections[aIdx + 1].title} →
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                className="lesson-next-section-btn"
+                                onClick={() => {
+                                  setActiveSection(0);
+                                  learnJourneyRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+                                }}
+                              >
+                                ↺ Back to Section 1
+                              </button>
+                            )}
+                          </div>
                         </div>
                       );
-                    })}
+                    })()}
                   </div>
                 </div>
               </div>

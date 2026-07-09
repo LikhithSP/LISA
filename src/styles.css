@@ -4086,16 +4086,24 @@ select:focus {
   gap: 18px;
 }
 
-.lesson-journey::before {
+.lesson-card::before {
   content: "";
   position: absolute;
-  left: 27px;
-  top: 40px;
-  bottom: 40px;
+  left: 26px;
+  top: 0;
+  bottom: 0;
   width: 4px;
   background: var(--line);
   border-radius: 4px;
   z-index: 0;
+}
+
+.lesson-card:not(.lesson-card ~ .lesson-card)::before {
+  top: 38px;
+}
+
+.lesson-card:not(:has(~ .lesson-card))::before {
+  bottom: 38px;
 }
 
 .lesson-card {
@@ -4120,6 +4128,8 @@ select:focus {
 }
 
 .lesson-card-node {
+  position: relative;
+  z-index: 2;
   width: 44px;
   height: 44px;
   border-radius: 50%;
@@ -4335,6 +4345,73 @@ select:focus {
   padding: 5px 12px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.2);
+}
+
+.lesson-unit + .lesson-unit {
+  margin-top: 18px;
+}
+
+.lesson-unit-header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin: 4px 0 14px;
+  padding-left: 8px;
+}
+
+.lesson-unit-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text);
+  margin: 0;
+}
+
+.lesson-unit-topic {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.lesson-section-nav {
+  display: flex;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.lesson-next-section-btn {
+  flex: 1 1 auto;
+  padding: 14px 20px;
+  border: 1px solid var(--accent);
+  background: var(--panel-strong);
+  color: var(--accent);
+  font-weight: 800;
+  font-size: 1rem;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.lesson-next-section-btn.prev {
+  flex: 0 0 auto;
+  color: var(--muted);
+  border-color: var(--line);
+}
+
+.lesson-next-section-btn:hover {
+  background: var(--accent);
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(198, 95, 45, 0.22);
+}
+
+.lesson-next-section-btn.prev:hover {
+  background: var(--muted);
+  border-color: var(--muted);
+  color: #fff;
+}
+
+.lesson-next-section-btn:active {
+  transform: scale(0.99);
 }
 
 /* Alternate (Section 2+) accent color */
