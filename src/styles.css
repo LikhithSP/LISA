@@ -4284,6 +4284,90 @@ select:focus {
   box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
 }
 
+/* Lesson Sections within a level */
+.lesson-section {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.lesson-section + .lesson-section {
+  margin-top: 8px;
+}
+
+.lesson-section-banner {
+  width: 100%;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 20px;
+  padding: 20px 24px;
+  margin-bottom: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 8px 24px rgba(198, 95, 45, 0.2);
+}
+
+.lesson-section-banner.alt {
+  background: #6d5dfc;
+  box-shadow: 0 8px 24px rgba(109, 93, 252, 0.2);
+}
+
+.lesson-section-banner-meta {
+  font-size: 1.1rem;
+  margin: 0 0 4px;
+  font-weight: 700;
+}
+
+.lesson-section-banner-unit {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 800;
+  opacity: 1;
+}
+
+.lesson-section-banner-tag {
+  flex: 0 0 auto;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Alternate (Section 2+) accent color */
+.lesson-card.alt.unlocked .lesson-card-node {
+  background: #6d5dfc;
+  border-color: #6d5dfc;
+  color: #fff;
+  box-shadow: 0 0 0 6px rgba(109, 93, 252, 0.18), 0 4px 10px rgba(0, 0, 0, 0.12);
+}
+
+.lesson-card.alt.unlocked .lesson-card-pill.unlocked {
+  background: rgba(109, 93, 252, 0.15);
+  color: #6d5dfc;
+}
+
+.lesson-card.alt.unlocked .lesson-card-btn {
+  background: #6d5dfc;
+  box-shadow: 0 4px 10px rgba(109, 93, 252, 0.3);
+}
+
+.lesson-card.alt.active .lesson-card-main {
+  border-color: #6d5dfc;
+  box-shadow: 0 12px 30px rgba(109, 93, 252, 0.18);
+}
+
+.lesson-card.checkpoint .lesson-card-icon {
+  background: linear-gradient(135deg, rgba(109, 93, 252, 0.18), rgba(16, 185, 129, 0.18));
+}
+
+[data-theme="dark"] .lesson-card.alt .lesson-card-node.unlocked {
+  box-shadow: 0 0 0 6px rgba(139, 124, 255, 0.22), 0 4px 10px rgba(0, 0, 0, 0.4);
+}
+
 /* Right Sidebar Grid Layout */
 .learn-right-sidebar {
   display: flex;
