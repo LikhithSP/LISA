@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "./supabaseClient";
-import { levelDefinitions, initialAssessmentPool, getRandomAssessment } from "./curriculumData";
+import { levelDefinitions, initialAssessmentPool, getRandomAssessment, lessonsData } from "./curriculumData";
 
 const languages = ["English", "Hindi", "Kannada", "Telugu", "Tamil"];
 const educationLevels = ["No formal education", "Primary", "Secondary", "Higher secondary"];
@@ -673,11 +673,181 @@ function App() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [profileDropdownOpen]);
-  const [activeTab, setActiveTab] = useState("login"); // "login", "register", "forgot"
-  const [dashboardTab, setDashboardTab] = useState("home"); // "home", "profile"
-  const [message, setMessage] = useState("");
   const [session, setSession] = useState(null);
   const [profile, setProfile] = useState(null);
+  const [activeTab, setActiveTab] = useState("login"); // "login", "register", "forgot"
+  const [dashboardTab, setDashboardTab] = useState("learn"); // "learn", "practice", "profile"
+  const [userXp, setUserXp] = useState(0);
+  const [completedLessons, setCompletedLessons] = useState([]);
+  const [activeLesson, setActiveLesson] = useState(null);
+  const [lessonSession, setLessonSession] = useState(null);
+
+  useEffect(() => {
+    if (session?.user?.id) {
+      const userId = session.user.id;
+      const storedXp = localStorage.getItem(`lisa_user_xp_${userId}`);
+      setUserXp(storedXp ? parseInt(storedXp, 10) : 0);
+
+      const storedLessons = localStorage.getItem(`lisa_completed_lessons_${userId}`);
+      setCompletedLessons(storedLessons ? JSON.parse(storedLessons) : []);
+    } else {
+      setUserXp(0);
+      setCompletedLessons([]);
+    }
+  }, [session]);
+
+  const completeLesson = (lessonId, xpAwarded) => {
+    if (!session?.user?.id) return;
+    const userId = session.user.id;
+
+    // Update XP
+    const newXp = userXp + xpAwarded;
+    setUserXp(newXp);
+    localStorage.setItem(`lisa_user_xp_${userId}`, newXp);
+
+    // Update completed lessons
+    if (!completedLessons.includes(lessonId)) {
+      const newLessons = [...completedLessons, lessonId];
+      setCompletedLessons(newLessons);
+      localStorage.setItem(`lisa_completed_lessons_${userId}`, JSON.stringify(newLessons));
+    }
+  };
+
+  const generateLessonQuestions = (lessonId, lang) => {
+    const match = lessonId.match(/l(\d+)_/);
+    const lvl = match ? parseInt(match[1], 10) : 1;
+    
+    const levelQuestions = {
+      1: {
+        English: [
+          { type: "mcq", question: "Which of the following is a capital letter?", options: ["a", "B", "c", "d"], correct: "B" },
+          { type: "writing", prompt: "Type the word: CAT", correct: "cat" },
+          { type: "reading", targetText: "A small red apple" }
+        ],
+        Hindi: [
+          { type: "mcq", question: "इनमें से कौन सा स्वर है?", options: ["क", "ख", "अ", "ग"], correct: "अ" },
+          { type: "writing", prompt: "लिखें: घर", correct: "घर" },
+          { type: "reading", targetText: "आम मीठा है" }
+        ]
+      },
+      2: {
+        English: [
+          { type: "mcq", question: "Select the action verb:", options: ["Dog", "Run", "Blue", "Happy"], correct: "Run" },
+          { type: "writing", prompt: "Type the word: JUMP", correct: "jump" },
+          { type: "reading", targetText: "The big dog runs fast" }
+        ],
+        Hindi: [
+          { type: "mcq", question: "क्रिया शब्द चुनें:", options: ["पेड़", "दौड़ना", "सुंदर", "नया"], correct: "दौड़ना" },
+          { type: "writing", prompt: "लिखें: किताब", correct: "किताब" },
+          { type: "reading", targetText: "लड़का पानी पीता है" }
+        ]
+      },
+      3: {
+        English: [
+          { type: "mcq", question: "Choose the correct pronoun: '___ is a teacher.' (referring to a lady)", options: ["He", "She", "It", "They"], correct: "She" },
+          { type: "writing", prompt: "Type the sentence: HE IS RUNNING", correct: "he is running" },
+          { type: "reading", targetText: "She has a nice book" }
+        ],
+        Hindi: [
+          { type: "mcq", question: "सही सर्वनाम चुनें: '___ बाज़ार जा रहा हूँ।'", options: ["तुम", "मैं", "वह", "हम"], correct: "मैं" },
+          { type: "writing", prompt: "लिखें: वह खाना खा रहा है", correct: "वह खाना खा रहा है" },
+          { type: "reading", targetText: "हम सब साथ पढ़ते हैं" }
+        ]
+      },
+      4: {
+        English: [
+          { type: "mcq", question: "What does a red octagonal sign mean?", options: ["Go", "Stop", "Yield", "Speed Limit"], correct: "Stop" },
+          { type: "writing", prompt: "Type the word: WARNING", correct: "warning" },
+          { type: "reading", targetText: "Please wash your hands before eating" }
+        ],
+        Hindi: [
+          { type: "mcq", question: "लाल अष्टकोणीय संकेत का क्या अर्थ है?", options: ["चलो", "रुको", "धीमे चलो", "खतरा"], correct: "रुको" },
+          { type: "writing", prompt: "लिखें: चेतावनी", correct: "चेतावनी" },
+          { type: "reading", targetText: "कृपया यहाँ कूड़ा न फेंकें" }
+        ]
+      },
+      5: {
+        English: [
+          { type: "mcq", question: "What is the common abbreviation for 'Short Message Service'?", options: ["Email", "SMS", "PDF", "URL"], correct: "SMS" },
+          { type: "writing", prompt: "Type the phrase: SUBMIT FORM NOW", correct: "submit form now" },
+          { type: "reading", targetText: "Your bill payment of five hundred rupees is due tomorrow" }
+        ],
+        Hindi: [
+          { type: "mcq", question: "मोबाइल संदेश को संक्षेप में क्या कहते हैं?", options: ["ईमेल", "एसएमएस", "फ़ॉर्म", "कॉल"], correct: "एसएमएस" },
+          { type: "writing", prompt: "लिखें: फॉर्म जमा करें", correct: "फॉर्म जमा करें" },
+          { type: "reading", targetText: "आपका बिजली का बिल कल तक जमा होना चाहिए" }
+        ]
+      }
+    };
+
+    const currentLang = levelQuestions[lvl][lang] ? lang : "English";
+    return levelQuestions[lvl][currentLang];
+  };
+
+  const startLessonSession = (lesson) => {
+    const questions = generateLessonQuestions(lesson.id, selectedLanguage || "English");
+    setLessonSession({
+      lessonId: lesson.id,
+      title: lesson.title,
+      currentQuestionIndex: 0,
+      questions: questions,
+      selectedMcqOption: null,
+      writingAnswer: "",
+      spokenText: "",
+      status: "answering",
+      feedback: null
+    });
+    setActiveLesson(null);
+  };
+
+  const checkLessonQuestion = () => {
+    if (!lessonSession) return;
+    const currentQ = lessonSession.questions[lessonSession.currentQuestionIndex];
+    let isCorrect = false;
+    let feedbackMessage = "";
+
+    if (currentQ.type === "mcq") {
+      isCorrect = lessonSession.selectedMcqOption === currentQ.correct;
+      feedbackMessage = isCorrect ? "Excellent! You got it right!" : `Oops! The correct answer is: ${currentQ.correct}`;
+    } else if (currentQ.type === "writing") {
+      const userAns = lessonSession.writingAnswer.trim().toLowerCase();
+      const correctAns = currentQ.correct.toLowerCase();
+      isCorrect = userAns === correctAns;
+      feedbackMessage = isCorrect ? "Perfect spelling!" : `Correct spelling: ${currentQ.correct}`;
+    } else if (currentQ.type === "reading") {
+      isCorrect = true;
+      feedbackMessage = "Fantastic job reading that sentence!";
+    }
+
+    setLessonSession(prev => ({
+      ...prev,
+      status: "feedback",
+      feedback: { correct: isCorrect, message: feedbackMessage }
+    }));
+  };
+
+  const nextLessonStep = () => {
+    if (!lessonSession) return;
+    const nextIdx = lessonSession.currentQuestionIndex + 1;
+    if (nextIdx < lessonSession.questions.length) {
+      setLessonSession(prev => ({
+        ...prev,
+        currentQuestionIndex: nextIdx,
+        selectedMcqOption: null,
+        writingAnswer: "",
+        spokenText: "",
+        status: "answering",
+        feedback: null
+      }));
+    } else {
+      completeLesson(lessonSession.lessonId, 10);
+      setLessonSession(prev => ({
+        ...prev,
+        status: "completed"
+      }));
+    }
+  };
+  const [message, setMessage] = useState("");
   const [initialLoading, setInitialLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [recoveryMode, setRecoveryMode] = useState(false);
@@ -1520,195 +1690,69 @@ function App() {
     const currentLang = selectedLanguage || "English";
 
     return (
-      <div className="dashboard-container">
-        {/* Navigation Top Bar Header */}
-        <header className="dashboard-header" style={{ background: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: '16px 32px', borderBottom: '1px solid var(--line)' }}>
-          {/* Brand Logo & Info (same design as login page) */}
-          <div className="brand-logo-top dashboard-brand">
-            LISA
-            <span className="brand-logo-tagline">Literacy Intelligence Support Assistant</span>
+      <div className="dashboard-container-new">
+        {/* Left Navigation Sidebar */}
+        <aside className="dashboard-sidebar">
+          <div className="sidebar-logo" style={{ color: 'var(--accent)', cursor: 'default' }}>
+            <span className="sidebar-logo-icon">📖</span> LISA
           </div>
+          <div className="sidebar-menu">
+            <button
+              type="button"
+              className={`sidebar-item ${dashboardTab === "learn" || dashboardTab === "home" ? "active" : ""}`}
+              onClick={() => setDashboardTab("learn")}
+            >
+              🏠 Learn
+            </button>
+            <button
+              type="button"
+              className={`sidebar-item ${dashboardTab === "practice" ? "active" : ""}`}
+              onClick={() => {
+                if (!hasDiagnosed) {
+                  alert("Please complete the Initial Assessment first!");
+                  return;
+                }
+                setDashboardTab("practice");
+              }}
+              style={{ opacity: hasDiagnosed ? 1 : 0.5, cursor: hasDiagnosed ? 'pointer' : 'not-allowed' }}
+              disabled={!hasDiagnosed}
+            >
+              🏋️ Practice
+            </button>
+            <button
+              type="button"
+              className={`sidebar-item ${dashboardTab === "profile" ? "active" : ""}`}
+              onClick={() => setDashboardTab("profile")}
+            >
+              👤 Profile
+            </button>
+          </div>
+          <div className="sidebar-footer">
+            <button
+              type="button"
+              className="sidebar-item"
+              style={{ color: '#ef4444' }}
+              onClick={() => handleSignOut()}
+            >
+              🚪 {t("logout")}
+            </button>
+          </div>
+        </aside>
 
-          {/* Navigation Links */}
-          <nav className="top-nav-menu" style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-            {hasDiagnosed && (
-              <button
-                className={`menu-item ${dashboardTab === "home" ? "active" : ""}`}
-                onClick={() => setDashboardTab("home")}
-                style={{
-                  background: dashboardTab === 'home' ? 'rgba(198, 95, 45, 0.08)' : 'none',
-                  color: dashboardTab === 'home' ? 'var(--accent)' : 'var(--text)',
-                  border: 'none',
-                  padding: '8px 16px',
-                  borderRadius: '8px',
-                  fontWeight: '600',
-                  cursor: 'pointer'
-                }}
-              >
-                <span>🏠 {t("home")}</span>
-              </button>
-            )}
-          </nav>
-
-          {/* Right User Actions Area */}
-          <div className="dashboard-user-actions" style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+        {/* Main Content Column */}
+        <div className="dashboard-main-content">
+          {/* Topbar */}
+          <div className="dashboard-topbar">
+            <div className="topbar-indicators">
+              <div className="indicator-pill streak">🔥 36</div>
+              <div className="indicator-pill xp">⭐ {userXp} XP</div>
+            </div>
             {renderThemeToggle()}
             {renderLanguageDropdown(true)}
-
-            {/* Clickable Profile Button with Dropdown */}
-            <div className="profile-dropdown-container" ref={profileDropdownRef} style={{ position: 'relative' }}>
-              <button
-                type="button"
-                className="profile-nav-pill"
-                onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  background: 'rgba(0, 0, 0, 0.03)',
-                  color: 'var(--text)',
-                  border: '1px solid var(--line)',
-                  padding: '6px 12px',
-                  borderRadius: '20px',
-                  cursor: 'pointer',
-                  fontWeight: '600',
-                  transition: 'all 0.2s ease'
-                }}
-              >
-                <div className="user-avatar-initials" style={{ width: '28px', height: '28px', fontSize: '0.8rem', margin: 0 }}>
-                  {getUserInitials(profile?.full_name)}
-                </div>
-                <span style={{ fontSize: '0.9rem' }}>
-                  {t("myProfile")}
-                </span>
-                <span style={{ fontSize: '0.6rem', marginLeft: '4px', opacity: 0.7 }}>▼</span>
-              </button>
-
-              {profileDropdownOpen && (
-                <div className="profile-dropdown-menu profile-dropdown-card">
-                  {!editingProfile ? (
-                    <>
-                      <div className="profile-dropdown-header">
-                        <div className="profile-dropdown-avatar">
-                          {getUserInitials(profile?.full_name)}
-                        </div>
-                        <div className="profile-dropdown-id">
-                          <span className="profile-dropdown-name">{profile?.full_name || "Learner"}</span>
-                          <span className="profile-dropdown-email">{session.user.email}</span>
-                        </div>
-                      </div>
-
-                      <div className="profile-dropdown-details">
-                        <div className="profile-detail-row">
-                          <span className="profile-detail-label">Age</span>
-                          <span className="profile-detail-value">{profile?.age || "N/A"}</span>
-                        </div>
-                        <div className="profile-detail-row">
-                          <span className="profile-detail-label">Education Level</span>
-                          <span className="profile-detail-value">{profile?.education_level || "N/A"}</span>
-                        </div>
-                      </div>
-
-                      <button
-                        type="button"
-                        className="primary-btn profile-dropdown-action"
-                        onClick={() => handleStartEdit()}
-                      >
-                        Update Profile
-                      </button>
-
-                      <button
-                        type="button"
-                        className="secondary-btn profile-dropdown-action"
-                        style={{ borderColor: 'rgba(239, 68, 68, 0.4)', color: '#ef4444' }}
-                        onClick={() => handleResetAssessmentStatus()}
-                      >
-                        Reset Assessment Status
-                      </button>
-
-                      <button
-                        type="button"
-                        className="profile-dropdown-item profile-dropdown-logout"
-                        onClick={() => {
-                          setProfileDropdownOpen(false);
-                          handleSignOut();
-                        }}
-                      >
-                        🚪 {t("logout")}
-                      </button>
-                    </>
-                  ) : (
-                    <form className="profile-dropdown-edit" onSubmit={handleSaveProfileEdit}>
-                      <h4 className="profile-dropdown-edit-title">Update Profile</h4>
-                      <label className="profile-dropdown-label">
-                        Full Name
-                        <input
-                          type="text"
-                          required
-                          value={editFullName}
-                          onChange={(e) => setEditFullName(e.target.value)}
-                        />
-                      </label>
-                      <label className="profile-dropdown-label">
-                        Age
-                        <input
-                          type="number"
-                          min="5"
-                          max="120"
-                          required
-                          value={editAge}
-                          onChange={(e) => setEditAge(e.target.value)}
-                        />
-                      </label>
-                      <label className="profile-dropdown-label">
-                        Preferred Language
-                        <select
-                          required
-                          value={editPreferredLang}
-                          onChange={(e) => setEditPreferredLang(e.target.value)}
-                        >
-                          {languages.map((l) => (
-                            <option key={l} value={l}>{t(l + "Option")}</option>
-                          ))}
-                        </select>
-                      </label>
-                      <label className="profile-dropdown-label">
-                        Current Education Status
-                        <select
-                          required
-                          value={editEdLevel}
-                          onChange={(e) => setEditEdLevel(e.target.value)}
-                        >
-                          {educationLevels.map((ed) => (
-                            <option key={ed} value={ed}>{t(ed + "Option")}</option>
-                          ))}
-                        </select>
-                      </label>
-
-                      <div className="profile-dropdown-edit-actions">
-                        <button type="submit" className="primary-btn profile-dropdown-action" disabled={submitting}>
-                          {submitting ? "Saving..." : "Save Changes"}
-                        </button>
-                        <button
-                          type="button"
-                          className="secondary-btn profile-dropdown-action"
-                          onClick={() => setEditingProfile(false)}
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </form>
-                  )}
-                </div>
-              )}
-            </div>
           </div>
-        </header>
 
-        {/* Main Content Area */}
-        <div className="dashboard-content-area" style={{ flexGrow: 1 }}>
-
-          <main className={`dashboard-main-view ${(!hasDiagnosed && dashboardTab === "home") || assessmentState !== "not_started" ? "centered-layout" : ""}`}>
+          {/* Main View Area */}
+          <main className={`dashboard-main-view ${(!hasDiagnosed && (dashboardTab === "home" || dashboardTab === "learn")) || assessmentState !== "not_started" ? "centered-layout" : ""}`}>
             {/* 1. Welcome state when not diagnosed and assessment not started */}
             {!hasDiagnosed && assessmentState === "not_started" && dashboardTab === "home" && (
               <div className="diagnostic-welcome-wrapper" style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
@@ -2170,139 +2214,388 @@ function App() {
             {/* 4. Normal Dashboard View (only rendered when diagnosed and not in assessment) */}
             {assessmentState === "not_started" && (
               <>
-                {(dashboardTab === "dashboard" || (dashboardTab === "home" && hasDiagnosed)) && (
-                  <div className="home-tab-wrapper">
-                    {/* Stat Cards Row + Two-Column Section */}
-                    {(() => {
-                      const hoursLearned = (historyAttempts.length * 0.5).toFixed(1);
-                      const level = getLiteracyLevel(profile) || 1;
-                      const levelCategory = getLevelCategoryAndDescription(level, selectedLanguage).category;
+                {/* 3.1. Learn Tab (Duolingo Lesson Path & Right Stats Widgets) */}
+                {(dashboardTab === "learn" || dashboardTab === "home") && (
+                  <div className="learn-grid-layout">
+                    {/* Central Serpentine Lesson Path */}
+                    <div className="lesson-path-column">
+                      <div className="level-header-banner">
+                        <div className="level-header-info">
+                          <h2>{getLevelCategoryAndDescription(currentLevelNum, selectedLanguage).category}</h2>
+                          <p>{getLevelCategoryAndDescription(currentLevelNum, selectedLanguage).description}</p>
+                        </div>
+                      </div>
 
-                       const achievementsList = [
-                         { id: 1, title: "First Steps", desc: "Complete your first assessment", icon: "🌟", earned: true, progress: 1, total: 1, color: "#f59e0b", level: 1 },
-                         { id: 2, title: "Reading Star", desc: "Score 75% or higher in reading", icon: "📖", earned: calculateSkillProficiency("reading") >= 75, progress: 0, total: 1, color: "#3b82f6", level: 2 },
-                         { id: 3, title: "Comprehension Pro", desc: "Score 75% or higher in comprehension", icon: "🧠", earned: calculateSkillProficiency("comprehension") >= 75, progress: 0, total: 1, color: "#10b981", level: 3 },
-                         { id: 4, title: "Wordsmith", desc: "Score 75% or higher in writing", icon: "✍️", earned: calculateSkillProficiency("writing") >= 75, progress: 0, total: 1, color: "#a855f7", level: 4 },
-                       ];
+                      <div className="lesson-path-map">
+                        <div className="lesson-path-line"></div>
+                        {(lessonsData[currentLevelNum] || []).map((lesson, idx) => {
+                          const isCompleted = completedLessons.includes(lesson.id);
+                          const isUnlocked = idx === 0 || completedLessons.includes((lessonsData[currentLevelNum] || [])[idx - 1].id);
+                          const status = isCompleted ? "completed" : isUnlocked ? "unlocked" : "locked";
+                          const positions = ["offset-center", "offset-left", "offset-center", "offset-right", "offset-center"];
+                          const alignment = positions[idx % positions.length];
 
-                      return (
-                        <>
-                          <div className="daily-quests-card">
-                            <div className="daily-quests-header">
-                              <h3>Daily Quests</h3>
-                              <span className="daily-quests-timer">22 HOURS</span>
+                          return (
+                            <div key={lesson.id} className={`lesson-node-wrapper ${alignment}`}>
+                              <button
+                                className={`lesson-node-btn ${status}`}
+                                onClick={() => {
+                                  if (status !== "locked") {
+                                    setActiveLesson({ ...lesson, idx, status });
+                                  }
+                                }}
+                                disabled={status === "locked"}
+                              >
+                                {lesson.icon}
+                                {status === "locked" && <span className="lesson-node-lock">🔒</span>}
+                              </button>
+
+                              {activeLesson?.id === lesson.id && (
+                                <div className="lesson-popover-card">
+                                  <h4 className="lesson-popover-title">{lesson.title}</h4>
+                                  <p className="lesson-popover-desc">{lesson.desc}</p>
+                                  <button
+                                    className="lesson-popover-btn primary-btn"
+                                    onClick={() => startLessonSession(lesson)}
+                                  >
+                                    {status === "completed" ? "Review (+5 XP)" : "Start (+10 XP)"}
+                                  </button>
+                                  <button
+                                    className="secondary-btn"
+                                    style={{ marginTop: "8px", width: "100%", padding: "6px", fontSize: "0.85rem" }}
+                                    onClick={() => setActiveLesson(null)}
+                                  >
+                                    Close
+                                  </button>
+                                </div>
+                              )}
                             </div>
-                            <div className="quest-list">
-                              <div className="quest-item">
-                                <div className="quest-icon">⚡</div>
-                                <div className="quest-content">
-                                  <div className="quest-title">Earn 20 XP</div>
-                                  <div className="quest-progress-bg">
-                                    <div className="quest-progress-fill" style={{ width: '0%' }}></div>
-                                  </div>
-                                </div>
-                                <div className="quest-reward">📦</div>
-                              </div>
-                              <div className="quest-item">
-                                <div className="quest-icon">⚡</div>
-                                <div className="quest-content">
-                                  <div className="quest-title">Earn 10 Combo Bonus XP</div>
-                                  <div className="quest-progress-bg">
-                                    <div className="quest-progress-fill" style={{ width: '0%' }}></div>
-                                  </div>
-                                </div>
-                                <div className="quest-reward">📦</div>
-                              </div>
-                              <div className="quest-item">
-                                <div className="quest-icon">⏱️</div>
-                                <div className="quest-content">
-                                  <div className="quest-title">Spend 15 minutes learning</div>
-                                  <div className="quest-progress-bg">
-                                    <div className="quest-progress-fill" style={{ width: '0%' }}></div>
-                                  </div>
-                                </div>
-                                <div className="quest-reward">📦</div>
-                              </div>
-                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Right Stats Sidebar */}
+                    <div className="learn-right-sidebar">
+                      <div className="current-level-card">
+                        <div className="current-level-header">
+                          <h3 className="current-level-title">Current Level</h3>
+                        </div>
+                        <div className="current-level-body">
+                          <div className="current-level-badge" style={{ background: levelBadgeColor(currentLevelNum) }}>
+                            <span className="current-level-badge-icon">{levelBadgeIcon(currentLevelNum)}</span>
+                            <span className="current-level-badge-level">LEVEL {currentLevelNum}</span>
                           </div>
-
-                          <div className="current-level-card">
-                            <div className="current-level-header">
-                              <h3 className="current-level-title">Current Level</h3>
-                            </div>
-                            <div className="current-level-body">
-                              <div className="current-level-badge" style={{ background: levelBadgeColor(level) }}>
-                                <span className="current-level-badge-icon">{levelBadgeIcon(level)}</span>
-                                <span className="current-level-badge-level">LEVEL {level}</span>
-                              </div>
-                              <div className="current-level-info">
-                                <p className="current-level-name">{levelCategory}</p>
-                                <p className="current-level-msg">Keep it up good going</p>
-                              </div>
-                            </div>
+                          <div className="current-level-info">
+                            <p className="current-level-name">{getLevelCategoryAndDescription(currentLevelNum, selectedLanguage).category}</p>
+                            <p className="current-level-msg">Keep it up good going</p>
                           </div>
+                        </div>
+                      </div>
 
-                          {/* Two Columns: Achievements & Day Streak */}
-                          <div className="dashboard-dual-grid">
-                             <div className="achievements-card achievements-card-dark">
-                               <div className="achievements-card-header">
-                                 <h4>All achievements</h4>
-                               </div>
-                               <div className="achievements-list">
-                                 {achievementsList.map((a) => {
-                                   const progressPercent = a.total > 0 ? (a.progress / a.total) * 100 : 0;
-                                   return (
-                                     <div key={a.id} className={`achievement-row ${a.earned ? "earned" : ""}`}>
-                                       <div className="achievement-badge-box" style={{ background: a.color }}>
-                                         <span className="achievement-badge-icon">{a.icon}</span>
-                                         <span className="achievement-level-badge">LEVEL {a.level}</span>
-                                       </div>
-                                       <div className="achievement-info">
-                                         <div className="achievement-info-header">
-                                           <span className="achievement-title">{a.title}</span>
-                                           <span className="achievement-progress-counter">{a.progress}/{a.total}</span>
-                                         </div>
-                                         <p className="achievement-desc">{a.desc}</p>
-                                         <div className="achievement-progress-track">
-                                           <div className="achievement-progress-fill" style={{ width: `${progressPercent}%` }}></div>
-                                         </div>
-                                       </div>
-                                     </div>
-                                   );
-                                 })}
-                               </div>
-                             </div>
+                      <div className="streak-widget-card streak-society-card">
+                        <div className="streak-society-header">
+                          <span className="streak-society-badge">STREAK SOCIETY</span>
+                          <div className="streak-society-icon">🔥</div>
+                        </div>
+                        <h4 className="streak-society-title">36 day streak</h4>
+                        <p className="streak-society-message">You extended your streak before 95.82% of all learners yesterday!</p>
+                      </div>
 
-                            <div className="streak-widget-card streak-society-card">
-                              <div className="streak-society-header">
-                                <span className="streak-society-badge">STREAK SOCIETY</span>
-                                <div className="streak-society-icon">🔥</div>
+                      <div className="daily-quests-card">
+                        <div className="daily-quests-header">
+                          <h3>Daily Quests</h3>
+                          <span className="daily-quests-timer">22 HOURS</span>
+                        </div>
+                        <div className="quest-list">
+                          <div className="quest-item">
+                            <div className="quest-icon">⚡</div>
+                            <div className="quest-content">
+                              <div className="quest-title">Earn 20 XP</div>
+                              <div className="quest-progress-bg">
+                                <div className="quest-progress-fill" style={{ width: `${Math.min((userXp / 20) * 100, 100)}%` }}></div>
                               </div>
-                              <h4 className="streak-society-title">36 day streak</h4>
-                              <p className="streak-society-message">You extended your streak before 95.82% of all learners yesterday!</p>
-                              <div className="streak-society-bar">
-                                <div className="streak-society-days">
-                                  {["S", "M", "T", "W", "T", "F", "S"].map((day, idx) => (
-                                    <div key={idx} className="streak-society-day">{day}</div>
-                                  ))}
+                            </div>
+                            <div className="quest-reward">📦</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="achievements-card">
+                        <div className="achievements-card-header">
+                          <h4>Achievements</h4>
+                        </div>
+                        <div className="achievements-list">
+                          {[
+                            { id: 1, title: "First Steps", desc: "Complete your first assessment", icon: "🌟", earned: true, color: "#f59e0b" },
+                            { id: 2, title: "Reading Star", desc: "Score 75% or higher in reading", icon: "📖", earned: calculateSkillProficiency("reading") >= 75, color: "#3b82f6" },
+                            { id: 3, title: "Comprehension Pro", desc: "Score 75% or higher in comprehension", icon: "🧠", earned: calculateSkillProficiency("comprehension") >= 75, color: "#10b981" },
+                            { id: 4, title: "Wordsmith", desc: "Score 75% or higher in writing", icon: "✍️", earned: calculateSkillProficiency("writing") >= 75, color: "#a855f7" },
+                          ].map((a) => {
+                            return (
+                              <div key={a.id} className={`achievement-row ${a.earned ? "earned" : ""}`}>
+                                <div className="achievement-badge-box" style={{ background: a.color }}>
+                                  <span className="achievement-badge-icon">{a.icon}</span>
                                 </div>
-                                <div className="streak-society-progress-track">
-                                  <div className="streak-society-progress-fill"></div>
-                                  <div className="streak-society-star">⭐</div>
+                                <div className="achievement-info">
+                                  <div className="achievement-info-header">
+                                    <span className="achievement-title">{a.title}</span>
+                                  </div>
+                                  <p className="achievement-desc">{a.desc}</p>
                                 </div>
                               </div>
-                            </div>
-                          </div>
-                        </>
-                      );
-                    })()}
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
+                {/* 3.2. Practice Tab */}
+                {dashboardTab === "practice" && (
+                  <div className="practice-view-container">
+                    <h2>Skill Practice</h2>
+                    <p style={{ color: "var(--muted)" }}>Practice core skills to earn extra XP and master your language path.</p>
+                    <div className="practice-grid">
+                      <div className="practice-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_read_practice`, title: "Reading Practice", desc: "Speak out sentences aloud" })}>
+                        <div className="practice-card-icon">🔊</div>
+                        <h3>Reading Practice</h3>
+                        <p>Read out loud and improve your pronunciation.</p>
+                        <button className="practice-start-btn">Start (+5 XP)</button>
+                      </div>
+                      <div className="practice-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_write_practice`, title: "Writing Practice", desc: "Practice typing and spelling" })}>
+                        <div className="practice-card-icon">✍️</div>
+                        <h3>Writing Practice</h3>
+                        <p>Type out words correctly to improve your spelling.</p>
+                        <button className="practice-start-btn">Start (+5 XP)</button>
+                      </div>
+                      <div className="practice-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_comp_practice`, title: "Comprehension Practice", desc: "Answer simple MCQs" })}>
+                        <div className="practice-card-icon">🧠</div>
+                        <h3>Comprehension</h3>
+                        <p>Answer questions to build understanding.</p>
+                        <button className="practice-start-btn">Start (+5 XP)</button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* 3.3. Profile Tab */}
+                {dashboardTab === "profile" && (
+                  <div className="profile-view-container">
+                    <div className="profile-card-large">
+                      <div className="profile-avatar-large">
+                        {getUserInitials(profile?.full_name)}
+                      </div>
+                      <div className="profile-info-large">
+                        <h2>{profile?.full_name || "Learner"}</h2>
+                        <p>{session.user.email}</p>
+                        <div style={{ display: "flex", gap: "16px", marginTop: "12px" }}>
+                          <span style={{ fontWeight: 700 }}>Age: {profile?.age || "N/A"}</span>
+                          <span style={{ fontWeight: 700 }}>Education: {profile?.education_level || "N/A"}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px" }}>
+                      <div className="achievements-card" style={{ margin: 0, padding: "24px" }}>
+                        <h3 style={{ fontSize: "1.2rem", fontWeight: 800, marginBottom: "20px" }}>Update Profile Settings</h3>
+                        <form onSubmit={handleSaveProfileEdit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                          <label className="profile-dropdown-label">
+                            Full Name
+                            <input
+                              type="text"
+                              required
+                              value={editFullName}
+                              onChange={(e) => setEditFullName(e.target.value)}
+                              style={{ width: "100%", boxSizing: "border-box" }}
+                            />
+                          </label>
+                          <label className="profile-dropdown-label">
+                            Age
+                            <input
+                              type="number"
+                              min="5"
+                              max="120"
+                              required
+                              value={editAge}
+                              onChange={(e) => setEditAge(e.target.value)}
+                              style={{ width: "100%", boxSizing: "border-box" }}
+                            />
+                          </label>
+                          <label className="profile-dropdown-label">
+                            Preferred Language
+                            <select
+                              required
+                              value={editPreferredLang}
+                              onChange={(e) => setEditPreferredLang(e.target.value)}
+                              style={{ width: "100%", boxSizing: "border-box" }}
+                            >
+                              {languages.map((l) => (
+                                <option key={l} value={l}>{t(l + "Option")}</option>
+                              ))}
+                            </select>
+                          </label>
+                          <label className="profile-dropdown-label">
+                            Current Education Status
+                            <select
+                              required
+                              value={editEdLevel}
+                              onChange={(e) => setEditEdLevel(e.target.value)}
+                              style={{ width: "100%", boxSizing: "border-box" }}
+                            >
+                              {educationLevels.map((ed) => (
+                                <option key={ed} value={ed}>{t(ed + "Option")}</option>
+                              ))}
+                            </select>
+                          </label>
+                          <button type="submit" className="primary-btn" disabled={submitting}>
+                            {submitting ? "Saving..." : "Save Changes"}
+                          </button>
+                        </form>
+                      </div>
+
+                      <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+                        <div className="current-level-card" style={{ margin: 0, padding: "24px" }}>
+                          <h3 className="current-level-title">Diagnostic Control</h3>
+                          <p style={{ fontSize: "0.85rem", color: "var(--muted)", marginBottom: "16px" }}>Reset your assessment status to take the initial diagnostic test again.</p>
+                          <button
+                            type="button"
+                            className="secondary-btn"
+                            style={{ borderColor: "rgba(239, 68, 68, 0.4)", color: "#ef4444", width: "100%" }}
+                            onClick={() => handleResetAssessmentStatus()}
+                          >
+                            Reset Assessment Status
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 )}
               </>
             )}
           </main>
         </div>
+
+        {/* 4. Active Lesson Mini-Session Screen */}
+        {lessonSession && (
+          <div className="lesson-overlay-screen">
+            <div className="lesson-overlay-header">
+              <button className="lesson-overlay-close" onClick={() => setLessonSession(null)}>✕</button>
+              <div className="lesson-progress-container">
+                <div
+                  className="lesson-progress-bar"
+                  style={{ width: `${(lessonSession.currentQuestionIndex / lessonSession.questions.length) * 100}%` }}
+                ></div>
+              </div>
+              <div style={{ fontWeight: 800 }}>XP +10</div>
+            </div>
+
+            <div className="lesson-overlay-body">
+              {lessonSession.status !== "completed" ? (
+                <div className="lesson-question-container">
+                  {(() => {
+                    const currentQ = lessonSession.questions[lessonSession.currentQuestionIndex];
+                    return (
+                      <>
+                        <div className="lesson-question-type">
+                          {currentQ.type === "mcq" ? "Multiple Choice" : currentQ.type === "writing" ? "Writing / Dictation" : "Reading / Speaking"}
+                        </div>
+                        <h3 className="lesson-question-title">
+                          {currentQ.type === "mcq" ? currentQ.question : currentQ.type === "writing" ? currentQ.prompt : `Read the sentence: "${currentQ.targetText}"`}
+                        </h3>
+
+                        {currentQ.type === "mcq" && (
+                          <div className="lesson-mcq-options">
+                            {currentQ.options.map((opt) => (
+                              <button
+                                key={opt}
+                                className={`lesson-mcq-option-btn ${lessonSession.selectedMcqOption === opt ? "selected" : ""}`}
+                                onClick={() => {
+                                  if (lessonSession.status === "answering") {
+                                    setLessonSession(prev => ({ ...prev, selectedMcqOption: opt }));
+                                  }
+                                }}
+                                disabled={lessonSession.status !== "answering"}
+                              >
+                                {opt}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+
+                        {currentQ.type === "writing" && (
+                          <div style={{ marginTop: "20px" }}>
+                            <input
+                              type="text"
+                              className="writing-textarea"
+                              placeholder="Type your response here..."
+                              value={lessonSession.writingAnswer}
+                              onChange={(e) => {
+                                if (lessonSession.status === "answering") {
+                                  setLessonSession(prev => ({ ...prev, writingAnswer: e.target.value }));
+                                }
+                              }}
+                              disabled={lessonSession.status !== "answering"}
+                              style={{ width: "100%", fontSize: "1.2rem", padding: "12px 16px", borderRadius: "12px" }}
+                            />
+                          </div>
+                        )}
+
+                        {currentQ.type === "reading" && (
+                          <div style={{ marginTop: "20px", display: "flex", flexDirection: "column", gap: "16px", alignItems: "center" }}>
+                            <button
+                              className="primary-btn"
+                              onClick={() => speakText(currentQ.targetText)}
+                            >
+                              🔊 Listen
+                            </button>
+                            <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>Read this out loud to practice your speech pronunciation.</p>
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
+                </div>
+              ) : (
+                <div style={{ textAlign: "center", maxWidth: "400px" }}>
+                  <h2 style={{ fontSize: "2.5rem", fontWeight: 800, color: "#10b981", marginBottom: "16px" }}>Lesson Complete!</h2>
+                  <p style={{ fontSize: "1.1rem", color: "var(--muted)", marginBottom: "24px" }}>Great job! You earned 10 XP and unlocked the next lesson.</p>
+                  <button className="primary-btn" style={{ width: "100%", padding: "14px" }} onClick={() => setLessonSession(null)}>
+                    Continue
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {lessonSession.status === "answering" && (
+              <div className="lesson-overlay-footer">
+                <button
+                  className="lesson-check-btn"
+                  onClick={checkLessonQuestion}
+                  disabled={
+                    (lessonSession.questions[lessonSession.currentQuestionIndex].type === "mcq" && !lessonSession.selectedMcqOption) ||
+                    (lessonSession.questions[lessonSession.currentQuestionIndex].type === "writing" && !lessonSession.writingAnswer)
+                  }
+                >
+                  Check
+                </button>
+              </div>
+            )}
+
+            {lessonSession.status === "feedback" && (
+              <div className={`lesson-feedback-banner ${lessonSession.feedback.correct ? "correct" : "incorrect"}`}>
+                <div className="lesson-feedback-info">
+                  <h4>{lessonSession.feedback.correct ? "Excellent!" : "Correct Answer"}</h4>
+                  <p>{lessonSession.feedback.message}</p>
+                </div>
+                <button className="lesson-check-btn" onClick={nextLessonStep}>
+                  Continue
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     );
   }
