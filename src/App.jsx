@@ -1689,72 +1689,37 @@ function App() {
     const currentLevelNum = getLiteracyLevel(profile) || 1;
     const currentLang = selectedLanguage || "English";
 
-    return (
-      <div className="dashboard-container-new">
-        {/* Left Navigation Sidebar */}
-        <aside className="dashboard-sidebar">
-          <div className="sidebar-logo" style={{ color: 'var(--accent)', cursor: 'default' }}>
-            <span className="sidebar-logo-icon">📖</span> LISA
-          </div>
-          <div className="sidebar-menu">
-            <button
-              type="button"
-              className={`sidebar-item ${dashboardTab === "learn" || dashboardTab === "home" ? "active" : ""}`}
-              onClick={() => setDashboardTab("learn")}
-            >
-              🏠 Learn
-            </button>
-            <button
-              type="button"
-              className={`sidebar-item ${dashboardTab === "practice" ? "active" : ""}`}
-              onClick={() => {
-                if (!hasDiagnosed) {
-                  alert("Please complete the Initial Assessment first!");
-                  return;
-                }
-                setDashboardTab("practice");
-              }}
-              style={{ opacity: hasDiagnosed ? 1 : 0.5, cursor: hasDiagnosed ? 'pointer' : 'not-allowed' }}
-              disabled={!hasDiagnosed}
-            >
-              🏋️ Practice
-            </button>
-            <button
-              type="button"
-              className={`sidebar-item ${dashboardTab === "profile" ? "active" : ""}`}
-              onClick={() => setDashboardTab("profile")}
-            >
-              👤 Profile
-            </button>
-          </div>
-          <div className="sidebar-footer">
-            <button
-              type="button"
-              className="sidebar-item"
-              style={{ color: '#ef4444' }}
-              onClick={() => handleSignOut()}
-            >
-              🚪 {t("logout")}
-            </button>
-          </div>
-        </aside>
-
-        {/* Main Content Column */}
-        <div className="dashboard-main-content">
-          {/* Topbar */}
-          <div className="dashboard-topbar">
-            <div className="topbar-indicators">
-              <div className="indicator-pill streak">🔥 36</div>
-              <div className="indicator-pill xp">⭐ {userXp} XP</div>
+    if (!hasDiagnosed || assessmentState !== "not_started") {
+      return (
+        <div className="dashboard-container">
+          {/* Navigation Top Bar Header */}
+          <header className="dashboard-header" style={{ background: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: '16px 32px', borderBottom: '1px solid var(--line)' }}>
+            {/* Brand Logo & Info (same design as login page) */}
+            <div className="brand-logo-top dashboard-brand">
+              LISA
+              <span className="brand-logo-tagline">Literacy Intelligence Support Assistant</span>
             </div>
-            {renderThemeToggle()}
-            {renderLanguageDropdown(true)}
-          </div>
 
-          {/* Main View Area */}
-          <main className={`dashboard-main-view ${(!hasDiagnosed && (dashboardTab === "home" || dashboardTab === "learn")) || assessmentState !== "not_started" ? "centered-layout" : ""}`}>
+            {/* Right User Actions Area */}
+            <div className="dashboard-user-actions" style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+              {renderThemeToggle()}
+              {renderLanguageDropdown(true)}
+              <button
+                type="button"
+                className="secondary-btn"
+                style={{ borderColor: 'rgba(239, 68, 68, 0.4)', color: '#ef4444' }}
+                onClick={() => handleSignOut()}
+              >
+                Log Out
+              </button>
+            </div>
+          </header>
+
+          {/* Main Content Area */}
+          <div className="dashboard-content-area" style={{ flexGrow: 1 }}>
+            <main className="dashboard-main-view centered-layout">
             {/* 1. Welcome state when not diagnosed and assessment not started */}
-            {!hasDiagnosed && assessmentState === "not_started" && dashboardTab === "home" && (
+            {!hasDiagnosed && assessmentState === "not_started" && (
               <div className="diagnostic-welcome-wrapper" style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
                 <div className="welcome-banner welcome-banner-mascot">
                   <img
@@ -2210,147 +2175,148 @@ function App() {
                 </div>
               );
             })()}
+          </main>
+        </div>
+      </div>
+      );
+    }
 
-            {/* 4. Normal Dashboard View (only rendered when diagnosed and not in assessment) */}
-            {assessmentState === "not_started" && (
-              <>
-                {/* 3.1. Learn Tab (Duolingo Lesson Path & Right Stats Widgets) */}
-                {(dashboardTab === "learn" || dashboardTab === "home") && (
-                  <div className="learn-grid-layout">
-                    {/* Central Serpentine Lesson Path */}
-                    <div className="lesson-path-column">
-                      <div className="level-header-banner">
-                        <div className="level-header-info">
-                          <h2>{getLevelCategoryAndDescription(currentLevelNum, selectedLanguage).category}</h2>
-                          <p>{getLevelCategoryAndDescription(currentLevelNum, selectedLanguage).description}</p>
-                        </div>
-                      </div>
+    return (
+      <div className="dashboard-container-new">
+        {/* Left Navigation Sidebar */}
+        <aside className="dashboard-sidebar">
+          <div className="sidebar-logo" style={{ color: 'var(--accent)', cursor: 'default' }}>
+            <span className="sidebar-logo-icon">📖</span> LISA
+          </div>
+          <div className="sidebar-menu">
+            <button
+              type="button"
+              className={`sidebar-item ${dashboardTab === "learn" || dashboardTab === "home" ? "active" : ""}`}
+              onClick={() => setDashboardTab("learn")}
+            >
+              🏠 Learn
+            </button>
+            <button
+              type="button"
+              className={`sidebar-item ${dashboardTab === "practice" ? "active" : ""}`}
+              onClick={() => setDashboardTab("practice")}
+            >
+              🏋️ Practice
+            </button>
+            <button
+              type="button"
+              className={`sidebar-item ${dashboardTab === "profile" ? "active" : ""}`}
+              onClick={() => setDashboardTab("profile")}
+            >
+              👤 Profile
+            </button>
+          </div>
+          <div className="sidebar-footer">
+            <button
+              type="button"
+              className="sidebar-item"
+              style={{ color: '#ef4444' }}
+              onClick={() => handleSignOut()}
+            >
+              🚪 {t("logout")}
+            </button>
+          </div>
+        </aside>
 
-                      <div className="lesson-path-map">
-                        <div className="lesson-path-line"></div>
-                        {(lessonsData[currentLevelNum] || []).map((lesson, idx) => {
-                          const isCompleted = completedLessons.includes(lesson.id);
-                          const isUnlocked = idx === 0 || completedLessons.includes((lessonsData[currentLevelNum] || [])[idx - 1].id);
-                          const status = isCompleted ? "completed" : isUnlocked ? "unlocked" : "locked";
-                          const positions = ["offset-center", "offset-left", "offset-center", "offset-right", "offset-center"];
-                          const alignment = positions[idx % positions.length];
+        {/* Main Content Column */}
+        <div className="dashboard-main-content">
+          {/* Topbar */}
+          <div className="dashboard-topbar">
+            <div className="topbar-indicators">
+              <div className="indicator-pill streak">🔥 36</div>
+              <div className="indicator-pill xp">⭐ {userXp} XP</div>
+            </div>
+            {renderThemeToggle()}
+            {renderLanguageDropdown(true)}
+          </div>
 
-                          return (
-                            <div key={lesson.id} className={`lesson-node-wrapper ${alignment}`}>
-                              <button
-                                className={`lesson-node-btn ${status}`}
-                                onClick={() => {
-                                  if (status !== "locked") {
-                                    setActiveLesson({ ...lesson, idx, status });
-                                  }
-                                }}
-                                disabled={status === "locked"}
-                              >
-                                {lesson.icon}
-                                {status === "locked" && <span className="lesson-node-lock">🔒</span>}
-                              </button>
-
-                              {activeLesson?.id === lesson.id && (
-                                <div className="lesson-popover-card">
-                                  <h4 className="lesson-popover-title">{lesson.title}</h4>
-                                  <p className="lesson-popover-desc">{lesson.desc}</p>
-                                  <button
-                                    className="lesson-popover-btn primary-btn"
-                                    onClick={() => startLessonSession(lesson)}
-                                  >
-                                    {status === "completed" ? "Review (+5 XP)" : "Start (+10 XP)"}
-                                  </button>
-                                  <button
-                                    className="secondary-btn"
-                                    style={{ marginTop: "8px", width: "100%", padding: "6px", fontSize: "0.85rem" }}
-                                    onClick={() => setActiveLesson(null)}
-                                  >
-                                    Close
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
+          {/* Main View Area */}
+          <main className="dashboard-main-view">
+            {/* 3.1. Learn Tab (Duolingo Style Dashboard Widgets - No lessons path rendered yet) */}
+            {(dashboardTab === "learn" || dashboardTab === "home") && (
+              <div className="learn-grid-layout">
+                {/* Left/Center Column - Current Level, Daily Quests */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                  <div className="current-level-card" style={{ margin: 0 }}>
+                    <div className="current-level-header">
+                      <h3 className="current-level-title">Current Level</h3>
                     </div>
-
-                    {/* Right Stats Sidebar */}
-                    <div className="learn-right-sidebar">
-                      <div className="current-level-card">
-                        <div className="current-level-header">
-                          <h3 className="current-level-title">Current Level</h3>
-                        </div>
-                        <div className="current-level-body">
-                          <div className="current-level-badge" style={{ background: levelBadgeColor(currentLevelNum) }}>
-                            <span className="current-level-badge-icon">{levelBadgeIcon(currentLevelNum)}</span>
-                            <span className="current-level-badge-level">LEVEL {currentLevelNum}</span>
-                          </div>
-                          <div className="current-level-info">
-                            <p className="current-level-name">{getLevelCategoryAndDescription(currentLevelNum, selectedLanguage).category}</p>
-                            <p className="current-level-msg">Keep it up good going</p>
-                          </div>
-                        </div>
+                    <div className="current-level-body">
+                      <div className="current-level-badge" style={{ background: levelBadgeColor(currentLevelNum) }}>
+                        <span className="current-level-badge-icon">{levelBadgeIcon(currentLevelNum)}</span>
+                        <span className="current-level-badge-level">LEVEL {currentLevelNum}</span>
                       </div>
-
-                      <div className="streak-widget-card streak-society-card">
-                        <div className="streak-society-header">
-                          <span className="streak-society-badge">STREAK SOCIETY</span>
-                          <div className="streak-society-icon">🔥</div>
-                        </div>
-                        <h4 className="streak-society-title">36 day streak</h4>
-                        <p className="streak-society-message">You extended your streak before 95.82% of all learners yesterday!</p>
-                      </div>
-
-                      <div className="daily-quests-card">
-                        <div className="daily-quests-header">
-                          <h3>Daily Quests</h3>
-                          <span className="daily-quests-timer">22 HOURS</span>
-                        </div>
-                        <div className="quest-list">
-                          <div className="quest-item">
-                            <div className="quest-icon">⚡</div>
-                            <div className="quest-content">
-                              <div className="quest-title">Earn 20 XP</div>
-                              <div className="quest-progress-bg">
-                                <div className="quest-progress-fill" style={{ width: `${Math.min((userXp / 20) * 100, 100)}%` }}></div>
-                              </div>
-                            </div>
-                            <div className="quest-reward">📦</div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="achievements-card">
-                        <div className="achievements-card-header">
-                          <h4>Achievements</h4>
-                        </div>
-                        <div className="achievements-list">
-                          {[
-                            { id: 1, title: "First Steps", desc: "Complete your first assessment", icon: "🌟", earned: true, color: "#f59e0b" },
-                            { id: 2, title: "Reading Star", desc: "Score 75% or higher in reading", icon: "📖", earned: calculateSkillProficiency("reading") >= 75, color: "#3b82f6" },
-                            { id: 3, title: "Comprehension Pro", desc: "Score 75% or higher in comprehension", icon: "🧠", earned: calculateSkillProficiency("comprehension") >= 75, color: "#10b981" },
-                            { id: 4, title: "Wordsmith", desc: "Score 75% or higher in writing", icon: "✍️", earned: calculateSkillProficiency("writing") >= 75, color: "#a855f7" },
-                          ].map((a) => {
-                            return (
-                              <div key={a.id} className={`achievement-row ${a.earned ? "earned" : ""}`}>
-                                <div className="achievement-badge-box" style={{ background: a.color }}>
-                                  <span className="achievement-badge-icon">{a.icon}</span>
-                                </div>
-                                <div className="achievement-info">
-                                  <div className="achievement-info-header">
-                                    <span className="achievement-title">{a.title}</span>
-                                  </div>
-                                  <p className="achievement-desc">{a.desc}</p>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
+                      <div className="current-level-info">
+                        <p className="current-level-name">{getLevelCategoryAndDescription(currentLevelNum, selectedLanguage).category}</p>
+                        <p className="current-level-msg">Keep it up good going</p>
                       </div>
                     </div>
                   </div>
-                )}
+
+                  <div className="daily-quests-card" style={{ margin: 0 }}>
+                    <div className="daily-quests-header">
+                      <h3>Daily Quests</h3>
+                      <span className="daily-quests-timer">22 HOURS</span>
+                    </div>
+                    <div className="quest-list">
+                      <div className="quest-item">
+                        <div className="quest-icon">⚡</div>
+                        <div className="quest-content">
+                          <div className="quest-title">Earn 20 XP</div>
+                          <div className="quest-progress-bg">
+                            <div className="quest-progress-fill" style={{ width: `${Math.min((userXp / 20) * 100, 100)}%` }}></div>
+                          </div>
+                        </div>
+                        <div className="quest-reward">📦</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Column - Streak, Achievements */}
+                <div className="learn-right-sidebar">
+                  <div className="streak-widget-card streak-society-card" style={{ margin: 0 }}>
+                    <div className="streak-society-header">
+                      <span className="streak-society-badge">STREAK SOCIETY</span>
+                      <div className="streak-society-icon">🔥</div>
+                    </div>
+                    <h4 className="streak-society-title">36 day streak</h4>
+                    <p className="streak-society-message">You extended your streak before 95.82% of all learners yesterday!</p>
+                  </div>
+
+                  <div className="achievements-card" style={{ margin: 0 }}>
+                    <div className="achievements-card-header">
+                      <h4>Achievements</h4>
+                    </div>
+                    <div className="achievements-list">
+                      {[
+                        { id: 1, title: "First Steps", desc: "Complete your first assessment", icon: "🌟", earned: true, color: "#f59e0b" },
+                        { id: 2, title: "Reading Star", desc: "Score 75% or higher in reading", icon: "📖", earned: calculateSkillProficiency("reading") >= 75, color: "#3b82f6" },
+                        { id: 3, title: "Comprehension Pro", desc: "Score 75% or higher in comprehension", icon: "🧠", earned: calculateSkillProficiency("comprehension") >= 75, color: "#10b981" },
+                        { id: 4, title: "Wordsmith", desc: "Score 75% or higher in writing", icon: "✍️", earned: calculateSkillProficiency("writing") >= 75, color: "#a855f7" },
+                      ].map((a) => (
+                        <div key={a.id} className={`achievement-row ${a.earned ? "earned" : ""}`}>
+                          <div className="achievement-badge-box" style={{ background: a.color }}>
+                            <span className="achievement-badge-icon">{a.icon}</span>
+                          </div>
+                          <div className="achievement-info">
+                            <div className="achievement-info-header">
+                              <span className="achievement-title">{a.title}</span>
+                            </div>
+                            <p className="achievement-desc">{a.desc}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
                 {/* 3.2. Practice Tab */}
                 {dashboardTab === "practice" && (
@@ -2472,8 +2438,6 @@ function App() {
                     </div>
                   </div>
                 )}
-              </>
-            )}
           </main>
         </div>
 

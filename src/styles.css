@@ -119,13 +119,18 @@ select,
 }
 
 /* When the language selector is also present (dashboard), offset toggle left of it */
+.dashboard-topbar .theme-toggle-btn,
 .dashboard-header .theme-toggle-btn {
   position: static;
 }
 
-/* Inside dashboard header, render toggle inline (not fixed) */
+/* Inside dashboard topbar/header, render toggle inline (not fixed) so it does
+   not overlap the Logout / Change Language buttons */
+.dashboard-topbar .theme-toggle-container,
 .dashboard-header .theme-toggle-container {
   position: static;
+  top: auto;
+  right: auto;
 }
 
 /* Dashboard brand uses the same logo + subline design as the login page */
