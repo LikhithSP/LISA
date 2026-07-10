@@ -1820,7 +1820,7 @@ function App() {
             <button
               type="button"
               className="profile-dropdown-item logout"
-              style={{ color: '#ef4444', justifyContent: 'center', width: '100%', padding: '10px 0' }}
+              style={{ color: '#ef4444', background: 'rgba(198, 95, 45, 0.08)', justifyContent: 'center', width: '100%', padding: '10px 0' }}
               onClick={() => {
                 setProfileDropdownOpen(false);
                 handleSignOut();
