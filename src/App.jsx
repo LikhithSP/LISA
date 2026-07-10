@@ -590,11 +590,11 @@ const getLiteracyLevel = (userProfile) => {
   if (userProfile?.literacy_level) return Number(userProfile.literacy_level);
   const ed = userProfile?.education_level;
   if (ed) {
-    if (ed.includes("Level 1") || ed.includes("à¤¸à¥à¤¤à¤° 1") || ed.includes("à²¹à²‚à²¤ 1") || ed.includes("à°¸à±à°¥à°¾à°¯à°¿ 1") || ed.includes("à®¨à®¿à®²à¯ˆ 1")) return 1;
-    if (ed.includes("Level 2") || ed.includes("à¤¸à¥à¤¤à¤° 2") || ed.includes("à²¹à²‚à²¤ 2") || ed.includes("à°¸à±à°¥à°¾à°¯à°¿ 2") || ed.includes("à®¨à®¿à®²à¯ˆ 2")) return 2;
-    if (ed.includes("Level 3") || ed.includes("à¤¸à¥à¤¤à¤° 3") || ed.includes("à²¹à²‚à²¤ 3") || ed.includes("à°¸à±à°¥à°¾à°¯à°¿ 3") || ed.includes("à®¨à®¿à®²à¯ˆ 3")) return 3;
-    if (ed.includes("Level 4") || ed.includes("à¤¸à¥à¤¤à¤° 4") || ed.includes("à²¹à²‚à²¤ 4") || ed.includes("à°¸à±à°¥à°¾à°¯à°¿ 4") || ed.includes("à®¨à®¿à®²à¯ˆ 4")) return 4;
-    if (ed.includes("Level 5") || ed.includes("à¤¸à¥à¤¤à¤° 5") || ed.includes("à²¹à²‚à²¤ 5") || ed.includes("à°¸à±à°¥à°¾à°¯à°¿ 5") || ed.includes("à®¨à®¿à®²à¯ˆ 5")) return 5;
+    if (ed.includes("Level 1") || ed.includes("स्तर 1") || ed.includes("ಹಂತ 1") || ed.includes("స్థాయి 1") || ed.includes("நிலை 1")) return 1;
+    if (ed.includes("Level 2") || ed.includes("स्तर 2") || ed.includes("ಹಂತ 2") || ed.includes("స్థాయి 2") || ed.includes("நிலை 2")) return 2;
+    if (ed.includes("Level 3") || ed.includes("स्तर 3") || ed.includes("ಹಂತ 3") || ed.includes("స్థాయి 3") || ed.includes("நிலை 3")) return 3;
+    if (ed.includes("Level 4") || ed.includes("स्तर 4") || ed.includes("ಹಂತ 4") || ed.includes("స్థాయి 4") || ed.includes("நிலை 4")) return 4;
+    if (ed.includes("Level 5") || ed.includes("स्तर 5") || ed.includes("ಹಂತ 5") || ed.includes("స్థాయి 5") || ed.includes("நிலை 5")) return 5;
   }
   return null;
 };
@@ -860,17 +860,17 @@ function App() {
     const lang = selectedLanguage || "English";
     const dict = translations[lang] || translations["English"];
     if (key === "successForgotPasswordLink") {
-      return lang === "Hindi" ? "à¤ªà¤¾à¤¸à¤µà¤°à¥à¤¡ à¤°à¥€à¤¸à¥‡à¤Ÿ à¤²à¤¿à¤‚à¤• à¤­à¥‡à¤œà¤¾ à¤—à¤¯à¤¾! à¤•à¥ƒà¤ªà¤¯à¤¾ à¤…à¤ªà¤¨à¤¾ à¤ˆà¤®à¥‡à¤² à¤œà¤¾à¤‚à¤šà¥‡à¤‚à¥¤" :
-        lang === "Kannada" ? "à²ªà²¾à²¸à³â€Œà²µà²°à³à²¡à³ à²®à²°à³à²¹à³Šà²‚à²¦à²¿à²¸à³à²µ à²²à²¿à²‚à²•à³ à²•à²³à³à²¹à²¿à²¸à²²à²¾à²—à²¿à²¦à³†! à²‡à²®à³‡à²²à³ à²ªà²°à²¿à²¶à³€à²²à²¿à²¸à²¿." :
-          lang === "Telugu" ? "à°ªà°¾à°¸à±â€Œà°µà°°à±à°¡à± à°°à±€à°¸à±†à°Ÿà± à°²à°¿à°‚à°•à± à°ªà°‚à°ªà°¬à°¡à°¿à°‚à°¦à°¿! à°¦à°¯à°šà±‡à°¸à°¿ à°‡à°®à±†à°¯à°¿à°²à± à°¤à°¨à°¿à°–à±€ à°šà±‡à°¯à°‚à°¡à°¿." :
-            lang === "Tamil" ? "à®•à®Ÿà®µà¯à®šà¯à®šà¯Šà®²à¯ à®®à¯€à®Ÿà¯à®ªà¯ à®‡à®£à¯ˆà®ªà¯à®ªà¯ à®…à®©à¯à®ªà¯à®ªà®ªà¯à®ªà®Ÿà¯à®Ÿà®¤à¯! à®®à®¿à®©à¯à®©à®žà¯à®šà®²à¯ˆà®šà¯ à®šà®°à®¿à®ªà®¾à®°à¯à®•à¯à®•à®µà¯à®®à¯." :
+      return lang === "Hindi" ? "पासवर्ड रीसेट लिंक भेजा गया! कृपया अपना ईमेल जांचें।" :
+        lang === "Kannada" ? "ಪಾಸ್‌ವರ್ಡ್ ಮರುಹೊಂದಿಸುವ ಲಿಂಕ್ ಕಳುಹಿಸಲಾಗಿದೆ! ಇಮೇಲ್ ಪರಿಶೀಲಿಸಿ." :
+          lang === "Telugu" ? "పాస్‌వర్డ్ రీసెట్ లింక్ పంపబడింది! దయచేసి ఇమెయిల్ తనిఖీ చేయండి." :
+            lang === "Tamil" ? "கடவுச்சொல் மீட்பு இணைப்பு அனுப்பப்பட்டது! மின்னஞ்சலைச் சரிபார்க்கவும்." :
               "Password reset link sent! Please check your email.";
     }
     if (key === "successResetPassword") {
-      return lang === "Hindi" ? "à¤ªà¤¾à¤¸à¤µà¤°à¥à¤¡ à¤°à¥€à¤¸à¥‡à¤Ÿ à¤¸à¤«à¤² à¤°à¤¹à¤¾! à¤…à¤¬ à¤†à¤ª à¤²à¥‰à¤—à¤¿à¤¨ à¤•à¤° à¤¸à¤•à¤¤à¥‡ à¤¹à¥ˆà¤‚à¥¤" :
-        lang === "Kannada" ? "à²ªà²¾à²¸à³â€Œà²µà²°à³à²¡à³ à²®à²°à³à²¹à³Šà²‚à²¦à²¿à²•à³† à²¯à²¶à²¸à³à²µà²¿à²¯à²¾à²—à²¿à²¦à³†! à²¨à³€à²µà³ à²ˆà²— à²²à²¾à²—à²¿à²¨à³ à²®à²¾à²¡à²¬à²¹à³à²¦à³." :
-          lang === "Telugu" ? "à°ªà°¾à°¸à±â€Œà°µà°°à±à°¡à± à°°à±€à°¸à±†à°Ÿà± à°µà°¿à°œà°¯à°µà°‚à°¤à°®à±ˆà°‚à°¦à°¿! à°®à±€à°°à± à°‡à°ªà±à°ªà±à°¡à± à°²à°¾à°—à°¿à°¨à± à°šà±‡à°¯à°µà°šà±à°šà±." :
-            lang === "Tamil" ? "à®•à®Ÿà®µà¯à®šà¯à®šà¯Šà®²à¯ à®®à¯€à®Ÿà¯à®Ÿà®®à¯ˆà®•à¯à®•à®ªà¯à®ªà®Ÿà¯à®Ÿà®¤à¯! à®¨à¯€à®™à¯à®•à®³à¯ à®‡à®ªà¯à®ªà¯‹à®¤à¯ à®‰à®³à¯à®¨à¯à®´à¯ˆà®¯à®²à®¾à®®à¯." :
+      return lang === "Hindi" ? "पासवर्ड रीसेट सफल रहा! अब आप लॉगिन कर सकते हैं।" :
+        lang === "Kannada" ? "ಪಾಸ್‌ವರ್ಡ್ ಮರುಹೊಂದಿಕೆ ಯಶಸ್ವಿಯಾಗಿದೆ! ನೀವು ಈಗ ಲಾಗಿನ್ ಮಾಡಬಹುದು." :
+          lang === "Telugu" ? "పాస్‌వర్డ్ రీసెట్ విజయవంతమైంది! మీరు ఇప్పుడు లాగిన్ చేయవచ్చు." :
+            lang === "Tamil" ? "கடவுச்சொல் மீட்டமைக்கப்பட்டது! நீங்கள் இப்போது உள்நுழையலாம்." :
               "Password reset successfully! You can now log in.";
     }
     return dict[key] || translations["English"][key] || key;
@@ -1309,7 +1309,7 @@ function App() {
     }
   };
 
-  // Evaluate & Diagnose â€” 6-Skill Assessment Engine
+  // Evaluate & Diagnose — 6-Skill Assessment Engine
   const submitInitialAssessment = async () => {
     if ("speechSynthesis" in window) window.speechSynthesis.cancel();
     setSubmitting(true);
@@ -1563,10 +1563,10 @@ function App() {
         <div className="lang-selector-dropdown">
           {[
             { key: "English", native: "English" },
-            { key: "Hindi", native: "à¤¹à¤¿à¤¨à¥à¤¦à¥€" },
-            { key: "Kannada", native: "à²•à²¨à³à²¨à²¡" },
-            { key: "Telugu", native: "à°¤à±†à°²à±à°—à±" },
-            { key: "Tamil", native: "à®¤à®®à®¿à®´à¯" },
+            { key: "Hindi", native: "हिन्दी" },
+            { key: "Kannada", native: "ಕನ್ನಡ" },
+            { key: "Telugu", native: "తెలుగు" },
+            { key: "Tamil", native: "தமிழ்" },
           ].map((lang) => (
             <button
               key={lang.key}
@@ -1846,7 +1846,7 @@ function App() {
                     <p className="intro-copy">{t("initialAssessmentDesc")}</p>
                     <div className="assessment-tours">
                       <div className="tour-badge">📄 {t("compSecTitle")}</div>
-                      <div className="tour-badge">🗣️ {t("readingSecTitle")}</div>
+                      <div className="tour-badge">🗣️ {t("readingSecTitle")}</div>
                       <div className="tour-badge">✍️ {t("writingSecTitle")}</div>
                     </div>
                     <button
@@ -1899,26 +1899,26 @@ function App() {
                   : "";
 
                 const optionTranslationMap = {
-                  Ship: { Hindi: "à¤œà¤¹à¤¾à¤œ", Kannada: "à²¹à²¡à²—à³", Telugu: "à°“à°¡", Tamil: "à®•à®ªà¯à®ªà®²à¯" },
-                  Crop: { Hindi: "à¤«à¤¸à¤²", Kannada: "à²¬à³†à²³à³†", Telugu: "à°ªà°‚à°Ÿ", Tamil: "à®ªà®¯à®¿à®°à¯" },
-                  Soap: { Hindi: "à¤¸à¤¾à¤¬à¥à¤¨", Kannada: "à²¸à³‹à²ªà³", Telugu: "à°¸à°¬à±à°¬à±", Tamil: "à®šà¯‹à®ªà¯à®ªà¯" },
-                  Shut: { Hindi: "à¤¬à¤‚à¤¦", Kannada: "à²®à³à²šà³à²šà³", Telugu: "à°®à±‚à°¸à°¿à²µà³‡à°¯à°¿", Tamil: "à®®à¯‚à®Ÿà¯" },
-                  Shop: { Hindi: "à¤¦à¥à¤•à¤¾à¤¨", Kannada: "à²…à²‚à²—à²¡à²¿", Telugu: "à²¦à³à²•à²¾à°£à°‚", Tamil: "à®•à®Ÿà¯ˆ" },
-                  Book: { Hindi: "à¤•à¤¿à¤¤à¤¾à¤¬", Kannada: "à²ªà³à²¸à³à²¤à²•", Telugu: "à²ªà³à²¸à³à²¤à²•à²‚", Tamil: "à®ªà¯à®¤à¯à®¤à®•à®®à¯" },
-                  Pen: { Hindi: "à¤•à¤²à¤®", Kannada: "à²ªà³‡à²¨à²¾", Telugu: "à°ªà±†à°¨à±à°¨à±", Tamil: "à®ªà¯‡à®©à®¾" },
-                  Read: { Hindi: "à¤ªà¤¢à¤¼à¤¨à¤¾", Kannada: "à²“à²¦à³", Telugu: "à°šà°¦à°µà°¡à°‚", Tamil: "à®µà®¾à®šà®¿" },
-                  Write: { Hindi: "à¤²à¤¿à¤–à¤¨à¤¾", Kannada: "à²¬à²°à³†", Telugu: "à°°à°¾à°¯à°¡à°‚", Tamil: "à®Žà®´à¯à®¤à¯" },
-                  Speak: { Hindi: "à¤¬à¥‹à¤²à¤¨à¤¾", Kannada: "à²®à²¾à²¤à²¨à²¾à²¡à³", Telugu: "à²®à²¾à°Ÿà±à°²à°¾à²¡à°Ÿà°‚", Tamil: "à®ªà¯‡à®šà¯" },
-                  Listen: { Hindi: "à¤¸à¥à¤¨à¤¨à¤¾", Kannada: "à²•à³‡à²³à³", Telugu: "à°µà°¿à°¨à°¡à°‚", Tamil: "à®•à¯‡à®³à¯" },
-                  Word: { Hindi: "à¤¶à¤¬à¥à¤¦", Kannada: "à²ªà²¦", Telugu: "à°ªà°¦à°‚", Tamil: "à®µà®¾à®°à¯à®¤à¯à®¤à¯ˆ" },
-                  Letter: { Hindi: "à¤…à¤•à¥à¤·à¤°", Kannada: "à²…à²•à³à²·à²°", Telugu: "à°…à°•à±à°·à°°à°‚", Tamil: "à®Žà®´à¯à®¤à¯à®¤à¯" },
-                  Sentence: { Hindi: "à¤µà¤¾à¤•à¥à¤¯", Kannada: "à²µà²¾à²•à³à²¯", Telugu: "à°µà°¾à°•à±à°¯à°‚", Tamil: "à®µà®¾à®•à¯à®•à®¿à®¯à®®à¯" },
-                  Name: { Hindi: "à¤¨à¤¾à¤®", Kannada: "à²¹à³†à²¸à²°à³", Telugu: "à°ªà±‡à°°à±", Tamil: "à®ªà¯†à®¯à®°à¯" },
-                  Day: { Hindi: "à¤¦à¤¿à¤¨", Kannada: "à²¦à²¿à²¨", Telugu: "à°°à±‹à°œà±", Tamil: "à®¨à®¾à®³à¯" },
-                  Night: { Hindi: "à¤°à¤¾à¤¤", Kannada: "à²°à²¾à²¤à³à²°à²¿", Telugu: "à°°à°¾à°¤à±à°°à°¿", Tamil: "à®‡à®°à®µà¯" },
-                  Food: { Hindi: "à¤­à¥‹à¤œà¤¨", Kannada: "à¤†à¤¹à¤¾à¤°", Telugu: "à°†à°¹à°¾à°°à°‚", Tamil: "à®‰à®£à®µà¯" },
-                  Water: { Hindi: "à¤ªà¤¾à¤¨à¥€", Kannada: "à²¨à³€à²°à³", Telugu: "à°¨à±€à°°à±", Tamil: "à®¤à®£à¯à®£à¯€à®°à¯" },
-                  Milk: { Hindi: "à¤¦à¥‚à¤§", Kannada: "à²¹à²¾à²²à³", Telugu: "à°ªà°¾à°²à±", Tamil: "à®ªà®¾à®²à¯" }
+                  Ship: { Hindi: "जहाज", Kannada: "ಹಡಗು", Telugu: "ఓడ", Tamil: "கப்பல்" },
+                  Crop: { Hindi: "फसल", Kannada: "ಬೆಳೆ", Telugu: "పంట", Tamil: "பயிர்" },
+                  Soap: { Hindi: "साबुन", Kannada: "ಸೋಪು", Telugu: "సబ్బు", Tamil: "சோப்பு" },
+                  Shut: { Hindi: "बंद", Kannada: "ಮುಚ್ಚು", Telugu: "మూసిವೇయి", Tamil: "மூடு" },
+                  Shop: { Hindi: "दुकान", Kannada: "ಅಂಗಡಿ", Telugu: "ದುಕಾణం", Tamil: "கடை" },
+                  Book: { Hindi: "किताब", Kannada: "ಪುಸ್ತಕ", Telugu: "ಪುಸ್ತಕಂ", Tamil: "புத்தகம்" },
+                  Pen: { Hindi: "कलम", Kannada: "ಪೇನಾ", Telugu: "పెన్ను", Tamil: "பேனா" },
+                  Read: { Hindi: "पढ़ना", Kannada: "ಓದು", Telugu: "చదవడం", Tamil: "வாசி" },
+                  Write: { Hindi: "लिखना", Kannada: "ಬರೆ", Telugu: "రాయడం", Tamil: "எழுது" },
+                  Speak: { Hindi: "बोलना", Kannada: "ಮಾತನಾಡು", Telugu: "ಮಾట్లాಡటం", Tamil: "பேசு" },
+                  Listen: { Hindi: "सुनना", Kannada: "ಕೇಳು", Telugu: "వినడం", Tamil: "கேள்" },
+                  Word: { Hindi: "शब्द", Kannada: "ಪದ", Telugu: "పదం", Tamil: "வார்த்தை" },
+                  Letter: { Hindi: "अक्षर", Kannada: "ಅಕ್ಷರ", Telugu: "అక్షరం", Tamil: "எழுத்து" },
+                  Sentence: { Hindi: "वाक्य", Kannada: "ವಾಕ್ಯ", Telugu: "వాక్యం", Tamil: "வாக்கியம்" },
+                  Name: { Hindi: "नाम", Kannada: "ಹೆಸರು", Telugu: "పేరు", Tamil: "பெயர்" },
+                  Day: { Hindi: "दिन", Kannada: "ದಿನ", Telugu: "రోజు", Tamil: "நாள்" },
+                  Night: { Hindi: "रात", Kannada: "ರಾತ್ರಿ", Telugu: "రాత్రి", Tamil: "இரவு" },
+                  Food: { Hindi: "भोजन", Kannada: "आहार", Telugu: "ఆహారం", Tamil: "உணவு" },
+                  Water: { Hindi: "पानी", Kannada: "ನೀರು", Telugu: "నీరు", Tamil: "தண்ணீர்" },
+                  Milk: { Hindi: "दूध", Kannada: "ಹಾಲು", Telugu: "పాలు", Tamil: "பால்" }
                 };
 
                 const compOptions = isCompMCQ
@@ -1928,7 +1928,7 @@ function App() {
 
                     if (selectedLanguage === "English") return engOpt;
 
-                    // If transOpt already includes regional translations like "Lose (à²•à²³à³†à²¦à³à²•à³‹)", just use it directly
+                    // If transOpt already includes regional translations like "Lose (ಕಳೆದುಕೋ)", just use it directly
                     if (transOpt && engOpt !== transOpt) {
                       return transOpt;
                     }
@@ -2162,7 +2162,7 @@ function App() {
                               setManualTextFallback("");
                             }}
                           >
-                            <span style={{ display: 'inline-block', transform: 'scaleX(-1)' }}>âžœ</span> {t("prevBtn")}
+                            <span style={{ display: 'inline-block', transform: 'scaleX(-1)' }}>➜</span> {t("prevBtn")}
                           </button>
                         )}
                       </div>
@@ -2179,7 +2179,7 @@ function App() {
                               (isWriting && !(writingAnswers[currentStep] || "").trim())
                             }
                           >
-                            {t("nextQuestion")} âžœ
+                            {t("nextQuestion")} ➜
                           </button>
                         ) : (
                           <button
@@ -2257,7 +2257,7 @@ function App() {
 
                     <div className="results-detail-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                       <div className="benchmark-card" style={{ margin: 0 }}>
-                        <div className="benchmark-badge-icon">🎖️</div>
+                        <div className="benchmark-badge-icon">🎖️</div>
                         <h3 className="benchmark-title">{getLevelCategoryAndDescription(currentLevelIndex, currentLang).category}</h3>
                         <p className="benchmark-desc">
                           {getLevelCategoryAndDescription(currentLevelIndex, currentLang).description}
@@ -2312,7 +2312,7 @@ function App() {
                         </div>
 
                         <div className="insight-box insight-improve">
-                          <div className="insight-badge">⚠️</div>
+                          <div className="insight-badge">⚠️</div>
                           <h4>Areas to Improve</h4>
                           <ul>
                             {weakAreas.map((area, idx) => <li key={idx}>{area}</li>)}
@@ -2414,7 +2414,7 @@ function App() {
           <div className="dashboard-topbar">
             <div className="topbar-indicators">
               <div className="indicator-pill streak">🔥 36</div>
-              <div className="indicator-pill xp">â­ {userXp} XP</div>
+              <div className="indicator-pill xp">⭐ {userXp} XP</div>
             </div>
             {renderThemeToggle()}
             {renderLanguageDropdown(true)}
@@ -2543,7 +2543,7 @@ function App() {
               </div>
             )}
 
-            {/* 3.1. Learn Tab â€” 7-Section AI Curriculum */}
+            {/* 3.1. Learn Tab — 7-Section AI Curriculum */}
             {dashboardTab === "learn" && (() => {
               const storedSkills = (() => { try { const s = getStoredAssessmentState(session?.user?.id); return s?.skill_scores || profile?.skill_scores || {}; } catch { return {}; } })();
               const orderedSections = getOrderedSections(storedSkills);
@@ -2565,7 +2565,7 @@ function App() {
                         <span className="curriculum-tab-icon">{sec.icon}</span>
                         <span className="curriculum-tab-num">Section {sec.num}</span>
                         {weakSkillLabels.some(w => w.toLowerCase().includes(sec.skillTarget?.replace("_", " ") || "")) && (
-                          <span className="curriculum-tab-badge">â˜…</span>
+                          <span className="curriculum-tab-badge">★</span>
                         )}
                       </button>
                     ))}
@@ -2585,7 +2585,7 @@ function App() {
                           </div>
                           {weakSkillLabels.some(w => w.toLowerCase().includes(aSection.skillTarget?.replace("_", " ") || "")) && (
                             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '12px' }}>
-                              <span style={{ background: '#f59e0b', color: 'white', padding: '4px 12px', borderRadius: '99px', fontSize: '0.75rem', fontWeight: 700 }}>â­ Recommended for You</span>
+                              <span style={{ background: '#f59e0b', color: 'white', padding: '4px 12px', borderRadius: '99px', fontSize: '0.75rem', fontWeight: 700 }}>⭐ Recommended for You</span>
                               <span style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>This section targets your weak area</span>
                             </div>
                           )}
@@ -2622,7 +2622,7 @@ function App() {
                                     <div className="lesson-card-icon">{lesson.icon}</div>
 
                                     <div className="lesson-card-body">
-                                      <h4 className="lesson-card-title">{aSection.title} â€” Lesson {lIdx + 1}</h4>
+                                      <h4 className="lesson-card-title">{aSection.title} — Lesson {lIdx + 1}</h4>
                                       <p className="lesson-card-desc">AI-generated, personalized for your literacy level</p>
                                     </div>
 
@@ -2653,7 +2653,7 @@ function App() {
                       {/* Section navigation */}
                       <div className="lesson-section-nav">
                         {activeSection > 0 && (
-                          <button type="button" className="lesson-next-section-btn prev" onClick={() => { setActiveSection(i => i - 1); learnJourneyRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }); }}>â† Previous Section</button>
+                          <button type="button" className="lesson-next-section-btn prev" onClick={() => { setActiveSection(i => i - 1); learnJourneyRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }); }}>← Previous Section</button>
                         )}
                         {activeSection < orderedSections.length - 1 && (
                           <button type="button" className="lesson-next-section-btn" onClick={() => { setActiveSection(i => i + 1); learnJourneyRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }); }}>Next: {orderedSections[activeSection + 1].title} →</button>
@@ -2694,7 +2694,7 @@ function App() {
                           <h3 className="practice-row-card-title">Speak</h3>
                           <p className="practice-row-card-desc">Improve your speaking skills with these phrases</p>
                         </div>
-                        <div className="practice-row-card-icon speak-icon">🎙️</div>
+                        <div className="practice-row-card-icon speak-icon">🎙️</div>
                       </div>
                       <div className="practice-row-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_write_practice`, title: "Listen Practice", desc: "Boost your listening skills with an audio-only session" })}>
                         <div className="practice-row-card-content">
@@ -2869,7 +2869,7 @@ function App() {
                 <div className="ai-lesson-loading">
                   <div className="ai-spinner"></div>
                   <h3>🤖 LISA is generating your personalized lesson...</h3>
-                  <p>Powered by Gemini AI â€” creating content just for you</p>
+                  <p>Powered by Gemini AI — creating content just for you</p>
                 </div>
               )}
 
@@ -2879,7 +2879,7 @@ function App() {
                   <div style={{ fontSize: "4rem", marginBottom: "16px" }}>🎉</div>
                   <h2 style={{ fontSize: "2rem", fontWeight: 800, color: "#10b981", marginBottom: "12px" }}>Lesson Complete!</h2>
                   <p style={{ fontSize: "1.1rem", color: "var(--muted)", marginBottom: "8px" }}>{lessonAiContent?.aiFeedbackPositive || "Great job! You earned 15 XP!"}</p>
-                  <p style={{ fontSize: "0.9rem", color: "var(--muted)", marginBottom: "28px" }}>Section: {lessonSession.sectionTitle} Â· Unit: {lessonSession.unitTitle}</p>
+                  <p style={{ fontSize: "0.9rem", color: "var(--muted)", marginBottom: "28px" }}>Section: {lessonSession.sectionTitle} · Unit: {lessonSession.unitTitle}</p>
                   <button className="primary-btn" style={{ width: "100%", padding: "14px", marginBottom: "12px" }} onClick={() => { setLessonSession(null); setLessonAiContent(null); setLessonStep(0); }}>
                     ✓ Continue Learning
                   </button>
@@ -3088,7 +3088,7 @@ function App() {
                     <div className="lesson-overlay-footer" style={{ borderTop: 'none', padding: '24px 0 0' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
                         {lessonStep > 0 && (
-                          <button type="button" className="secondary-btn" onClick={() => setLessonStep(p => p - 1)} style={{ flex: 1 }}>â† Back</button>
+                          <button type="button" className="secondary-btn" onClick={() => setLessonStep(p => p - 1)} style={{ flex: 1 }}>← Back</button>
                         )}
                         <button
                           type="button"
@@ -3457,10 +3457,10 @@ function App() {
                 <button key={l} className="lang-btn" onClick={() => handleLanguageSelect(l)}>
                   <span className="native">
                     {l === "English" && "English"}
-                    {l === "Hindi" && "à¤¹à¤¿à¤¨à¥à¤¦à¥€"}
-                    {l === "Kannada" && "à²•à²¨à³à²¨à²¡"}
-                    {l === "Telugu" && "à°¤à±†à°²à±à°—à±"}
-                    {l === "Tamil" && "à®¤à®®à®¿à®´à¯"}
+                    {l === "Hindi" && "हिन्दी"}
+                    {l === "Kannada" && "ಕನ್ನಡ"}
+                    {l === "Telugu" && "తెలుగు"}
+                    {l === "Tamil" && "தமிழ்"}
                   </span>
                   <span style={{ fontSize: "0.85rem", opacity: 0.7 }}>{l}</span>
                 </button>
