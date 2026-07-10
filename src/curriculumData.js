@@ -1,866 +1,253 @@
-// LISA Multilingual Curriculum & Shuffled Diagnostic Assessment Pools
+// LISA — Curriculum Data + Assessment Engine
+// Fixed 7-section curriculum per spec. Lesson content generated dynamically via Gemini AI.
+
 import { assessmentQuestions } from "./assessmentQuestionsData.js";
 import { assessmentReadingWriting } from "./assessmentReadingWritingData.js";
 
-
-// Curriculum structure: Level -> [ Section -> [ Unit -> [ Lesson ] ] ]
-// Topics are placeholders ("... topic") to be replaced by AI-generated content.
-const LESSON_ICONS = [
-  "🌱", "🍎", "🐱", "🔔", "🏆", "📝", "🚸", "🔤", "💬", "📖",
-  "✏️", "🏡", "🏃", "👥", "✍️", "👋", "📢", "😊", "🕒", "❓",
-  "💡", "🚦", "⚠️", "🧾", "📋", "🛒", "💊", "🚉", "🆘", "📱",
-  "📧", "📄", "🛡️", "⚡", "📚", "🎵", "✨", "🔍", "🧠", "🌟"
-];
-
-const SECTIONS_PER_LEVEL = 2;
-const UNITS_PER_SECTION = 3;
-const LESSONS_PER_UNIT = 5;
-
-const buildLevel = (level) => {
-  const sections = [];
-  for (let s = 1; s <= SECTIONS_PER_LEVEL; s++) {
-    const units = [];
-    for (let u = 1; u <= UNITS_PER_SECTION; u++) {
-      const lessons = [];
-      for (let n = 1; n <= LESSONS_PER_UNIT; n++) {
-        const flatIdx = (s - 1) * UNITS_PER_SECTION * LESSONS_PER_UNIT + (u - 1) * LESSONS_PER_UNIT + (n - 1);
-        lessons.push({
-          id: `l${level}_s${s}_u${u}_l${n}`,
-          title: `Lesson ${n}`,
-          desc: `Placeholder for Section ${s}, Unit ${u}, Lesson ${n}. Replace with AI-generated topic.`,
-          icon: LESSON_ICONS[flatIdx % LESSON_ICONS.length],
-        });
-      }
-      units.push({
-        id: `l${level}_s${s}_u${u}`,
-        title: `Unit ${u} topic`, // placeholder — AI fills real topic
-        lessons,
-      });
-    }
-    sections.push({
-      id: `l${level}_s${s}`,
-      title: `Section ${s} topic`, // placeholder — AI fills real topic
-      units,
-    });
-  }
-  return sections;
+// ─────────────────────────────────────────────────────────────────────────────
+// SKILL CATEGORY DEFINITIONS
+// ─────────────────────────────────────────────────────────────────────────────
+export const SKILL_CATEGORIES = {
+  letter_recognition: { label: "Letter Recognition", icon: "🔤", color: "#f59e0b" },
+  word_recognition:   { label: "Word Recognition",   icon: "📝", color: "#3b82f6" },
+  sentence_reading:   { label: "Sentence Reading",   icon: "📖", color: "#10b981" },
+  comprehension:      { label: "Comprehension",       icon: "🧠", color: "#8b5cf6" },
+  writing:            { label: "Writing",             icon: "✍️", color: "#ef4444" },
+  pronunciation:      { label: "Pronunciation",       icon: "🎤", color: "#06b6d4" },
 };
 
-export const lessonsData = {
-  1: buildLevel(1),
-  2: buildLevel(2),
-  3: buildLevel(3),
-  4: buildLevel(4),
-  5: buildLevel(5),
-};
-
-export const levelDefinitions = {
+// ─────────────────────────────────────────────────────────────────────────────
+// PROFICIENCY LEVELS (5-level system per spec)
+// ─────────────────────────────────────────────────────────────────────────────
+export const PROFICIENCY_LEVELS = {
   English: [
-    { level: 1, name: "Emerging Reader", desc: "Identify letter shapes, basic vowel/consonant sounds, and animal/object naming." },
-    { level: 2, name: "Developing Reader", desc: "Form 2-3 letter words, basic nouns, spelling structures, and common daily verbs." },
-    { level: 3, name: "Sentence Constructor", desc: "Construct short sentences, simple commands, pronouns, and basic greetings." },
-    { level: 4, name: "Practical Comprehender", desc: "Understand street signs, warnings, shopping bills, and simple instruction cards." },
-    { level: 5, name: "Independent Reader", desc: "Read mobile alerts, utility bills, fill registration forms, and type basic replies." }
+    { level: 1, name: "Absolute Beginner",    desc: "Cannot recognize letters or read words. Needs foundational support." },
+    { level: 2, name: "Beginner",             desc: "Recognizes letters and reads simple words. Building basic vocabulary." },
+    { level: 3, name: "Elementary",           desc: "Reads words and simple sentences. Developing reading fluency." },
+    { level: 4, name: "Intermediate",         desc: "Reads paragraphs with limited comprehension. Expanding vocabulary." },
+    { level: 5, name: "Advanced Foundation",  desc: "Strong literacy skills. Needs communication and expression refinement." },
   ],
   Hindi: [
-    { level: 1, name: "उभरता पाठक (Emerging)", desc: "अक्षरों (स्वर/व्यंजन) की आकृतियों, उनकी ध्वनियों और बुनियादी वस्तुओं के नामों की पहचान।" },
-    { level: 2, name: "विकासशील पाठक (Developing)", desc: "बिना मात्रा और मात्रा वाले दो से तीन अक्षरों के सरल शब्द बनाना।" },
-    { level: 3, name: "वाक्य निर्माता (Constructor)", desc: "छोटे वाक्यों, सर्वनामों, आम क्रियाओं और सरल अभिवादनों का अभ्यास।" },
-    { level: 4, name: "व्यावहारिक समझ (Comprehender)", desc: "सड़क के संकेत, चेतावनी निर्देश, रसीदें और सरल नियमों को पढ़ना।" },
-    { level: 5, name: "स्वतंत्र पाठक (Independent)", desc: "मोबाइल संदेश पढ़ना, बुनियादी फॉर्म भरना और सरल डिजिटल कार्य करना।" }
+    { level: 1, name: "पूर्ण शुरुआती",        desc: "अक्षर पहचानने और पढ़ने में असमर्थ। मूल सहायता की आवश्यकता।" },
+    { level: 2, name: "प्रारंभिक",             desc: "अक्षर पहचानता है और सरल शब्द पढ़ता है।" },
+    { level: 3, name: "प्राथमिक",              desc: "शब्द और सरल वाक्य पढ़ सकता है।" },
+    { level: 4, name: "मध्यवर्ती",             desc: "सीमित समझ के साथ अनुच्छेद पढ़ता है।" },
+    { level: 5, name: "उन्नत आधार",            desc: "मजबूत साक्षरता कौशल। संचार परिष्कार की आवश्यकता।" },
   ],
   Kannada: [
-    { level: 1, name: "ಉದಯೋನ್ಮುಖ ಓದುಗ (Emerging)", desc: "ಅಕ್ಷರಗಳ ಆಕಾರಗಳು, ಸ್ವರ/ವ್ಯಂಜನಗಳು ಮತ್ತು ಮೂಲ ವಸ್ತುಗಳ ಹೆಸರುಗಳ ಗುರುತಿಸುವಿಕೆ." },
-    { level: 2, name: "ಬೆಳೆಯುತ್ತಿರುವ ಓದುಗ (Developing)", desc: "ಸರಳವಾದ ಎರಡು ಮತ್ತು ಮೂರು ಅಕ್ಷರಗಳ ಪದಗಳ ಓದುವಿಕೆ ಮತ್ತು ಬರೆಯುವಿಕೆ." },
-    { level: 3, name: "ವಾಕ್ಯ ರಚನೆಗಾರ (Constructor)", desc: "ಸಣ್ಣ ವಾಕ್ಯಗಳು, ಸರ್ವನಾಮಗಳು, ದೈನಂದಿನ ಆಜ್ಞೆಗಳು ಮತ್ತು ಶುಭಾಶಯಗಳು." },
-    { level: 4, name: "ಪ್ರಾಯೋಗಿಕ ಗ್ರಹಿಕೆ (Comprehender)", desc: "ರಸ್ತೆ ಚಿಹ್ನೆಗಳು, ಎಚ್ಚರಿಕೆ ಫಲಕಗಳು, ಖರೀದಿ ಬಿಲ್‌ಗಳು ಮತ್ತು ಸರಳ ಸೂಚನೆಗಳ ಗ್ರಹಿಕೆ." },
-    { level: 5, name: "ಸ್ವತಂತ್ರ ಓದುಗ (Independent)", desc: "ಮೊಬೈಲ್ ಸಂದೇಶಗಳನ್ನು ಓದುವುದು, ಸರಳ ಅರ್ಜಿಗಳನ್ನು ತುಂಬುವುದು ಮತ್ತು ದಿನ ಬಳಕೆಯ ವಿವರಗಳನ್ನು ಅರ್ಥೈಸಿಕೊಳ್ಳುವುದು." }
+    { level: 1, name: "ಸಂಪೂರ್ಣ ಆರಂಭಿಕ",     desc: "ಅಕ್ಷರ ಗುರುತಿಸಲು ಅಥವಾ ಪದ ಓದಲು ಸಾಧ್ಯವಿಲ್ಲ." },
+    { level: 2, name: "ಪ್ರಾರಂಭಿಕ",            desc: "ಅಕ್ಷರ ಗುರುತಿಸುತ್ತದೆ ಮತ್ತು ಸರಳ ಪದ ಓದುತ್ತದೆ." },
+    { level: 3, name: "ಪ್ರಾಥಮಿಕ",             desc: "ಪದ ಮತ್ತು ಸರಳ ವಾಕ್ಯ ಓದಬಲ್ಲದು." },
+    { level: 4, name: "ಮಧ್ಯವರ್ತಿ",            desc: "ಸೀಮಿತ ಗ್ರಹಿಕೆಯೊಂದಿಗೆ ಪ್ಯಾರಾಗ್ರಾಫ್ ಓದುತ್ತದೆ." },
+    { level: 5, name: "ಮುಂದುವರಿದ ಆಧಾರ",      desc: "ಬಲವಾದ ಸಾಕ್ಷರತಾ ಕೌಶಲ್ಯ. ಸಂವಹನ ಸುಧಾರಣೆ ಅಗತ್ಯ." },
   ],
   Telugu: [
-    { level: 1, name: "ఎదుగుతున్న పాఠకుడు (Emerging)", desc: "అక్షరాల ఆకారాలు, అచ్చులు/హల్లులు మరియు ప్రాథమిక వస్తువుల పేర్ల గుర్తింపు." },
-    { level: 2, name: "అభివృద్ధి చెందుతున్న పాఠకుడు (Developing)", desc: "సరళమైన రెండు మరియు మూడు అక్షరాల పదాలు, గుణింతాల పరిచయం." },
-    { level: 3, name: "వాక్య నిర్మాత (Constructor)", desc: "చిన్న వాక్యాలు, సర్వనామాలు, ప్రాథమిక సంభాషణలు మరియు శుభాకాంక్షలు." },
-    { level: 4, name: "ఆచరణాత్మక అవగాహన (Comprehender)", desc: "రహదారి సంకేతాలు, హెచ్చరికలు, షాపింగ్ బిల్లులు మరియు సాధారణ నోటీసులను అర్థం చేసుకోవడం." },
-    { level: 5, name: "స్వతంత్ర పాఠకుడు (Independent)", desc: "ఫోన్ మెసేజ్లు చదవడం, సాధారణ ఫారమ్లను నింపడం మరియు బిల్లుల వివరాలు చదవడం." }
+    { level: 1, name: "సంపూర్ణ ప్రారంభకుడు",  desc: "అక్షరాలు గుర్తించలేరు లేదా పదాలు చదవలేరు." },
+    { level: 2, name: "ప్రారంభకుడు",           desc: "అక్షరాలు గుర్తిస్తారు మరియు సాధారణ పదాలు చదువుతారు." },
+    { level: 3, name: "ప్రాథమిక",              desc: "పదాలు మరియు సాధారణ వాక్యాలు చదవగలరు." },
+    { level: 4, name: "మధ్యస్థాయి",            desc: "పరిమిత అవగాహనతో పేరాలు చదువుతారు." },
+    { level: 5, name: "అడ్వాన్స్డ్ ఫౌండేషన్", desc: "బలమైన అక్షరాస్యత నైపుణ్యాలు. కమ్యూనికేషన్ మెరుగు అవసరం." },
   ],
   Tamil: [
-    { level: 1, name: "உருவாகும் வாசகர் (Emerging)", desc: "உயிர்/மெய் எழுத்துக்களின் வடிவங்கள், உச்சரிப்பு மற்றும் எளிய பொருள்களின் பெயர்கள் அறிதல்." },
-    { level: 2, name: "வளரும் வாசகர் (Developing)", desc: "இரண்டு மற்றும் மூன்று எழுத்துக்களைக் கொண்ட எளிய சொற்கள், பெயர்கள் மற்றும் வினைகளை உருவாக்குதல்." },
-    { level: 3, name: "வாக்கியம் அமைப்பவர் (Constructor)", desc: "சிறு சொற்றொடர்கள், எளிய கட்டளைகள், பிரதிபெயர்கள் மற்றும் வாழ்த்துகள்." },
-    { level: 4, name: "நடைமுறைப் புரிதல் (Comprehender)", desc: "சாலைக் குறியீடுகள், எச்சரிக்கைப் பலகைகள், பில்கள் மற்றும் எளிய விளம்பரங்களைப் புரிந்துகொள்ளுதல்." },
-    { level: 5, name: "சுயாதீன வாசகர் (Independent)", desc: "மெசேஜ்களை வாசித்தல், விண்ணப்பப் படிவங்களை நிரப்புதல் மற்றும் பயன்பாட்டுக் கட்டணங்களைப் புரிந்துகொள்ளுதல்." }
-  ]
+    { level: 1, name: "முற்றிலும் தொடக்கநிலை", desc: "எழுத்துக்களை அடையாளம் காண முடியாது." },
+    { level: 2, name: "தொடக்கநிலை",           desc: "எழுத்துக்களை அடையாளம் காண்கிறார், எளிய சொற்கள் படிக்கிறார்." },
+    { level: 3, name: "அடிப்படைநிலை",          desc: "சொற்கள் மற்றும் எளிய வாக்கியங்கள் படிக்கலாம்." },
+    { level: 4, name: "இடைநிலை",              desc: "குறைந்த புரிதலுடன் பத்திகள் படிக்கிறார்." },
+    { level: 5, name: "மேம்பட்ட அடித்தளம்",  desc: "வலுவான எழுத்தறிவு திறன்கள். தொடர்பாடல் மேம்பாடு தேவை." },
+  ],
 };
 
-export const initialAssessmentPool = {
-  English: {
-    tier1_emerging: {
-      reading: [
-        { id: "en_r_t1_1", targetText: "English reading sample for level 1" },
-        { id: "en_r_t1_2", targetText: "English reading sample two for level 1" }
-      ],
-      comprehension: [
-        {
-          id: "en_c_t1_1",
-          question: "Level 1 comprehension question for English?",
-          options: ["Option A", "Option B", "Option C", "Option D"],
-          correctOption: "Option A"
-        },
-        {
-          id: "en_c_t1_2",
-          question: "Second level 1 comprehension question for English?",
-          options: ["Option 1", "Option 2", "Option 3", "Option 4"],
-          correctOption: "Option 2"
-        }
-      ],
-      writing: [
-        {
-          id: "en_w_t1_1",
-          prompt: "Write a sentence appropriate for level 1 English.",
-          evaluator: (text) => {
-            if (text.length > 5) return { score: 10, feedback: "Good effort!" };
-            return { score: 5, feedback: "Please write more." };
-          }
-        }
-      ]
-    },
-    tier2_developing: {
-      reading: [
-        { id: "en_r_t2_1", targetText: "English reading sample for level 2" },
-        { id: "en_r_t2_2", targetText: "English reading sample two for level 2" }
-      ],
-      comprehension: [
-        {
-          id: "en_c_t2_1",
-          question: "Level 2 comprehension question for English?",
-          options: ["Option A", "Option B", "Option C", "Option D"],
-          correctOption: "Option A"
-        },
-        {
-          id: "en_c_t2_2",
-          question: "Second level 2 comprehension question for English?",
-          options: ["Option 1", "Option 2", "Option 3", "Option 4"],
-          correctOption: "Option 2"
-        }
-      ],
-      writing: [
-        {
-          id: "en_w_t2_1",
-          prompt: "Write a sentence appropriate for level 2 English.",
-          evaluator: (text) => {
-            if (text.length > 5) return { score: 10, feedback: "Good effort!" };
-            return { score: 5, feedback: "Please write more." };
-          }
-        }
-      ]
-    },
-    tier3_constructor: {
-      reading: [
-        { id: "en_r_t3_1", targetText: "English reading sample for level 3" },
-        { id: "en_r_t3_2", targetText: "English reading sample two for level 3" }
-      ],
-      comprehension: [
-        {
-          id: "en_c_t3_1",
-          question: "Level 3 comprehension question for English?",
-          options: ["Option A", "Option B", "Option C", "Option D"],
-          correctOption: "Option A"
-        },
-        {
-          id: "en_c_t3_2",
-          question: "Second level 3 comprehension question for English?",
-          options: ["Option 1", "Option 2", "Option 3", "Option 4"],
-          correctOption: "Option 2"
-        }
-      ],
-      writing: [
-        {
-          id: "en_w_t3_1",
-          prompt: "Write a sentence appropriate for level 3 English.",
-          evaluator: (text) => {
-            if (text.length > 5) return { score: 10, feedback: "Good effort!" };
-            return { score: 5, feedback: "Please write more." };
-          }
-        }
-      ]
-    },
-    tier4_comprehender: {
-      reading: [
-        { id: "en_r_t4_1", targetText: "English reading sample for level 4" },
-        { id: "en_r_t4_2", targetText: "English reading sample two for level 4" }
-      ],
-      comprehension: [
-        {
-          id: "en_c_t4_1",
-          question: "Level 4 comprehension question for English?",
-          options: ["Option A", "Option B", "Option C", "Option D"],
-          correctOption: "Option A"
-        },
-        {
-          id: "en_c_t4_2",
-          question: "Second level 4 comprehension question for English?",
-          options: ["Option 1", "Option 2", "Option 3", "Option 4"],
-          correctOption: "Option 2"
-        }
-      ],
-      writing: [
-        {
-          id: "en_w_t4_1",
-          prompt: "Write a sentence appropriate for level 4 English.",
-          evaluator: (text) => {
-            if (text.length > 5) return { score: 10, feedback: "Good effort!" };
-            return { score: 5, feedback: "Please write more." };
-          }
-        }
-      ]
-    },
-    tier5_independent: {
-      reading: [
-        { id: "en_r_t5_1", targetText: "English reading sample for level 5" },
-        { id: "en_r_t5_2", targetText: "English reading sample two for level 5" }
-      ],
-      comprehension: [
-        {
-          id: "en_c_t5_1",
-          question: "Level 5 comprehension question for English?",
-          options: ["Option A", "Option B", "Option C", "Option D"],
-          correctOption: "Option A"
-        },
-        {
-          id: "en_c_t5_2",
-          question: "Second level 5 comprehension question for English?",
-          options: ["Option 1", "Option 2", "Option 3", "Option 4"],
-          correctOption: "Option 2"
-        }
-      ],
-      writing: [
-        {
-          id: "en_w_t5_1",
-          prompt: "Write a sentence appropriate for level 5 English.",
-          evaluator: (text) => {
-            if (text.length > 5) return { score: 10, feedback: "Good effort!" };
-            return { score: 5, feedback: "Please write more." };
-          }
-        }
-      ]
-    }
+// ─────────────────────────────────────────────────────────────────────────────
+// FIXED 7-SECTION CURRICULUM (same for all learners — content from AI)
+// ─────────────────────────────────────────────────────────────────────────────
+export const CURRICULUM_SECTIONS = [
+  {
+    id: "s1", num: 1,
+    title: "Letter & Sound Recognition",
+    icon: "🔤",
+    skillTarget: "letter_recognition",
+    color: "#f59e0b",
+    units: [
+      { id: "s1u1", num: 1, title: "Alphabet Basics",   skill: "letter_recognition",
+        lessons: Array.from({ length: 5 }, (_, i) => ({ id: `s1u1l${i+1}`, num: i+1, title: `Lesson ${i+1}`, icon: ["🔤","🅰️","📚","🎯","⭐"][i] })) },
+      { id: "s1u2", num: 2, title: "Phonics",           skill: "letter_recognition",
+        lessons: Array.from({ length: 5 }, (_, i) => ({ id: `s1u2l${i+1}`, num: i+1, title: `Lesson ${i+1}`, icon: ["🔊","🎵","🗣️","🎶","📢"][i] })) },
+      { id: "s1u3", num: 3, title: "Word Formation",    skill: "word_recognition",
+        lessons: Array.from({ length: 5 }, (_, i) => ({ id: `s1u3l${i+1}`, num: i+1, title: `Lesson ${i+1}`, icon: ["🔤","🧩","🏷️","📝","✨"][i] })) },
+    ]
   },
-  Hindi: {
-    tier1_emerging: {
-      reading: [
-        { id: "hi_r_t1_1", targetText: "Hindi reading sample for level 1" },
-        { id: "hi_r_t1_2", targetText: "Hindi reading sample two for level 1" }
-      ],
-      comprehension: [
-        {
-          id: "hi_c_t1_1",
-          question: "Level 1 comprehension question for Hindi?",
-          options: ["Option A", "Option B", "Option C", "Option D"],
-          correctOption: "Option A"
-        },
-        {
-          id: "hi_c_t1_2",
-          question: "Second level 1 comprehension question for Hindi?",
-          options: ["Option 1", "Option 2", "Option 3", "Option 4"],
-          correctOption: "Option 2"
-        }
-      ],
-      writing: [
-        {
-          id: "hi_w_t1_1",
-          prompt: "Write a sentence appropriate for level 1 Hindi.",
-          evaluator: (text) => {
-            if (text.length > 5) return { score: 10, feedback: "Good effort!" };
-            return { score: 5, feedback: "Please write more." };
-          }
-        }
-      ]
-    },
-    tier2_developing: {
-      reading: [
-        { id: "hi_r_t2_1", targetText: "Hindi reading sample for level 2" },
-        { id: "hi_r_t2_2", targetText: "Hindi reading sample two for level 2" }
-      ],
-      comprehension: [
-        {
-          id: "hi_c_t2_1",
-          question: "Level 2 comprehension question for Hindi?",
-          options: ["Option A", "Option B", "Option C", "Option D"],
-          correctOption: "Option A"
-        },
-        {
-          id: "hi_c_t2_2",
-          question: "Second level 2 comprehension question for Hindi?",
-          options: ["Option 1", "Option 2", "Option 3", "Option 4"],
-          correctOption: "Option 2"
-        }
-      ],
-      writing: [
-        {
-          id: "hi_w_t2_1",
-          prompt: "Write a sentence appropriate for level 2 Hindi.",
-          evaluator: (text) => {
-            if (text.length > 5) return { score: 10, feedback: "Good effort!" };
-            return { score: 5, feedback: "Please write more." };
-          }
-        }
-      ]
-    },
-    tier3_constructor: {
-      reading: [
-        { id: "hi_r_t3_1", targetText: "Hindi reading sample for level 3" },
-        { id: "hi_r_t3_2", targetText: "Hindi reading sample two for level 3" }
-      ],
-      comprehension: [
-        {
-          id: "hi_c_t3_1",
-          question: "Level 3 comprehension question for Hindi?",
-          options: ["Option A", "Option B", "Option C", "Option D"],
-          correctOption: "Option A"
-        },
-        {
-          id: "hi_c_t3_2",
-          question: "Second level 3 comprehension question for Hindi?",
-          options: ["Option 1", "Option 2", "Option 3", "Option 4"],
-          correctOption: "Option 2"
-        }
-      ],
-      writing: [
-        {
-          id: "hi_w_t3_1",
-          prompt: "Write a sentence appropriate for level 3 Hindi.",
-          evaluator: (text) => {
-            if (text.length > 5) return { score: 10, feedback: "Good effort!" };
-            return { score: 5, feedback: "Please write more." };
-          }
-        }
-      ]
-    },
-    tier4_comprehender: {
-      reading: [
-        { id: "hi_r_t4_1", targetText: "Hindi reading sample for level 4" },
-        { id: "hi_r_t4_2", targetText: "Hindi reading sample two for level 4" }
-      ],
-      comprehension: [
-        {
-          id: "hi_c_t4_1",
-          question: "Level 4 comprehension question for Hindi?",
-          options: ["Option A", "Option B", "Option C", "Option D"],
-          correctOption: "Option A"
-        },
-        {
-          id: "hi_c_t4_2",
-          question: "Second level 4 comprehension question for Hindi?",
-          options: ["Option 1", "Option 2", "Option 3", "Option 4"],
-          correctOption: "Option 2"
-        }
-      ],
-      writing: [
-        {
-          id: "hi_w_t4_1",
-          prompt: "Write a sentence appropriate for level 4 Hindi.",
-          evaluator: (text) => {
-            if (text.length > 5) return { score: 10, feedback: "Good effort!" };
-            return { score: 5, feedback: "Please write more." };
-          }
-        }
-      ]
-    },
-    tier5_independent: {
-      reading: [
-        { id: "hi_r_t5_1", targetText: "Hindi reading sample for level 5" },
-        { id: "hi_r_t5_2", targetText: "Hindi reading sample two for level 5" }
-      ],
-      comprehension: [
-        {
-          id: "hi_c_t5_1",
-          question: "Level 5 comprehension question for Hindi?",
-          options: ["Option A", "Option B", "Option C", "Option D"],
-          correctOption: "Option A"
-        },
-        {
-          id: "hi_c_t5_2",
-          question: "Second level 5 comprehension question for Hindi?",
-          options: ["Option 1", "Option 2", "Option 3", "Option 4"],
-          correctOption: "Option 2"
-        }
-      ],
-      writing: [
-        {
-          id: "hi_w_t5_1",
-          prompt: "Write a sentence appropriate for level 5 Hindi.",
-          evaluator: (text) => {
-            if (text.length > 5) return { score: 10, feedback: "Good effort!" };
-            return { score: 5, feedback: "Please write more." };
-          }
-        }
-      ]
-    }
+  {
+    id: "s2", num: 2,
+    title: "Reading Skills",
+    icon: "📖",
+    skillTarget: "sentence_reading",
+    color: "#3b82f6",
+    units: [
+      { id: "s2u1", num: 1, title: "Reading Words",      skill: "word_recognition",
+        lessons: Array.from({ length: 5 }, (_, i) => ({ id: `s2u1l${i+1}`, num: i+1, title: `Lesson ${i+1}`, icon: ["📖","🔍","🔡","📚","🌟"][i] })) },
+      { id: "s2u2", num: 2, title: "Reading Sentences",  skill: "sentence_reading",
+        lessons: Array.from({ length: 5 }, (_, i) => ({ id: `s2u2l${i+1}`, num: i+1, title: `Lesson ${i+1}`, icon: ["📝","✍️","🔤","💬","🎯"][i] })) },
+      { id: "s2u3", num: 3, title: "Reading Paragraphs", skill: "sentence_reading",
+        lessons: Array.from({ length: 5 }, (_, i) => ({ id: `s2u3l${i+1}`, num: i+1, title: `Lesson ${i+1}`, icon: ["📰","📄","📋","🗞️","📃"][i] })) },
+    ]
   },
-  Kannada: {
-    tier1_emerging: {
-      reading: [
-        { id: "ka_r_t1_1", targetText: "Kannada reading sample for level 1" },
-        { id: "ka_r_t1_2", targetText: "Kannada reading sample two for level 1" }
-      ],
-      comprehension: [
-        {
-          id: "ka_c_t1_1",
-          question: "Level 1 comprehension question for Kannada?",
-          options: ["Option A", "Option B", "Option C", "Option D"],
-          correctOption: "Option A"
-        },
-        {
-          id: "ka_c_t1_2",
-          question: "Second level 1 comprehension question for Kannada?",
-          options: ["Option 1", "Option 2", "Option 3", "Option 4"],
-          correctOption: "Option 2"
-        }
-      ],
-      writing: [
-        {
-          id: "ka_w_t1_1",
-          prompt: "Write a sentence appropriate for level 1 Kannada.",
-          evaluator: (text) => {
-            if (text.length > 5) return { score: 10, feedback: "Good effort!" };
-            return { score: 5, feedback: "Please write more." };
-          }
-        }
-      ]
-    },
-    tier2_developing: {
-      reading: [
-        { id: "ka_r_t2_1", targetText: "Kannada reading sample for level 2" },
-        { id: "ka_r_t2_2", targetText: "Kannada reading sample two for level 2" }
-      ],
-      comprehension: [
-        {
-          id: "ka_c_t2_1",
-          question: "Level 2 comprehension question for Kannada?",
-          options: ["Option A", "Option B", "Option C", "Option D"],
-          correctOption: "Option A"
-        },
-        {
-          id: "ka_c_t2_2",
-          question: "Second level 2 comprehension question for Kannada?",
-          options: ["Option 1", "Option 2", "Option 3", "Option 4"],
-          correctOption: "Option 2"
-        }
-      ],
-      writing: [
-        {
-          id: "ka_w_t2_1",
-          prompt: "Write a sentence appropriate for level 2 Kannada.",
-          evaluator: (text) => {
-            if (text.length > 5) return { score: 10, feedback: "Good effort!" };
-            return { score: 5, feedback: "Please write more." };
-          }
-        }
-      ]
-    },
-    tier3_constructor: {
-      reading: [
-        { id: "ka_r_t3_1", targetText: "Kannada reading sample for level 3" },
-        { id: "ka_r_t3_2", targetText: "Kannada reading sample two for level 3" }
-      ],
-      comprehension: [
-        {
-          id: "ka_c_t3_1",
-          question: "Level 3 comprehension question for Kannada?",
-          options: ["Option A", "Option B", "Option C", "Option D"],
-          correctOption: "Option A"
-        },
-        {
-          id: "ka_c_t3_2",
-          question: "Second level 3 comprehension question for Kannada?",
-          options: ["Option 1", "Option 2", "Option 3", "Option 4"],
-          correctOption: "Option 2"
-        }
-      ],
-      writing: [
-        {
-          id: "ka_w_t3_1",
-          prompt: "Write a sentence appropriate for level 3 Kannada.",
-          evaluator: (text) => {
-            if (text.length > 5) return { score: 10, feedback: "Good effort!" };
-            return { score: 5, feedback: "Please write more." };
-          }
-        }
-      ]
-    },
-    tier4_comprehender: {
-      reading: [
-        { id: "ka_r_t4_1", targetText: "Kannada reading sample for level 4" },
-        { id: "ka_r_t4_2", targetText: "Kannada reading sample two for level 4" }
-      ],
-      comprehension: [
-        {
-          id: "ka_c_t4_1",
-          question: "Level 4 comprehension question for Kannada?",
-          options: ["Option A", "Option B", "Option C", "Option D"],
-          correctOption: "Option A"
-        },
-        {
-          id: "ka_c_t4_2",
-          question: "Second level 4 comprehension question for Kannada?",
-          options: ["Option 1", "Option 2", "Option 3", "Option 4"],
-          correctOption: "Option 2"
-        }
-      ],
-      writing: [
-        {
-          id: "ka_w_t4_1",
-          prompt: "Write a sentence appropriate for level 4 Kannada.",
-          evaluator: (text) => {
-            if (text.length > 5) return { score: 10, feedback: "Good effort!" };
-            return { score: 5, feedback: "Please write more." };
-          }
-        }
-      ]
-    },
-    tier5_independent: {
-      reading: [
-        { id: "ka_r_t5_1", targetText: "Kannada reading sample for level 5" },
-        { id: "ka_r_t5_2", targetText: "Kannada reading sample two for level 5" }
-      ],
-      comprehension: [
-        {
-          id: "ka_c_t5_1",
-          question: "Level 5 comprehension question for Kannada?",
-          options: ["Option A", "Option B", "Option C", "Option D"],
-          correctOption: "Option A"
-        },
-        {
-          id: "ka_c_t5_2",
-          question: "Second level 5 comprehension question for Kannada?",
-          options: ["Option 1", "Option 2", "Option 3", "Option 4"],
-          correctOption: "Option 2"
-        }
-      ],
-      writing: [
-        {
-          id: "ka_w_t5_1",
-          prompt: "Write a sentence appropriate for level 5 Kannada.",
-          evaluator: (text) => {
-            if (text.length > 5) return { score: 10, feedback: "Good effort!" };
-            return { score: 5, feedback: "Please write more." };
-          }
-        }
-      ]
-    }
+  {
+    id: "s3", num: 3,
+    title: "Writing Skills",
+    icon: "✍️",
+    skillTarget: "writing",
+    color: "#ef4444",
+    units: [
+      { id: "s3u1", num: 1, title: "Letter Writing",    skill: "writing",
+        lessons: Array.from({ length: 5 }, (_, i) => ({ id: `s3u1l${i+1}`, num: i+1, title: `Lesson ${i+1}`, icon: ["✏️","🖊️","✍️","📝","🔏"][i] })) },
+      { id: "s3u2", num: 2, title: "Word Writing",      skill: "writing",
+        lessons: Array.from({ length: 5 }, (_, i) => ({ id: `s3u2l${i+1}`, num: i+1, title: `Lesson ${i+1}`, icon: ["🖋️","📓","📒","📔","📕"][i] })) },
+      { id: "s3u3", num: 3, title: "Sentence Writing",  skill: "writing",
+        lessons: Array.from({ length: 5 }, (_, i) => ({ id: `s3u3l${i+1}`, num: i+1, title: `Lesson ${i+1}`, icon: ["📃","📄","🗒️","📑","📋"][i] })) },
+    ]
   },
-  Telugu: {
-    tier1_emerging: {
-      reading: [
-        { id: "te_r_t1_1", targetText: "Telugu reading sample for level 1" },
-        { id: "te_r_t1_2", targetText: "Telugu reading sample two for level 1" }
-      ],
-      comprehension: [
-        {
-          id: "te_c_t1_1",
-          question: "Level 1 comprehension question for Telugu?",
-          options: ["Option A", "Option B", "Option C", "Option D"],
-          correctOption: "Option A"
-        },
-        {
-          id: "te_c_t1_2",
-          question: "Second level 1 comprehension question for Telugu?",
-          options: ["Option 1", "Option 2", "Option 3", "Option 4"],
-          correctOption: "Option 2"
-        }
-      ],
-      writing: [
-        {
-          id: "te_w_t1_1",
-          prompt: "Write a sentence appropriate for level 1 Telugu.",
-          evaluator: (text) => {
-            if (text.length > 5) return { score: 10, feedback: "Good effort!" };
-            return { score: 5, feedback: "Please write more." };
-          }
-        }
-      ]
-    },
-    tier2_developing: {
-      reading: [
-        { id: "te_r_t2_1", targetText: "Telugu reading sample for level 2" },
-        { id: "te_r_t2_2", targetText: "Telugu reading sample two for level 2" }
-      ],
-      comprehension: [
-        {
-          id: "te_c_t2_1",
-          question: "Level 2 comprehension question for Telugu?",
-          options: ["Option A", "Option B", "Option C", "Option D"],
-          correctOption: "Option A"
-        },
-        {
-          id: "te_c_t2_2",
-          question: "Second level 2 comprehension question for Telugu?",
-          options: ["Option 1", "Option 2", "Option 3", "Option 4"],
-          correctOption: "Option 2"
-        }
-      ],
-      writing: [
-        {
-          id: "te_w_t2_1",
-          prompt: "Write a sentence appropriate for level 2 Telugu.",
-          evaluator: (text) => {
-            if (text.length > 5) return { score: 10, feedback: "Good effort!" };
-            return { score: 5, feedback: "Please write more." };
-          }
-        }
-      ]
-    },
-    tier3_constructor: {
-      reading: [
-        { id: "te_r_t3_1", targetText: "Telugu reading sample for level 3" },
-        { id: "te_r_t3_2", targetText: "Telugu reading sample two for level 3" }
-      ],
-      comprehension: [
-        {
-          id: "te_c_t3_1",
-          question: "Level 3 comprehension question for Telugu?",
-          options: ["Option A", "Option B", "Option C", "Option D"],
-          correctOption: "Option A"
-        },
-        {
-          id: "te_c_t3_2",
-          question: "Second level 3 comprehension question for Telugu?",
-          options: ["Option 1", "Option 2", "Option 3", "Option 4"],
-          correctOption: "Option 2"
-        }
-      ],
-      writing: [
-        {
-          id: "te_w_t3_1",
-          prompt: "Write a sentence appropriate for level 3 Telugu.",
-          evaluator: (text) => {
-            if (text.length > 5) return { score: 10, feedback: "Good effort!" };
-            return { score: 5, feedback: "Please write more." };
-          }
-        }
-      ]
-    },
-    tier4_comprehender: {
-      reading: [
-        { id: "te_r_t4_1", targetText: "Telugu reading sample for level 4" },
-        { id: "te_r_t4_2", targetText: "Telugu reading sample two for level 4" }
-      ],
-      comprehension: [
-        {
-          id: "te_c_t4_1",
-          question: "Level 4 comprehension question for Telugu?",
-          options: ["Option A", "Option B", "Option C", "Option D"],
-          correctOption: "Option A"
-        },
-        {
-          id: "te_c_t4_2",
-          question: "Second level 4 comprehension question for Telugu?",
-          options: ["Option 1", "Option 2", "Option 3", "Option 4"],
-          correctOption: "Option 2"
-        }
-      ],
-      writing: [
-        {
-          id: "te_w_t4_1",
-          prompt: "Write a sentence appropriate for level 4 Telugu.",
-          evaluator: (text) => {
-            if (text.length > 5) return { score: 10, feedback: "Good effort!" };
-            return { score: 5, feedback: "Please write more." };
-          }
-        }
-      ]
-    },
-    tier5_independent: {
-      reading: [
-        { id: "te_r_t5_1", targetText: "Telugu reading sample for level 5" },
-        { id: "te_r_t5_2", targetText: "Telugu reading sample two for level 5" }
-      ],
-      comprehension: [
-        {
-          id: "te_c_t5_1",
-          question: "Level 5 comprehension question for Telugu?",
-          options: ["Option A", "Option B", "Option C", "Option D"],
-          correctOption: "Option A"
-        },
-        {
-          id: "te_c_t5_2",
-          question: "Second level 5 comprehension question for Telugu?",
-          options: ["Option 1", "Option 2", "Option 3", "Option 4"],
-          correctOption: "Option 2"
-        }
-      ],
-      writing: [
-        {
-          id: "te_w_t5_1",
-          prompt: "Write a sentence appropriate for level 5 Telugu.",
-          evaluator: (text) => {
-            if (text.length > 5) return { score: 10, feedback: "Good effort!" };
-            return { score: 5, feedback: "Please write more." };
-          }
-        }
-      ]
-    }
+  {
+    id: "s4", num: 4,
+    title: "Vocabulary Development",
+    icon: "💬",
+    skillTarget: "word_recognition",
+    color: "#10b981",
+    units: [
+      { id: "s4u1", num: 1, title: "Daily Vocabulary",      skill: "word_recognition",
+        lessons: Array.from({ length: 5 }, (_, i) => ({ id: `s4u1l${i+1}`, num: i+1, title: `Lesson ${i+1}`, icon: ["🏠","🍎","🌞","🚶","💧"][i] })) },
+      { id: "s4u2", num: 2, title: "Family & Community",    skill: "word_recognition",
+        lessons: Array.from({ length: 5 }, (_, i) => ({ id: `s4u2l${i+1}`, num: i+1, title: `Lesson ${i+1}`, icon: ["👨‍👩‍👧","🏘️","👥","🤝","🏫"][i] })) },
+      { id: "s4u3", num: 3, title: "Work & Environment",    skill: "word_recognition",
+        lessons: Array.from({ length: 5 }, (_, i) => ({ id: `s4u3l${i+1}`, num: i+1, title: `Lesson ${i+1}`, icon: ["💼","🌿","🏭","🔧","🌾"][i] })) },
+    ]
   },
-  Tamil: {
-    tier1_emerging: {
-      reading: [
-        { id: "ta_r_t1_1", targetText: "Tamil reading sample for level 1" },
-        { id: "ta_r_t1_2", targetText: "Tamil reading sample two for level 1" }
-      ],
-      comprehension: [
-        {
-          id: "ta_c_t1_1",
-          question: "Level 1 comprehension question for Tamil?",
-          options: ["Option A", "Option B", "Option C", "Option D"],
-          correctOption: "Option A"
-        },
-        {
-          id: "ta_c_t1_2",
-          question: "Second level 1 comprehension question for Tamil?",
-          options: ["Option 1", "Option 2", "Option 3", "Option 4"],
-          correctOption: "Option 2"
-        }
-      ],
-      writing: [
-        {
-          id: "ta_w_t1_1",
-          prompt: "Write a sentence appropriate for level 1 Tamil.",
-          evaluator: (text) => {
-            if (text.length > 5) return { score: 10, feedback: "Good effort!" };
-            return { score: 5, feedback: "Please write more." };
-          }
-        }
-      ]
-    },
-    tier2_developing: {
-      reading: [
-        { id: "ta_r_t2_1", targetText: "Tamil reading sample for level 2" },
-        { id: "ta_r_t2_2", targetText: "Tamil reading sample two for level 2" }
-      ],
-      comprehension: [
-        {
-          id: "ta_c_t2_1",
-          question: "Level 2 comprehension question for Tamil?",
-          options: ["Option A", "Option B", "Option C", "Option D"],
-          correctOption: "Option A"
-        },
-        {
-          id: "ta_c_t2_2",
-          question: "Second level 2 comprehension question for Tamil?",
-          options: ["Option 1", "Option 2", "Option 3", "Option 4"],
-          correctOption: "Option 2"
-        }
-      ],
-      writing: [
-        {
-          id: "ta_w_t2_1",
-          prompt: "Write a sentence appropriate for level 2 Tamil.",
-          evaluator: (text) => {
-            if (text.length > 5) return { score: 10, feedback: "Good effort!" };
-            return { score: 5, feedback: "Please write more." };
-          }
-        }
-      ]
-    },
-    tier3_constructor: {
-      reading: [
-        { id: "ta_r_t3_1", targetText: "Tamil reading sample for level 3" },
-        { id: "ta_r_t3_2", targetText: "Tamil reading sample two for level 3" }
-      ],
-      comprehension: [
-        {
-          id: "ta_c_t3_1",
-          question: "Level 3 comprehension question for Tamil?",
-          options: ["Option A", "Option B", "Option C", "Option D"],
-          correctOption: "Option A"
-        },
-        {
-          id: "ta_c_t3_2",
-          question: "Second level 3 comprehension question for Tamil?",
-          options: ["Option 1", "Option 2", "Option 3", "Option 4"],
-          correctOption: "Option 2"
-        }
-      ],
-      writing: [
-        {
-          id: "ta_w_t3_1",
-          prompt: "Write a sentence appropriate for level 3 Tamil.",
-          evaluator: (text) => {
-            if (text.length > 5) return { score: 10, feedback: "Good effort!" };
-            return { score: 5, feedback: "Please write more." };
-          }
-        }
-      ]
-    },
-    tier4_comprehender: {
-      reading: [
-        { id: "ta_r_t4_1", targetText: "Tamil reading sample for level 4" },
-        { id: "ta_r_t4_2", targetText: "Tamil reading sample two for level 4" }
-      ],
-      comprehension: [
-        {
-          id: "ta_c_t4_1",
-          question: "Level 4 comprehension question for Tamil?",
-          options: ["Option A", "Option B", "Option C", "Option D"],
-          correctOption: "Option A"
-        },
-        {
-          id: "ta_c_t4_2",
-          question: "Second level 4 comprehension question for Tamil?",
-          options: ["Option 1", "Option 2", "Option 3", "Option 4"],
-          correctOption: "Option 2"
-        }
-      ],
-      writing: [
-        {
-          id: "ta_w_t4_1",
-          prompt: "Write a sentence appropriate for level 4 Tamil.",
-          evaluator: (text) => {
-            if (text.length > 5) return { score: 10, feedback: "Good effort!" };
-            return { score: 5, feedback: "Please write more." };
-          }
-        }
-      ]
-    },
-    tier5_independent: {
-      reading: [
-        { id: "ta_r_t5_1", targetText: "Tamil reading sample for level 5" },
-        { id: "ta_r_t5_2", targetText: "Tamil reading sample two for level 5" }
-      ],
-      comprehension: [
-        {
-          id: "ta_c_t5_1",
-          question: "Level 5 comprehension question for Tamil?",
-          options: ["Option A", "Option B", "Option C", "Option D"],
-          correctOption: "Option A"
-        },
-        {
-          id: "ta_c_t5_2",
-          question: "Second level 5 comprehension question for Tamil?",
-          options: ["Option 1", "Option 2", "Option 3", "Option 4"],
-          correctOption: "Option 2"
-        }
-      ],
-      writing: [
-        {
-          id: "ta_w_t5_1",
-          prompt: "Write a sentence appropriate for level 5 Tamil.",
-          evaluator: (text) => {
-            if (text.length > 5) return { score: 10, feedback: "Good effort!" };
-            return { score: 5, feedback: "Please write more." };
-          }
-        }
-      ]
-    }
-  }
+  {
+    id: "s5", num: 5,
+    title: "Comprehension",
+    icon: "🧠",
+    skillTarget: "comprehension",
+    color: "#8b5cf6",
+    units: [
+      { id: "s5u1", num: 1, title: "Sentence Understanding", skill: "comprehension",
+        lessons: Array.from({ length: 5 }, (_, i) => ({ id: `s5u1l${i+1}`, num: i+1, title: `Lesson ${i+1}`, icon: ["💡","🔍","🧩","❓","💬"][i] })) },
+      { id: "s5u2", num: 2, title: "Story Understanding",    skill: "comprehension",
+        lessons: Array.from({ length: 5 }, (_, i) => ({ id: `s5u2l${i+1}`, num: i+1, title: `Lesson ${i+1}`, icon: ["📖","📚","🌟","🗺️","📜"][i] })) },
+      { id: "s5u3", num: 3, title: "Information Extraction", skill: "comprehension",
+        lessons: Array.from({ length: 5 }, (_, i) => ({ id: `s5u3l${i+1}`, num: i+1, title: `Lesson ${i+1}`, icon: ["🔎","📊","📌","🗂️","📈"][i] })) },
+    ]
+  },
+  {
+    id: "s6", num: 6,
+    title: "Communication",
+    icon: "🗣️",
+    skillTarget: "pronunciation",
+    color: "#06b6d4",
+    units: [
+      { id: "s6u1", num: 1, title: "Greetings",                skill: "pronunciation",
+        lessons: Array.from({ length: 5 }, (_, i) => ({ id: `s6u1l${i+1}`, num: i+1, title: `Lesson ${i+1}`, icon: ["👋","😊","🙏","🤝","🌟"][i] })) },
+      { id: "s6u2", num: 2, title: "Daily Conversations",      skill: "pronunciation",
+        lessons: Array.from({ length: 5 }, (_, i) => ({ id: `s6u2l${i+1}`, num: i+1, title: `Lesson ${i+1}`, icon: ["💬","🗣️","📱","🏪","☕"][i] })) },
+      { id: "s6u3", num: 3, title: "Questions & Responses",    skill: "pronunciation",
+        lessons: Array.from({ length: 5 }, (_, i) => ({ id: `s6u3l${i+1}`, num: i+1, title: `Lesson ${i+1}`, icon: ["❓","💬","🎤","🔊","📢"][i] })) },
+    ]
+  },
+  {
+    id: "s7", num: 7,
+    title: "Practical Literacy",
+    icon: "📋",
+    skillTarget: "comprehension",
+    color: "#f97316",
+    units: [
+      { id: "s7u1", num: 1, title: "Reading Forms",        skill: "comprehension",
+        lessons: Array.from({ length: 5 }, (_, i) => ({ id: `s7u1l${i+1}`, num: i+1, title: `Lesson ${i+1}`, icon: ["📋","📝","🏦","🏥","🏫"][i] })) },
+      { id: "s7u2", num: 2, title: "Reading Signboards",   skill: "sentence_reading",
+        lessons: Array.from({ length: 5 }, (_, i) => ({ id: `s7u2l${i+1}`, num: i+1, title: `Lesson ${i+1}`, icon: ["🚦","⚠️","🚧","🛑","🔖"][i] })) },
+      { id: "s7u3", num: 3, title: "Reading Instructions", skill: "sentence_reading",
+        lessons: Array.from({ length: 5 }, (_, i) => ({ id: `s7u3l${i+1}`, num: i+1, title: `Lesson ${i+1}`, icon: ["📜","📋","🧾","📄","📑"][i] })) },
+    ]
+  },
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LEARNING PATH GENERATOR
+// Maps weak skill scores → recommended section start points (per spec rules)
+// ─────────────────────────────────────────────────────────────────────────────
+export const generateLearningPath = (skillScores) => {
+  const path = [];
+  const {
+    letter_recognition = 100,
+    word_recognition = 100,
+    sentence_reading = 100,
+    writing = 100,
+    comprehension = 100,
+    pronunciation = 100,
+  } = skillScores || {};
+
+  // Spec rules — add sections for weak skills (< 50%)
+  if (letter_recognition < 50) path.push({ sectionId: "s1", unitId: "s1u1", reason: "Letter Recognition needs improvement" });
+  if (word_recognition < 50)   path.push({ sectionId: "s1", unitId: "s1u3", reason: "Word Recognition needs improvement" });
+  if (sentence_reading < 50)   path.push({ sectionId: "s2", unitId: "s2u2", reason: "Sentence Reading needs improvement" });
+  if (writing < 50)            path.push({ sectionId: "s3", unitId: "s3u1", reason: "Writing needs improvement" });
+  if (comprehension < 50)      path.push({ sectionId: "s5", unitId: "s5u1", reason: "Comprehension needs improvement" });
+  if (pronunciation < 50)      path.push({ sectionId: "s6", unitId: "s6u1", reason: "Pronunciation needs improvement" });
+
+  // Always include vocabulary and practical literacy at the end
+  path.push({ sectionId: "s4", unitId: "s4u1", reason: "Vocabulary development" });
+  path.push({ sectionId: "s7", unitId: "s7u1", reason: "Practical literacy skills" });
+
+  // Deduplicate
+  const seen = new Set();
+  return path.filter(p => { if (seen.has(p.sectionId)) return false; seen.add(p.sectionId); return true; });
 };
 
-// Shuffle arrays helper
-const shuffleArray = (arr) => {
-  return [...arr].sort(() => 0.5 - Math.random());
+// Get section display order for Learn tab (weak sections first, then rest)
+export const getOrderedSections = (skillScores) => {
+  const path = generateLearningPath(skillScores);
+  const pathSectionIds = path.map(p => p.sectionId);
+  const restSections = CURRICULUM_SECTIONS.filter(s => !pathSectionIds.includes(s.id));
+  const orderedSections = [
+    ...pathSectionIds.map(id => CURRICULUM_SECTIONS.find(s => s.id === id)).filter(Boolean),
+    ...restSections
+  ];
+  return orderedSections;
 };
 
-// Map age + education level to the correct assessmentQuestions key (ageGroup_level_N)
+// ─────────────────────────────────────────────────────────────────────────────
+// PROFICIENCY CLASSIFICATION — from skill scores
+// ─────────────────────────────────────────────────────────────────────────────
+export const classifyProficiency = (skillScores) => {
+  const scores = Object.values(skillScores || {}).filter(v => typeof v === "number");
+  if (scores.length === 0) return 1;
+  const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+  if (avg >= 80) return 5;
+  if (avg >= 60) return 4;
+  if (avg >= 40) return 3;
+  if (avg >= 20) return 2;
+  return 1;
+};
+
+export const getProficiencyName = (level, language = "English") => {
+  const levels = PROFICIENCY_LEVELS[language] || PROFICIENCY_LEVELS["English"];
+  return levels.find(l => l.level === level) || levels[0];
+};
+
+export const getWeakSkills = (skillScores, threshold = 50) => {
+  return Object.entries(skillScores || {})
+    .filter(([_, v]) => typeof v === "number" && v < threshold)
+    .map(([k]) => SKILL_CATEGORIES[k]?.label || k);
+};
+
+export const getStrongSkills = (skillScores, threshold = 50) => {
+  return Object.entries(skillScores || {})
+    .filter(([_, v]) => typeof v === "number" && v >= threshold)
+    .map(([k]) => SKILL_CATEGORIES[k]?.label || k);
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ASSESSMENT ENGINE — skill-tagged question selection + per-skill scoring
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Determine age group for question selection
 const getAgeGroup = (ageNum) => {
   if (ageNum < 13) return "child";
   if (ageNum < 18) return "teen";
@@ -868,35 +255,46 @@ const getAgeGroup = (ageNum) => {
   return "senior";
 };
 
+// Map education level → approximate literacy level (1–5)
 const getLevel = (educationLevel, ageNum) => {
   const eduStr = (educationLevel || "").toLowerCase();
-  if (eduStr.includes("higher secondary") || eduStr.includes("secondary") || eduStr.includes("college")) {
-    return 5;
-  } else if (eduStr.includes("primary")) {
-    return 3;
-  } else {
+  if (eduStr.includes("graduate") || eduStr.includes("higher secondary")) return 5;
+  if (eduStr.includes("secondary")) return 4;
+  if (eduStr.includes("primary")) return 3;
+  if (eduStr.includes("no formal")) {
     if (ageNum < 10) return 1;
-    if (ageNum < 15) return 2;
-    if (ageNum < 25) return 3;
-    if (ageNum < 40) return 4;
-    return 5;
+    if (ageNum < 20) return 2;
+    return 3;
   }
+  return 3;
 };
 
-// Returns a randomized diagnostic assessment:
-// - 10 comprehension MCQs (age+level appropriate, shuffled, multilingual)
-// - 1 reading question (user reads text aloud — voice-to-text)
-// - 1 writing question (user writes a short response)
-// All sections are matched to the user's age group, education level, and language.
+// Map question ID prefix to skill category
+const inferSkillFromQuestion = (question, questionIdx, totalQuestions) => {
+  const id = question?.id || "";
+  // Level 1 questions → letter recognition
+  if (id.includes("_l1_")) return "letter_recognition";
+  // Level 2 → word recognition
+  if (id.includes("_l2_")) return "word_recognition";
+  // Level 3-4 → sentence reading / comprehension  
+  if (id.includes("_l3_")) return "sentence_reading";
+  if (id.includes("_l4_")) return "comprehension";
+  if (id.includes("_l5_")) return "comprehension";
+
+  // Fallback: distribute skills across 10 MCQs
+  const skills = ["letter_recognition", "word_recognition", "sentence_reading", "comprehension", "comprehension",
+                  "word_recognition", "sentence_reading", "comprehension", "letter_recognition", "word_recognition"];
+  return skills[questionIdx % skills.length] || "comprehension";
+};
+
+// Main assessment generator — returns 12 questions (10 MCQ + 1 reading + 1 writing)
 export const getRandomAssessment = (age, educationLevel, language = "English") => {
   const ageNum = parseInt(age, 10) || 20;
-
   const ageGroup = getAgeGroup(ageNum);
   const level = getLevel(educationLevel, ageNum);
   const key = `${ageGroup}_level_${level}`;
 
-  // ── Comprehension MCQs ──────────────────────────────────────────
-  // Fallback chain: exact key → same group level 1 → child_level_1
+  // Comprehension MCQ Pool
   const compPool =
     assessmentQuestions[key] ||
     assessmentQuestions[`${ageGroup}_level_1`] ||
@@ -904,33 +302,32 @@ export const getRandomAssessment = (age, educationLevel, language = "English") =
 
   const rawQuestions = compPool?.questions || [];
 
-  // Pick up to 10 questions (shuffle + cycle if fewer than 10)
+  // Sample up to 10 questions
   const shuffled = [...rawQuestions].sort(() => 0.5 - Math.random());
   const sampled = [];
   for (let i = 0; i < 10; i++) {
     sampled.push(shuffled[i % shuffled.length]);
   }
 
-  const comprehensionQuestions = sampled.map((q) => {
+  const comprehensionQuestions = sampled.map((q, idx) => {
     const rawOptionsEnglish = (q.options && q.options["English"]) || [];
     const correctIdx = typeof q.correctIndex === "number" ? q.correctIndex : 0;
-
-    // Create a shuffled indices array: e.g. [0, 1, 2, 3] -> [2, 0, 1, 3]
-    const indices = rawOptionsEnglish.map((_, idx) => idx);
+    const indices = rawOptionsEnglish.map((_, i) => i);
     const shuffledIndices = [...indices].sort(() => 0.5 - Math.random());
     const newCorrectIndex = shuffledIndices.indexOf(correctIdx);
+    const skill = inferSkillFromQuestion(q, idx, sampled.length);
 
     return {
       id: q.id,
       type: "comprehension",
+      skill,
       rawQuestion: q,
       shuffledIndices,
       correctIndex: newCorrectIndex,
     };
   });
 
-  // ── Reading & Writing ───────────────────────────────────────────
-  // Fallback chain: exact key → same group level 1 → adult_level_1
+  // Reading + Writing from assessmentReadingWriting
   const rwPool =
     assessmentReadingWriting[key] ||
     assessmentReadingWriting[`${ageGroup}_level_1`] ||
@@ -939,38 +336,119 @@ export const getRandomAssessment = (age, educationLevel, language = "English") =
   const readingQuestion = {
     id: `${key}_reading`,
     type: "reading",
+    skill: "pronunciation",
     rawQuestion: rwPool,
   };
 
   const writingQuestion = {
     id: `${key}_writing`,
     type: "writing",
+    skill: "writing",
     rawQuestion: rwPool,
     evaluator: (text) => {
       const target = (rwPool?.dictation || "").trim();
       const targetWords = target.toLowerCase().split(/\s+/).filter(Boolean);
       const userWords = text.trim().toLowerCase().split(/\s+/).filter(Boolean);
-
-      if (userWords.length === 0) {
-        return { score: 0, feedback: "Please write the sentence you heard." };
-      }
-      if (targetWords.length === 0) {
-        return { score: 5, feedback: "Thanks for writing!" };
-      }
-
+      if (userWords.length === 0) return { score: 0, feedback: "Please write the sentence you heard." };
+      if (targetWords.length === 0) return { score: 5, feedback: "Thanks for writing!" };
       const userSet = new Set(userWords);
-      const matched = targetWords.filter((w) => userSet.has(w)).length;
+      const matched = targetWords.filter(w => userSet.has(w)).length;
       const ratio = matched / targetWords.length;
-
       if (ratio >= 0.8) return { score: 10, feedback: "Excellent! You wrote the sentence accurately." };
       if (ratio >= 0.5) return { score: 7, feedback: "Good, but some words are missing or incorrect." };
-      if (ratio >= 0.25) return { score: 4, feedback: "You caught some words. Listen again and try to write more." };
-      return { score: 2, feedback: "Try to write the words you hear more carefully." };
+      if (ratio >= 0.25) return { score: 4, feedback: "You caught some words. Listen again and try more." };
+      return { score: 2, feedback: "Try to write what you hear more carefully." };
     },
   };
 
   return {
-    tier: `${ageGroup}_level_${level}`,
+    tier: key,
     questions: [...comprehensionQuestions, readingQuestion, writingQuestion],
   };
 };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SKILL SCORING ENGINE — computes per-skill percentages from assessment results
+// ─────────────────────────────────────────────────────────────────────────────
+export const computeSkillScores = (questions, selectedAnswers, readingAttempts, writingAnswers) => {
+  const skillBuckets = {};
+  Object.keys(SKILL_CATEGORIES).forEach(s => {
+    skillBuckets[s] = { correct: 0, total: 0 };
+  });
+
+  questions.forEach((q, idx) => {
+    const skill = q.skill || "comprehension";
+    if (!skillBuckets[skill]) skillBuckets[skill] = { correct: 0, total: 0 };
+
+    if (q.type === "comprehension") {
+      skillBuckets[skill].total += 1;
+      if (selectedAnswers[idx] === q.correctIndex) skillBuckets[skill].correct += 1;
+
+    } else if (q.type === "reading") {
+      const attempt = readingAttempts[idx];
+      if (attempt && attempt.totalWords > 0) {
+        const ratio = attempt.matchedCount / attempt.totalWords;
+        skillBuckets["pronunciation"].total += 1;
+        skillBuckets["pronunciation"].correct += ratio;
+      } else {
+        skillBuckets["pronunciation"].total += 1;
+        skillBuckets["pronunciation"].correct += 0;
+      }
+
+    } else if (q.type === "writing") {
+      const text = writingAnswers[idx] || "";
+      const result = q.evaluator ? q.evaluator(text) : { score: 0 };
+      skillBuckets["writing"].total += 1;
+      skillBuckets["writing"].correct += result.score / 10;
+    }
+  });
+
+  // Convert to percentages
+  const scores = {};
+  Object.entries(skillBuckets).forEach(([skill, { correct, total }]) => {
+    scores[skill] = total > 0 ? Math.round((correct / total) * 100) : null;
+  });
+
+  // Fill any null skills with smart defaults based on other scores
+  const nonNullScores = Object.values(scores).filter(v => v !== null);
+  const avgNonNull = nonNullScores.length > 0
+    ? Math.round(nonNullScores.reduce((a, b) => a + b, 0) / nonNullScores.length)
+    : 50;
+
+  // Skills not directly assessed get estimated from adjacent skills
+  if (scores.letter_recognition === null) {
+    scores.letter_recognition = scores.word_recognition !== null ? Math.round(scores.word_recognition * 1.1) : avgNonNull;
+  }
+  if (scores.word_recognition === null) scores.word_recognition = avgNonNull;
+  if (scores.sentence_reading === null) scores.sentence_reading = scores.comprehension !== null ? Math.round(scores.comprehension * 0.9) : avgNonNull;
+
+  // Clamp all to 0-100
+  Object.keys(scores).forEach(k => {
+    if (scores[k] !== null) scores[k] = Math.max(0, Math.min(100, scores[k]));
+  });
+
+  return scores;
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// LEGACY EXPORTS (kept for compatibility)
+// ─────────────────────────────────────────────────────────────────────────────
+export const levelDefinitions = PROFICIENCY_LEVELS;
+
+export const lessonsData = (() => {
+  const data = {};
+  for (let i = 1; i <= 5; i++) {
+    data[i] = CURRICULUM_SECTIONS.map(s => ({
+      id: s.id,
+      title: s.title,
+      units: s.units.map(u => ({
+        id: u.id,
+        title: u.title,
+        lessons: u.lessons
+      }))
+    }));
+  }
+  return data;
+})();
+
+export const initialAssessmentPool = {};

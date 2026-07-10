@@ -5235,3 +5235,263 @@ select:focus {
   margin: 0;
   font-size: 0.95rem;
 }
+/* ========================================================
+   LISA AI-POWERED PLATFORM — NEW COMPONENT STYLES
+   7-Section Curriculum + AI Lesson UI + 6-Skill Profile
+   ======================================================== */
+
+/* ── Curriculum Section Tab Bar ─────────────────────────── */
+.curriculum-section-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 16px 0;
+  scrollbar-width: thin;
+}
+.curriculum-section-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 2px solid transparent;
+  background: var(--card-bg);
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text);
+  min-width: 80px;
+  transition: all 0.2s;
+  position: relative;
+}
+.curriculum-section-tab:hover {
+  background: var(--surface-hover);
+  transform: translateY(-2px);
+}
+.curriculum-section-tab.active {
+  background: var(--card-bg);
+  border-width: 2px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+.curriculum-tab-icon { font-size: 1.4rem; }
+.curriculum-tab-num  { font-size: 0.68rem; color: var(--muted); }
+.curriculum-tab-badge {
+  position: absolute;
+  top: 4px; right: 4px;
+  font-size: 0.7rem;
+  color: #f59e0b;
+}
+
+/* ── AI Lesson Loading ─────────────────────────────────── */
+.ai-lesson-loading {
+  text-align: center;
+  padding: 60px 20px;
+  max-width: 400px;
+}
+.ai-lesson-loading h3 { font-size: 1.3rem; margin: 20px 0 8px; }
+.ai-lesson-loading p  { color: var(--muted); }
+.ai-spinner {
+  width: 56px; height: 56px;
+  border: 4px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── AI Lesson Step Bar ────────────────────────────────── */
+.ai-lesson-content {
+  width: 100%;
+  max-width: 700px;
+}
+.ai-lesson-step-bar {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 28px;
+}
+.ai-lesson-step-dot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  opacity: 0.4;
+  transition: opacity 0.2s;
+}
+.ai-lesson-step-dot.active { opacity: 1; }
+.ai-lesson-step-dot.done   { opacity: 0.7; }
+.dot-num {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  background: var(--card-bg);
+  border: 2px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.75rem; font-weight: 700;
+}
+.ai-lesson-step-dot.active .dot-num { border-color: var(--accent); background: var(--accent); color: white; }
+.ai-lesson-step-dot.done   .dot-num { border-color: #10b981; background: #10b981; color: white; }
+.dot-label { font-size: 0.65rem; color: var(--muted); font-weight: 600; white-space: nowrap; }
+
+/* ── AI Lesson Step Content ─────────────────────────────── */
+.ai-lesson-step { width: 100%; }
+.ai-lesson-step-header { margin-bottom: 20px; }
+.ai-lesson-step-header h3 { font-size: 1.4rem; font-weight: 800; margin: 8px 0 4px; }
+.ai-step-badge {
+  display: inline-block;
+  background: var(--accent);
+  color: white;
+  padding: 4px 14px;
+  border-radius: 99px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.ai-lesson-explanation p {
+  line-height: 1.75;
+  margin-bottom: 14px;
+  color: var(--text);
+}
+.ai-lesson-examples {
+  margin-top: 20px;
+  padding: 16px;
+  background: var(--card-bg);
+  border-radius: 14px;
+}
+.ai-lesson-examples h4 { margin-bottom: 12px; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+.ai-example-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.ai-example-item:last-child { border-bottom: none; }
+.ai-example-text { font-size: 1.05rem; font-weight: 600; }
+.ai-example-trans { font-size: 0.85rem; color: var(--muted); }
+.ai-lesson-tip {
+  margin-top: 16px;
+  padding: 14px 16px;
+  background: rgba(var(--accent-rgb, 99, 102, 241), 0.08);
+  border-left: 4px solid var(--accent);
+  border-radius: 0 12px 12px 0;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+/* ── AI MCQ ─────────────────────────────────────────────── */
+.ai-mcq-block {
+  background: var(--card-bg);
+  border-radius: 14px;
+  padding: 18px;
+  margin-bottom: 16px;
+  border: 2px solid var(--border);
+}
+.ai-mcq-block.correct   { border-color: #10b981; }
+.ai-mcq-block.incorrect { border-color: #ef4444; }
+.ai-mcq-question { font-weight: 600; margin-bottom: 14px; line-height: 1.5; }
+.ai-mcq-options  { display: grid; gap: 8px; }
+.ai-mcq-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 2px solid var(--border);
+  background: var(--surface);
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  text-align: left;
+  transition: all 0.15s;
+}
+.ai-mcq-option:hover:not(:disabled) { border-color: var(--accent); }
+.ai-mcq-option:disabled  { cursor: default; }
+.ai-mcq-option.correct   { border-color: #10b981; background: rgba(16,185,129,0.12); color: #10b981; }
+.ai-mcq-option.wrong     { border-color: #ef4444; background: rgba(239,68,68,0.12);  color: #ef4444; }
+.option-letter { font-weight: 700; color: var(--accent); min-width: 22px; }
+.ai-mcq-feedback {
+  margin-top: 10px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.ai-mcq-feedback.correct   { background: rgba(16,185,129,0.1);  color: #10b981; }
+.ai-mcq-feedback.incorrect { background: rgba(239,68,68,0.1);   color: #ef4444; }
+
+/* ── AI Fill in the Blanks ──────────────────────────────── */
+.ai-fill-block {
+  background: var(--card-bg);
+  border-radius: 14px;
+  padding: 18px;
+  margin-bottom: 14px;
+  border: 2px solid var(--border);
+}
+.ai-fill-sentence { font-size: 1.1rem; font-weight: 600; margin-bottom: 8px; line-height: 1.5; }
+.ai-fill-input {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 2px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 1rem;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+.ai-fill-input:focus { outline: none; border-color: var(--accent); }
+.ai-fill-feedback {
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.ai-fill-feedback.correct   { background: rgba(16,185,129,0.1);  color: #10b981; }
+.ai-fill-feedback.incorrect { background: rgba(239,68,68,0.1);   color: #ef4444; }
+
+/* ── AI Reading & Passage ───────────────────────────────── */
+.ai-reading-block, .ai-writing-block {
+  background: var(--card-bg);
+  border-radius: 14px;
+  padding: 20px;
+  border: 2px solid var(--border);
+}
+.ai-passage-text {
+  font-size: 1.1rem;
+  line-height: 1.85;
+  color: var(--text);
+  padding: 16px;
+  background: var(--surface);
+  border-radius: 10px;
+  font-family: Georgia, serif;
+}
+
+/* ── AI Pronunciation ───────────────────────────────────── */
+.ai-pronunciation-words {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+}
+.ai-pronunciation-word {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  background: var(--card-bg);
+  border-radius: 12px;
+  border: 2px solid var(--border);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+/* ── 6-Skill Results Bars ──────────────────────────────── */
+.results-skill-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
