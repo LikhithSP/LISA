@@ -1,9 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "./supabaseClient";
-import { levelDefinitions, initialAssessmentPool, getRandomAssessment, lessonsData } from "./curriculumData";
+import {
+  getRandomAssessment, computeSkillScores, generateLearningPath, getOrderedSections,
+  classifyProficiency, getProficiencyName, getWeakSkills, getStrongSkills,
+  SKILL_CATEGORIES, CURRICULUM_SECTIONS, PROFICIENCY_LEVELS, lessonsData
+} from "./curriculumData";
+import { generateLessonContent } from "./geminiClient";
 
 const languages = ["English", "Hindi", "Kannada", "Telugu", "Tamil"];
-const educationLevels = ["No formal education", "Primary", "Secondary", "Higher secondary"];
+const educationLevels = ["No formal education", "Primary", "Secondary", "Higher secondary", "Graduate"];
 
 
 
@@ -585,11 +590,11 @@ const getLiteracyLevel = (userProfile) => {
   if (userProfile?.literacy_level) return Number(userProfile.literacy_level);
   const ed = userProfile?.education_level;
   if (ed) {
-    if (ed.includes("Level 1") || ed.includes("स्तर 1") || ed.includes("ಹಂತ 1") || ed.includes("స్థాయి 1") || ed.includes("நிலை 1")) return 1;
-    if (ed.includes("Level 2") || ed.includes("स्तर 2") || ed.includes("ಹಂತ 2") || ed.includes("స్థాయి 2") || ed.includes("நிலை 2")) return 2;
-    if (ed.includes("Level 3") || ed.includes("स्तर 3") || ed.includes("ಹಂತ 3") || ed.includes("స్థాయి 3") || ed.includes("நிலை 3")) return 3;
-    if (ed.includes("Level 4") || ed.includes("स्तर 4") || ed.includes("ಹಂತ 4") || ed.includes("స్థాయి 4") || ed.includes("நிலை 4")) return 4;
-    if (ed.includes("Level 5") || ed.includes("स्तर 5") || ed.includes("ಹಂತ 5") || ed.includes("స్థాయి 5") || ed.includes("நிலை 5")) return 5;
+    if (ed.includes("Level 1") || ed.includes("à¤¸à¥à¤¤à¤° 1") || ed.includes("à²¹à²‚à²¤ 1") || ed.includes("à°¸à±à°¥à°¾à°¯à°¿ 1") || ed.includes("à®¨à®¿à®²à¯ˆ 1")) return 1;
+    if (ed.includes("Level 2") || ed.includes("à¤¸à¥à¤¤à¤° 2") || ed.includes("à²¹à²‚à²¤ 2") || ed.includes("à°¸à±à°¥à°¾à°¯à°¿ 2") || ed.includes("à®¨à®¿à®²à¯ˆ 2")) return 2;
+    if (ed.includes("Level 3") || ed.includes("à¤¸à¥à¤¤à¤° 3") || ed.includes("à²¹à²‚à²¤ 3") || ed.includes("à°¸à±à°¥à°¾à°¯à°¿ 3") || ed.includes("à®¨à®¿à®²à¯ˆ 3")) return 3;
+    if (ed.includes("Level 4") || ed.includes("à¤¸à¥à¤¤à¤° 4") || ed.includes("à²¹à²‚à²¤ 4") || ed.includes("à°¸à±à°¥à°¾à°¯à°¿ 4") || ed.includes("à®¨à®¿à®²à¯ˆ 4")) return 4;
+    if (ed.includes("Level 5") || ed.includes("à¤¸à¥à¤¤à¤° 5") || ed.includes("à²¹à²‚à²¤ 5") || ed.includes("à°¸à±à°¥à°¾à°¯à°¿ 5") || ed.includes("à®¨à®¿à®²à¯ˆ 5")) return 5;
   }
   return null;
 };
@@ -618,14 +623,14 @@ const clearStoredAssessmentState = (userId) => {
 
 const getLocalizedLevelName = (level, lang) => {
   const currentLang = lang || "English";
-  const defs = levelDefinitions[currentLang] || levelDefinitions["English"];
+  const defs = PROFICIENCY_LEVELS[currentLang] || PROFICIENCY_LEVELS["English"];
   const found = defs.find(d => d.level === level);
   return found ? found.name : `Level ${level}`;
 };
 
 const getLevelCategoryAndDescription = (level, lang) => {
   const currentLang = lang || "English";
-  const defs = levelDefinitions[currentLang] || levelDefinitions["English"];
+  const defs = PROFICIENCY_LEVELS[currentLang] || PROFICIENCY_LEVELS["English"];
   const found = defs.find(d => d.level === level);
   return {
     category: found ? found.name : `Level ${level}`,
@@ -696,7 +701,15 @@ function App() {
     }
   }, [session]);
 
+  const [lessonLoading, setLessonLoading] = useState(false);
+  const [lessonStep, setLessonStep] = useState(0); // 0=explanation, 1=MCQs, 2=fillBlanks, 3=reading, 4=writing, 5=pronunciation
+  const [lessonMcqAnswers, setLessonMcqAnswers] = useState({});
+  const [lessonFillAnswers, setLessonFillAnswers] = useState({});
+  const [lessonWritingText, setLessonWritingText] = useState("");
+  const [lessonAiContent, setLessonAiContent] = useState(null);
+
   const completeLesson = (lessonId, xpAwarded) => {
+
     if (!session?.user?.id) return;
     const userId = session.user.id;
 
@@ -713,165 +726,75 @@ function App() {
     }
   };
 
-  const generateLessonQuestions = (lessonId, lang) => {
-    const match = lessonId.match(/l(\d+)_/);
-    const lvl = match ? parseInt(match[1], 10) : 1;
-
-    const levelQuestions = {
-      1: {
-        English: [
-          { type: "mcq", question: "Which of the following is a capital letter?", options: ["a", "B", "c", "d"], correct: "B" },
-          { type: "mcq", question: "Find the word that starts with the letter 'A':", options: ["Cat", "Apple", "Dog", "Fish"], correct: "Apple" },
-          { type: "writing", prompt: "Type the word: CAT", correct: "cat" },
-          { type: "writing", prompt: "Type the word: SUN", correct: "sun" },
-          { type: "reading", targetText: "A small red apple" }
-        ],
-        Hindi: [
-          { type: "mcq", question: "इनमें से कौन सा स्वर है?", options: ["क", "ख", "अ", "ग"], correct: "अ" },
-          { type: "mcq", question: "'घर' शब्द का पहला अक्षर क्या है?", options: ["घ", "र", "म", "न"], correct: "घ" },
-          { type: "writing", prompt: "लिखें: घर", correct: "घर" },
-          { type: "writing", prompt: "लिखें: फल", correct: "फल" },
-          { type: "reading", targetText: "आम मीठा है" }
-        ]
-      },
-      2: {
-        English: [
-          { type: "mcq", question: "Select the action verb:", options: ["Dog", "Run", "Blue", "Happy"], correct: "Run" },
-          { type: "mcq", question: "Choose the naming word (noun):", options: ["Big", "Run", "Table", "Quickly"], correct: "Table" },
-          { type: "writing", prompt: "Type the word: JUMP", correct: "jump" },
-          { type: "writing", prompt: "Type the word: PLAY", correct: "play" },
-          { type: "reading", targetText: "The big dog runs fast" }
-        ],
-        Hindi: [
-          { type: "mcq", question: "क्रिया शब्द चुनें:", options: ["पेड़", "दौड़ना", "सुंदर", "नया"], correct: "दौड़ना" },
-          { type: "mcq", question: "नाम वाला शब्द (संज्ञा) कौन सा है?", options: ["बड़ा", "रोहन", "खेलना", "धीरे"], correct: "रोहन" },
-          { type: "writing", prompt: "लिखें: किताब", correct: "किताब" },
-          { type: "writing", prompt: "लिखें: कलम", correct: "कलम" },
-          { type: "reading", targetText: "लड़का पानी पीता है" }
-        ]
-      },
-      3: {
-        English: [
-          { type: "mcq", question: "Choose the correct pronoun: '___ is a teacher.' (referring to a lady)", options: ["He", "She", "It", "They"], correct: "She" },
-          { type: "mcq", question: "Complete the sentence: 'The cat is sleeping ___ the chair.'", options: ["under", "between", "through", "inside"], correct: "under" },
-          { type: "writing", prompt: "Type the sentence: HE IS RUNNING", correct: "he is running" },
-          { type: "writing", prompt: "Type the sentence: I LIKE APPLES", correct: "i like apples" },
-          { type: "reading", targetText: "She has a nice book" }
-        ],
-        Hindi: [
-          { type: "mcq", question: "सही सर्वनाम चुनें: '___ बाज़ार जा रहा हूँ।'", options: ["तुम", "मैं", "वह", "हम"], correct: "मैं" },
-          { type: "mcq", question: "रिक्त स्थान भरें: 'बिल्ली मेज ___ बैठी है।'", options: ["के ऊपर", "के अंदर", "के द्वारा", "से"], correct: "के ऊपर" },
-          { type: "writing", prompt: "लिखें: वह खाना खा रहा है", correct: "वह खाना खा रहा है" },
-          { type: "writing", prompt: "लिखें: हम स्कूल जाते हैं", correct: "हम स्कूल जाते हैं" },
-          { type: "reading", targetText: "हम सब साथ पढ़ते हैं" }
-        ]
-      },
-      4: {
-        English: [
-          { type: "mcq", question: "What does a red octagonal sign mean?", options: ["Go", "Stop", "Yield", "Speed Limit"], correct: "Stop" },
-          { type: "mcq", question: "If a bill shows 2 items costing 10 each, what is the total?", options: ["10", "20", "30", "40"], correct: "20" },
-          { type: "writing", prompt: "Type the word: WARNING", correct: "warning" },
-          { type: "writing", prompt: "Type the word: CAUTION", correct: "caution" },
-          { type: "reading", targetText: "Please wash your hands before eating" }
-        ],
-        Hindi: [
-          { type: "mcq", question: "लाल अष्टकोणीय संकेत का क्या अर्थ है?", options: ["चलो", "रुको", "धीमे चलो", "खतरा"], correct: "रुको" },
-          { type: "mcq", question: "यदि एक रसीद में 10 रुपये की 2 वस्तुएं हैं, तो कुल कितना हुआ?", options: ["10", "20", "30", "40"], correct: "20" },
-          { type: "writing", prompt: "लिखें: चेतावनी", correct: "चेतावनी" },
-          { type: "writing", prompt: "लिखें: सुरक्षा", correct: "सुरक्षा" },
-          { type: "reading", targetText: "कृपया यहाँ कूड़ा न फेंकें" }
-        ]
-      },
-      5: {
-        English: [
-          { type: "mcq", question: "What is the common abbreviation for 'Short Message Service'?", options: ["Email", "SMS", "PDF", "URL"], correct: "SMS" },
-          { type: "mcq", question: "Which of these buttons is typically used to complete an online registration?", options: ["Cancel", "Submit", "Refresh", "Back"], correct: "Submit" },
-          { type: "writing", prompt: "Type the phrase: SUBMIT FORM NOW", correct: "submit form now" },
-          { type: "writing", prompt: "Type the phrase: CONFIRM PAYMENT", correct: "confirm payment" },
-          { type: "reading", targetText: "Your bill payment of five hundred rupees is due tomorrow" }
-        ],
-        Hindi: [
-          { type: "mcq", question: "मोबाइल संदेश को संक्षेप में क्या कहते हैं?", options: ["ईमेल", "एसएमएस", "फ़ॉर्म", "कॉल"], correct: "एसएमएस" },
-          { type: "mcq", question: "ऑनलाइन पंजीकरण पूरा करने के लिए किस बटन का उपयोग किया जाता है?", options: ["रद्द करें", "जमा करें", "ताज़ा करें", "पीछे जाएं"], correct: "जमा करें" },
-          { type: "writing", prompt: "लिखें: फॉर्म जमा करें", correct: "फॉर्म जमा करें" },
-          { type: "writing", prompt: "लिखें: भुगतान की पुष्टि करें", correct: "भुगतान की पुष्टि करें" },
-          { type: "reading", targetText: "आपका बिजली का बिल कल तक जमा होना चाहिए" }
-        ]
-      }
-    };
-
-    const currentLang = levelQuestions[lvl][lang] ? lang : "English";
-    return levelQuestions[lvl][currentLang];
-  };
-
-  const startLessonSession = (lesson) => {
-    const questions = generateLessonQuestions(lesson.id, selectedLanguage || "English");
+  // AI-powered lesson session starter
+  const startLessonSession = async (lesson, sectionInfo, unitInfo) => {
+    setLessonLoading(true);
+    setLessonStep(0);
+    setLessonMcqAnswers({});
+    setLessonFillAnswers({});
+    setLessonWritingText("");
+    setLessonAiContent(null);
     setLessonSession({
       lessonId: lesson.id,
       title: lesson.title,
-      currentQuestionIndex: 0,
-      questions: questions,
-      selectedMcqOption: null,
-      writingAnswer: "",
-      spokenText: "",
-      status: "answering",
+      sectionNum: sectionInfo?.num || 1,
+      sectionTitle: sectionInfo?.title || "",
+      unitNum: unitInfo?.num || 1,
+      unitTitle: unitInfo?.title || "",
+      lessonNum: lesson.num || 1,
+      status: "loading",
       feedback: null
     });
-    setActiveLesson(null);
+
+    const storedSkillScores = (() => {
+      try {
+        const stored = getStoredAssessmentState(session?.user?.id);
+        return stored?.skill_scores || profile?.skill_scores || {};
+      } catch { return {}; }
+    })();
+    const weakAreas = getWeakSkills(storedSkillScores);
+    const currentLevelNum = getLiteracyLevel(profile) || 1;
+    const profInfo = getProficiencyName(currentLevelNum, "English");
+
+    const aiContent = await generateLessonContent({
+      age: profile?.age || 25,
+      educationLevel: profile?.education_level || "No formal education",
+      language: selectedLanguage || "English",
+      literacyLevel: currentLevelNum,
+      literacyLevelName: profInfo?.name || "Beginner",
+      weakAreas,
+      sectionNum: sectionInfo?.num || 1,
+      sectionTitle: sectionInfo?.title || "",
+      unitNum: unitInfo?.num || 1,
+      unitTitle: unitInfo?.title || "",
+      lessonNum: lesson.num || 1,
+      lessonTitle: lesson.title || "",
+      difficulty: currentLevelNum <= 2 ? "beginner" : currentLevelNum <= 4 ? "intermediate" : "advanced"
+    });
+
+    setLessonAiContent(aiContent);
+    setLessonSession(prev => prev ? ({ ...prev, status: "active" }) : null);
+    setLessonLoading(false);
   };
 
-  const checkLessonQuestion = () => {
-    if (!lessonSession) return;
-    const currentQ = lessonSession.questions[lessonSession.currentQuestionIndex];
-    let isCorrect = false;
-    let feedbackMessage = "";
 
-    if (currentQ.type === "mcq") {
-      isCorrect = lessonSession.selectedMcqOption === currentQ.correct;
-      feedbackMessage = isCorrect ? "Excellent! You got it right!" : `Oops! The correct answer is: ${currentQ.correct}`;
-    } else if (currentQ.type === "writing") {
-      const userAns = lessonSession.writingAnswer.trim().toLowerCase();
-      const correctAns = currentQ.correct.toLowerCase();
-      isCorrect = userAns === correctAns;
-      feedbackMessage = isCorrect ? "Perfect spelling!" : `Correct spelling: ${currentQ.correct}`;
-    } else if (currentQ.type === "reading") {
-      const matched = lessonSession.matchedCount || 0;
-      const total = lessonSession.totalWords || 1;
-      const ratio = matched / total;
-      isCorrect = ratio >= 0.5;
-      feedbackMessage = isCorrect
-        ? `Excellent pronunciation! You read ${matched} out of ${total} words correctly.`
-        : `Keep practicing! You only read ${matched} out of ${total} words. Click the microphone to try again.`;
-    }
-
-    setLessonSession(prev => ({
-      ...prev,
-      status: "feedback",
-      feedback: { correct: isCorrect, message: feedbackMessage }
-    }));
-  };
-
-  const nextLessonStep = () => {
-    if (!lessonSession) return;
-    const nextIdx = lessonSession.currentQuestionIndex + 1;
-    if (nextIdx < lessonSession.questions.length) {
-      setLessonSession(prev => ({
-        ...prev,
-        currentQuestionIndex: nextIdx,
-        selectedMcqOption: null,
-        writingAnswer: "",
-        spokenText: "",
-        status: "answering",
-        feedback: null
-      }));
+  // AI Lesson step handlers
+  const advanceLessonStep = () => {
+    const totalSteps = 5; // 0=explanation, 1=MCQs, 2=fillBlanks, 3=reading+writing, 4=complete
+    if (lessonStep < totalSteps - 1) {
+      setLessonStep(prev => prev + 1);
     } else {
-      completeLesson(lessonSession.lessonId, 10);
-      setLessonSession(prev => ({
-        ...prev,
-        status: "completed"
-      }));
+      // Complete the lesson
+      completeLesson(lessonSession?.lessonId, 15);
+      setLessonSession(prev => prev ? { ...prev, status: "completed" } : null);
     }
   };
+
+  const checkLessonMcq = (qIdx, selectedIdx) => {
+    setLessonMcqAnswers(prev => ({ ...prev, [qIdx]: selectedIdx }));
+  };
+
+
   const [message, setMessage] = useState("");
   const [initialLoading, setInitialLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -937,17 +860,17 @@ function App() {
     const lang = selectedLanguage || "English";
     const dict = translations[lang] || translations["English"];
     if (key === "successForgotPasswordLink") {
-      return lang === "Hindi" ? "पासवर्ड रीसेट लिंक भेजा गया! कृपया अपना ईमेल जांचें।" :
-        lang === "Kannada" ? "ಪಾಸ್‌ವರ್ಡ್ ಮರುಹೊಂದಿಸುವ ಲಿಂಕ್ ಕಳುಹಿಸಲಾಗಿದೆ! ಇಮೇಲ್ ಪರಿಶೀಲಿಸಿ." :
-          lang === "Telugu" ? "పాస్‌వర్డ్ రీసెట్ లింక్ పంపబడింది! దయచేసి ఇమెయిల్ తనిఖీ చేయండి." :
-            lang === "Tamil" ? "கடவுச்சொல் மீட்பு இணைப்பு அனுப்பப்பட்டது! மின்னஞ்சலைச் சரிபார்க்கவும்." :
+      return lang === "Hindi" ? "à¤ªà¤¾à¤¸à¤µà¤°à¥à¤¡ à¤°à¥€à¤¸à¥‡à¤Ÿ à¤²à¤¿à¤‚à¤• à¤­à¥‡à¤œà¤¾ à¤—à¤¯à¤¾! à¤•à¥ƒà¤ªà¤¯à¤¾ à¤…à¤ªà¤¨à¤¾ à¤ˆà¤®à¥‡à¤² à¤œà¤¾à¤‚à¤šà¥‡à¤‚à¥¤" :
+        lang === "Kannada" ? "à²ªà²¾à²¸à³â€Œà²µà²°à³à²¡à³ à²®à²°à³à²¹à³Šà²‚à²¦à²¿à²¸à³à²µ à²²à²¿à²‚à²•à³ à²•à²³à³à²¹à²¿à²¸à²²à²¾à²—à²¿à²¦à³†! à²‡à²®à³‡à²²à³ à²ªà²°à²¿à²¶à³€à²²à²¿à²¸à²¿." :
+          lang === "Telugu" ? "à°ªà°¾à°¸à±â€Œà°µà°°à±à°¡à± à°°à±€à°¸à±†à°Ÿà± à°²à°¿à°‚à°•à± à°ªà°‚à°ªà°¬à°¡à°¿à°‚à°¦à°¿! à°¦à°¯à°šà±‡à°¸à°¿ à°‡à°®à±†à°¯à°¿à°²à± à°¤à°¨à°¿à°–à±€ à°šà±‡à°¯à°‚à°¡à°¿." :
+            lang === "Tamil" ? "à®•à®Ÿà®µà¯à®šà¯à®šà¯Šà®²à¯ à®®à¯€à®Ÿà¯à®ªà¯ à®‡à®£à¯ˆà®ªà¯à®ªà¯ à®…à®©à¯à®ªà¯à®ªà®ªà¯à®ªà®Ÿà¯à®Ÿà®¤à¯! à®®à®¿à®©à¯à®©à®žà¯à®šà®²à¯ˆà®šà¯ à®šà®°à®¿à®ªà®¾à®°à¯à®•à¯à®•à®µà¯à®®à¯." :
               "Password reset link sent! Please check your email.";
     }
     if (key === "successResetPassword") {
-      return lang === "Hindi" ? "पासवर्ड रीसेट सफल रहा! अब आप लॉगिन कर सकते हैं।" :
-        lang === "Kannada" ? "ಪಾಸ್‌ವರ್ಡ್ ಮರುಹೊಂದಿಕೆ ಯಶಸ್ವಿಯಾಗಿದೆ! ನೀವು ಈಗ ಲಾಗಿನ್ ಮಾಡಬಹುದು." :
-          lang === "Telugu" ? "పాస్‌వర్డ్ రీసెట్ విజయవంతమైంది! మీరు ఇప్పుడు లాగిన్ చేయవచ్చు." :
-            lang === "Tamil" ? "கடவுச்சொல் மீட்டமைக்கப்பட்டது! நீங்கள் இப்போது உள்நுழையலாம்." :
+      return lang === "Hindi" ? "à¤ªà¤¾à¤¸à¤µà¤°à¥à¤¡ à¤°à¥€à¤¸à¥‡à¤Ÿ à¤¸à¤«à¤² à¤°à¤¹à¤¾! à¤…à¤¬ à¤†à¤ª à¤²à¥‰à¤—à¤¿à¤¨ à¤•à¤° à¤¸à¤•à¤¤à¥‡ à¤¹à¥ˆà¤‚à¥¤" :
+        lang === "Kannada" ? "à²ªà²¾à²¸à³â€Œà²µà²°à³à²¡à³ à²®à²°à³à²¹à³Šà²‚à²¦à²¿à²•à³† à²¯à²¶à²¸à³à²µà²¿à²¯à²¾à²—à²¿à²¦à³†! à²¨à³€à²µà³ à²ˆà²— à²²à²¾à²—à²¿à²¨à³ à²®à²¾à²¡à²¬à²¹à³à²¦à³." :
+          lang === "Telugu" ? "à°ªà°¾à°¸à±â€Œà°µà°°à±à°¡à± à°°à±€à°¸à±†à°Ÿà± à°µà°¿à°œà°¯à°µà°‚à°¤à°®à±ˆà°‚à°¦à°¿! à°®à±€à°°à± à°‡à°ªà±à°ªà±à°¡à± à°²à°¾à°—à°¿à°¨à± à°šà±‡à°¯à°µà°šà±à°šà±." :
+            lang === "Tamil" ? "à®•à®Ÿà®µà¯à®šà¯à®šà¯Šà®²à¯ à®®à¯€à®Ÿà¯à®Ÿà®®à¯ˆà®•à¯à®•à®ªà¯à®ªà®Ÿà¯à®Ÿà®¤à¯! à®¨à¯€à®™à¯à®•à®³à¯ à®‡à®ªà¯à®ªà¯‹à®¤à¯ à®‰à®³à¯à®¨à¯à®´à¯ˆà®¯à®²à®¾à®®à¯." :
               "Password reset successfully! You can now log in.";
     }
     return dict[key] || translations["English"][key] || key;
@@ -1386,119 +1309,82 @@ function App() {
     }
   };
 
-  // Evaluate & Diagnose Literacy Level
+  // Evaluate & Diagnose â€” 6-Skill Assessment Engine
   const submitInitialAssessment = async () => {
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-    }
+    if ("speechSynthesis" in window) window.speechSynthesis.cancel();
     setSubmitting(true);
-    let totalScore = 0; // max 30 points (comprehension 10 × 1 + reading 10 + writing 10)
 
-    assessmentQuestionsList.forEach((q, idx) => {
-      if (q.type === "reading") {
-        const attempt = readingAttempts[idx];
-        if (attempt) {
-          const ratio = attempt.matchedCount / attempt.totalWords;
-          totalScore += Math.round(ratio * 10);
-        }
-      } else if (q.type === "comprehension") {
-        const answer = selectedAnswers[idx];
-        if (answer === q.correctIndex) {
-          totalScore += 1;
-        }
-      } else if (q.type === "writing") {
-        const text = writingAnswers[idx] || "";
-        const result = q.evaluator(text);
-        totalScore += result.score;
-      }
-    });
+    // Compute per-skill scores from all question answers
+    const skillScores = computeSkillScores(
+      assessmentQuestionsList,
+      selectedAnswers,
+      readingAttempts,
+      writingAnswers
+    );
 
-    // Scale to a 0-50 diagnosis score (equivalent to percentage / 2)
-    const scaledScore = Math.round((totalScore / 30) * 50);
+    // Classify proficiency level (1-5) from skill averages
+    const diagnosedLevel = classifyProficiency(skillScores);
+    const profInfo = getProficiencyName(diagnosedLevel, "English");
+    const levelString = profInfo.name;
 
-    // Diagnose initial level 1 to 5 based on scaledScore (0 to 50)
-    let diagnosedLevel = 1;
-    if (scaledScore >= 43) diagnosedLevel = 5;
-    else if (scaledScore >= 32) diagnosedLevel = 4;
-    else if (scaledScore >= 22) diagnosedLevel = 3;
-    else if (scaledScore >= 12) diagnosedLevel = 2;
+    // Generate learning path from weak skills
+    const learningPath = generateLearningPath(skillScores);
+    const weakAreas = getWeakSkills(skillScores);
+    const strongAreas = getStrongSkills(skillScores);
 
-    const levelString = getLocalizedLevelName(diagnosedLevel, "English");
+    // Overall percentage for legacy display
+    const allScores = Object.values(skillScores).filter(v => typeof v === "number");
+    const overallPercent = allScores.length > 0
+      ? Math.round(allScores.reduce((a, b) => a + b, 0) / allScores.length)
+      : 0;
 
-    // Profile updates in Supabase
     try {
-      const primaryUpdate = await supabase
-        .from("profiles")
-        .update({
-          education_level: levelString,
-          literacy_level: diagnosedLevel,
-          assessment_completed: true
-        })
-        .eq("id", session.user.id);
+      // Update Supabase profile
+      await supabase.from("profiles").update({
+        education_level: levelString,
+        literacy_level: diagnosedLevel,
+        assessment_completed: true
+      }).eq("id", session.user.id);
 
-      let error = primaryUpdate.error;
-
-      if (error && (error.message.includes("literacy_level") || error.message.includes("assessment_completed") || error.code === "PGRST204" || error.message.includes("column"))) {
-        const fallbackUpdate = {
-          education_level: levelString
-        };
-
-        if (!error.message.includes("literacy_level")) {
-          fallbackUpdate.literacy_level = diagnosedLevel;
-        }
-        if (!error.message.includes("assessment_completed")) {
-          fallbackUpdate.assessment_completed = true;
-        }
-
-        const retry = await supabase
-          .from("profiles")
-          .update(fallbackUpdate)
-          .eq("id", session.user.id);
-
-        error = retry.error;
-      }
-
-      if (error) {
-        console.warn("DB update failed, caching locally:", error.message);
-      }
-
-      // Update UI state profile
+      // Update local state
       setProfile(prev => ({
         ...prev,
         education_level: levelString,
         literacy_level: diagnosedLevel,
-        assessment_completed: true
+        assessment_completed: true,
+        skill_scores: skillScores,
+        learning_path: learningPath
       }));
+
+      // Store skill scores + learning path in localStorage
       setStoredAssessmentState(session.user.id, {
         literacy_level: diagnosedLevel,
-        assessment_completed: true
+        assessment_completed: true,
+        skill_scores: skillScores,
+        learning_path: learningPath
       });
 
-      // Calculate separate stats
-      let readPoints = 0, compPoints = 0, writePoints = 0;
-      assessmentQuestionsList.forEach((q, idx) => {
-        const points = q.type === "reading" ? (readingAttempts[idx]?.matchedCount / readingAttempts[idx]?.totalWords) * 10 || 0
-          : q.type === "comprehension" ? (selectedAnswers[idx] === q.correctIndex ? 1 : 0)
-            : q.evaluator(writingAnswers[idx] || "").score;
-
-        if (q.type === "reading") readPoints += points;
-        if (q.type === "comprehension") compPoints += points;
-        if (q.type === "writing") writePoints += points;
-      });
-
+      // Save to history
       const attemptResult = {
         date: new Date().toLocaleDateString(),
         type: "Diagnostic Evaluation",
-        score: totalScore,
-        maxScore: 30,
-        percentage: Math.round((totalScore / 30) * 100),
+        score: overallPercent,
+        maxScore: 100,
+        percentage: overallPercent,
         level: diagnosedLevel,
         skills: {
-          reading: Math.round((readPoints / 10) * 100),
-          comprehension: Math.round((compPoints / 10) * 100),
-          writing: Math.round((writePoints / 10) * 100)
+          reading: skillScores.sentence_reading || 0,
+          comprehension: skillScores.comprehension || 0,
+          writing: skillScores.writing || 0,
+          letter_recognition: skillScores.letter_recognition || 0,
+          word_recognition: skillScores.word_recognition || 0,
+          pronunciation: skillScores.pronunciation || 0,
         },
-        passed: true
+        skillScores,
+        weakAreas,
+        strongAreas,
+        learningPath,
+        passed: overallPercent >= 40
       };
 
       const updatedHistory = [attemptResult, ...historyAttempts];
@@ -1513,6 +1399,7 @@ function App() {
       setSubmitting(false);
     }
   };
+
 
   // Profile Edit Submission
   const handleSaveProfileEdit = async (e) => {
@@ -1676,10 +1563,10 @@ function App() {
         <div className="lang-selector-dropdown">
           {[
             { key: "English", native: "English" },
-            { key: "Hindi", native: "हिन्दी" },
-            { key: "Kannada", native: "ಕನ್ನಡ" },
-            { key: "Telugu", native: "తెలుగు" },
-            { key: "Tamil", native: "தமிழ்" },
+            { key: "Hindi", native: "à¤¹à¤¿à¤¨à¥à¤¦à¥€" },
+            { key: "Kannada", native: "à²•à²¨à³à²¨à²¡" },
+            { key: "Telugu", native: "à°¤à±†à°²à±à°—à±" },
+            { key: "Tamil", native: "à®¤à®®à®¿à®´à¯" },
           ].map((lang) => (
             <button
               key={lang.key}
@@ -1958,8 +1845,8 @@ function App() {
                   <div className="empty-state-assessment">
                     <p className="intro-copy">{t("initialAssessmentDesc")}</p>
                     <div className="assessment-tours">
-                      <div className="tour-badge">📃 {t("compSecTitle")}</div>
-                      <div className="tour-badge">🗣️ {t("readingSecTitle")}</div>
+                      <div className="tour-badge">📄 {t("compSecTitle")}</div>
+                      <div className="tour-badge">🗣️ {t("readingSecTitle")}</div>
                       <div className="tour-badge">✍️ {t("writingSecTitle")}</div>
                     </div>
                     <button
@@ -2012,26 +1899,26 @@ function App() {
                   : "";
 
                 const optionTranslationMap = {
-                  Ship: { Hindi: "जहाज", Kannada: "ಹಡಗು", Telugu: "ఓడ", Tamil: "கப்பல்" },
-                  Crop: { Hindi: "फसल", Kannada: "ಬೆಳೆ", Telugu: "పంట", Tamil: "பயிர்" },
-                  Soap: { Hindi: "साबुन", Kannada: "ಸೋಪು", Telugu: "సబ్బు", Tamil: "சோப்பு" },
-                  Shut: { Hindi: "बंद", Kannada: "ಮುಚ್ಚು", Telugu: "మూసిವೇయి", Tamil: "மூடு" },
-                  Shop: { Hindi: "दुकान", Kannada: "ಅಂಗಡಿ", Telugu: "ದುಕಾణం", Tamil: "கடை" },
-                  Book: { Hindi: "किताब", Kannada: "ಪುಸ್ತಕ", Telugu: "ಪುಸ್ತಕಂ", Tamil: "புத்தகம்" },
-                  Pen: { Hindi: "कलम", Kannada: "ಪೇನಾ", Telugu: "పెన్ను", Tamil: "பேனா" },
-                  Read: { Hindi: "पढ़ना", Kannada: "ಓದು", Telugu: "చదవడం", Tamil: "வாசி" },
-                  Write: { Hindi: "लिखना", Kannada: "ಬರೆ", Telugu: "రాయడం", Tamil: "எழுது" },
-                  Speak: { Hindi: "बोलना", Kannada: "ಮಾತನಾಡು", Telugu: "ಮಾట్లాಡటం", Tamil: "பேசு" },
-                  Listen: { Hindi: "सुनना", Kannada: "ಕೇಳು", Telugu: "వినడం", Tamil: "கேள்" },
-                  Word: { Hindi: "शब्द", Kannada: "ಪದ", Telugu: "పదం", Tamil: "வார்த்தை" },
-                  Letter: { Hindi: "अक्षर", Kannada: "ಅಕ್ಷರ", Telugu: "అక్షరం", Tamil: "எழுத்து" },
-                  Sentence: { Hindi: "वाक्य", Kannada: "ವಾಕ್ಯ", Telugu: "వాక్యం", Tamil: "வாக்கியம்" },
-                  Name: { Hindi: "नाम", Kannada: "ಹೆಸರು", Telugu: "పేరు", Tamil: "பெயர்" },
-                  Day: { Hindi: "दिन", Kannada: "ದಿನ", Telugu: "రోజు", Tamil: "நாள்" },
-                  Night: { Hindi: "रात", Kannada: "ರಾತ್ರಿ", Telugu: "రాత్రి", Tamil: "இரவு" },
-                  Food: { Hindi: "भोजन", Kannada: "आहार", Telugu: "ఆహారం", Tamil: "உணவு" },
-                  Water: { Hindi: "पानी", Kannada: "ನೀರು", Telugu: "నీరు", Tamil: "தண்ணீர்" },
-                  Milk: { Hindi: "दूध", Kannada: "ಹಾಲು", Telugu: "పాలు", Tamil: "பால்" }
+                  Ship: { Hindi: "à¤œà¤¹à¤¾à¤œ", Kannada: "à²¹à²¡à²—à³", Telugu: "à°“à°¡", Tamil: "à®•à®ªà¯à®ªà®²à¯" },
+                  Crop: { Hindi: "à¤«à¤¸à¤²", Kannada: "à²¬à³†à²³à³†", Telugu: "à°ªà°‚à°Ÿ", Tamil: "à®ªà®¯à®¿à®°à¯" },
+                  Soap: { Hindi: "à¤¸à¤¾à¤¬à¥à¤¨", Kannada: "à²¸à³‹à²ªà³", Telugu: "à°¸à°¬à±à°¬à±", Tamil: "à®šà¯‹à®ªà¯à®ªà¯" },
+                  Shut: { Hindi: "à¤¬à¤‚à¤¦", Kannada: "à²®à³à²šà³à²šà³", Telugu: "à°®à±‚à°¸à°¿à²µà³‡à°¯à°¿", Tamil: "à®®à¯‚à®Ÿà¯" },
+                  Shop: { Hindi: "à¤¦à¥à¤•à¤¾à¤¨", Kannada: "à²…à²‚à²—à²¡à²¿", Telugu: "à²¦à³à²•à²¾à°£à°‚", Tamil: "à®•à®Ÿà¯ˆ" },
+                  Book: { Hindi: "à¤•à¤¿à¤¤à¤¾à¤¬", Kannada: "à²ªà³à²¸à³à²¤à²•", Telugu: "à²ªà³à²¸à³à²¤à²•à²‚", Tamil: "à®ªà¯à®¤à¯à®¤à®•à®®à¯" },
+                  Pen: { Hindi: "à¤•à¤²à¤®", Kannada: "à²ªà³‡à²¨à²¾", Telugu: "à°ªà±†à°¨à±à°¨à±", Tamil: "à®ªà¯‡à®©à®¾" },
+                  Read: { Hindi: "à¤ªà¤¢à¤¼à¤¨à¤¾", Kannada: "à²“à²¦à³", Telugu: "à°šà°¦à°µà°¡à°‚", Tamil: "à®µà®¾à®šà®¿" },
+                  Write: { Hindi: "à¤²à¤¿à¤–à¤¨à¤¾", Kannada: "à²¬à²°à³†", Telugu: "à°°à°¾à°¯à°¡à°‚", Tamil: "à®Žà®´à¯à®¤à¯" },
+                  Speak: { Hindi: "à¤¬à¥‹à¤²à¤¨à¤¾", Kannada: "à²®à²¾à²¤à²¨à²¾à²¡à³", Telugu: "à²®à²¾à°Ÿà±à°²à°¾à²¡à°Ÿà°‚", Tamil: "à®ªà¯‡à®šà¯" },
+                  Listen: { Hindi: "à¤¸à¥à¤¨à¤¨à¤¾", Kannada: "à²•à³‡à²³à³", Telugu: "à°µà°¿à°¨à°¡à°‚", Tamil: "à®•à¯‡à®³à¯" },
+                  Word: { Hindi: "à¤¶à¤¬à¥à¤¦", Kannada: "à²ªà²¦", Telugu: "à°ªà°¦à°‚", Tamil: "à®µà®¾à®°à¯à®¤à¯à®¤à¯ˆ" },
+                  Letter: { Hindi: "à¤…à¤•à¥à¤·à¤°", Kannada: "à²…à²•à³à²·à²°", Telugu: "à°…à°•à±à°·à°°à°‚", Tamil: "à®Žà®´à¯à®¤à¯à®¤à¯" },
+                  Sentence: { Hindi: "à¤µà¤¾à¤•à¥à¤¯", Kannada: "à²µà²¾à²•à³à²¯", Telugu: "à°µà°¾à°•à±à°¯à°‚", Tamil: "à®µà®¾à®•à¯à®•à®¿à®¯à®®à¯" },
+                  Name: { Hindi: "à¤¨à¤¾à¤®", Kannada: "à²¹à³†à²¸à²°à³", Telugu: "à°ªà±‡à°°à±", Tamil: "à®ªà¯†à®¯à®°à¯" },
+                  Day: { Hindi: "à¤¦à¤¿à¤¨", Kannada: "à²¦à²¿à²¨", Telugu: "à°°à±‹à°œà±", Tamil: "à®¨à®¾à®³à¯" },
+                  Night: { Hindi: "à¤°à¤¾à¤¤", Kannada: "à²°à²¾à²¤à³à²°à²¿", Telugu: "à°°à°¾à°¤à±à°°à°¿", Tamil: "à®‡à®°à®µà¯" },
+                  Food: { Hindi: "à¤­à¥‹à¤œà¤¨", Kannada: "à¤†à¤¹à¤¾à¤°", Telugu: "à°†à°¹à°¾à°°à°‚", Tamil: "à®‰à®£à®µà¯" },
+                  Water: { Hindi: "à¤ªà¤¾à¤¨à¥€", Kannada: "à²¨à³€à²°à³", Telugu: "à°¨à±€à°°à±", Tamil: "à®¤à®£à¯à®£à¯€à®°à¯" },
+                  Milk: { Hindi: "à¤¦à¥‚à¤§", Kannada: "à²¹à²¾à²²à³", Telugu: "à°ªà°¾à°²à±", Tamil: "à®ªà®¾à®²à¯" }
                 };
 
                 const compOptions = isCompMCQ
@@ -2041,7 +1928,7 @@ function App() {
 
                     if (selectedLanguage === "English") return engOpt;
 
-                    // If transOpt already includes regional translations like "Lose (ಕಳೆದುಕೋ)", just use it directly
+                    // If transOpt already includes regional translations like "Lose (à²•à²³à³†à²¦à³à²•à³‹)", just use it directly
                     if (transOpt && engOpt !== transOpt) {
                       return transOpt;
                     }
@@ -2275,7 +2162,7 @@ function App() {
                               setManualTextFallback("");
                             }}
                           >
-                            <span style={{ display: 'inline-block', transform: 'scaleX(-1)' }}>➜</span> {t("prevBtn")}
+                            <span style={{ display: 'inline-block', transform: 'scaleX(-1)' }}>âžœ</span> {t("prevBtn")}
                           </button>
                         )}
                       </div>
@@ -2292,7 +2179,7 @@ function App() {
                               (isWriting && !(writingAnswers[currentStep] || "").trim())
                             }
                           >
-                            {t("nextQuestion")} ➜
+                            {t("nextQuestion")} âžœ
                           </button>
                         ) : (
                           <button
@@ -2319,44 +2206,29 @@ function App() {
               {assessmentState === "results" && (() => {
                 const currentLevelIndex = getLiteracyLevel(profile) || 1;
                 const latestAttempt = historyAttempts[0];
-
-                const readingScore = latestAttempt?.skills?.reading || 0;
-                const compScore = latestAttempt?.skills?.comprehension || 0;
-                const writingScore = latestAttempt?.skills?.writing || 0;
+                const skillScores = latestAttempt?.skillScores || {};
                 const overallPercent = latestAttempt?.percentage || 0;
 
-                // Identify Strong and Weak Areas
-                let strongAreas = [];
-                let weakAreas = [];
-
-                if (readingScore >= 70) strongAreas.push("Reading & Pronunciation");
-                else weakAreas.push("Reading & Pronunciation");
-
-                if (compScore >= 70) strongAreas.push("Comprehension & Vocabulary");
-                else weakAreas.push("Comprehension & Vocabulary");
-
-                if (writingScore >= 70) strongAreas.push("Writing & Dictation");
-                else weakAreas.push("Writing & Dictation");
-
-                if (overallPercent === 100) {
-                  strongAreas = ["All Foundational Literacy Skills (Reading, Writing, Comprehension)"];
-                  weakAreas = ["None! You are ready for Advanced Levels & Challenges!"];
-                } else {
-                  if (strongAreas.length === 0) {
-                    strongAreas = ["Beginning steps in all skills"];
-                  }
-                  if (weakAreas.length === 0) {
-                    weakAreas = ["None - Keep practicing to maintain excellence!"];
-                  }
-                }
+                // New 6-skill analysis
+                const strongAreas = latestAttempt?.strongAreas || getStrongSkills(skillScores);
+                const weakAreas = latestAttempt?.weakAreas || getWeakSkills(skillScores);
+                const learningPath = latestAttempt?.learningPath || [];
+                const profInfo = getProficiencyName(currentLevelIndex, "English");
 
                 // Recommend Daily Practice Time
                 let dailyPracticeTime = "15 Minutes/Day";
-                if (overallPercent >= 90) {
-                  dailyPracticeTime = "10 Minutes/Day (maintenance)";
-                } else if (overallPercent < 50) {
-                  dailyPracticeTime = "25 Minutes/Day (intensive support)";
-                }
+                if (overallPercent >= 90) dailyPracticeTime = "10 Minutes/Day (maintenance)";
+                else if (overallPercent < 50) dailyPracticeTime = "25 Minutes/Day (intensive support)";
+
+                const skillOrder = [
+                  { key: "letter_recognition", label: "Letter Recognition", color: "#f59e0b", icon: "🔤" },
+                  { key: "word_recognition",   label: "Word Recognition",   color: "#3b82f6", icon: "📝" },
+                  { key: "sentence_reading",   label: "Sentence Reading",   color: "#10b981", icon: "📖" },
+                  { key: "comprehension",       label: "Comprehension",       color: "#8b5cf6", icon: "🧠" },
+                  { key: "writing",             label: "Writing",             color: "#ef4444", icon: "✍️" },
+                  { key: "pronunciation",       label: "Pronunciation",       color: "#06b6d4", icon: "🎤" },
+                ];
+
 
                 return (
                   <div className="results-card" style={{ maxWidth: '800px', margin: '20px auto' }}>
@@ -2385,7 +2257,7 @@ function App() {
 
                     <div className="results-detail-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                       <div className="benchmark-card" style={{ margin: 0 }}>
-                        <div className="benchmark-badge-icon">🎖️</div>
+                        <div className="benchmark-badge-icon">🎖️</div>
                         <h3 className="benchmark-title">{getLevelCategoryAndDescription(currentLevelIndex, currentLang).category}</h3>
                         <p className="benchmark-desc">
                           {getLevelCategoryAndDescription(currentLevelIndex, currentLang).description}
@@ -2440,7 +2312,7 @@ function App() {
                         </div>
 
                         <div className="insight-box insight-improve">
-                          <div className="insight-badge">⚠️</div>
+                          <div className="insight-badge">⚠️</div>
                           <h4>Areas to Improve</h4>
                           <ul>
                             {weakAreas.map((area, idx) => <li key={idx}>{area}</li>)}
@@ -2542,7 +2414,7 @@ function App() {
           <div className="dashboard-topbar">
             <div className="topbar-indicators">
               <div className="indicator-pill streak">🔥 36</div>
-              <div className="indicator-pill xp">⭐ {userXp} XP</div>
+              <div className="indicator-pill xp">â­ {userXp} XP</div>
             </div>
             {renderThemeToggle()}
             {renderLanguageDropdown(true)}
@@ -2671,131 +2543,128 @@ function App() {
               </div>
             )}
 
-            {/* 3.1. Learn Tab */}
-            {dashboardTab === "learn" && (
-              <div className="learn-grid-layout">
-                {/* Center Column - Lesson Journey */}
-                <div className="lesson-path-column">
-                  <div className="lesson-journey" ref={learnJourneyRef}>
-                    {(() => {
-                      const aIdx = Math.min(activeSection, currentLevelSections.length - 1);
-                      const section = currentLevelSections[aIdx];
-                      if (!section) return null;
-                      const isFirst = aIdx === 0;
-                      const isLast = aIdx >= currentLevelSections.length - 1;
-                      const prevCount = currentLevelSections.slice(0, aIdx).reduce((a, s) => a + s.units.reduce((x, u) => x + u.lessons.length, 0), 0);
+            {/* 3.1. Learn Tab â€” 7-Section AI Curriculum */}
+            {dashboardTab === "learn" && (() => {
+              const storedSkills = (() => { try { const s = getStoredAssessmentState(session?.user?.id); return s?.skill_scores || profile?.skill_scores || {}; } catch { return {}; } })();
+              const orderedSections = getOrderedSections(storedSkills);
+              const weakSkillLabels = getWeakSkills(storedSkills);
+              const aSection = orderedSections[Math.min(activeSection, orderedSections.length - 1)];
 
-                      return (
-                        <div key={section.id} id={section.id} className="lesson-section">
-                          <div className={`lesson-section-banner ${aIdx > 0 ? "alt" : ""}`}>
-                            <div className="lesson-section-banner-info">
-                              <h2 className="lesson-section-banner-meta">Section {aIdx + 1}</h2>
-                              <p className="lesson-section-banner-unit">{section.title}</p>
-                            </div>
-                            {aIdx > 1 && <span className="lesson-section-banner-tag">New</span>}
-                          </div>
-
-                          {section.units.map((unit, uIdx) => {
-                            const unitOffset = section.units.slice(0, uIdx).reduce((a, u) => a + u.lessons.length, 0);
-                            return (
-                              <div key={unit.id} className="lesson-unit">
-                                <div className="lesson-unit-header">
-                                  <h3 className="lesson-unit-title">Unit {uIdx + 1}</h3>
-                                  <span className="lesson-unit-topic">{unit.title}</span>
-                                </div>
-
-                                {unit.lessons.map((lesson, idx) => {
-                                  const globalIdx = prevCount + unitOffset + idx;
-                                  const isCompleted = completedLessons.includes(lesson.id);
-                                  const isUnlocked = globalIdx === 0 || currentLevelLessons.slice(0, globalIdx).every((l) => completedLessons.includes(l.id));
-                                  const status = isCompleted ? "completed" : isUnlocked ? "unlocked" : "locked";
-                                  const isCheckpoint = /checkpoint/i.test(lesson.title);
-                                  const lessonXp = idx === 4 ? 60 : 10;
-
-                                  return (
-                                    <div key={lesson.id} className={`lesson-card ${status} ${aIdx > 0 ? "alt" : ""} ${isCheckpoint ? "checkpoint" : ""}`}>
-                                      <div className="lesson-card-spine">
-                                        <span className="lesson-card-node">{status === "completed" ? "✓" : idx + 1}</span>
-                                      </div>
-
-                                      <div className="lesson-card-main">
-                                        <div className="lesson-card-icon">
-                                          {lesson.icon}
-                                          {status === "locked" && <span className="lesson-card-lock">🔒</span>}
-                                        </div>
-
-                                        <div className="lesson-card-body">
-                                          <h4 className="lesson-card-title">{lesson.title}</h4>
-                                          <p className="lesson-card-desc">{lesson.desc}</p>
-                                        </div>
-
-                                        <div className="lesson-card-action">
-                                          <span className={`lesson-card-pill ${status}`}>
-                                            {status === "completed" ? "Completed" : status === "unlocked" ? "In Progress" : "Locked"}
-                                          </span>
-                                          <button
-                                            type="button"
-                                            className="lesson-card-btn"
-                                            onClick={() => {
-                                              if (status !== "locked") startLessonSession(lesson);
-                                            }}
-                                            disabled={status === "locked"}
-                                          >
-                                            {status === "completed" ? `Review +${lessonXp} XP` : `Start +${lessonXp} XP`}
-                                          </button>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            );
-                          })}
-
-                          <div className="lesson-section-nav">
-                            {!isFirst && (
-                              <button
-                                type="button"
-                                className="lesson-next-section-btn prev"
-                                onClick={() => {
-                                  setActiveSection((i) => i - 1);
-                                  learnJourneyRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-                                }}
-                              >
-                                ← Previous Section
-                              </button>
-                            )}
-                            {!isLast ? (
-                              <button
-                                type="button"
-                                className="lesson-next-section-btn"
-                                onClick={() => {
-                                  setActiveSection((i) => i + 1);
-                                  learnJourneyRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-                                }}
-                              >
-                                Next: {currentLevelSections[aIdx + 1].title} →
-                              </button>
-                            ) : (
-                              <button
-                                type="button"
-                                className="lesson-next-section-btn"
-                                onClick={() => {
-                                  setActiveSection(0);
-                                  learnJourneyRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-                                }}
-                              >
-                                ↺ Back to Section 1
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })()}
+              return (
+                <div className="learn-grid-layout">
+                  {/* Section Selector Tabs */}
+                  <div className="curriculum-section-tabs" ref={learnJourneyRef}>
+                    {orderedSections.map((sec, idx) => (
+                      <button
+                        key={sec.id}
+                        type="button"
+                        className={`curriculum-section-tab ${activeSection === idx ? "active" : ""}`}
+                        style={{ borderColor: activeSection === idx ? sec.color : "transparent" }}
+                        onClick={() => setActiveSection(idx)}
+                      >
+                        <span className="curriculum-tab-icon">{sec.icon}</span>
+                        <span className="curriculum-tab-num">Section {sec.num}</span>
+                        {weakSkillLabels.some(w => w.toLowerCase().includes(sec.skillTarget?.replace("_", " ") || "")) && (
+                          <span className="curriculum-tab-badge">â˜…</span>
+                        )}
+                      </button>
+                    ))}
                   </div>
+
+                  {/* Section Content */}
+                  {aSection && (
+                    <div className="lesson-path-column">
+                      <div className="lesson-section-banner" style={{ background: `linear-gradient(135deg, ${aSection.color}22 0%, ${aSection.color}44 100%)`, borderLeft: `4px solid ${aSection.color}` }}>
+                        <div className="lesson-section-banner-info">
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <span style={{ fontSize: '2rem' }}>{aSection.icon}</span>
+                            <div>
+                              <h2 className="lesson-section-banner-meta">Section {aSection.num} of 7</h2>
+                              <p className="lesson-section-banner-unit">{aSection.title}</p>
+                            </div>
+                          </div>
+                          {weakSkillLabels.some(w => w.toLowerCase().includes(aSection.skillTarget?.replace("_", " ") || "")) && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '12px' }}>
+                              <span style={{ background: '#f59e0b', color: 'white', padding: '4px 12px', borderRadius: '99px', fontSize: '0.75rem', fontWeight: 700 }}>â­ Recommended for You</span>
+                              <span style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>This section targets your weak area</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {aSection.units.map((unit) => {
+                        const unitLessons = unit.lessons;
+                        const completedInUnit = unitLessons.filter(l => completedLessons.includes(l.id)).length;
+                        return (
+                          <div key={unit.id} className="lesson-unit">
+                            <div className="lesson-unit-header">
+                              <h3 className="lesson-unit-title">Unit {unit.num}</h3>
+                              <span className="lesson-unit-topic">{unit.title}</span>
+                              <span style={{ marginLeft: 'auto', fontSize: '0.8rem', color: 'var(--muted)' }}>{completedInUnit}/{unitLessons.length} done</span>
+                            </div>
+
+                            {unitLessons.map((lesson, lIdx) => {
+                              const isCompleted = completedLessons.includes(lesson.id);
+                              const prevCompleted = lIdx === 0 || completedLessons.includes(unitLessons[lIdx - 1].id);
+                              const isUnlocked = lIdx === 0 || prevCompleted;
+                              const status = isCompleted ? "completed" : isUnlocked ? "unlocked" : "locked";
+                              const lessonXp = 15;
+
+                              return (
+                                <div key={lesson.id} className={`lesson-card ${status}`}>
+                                  <div className="lesson-card-spine">
+                                    <span className="lesson-card-node" style={{ background: isCompleted ? '#10b981' : isUnlocked ? aSection.color : '#6b7280' }}>
+                                      {status === "completed" ? "✓" : lIdx + 1}
+                                    </span>
+                                  </div>
+
+                                  <div className="lesson-card-main">
+                                    <div className="lesson-card-icon">{lesson.icon}</div>
+
+                                    <div className="lesson-card-body">
+                                      <h4 className="lesson-card-title">{aSection.title} â€” Lesson {lIdx + 1}</h4>
+                                      <p className="lesson-card-desc">AI-generated, personalized for your literacy level</p>
+                                    </div>
+
+                                    <div className="lesson-card-action">
+                                      <span className={`lesson-card-pill ${status}`}>
+                                        {status === "completed" ? "✓ Done" : status === "unlocked" ? "Ready" : "🔒"}
+                                      </span>
+                                      <button
+                                        type="button"
+                                        className="lesson-card-btn"
+                                        disabled={status === "locked" || lessonLoading}
+                                        onClick={() => {
+                                          if (status !== "locked") startLessonSession(lesson, aSection, unit);
+                                        }}
+                                        style={{ background: isCompleted ? '#10b981' : isUnlocked ? aSection.color : '#6b7280' }}
+                                      >
+                                        {status === "completed" ? `✦ Review +${lessonXp} XP` : status === "unlocked" ? `▶ Start +${lessonXp} XP` : "Locked"}
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        );
+                      })}
+
+                      {/* Section navigation */}
+                      <div className="lesson-section-nav">
+                        {activeSection > 0 && (
+                          <button type="button" className="lesson-next-section-btn prev" onClick={() => { setActiveSection(i => i - 1); learnJourneyRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }); }}>â† Previous Section</button>
+                        )}
+                        {activeSection < orderedSections.length - 1 && (
+                          <button type="button" className="lesson-next-section-btn" onClick={() => { setActiveSection(i => i + 1); learnJourneyRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }); }}>Next: {orderedSections[activeSection + 1].title} →</button>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
-            )}
+              );
+            })()}
+
 
             {/* 3.2. Practice Tab */}
             {dashboardTab === "practice" && (
@@ -2825,7 +2694,7 @@ function App() {
                           <h3 className="practice-row-card-title">Speak</h3>
                           <p className="practice-row-card-desc">Improve your speaking skills with these phrases</p>
                         </div>
-                        <div className="practice-row-card-icon speak-icon">🎙️</div>
+                        <div className="practice-row-card-icon speak-icon">🎙️</div>
                       </div>
                       <div className="practice-row-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_write_practice`, title: "Listen Practice", desc: "Boost your listening skills with an audio-only session" })}>
                         <div className="practice-row-card-content">
@@ -2980,223 +2849,265 @@ function App() {
           </main>
         </div>
 
-        {/* 4. Active Lesson Mini-Session Screen */}
-        {lessonSession && (
+        {/* 4. AI Lesson Session Overlay */}
+        {(lessonLoading || lessonSession) && (
           <div className="lesson-overlay-screen">
             <div className="lesson-overlay-header">
-              <button className="lesson-overlay-close" onClick={() => setLessonSession(null)}>✕</button>
+              <button className="lesson-overlay-close" onClick={() => { setLessonSession(null); setLessonAiContent(null); setLessonLoading(false); setLessonStep(0); }}>✕</button>
               <div className="lesson-progress-container">
-                <div
-                  className="lesson-progress-bar"
-                  style={{ width: `${(lessonSession.currentQuestionIndex / lessonSession.questions.length) * 100}%` }}
-                ></div>
+                <div className="lesson-progress-bar" style={{ width: lessonSession?.status === "completed" ? "100%" : `${(lessonStep / 4) * 100}%` }}></div>
               </div>
               <div className="lesson-overlay-controls">
-                <div style={{ fontWeight: 800, whiteSpace: "nowrap" }}>XP +10</div>
-                {renderLanguageDropdown()}
+                <div style={{ fontWeight: 800, whiteSpace: "nowrap" }}>XP +15</div>
                 {renderThemeToggle()}
               </div>
             </div>
 
             <div className="lesson-overlay-body">
-              {lessonSession.status !== "completed" ? (
-                <div className="lesson-question-container">
-                  {(() => {
-                    const currentQ = lessonSession.questions[lessonSession.currentQuestionIndex];
-                    return (
-                      <>
-                        <div className="lesson-question-type">
-                          {currentQ.type === "mcq" ? "Multiple Choice" : currentQ.type === "writing" ? "Writing / Dictation" : "Reading / Speaking"}
-                        </div>
-                        <h3 className="lesson-question-title">
-                          {currentQ.type === "mcq" ? currentQ.question : currentQ.type === "writing" ? currentQ.prompt : `Read the sentence: "${currentQ.targetText}"`}
-                        </h3>
-
-                        {currentQ.type === "mcq" && (
-                          <div className="lesson-mcq-options">
-                            {currentQ.options.map((opt) => (
-                              <button
-                                key={opt}
-                                className={`lesson-mcq-option-btn ${lessonSession.selectedMcqOption === opt ? "selected" : ""}`}
-                                onClick={() => {
-                                  if (lessonSession.status === "answering") {
-                                    setLessonSession(prev => ({ ...prev, selectedMcqOption: opt }));
-                                  }
-                                }}
-                                disabled={lessonSession.status !== "answering"}
-                              >
-                                {opt}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-
-                        {currentQ.type === "writing" && (
-                          <div style={{ marginTop: "20px" }}>
-                            <input
-                              type="text"
-                              className="writing-textarea"
-                              placeholder="Type your response here..."
-                              value={lessonSession.writingAnswer}
-                              onChange={(e) => {
-                                if (lessonSession.status === "answering") {
-                                  setLessonSession(prev => ({ ...prev, writingAnswer: e.target.value }));
-                                }
-                              }}
-                              disabled={lessonSession.status !== "answering"}
-                              style={{ width: "100%", fontSize: "1.2rem", padding: "12px 16px", borderRadius: "12px" }}
-                            />
-                          </div>
-                        )}
-
-                        {currentQ.type === "reading" && (
-                          <div className="reading-q-container" style={{ marginTop: "20px" }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-                              <p className="helper-text" style={{ margin: 0 }}>{t("monkeyTypeTip")}</p>
-                              <button
-                                type="button"
-                                className="tts-btn"
-                                onClick={() => speakText(currentQ.targetText)}
-                                title="Listen to pronunciation"
-                              >
-                                🔊 {t("listenBtn") || "Listen"}
-                              </button>
-                            </div>
-
-                            <div className="monkeytype-text-block" style={{ marginBottom: "20px" }}>
-                              {currentQ.targetText.split(/\s+/).map((word, idx) => {
-                                const cleaned = cleanWord(word);
-                                let wordClass = "unspoken";
-                                if (lessonSession.scores) {
-                                  const targetWordsCleaned = currentQ.targetText.split(/\s+/).map(cleanWord);
-                                  const cleanIdx = targetWordsCleaned.indexOf(cleaned);
-                                  if (cleanIdx !== -1 && lessonSession.scores[cleanIdx]) {
-                                    wordClass = "correct";
-                                  } else if (!isListening) {
-                                    wordClass = "incorrect";
-                                  }
-                                }
-                                return (
-                                  <span key={idx} className={`mt-word ${wordClass}`}>
-                                    {word}{" "}
-                                  </span>
-                                );
-                              })}
-                            </div>
-
-                            <div className="voice-mic-controls">
-                              {!isListening ? (
-                                <div className="mic-outer-container">
-                                  <button
-                                    type="button"
-                                    className="mic-btn"
-                                    onClick={() => startListening(currentQ.targetText)}
-                                    disabled={lessonSession.status !== "answering"}
-                                  >
-                                    <svg className="mic-icon" width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                                      <path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3z" />
-                                      <path d="M17 11a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z" />
-                                    </svg>
-                                    <span className="mic-btn-text">CLICK TO SPEAK</span>
-                                  </button>
-                                </div>
-                              ) : (
-                                <div className="mic-outer-container">
-                                  <button
-                                    type="button"
-                                    className="mic-btn"
-                                    onClick={stopListening}
-                                  >
-                                    <span className="voice-wave" aria-hidden="true">
-                                      <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
-                                    </span>
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-
-                            {lessonSession.spokenText && (
-                              <div className="voice-transcript-log" style={{ marginTop: "16px" }}>
-                                <strong>Spoken:</strong> "{lessonSession.spokenText}"
-                              </div>
-                            )}
-
-                            {micError && <p className="mic-error-text">{micError}</p>}
-
-                            {/* Manual fallback input */}
-                            <div className="voice-fallback-area" style={{ marginTop: "16px" }}>
-                              <label className="fallback-label">{t("skipVoicePrompt")}</label>
-                              <div className="fallback-input-row">
-                                <input
-                                  type="text"
-                                  placeholder="Type sentence here if mic fails..."
-                                  value={lessonSession.writingAnswer}
-                                  onChange={(e) => {
-                                    if (lessonSession.status === "answering") {
-                                      setLessonSession(prev => ({ ...prev, writingAnswer: e.target.value }));
-                                    }
-                                  }}
-                                  disabled={lessonSession.status !== "answering"}
-                                />
-                                <button
-                                  type="button"
-                                  className="secondary-btn"
-                                  onClick={() => {
-                                    if (lessonSession.writingAnswer.trim()) {
-                                      evaluateSpeechText(lessonSession.writingAnswer, currentQ.targetText);
-                                    }
-                                  }}
-                                  disabled={lessonSession.status !== "answering" || !lessonSession.writingAnswer.trim()}
-                                >
-                                  Submit Type
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </>
-                    );
-                  })()}
+              {/* Loading state */}
+              {lessonLoading && (
+                <div className="ai-lesson-loading">
+                  <div className="ai-spinner"></div>
+                  <h3>🤖 LISA is generating your personalized lesson...</h3>
+                  <p>Powered by Gemini AI â€” creating content just for you</p>
                 </div>
-              ) : (
-                <div style={{ textAlign: "center", maxWidth: "400px" }}>
-                  <h2 style={{ fontSize: "2.5rem", fontWeight: 800, color: "#10b981", marginBottom: "16px" }}>Lesson Complete!</h2>
-                  <p style={{ fontSize: "1.1rem", color: "var(--muted)", marginBottom: "24px" }}>Great job! You earned 10 XP and unlocked the next lesson.</p>
-                  <button className="primary-btn" style={{ width: "100%", padding: "14px" }} onClick={() => setLessonSession(null)}>
-                    Continue
+              )}
+
+              {/* Lesson Complete */}
+              {!lessonLoading && lessonSession?.status === "completed" && (
+                <div style={{ textAlign: "center", maxWidth: "480px", padding: "32px" }}>
+                  <div style={{ fontSize: "4rem", marginBottom: "16px" }}>🎉</div>
+                  <h2 style={{ fontSize: "2rem", fontWeight: 800, color: "#10b981", marginBottom: "12px" }}>Lesson Complete!</h2>
+                  <p style={{ fontSize: "1.1rem", color: "var(--muted)", marginBottom: "8px" }}>{lessonAiContent?.aiFeedbackPositive || "Great job! You earned 15 XP!"}</p>
+                  <p style={{ fontSize: "0.9rem", color: "var(--muted)", marginBottom: "28px" }}>Section: {lessonSession.sectionTitle} Â· Unit: {lessonSession.unitTitle}</p>
+                  <button className="primary-btn" style={{ width: "100%", padding: "14px", marginBottom: "12px" }} onClick={() => { setLessonSession(null); setLessonAiContent(null); setLessonStep(0); }}>
+                    ✓ Continue Learning
                   </button>
                 </div>
               )}
+
+              {/* Active Lesson Steps */}
+              {!lessonLoading && lessonSession && lessonSession.status !== "completed" && lessonAiContent && (() => {
+                const ai = lessonAiContent;
+                const stepLabels = ["Explanation", "Practice MCQ", "Fill in Blanks", "Reading & Writing", "Pronunciation"];
+
+                return (
+                  <div className="ai-lesson-content">
+                    {/* Step indicator */}
+                    <div className="ai-lesson-step-bar">
+                      {stepLabels.map((label, i) => (
+                        <div key={i} className={`ai-lesson-step-dot ${i < lessonStep ? "done" : i === lessonStep ? "active" : ""}`}>
+                          <span className="dot-num">{i < lessonStep ? "✓" : i + 1}</span>
+                          <span className="dot-label">{label}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Step 0: Explanation */}
+                    {lessonStep === 0 && (
+                      <div className="ai-lesson-step">
+                        <div className="ai-lesson-step-header">
+                          <span className="ai-step-badge">📖 Lesson Explanation</span>
+                          <h3>{ai.lessonTitle}</h3>
+                          <p style={{ color: 'var(--accent)', fontWeight: 600 }}>Skill Focus: {ai.skillFocus}</p>
+                        </div>
+                        <div className="ai-lesson-explanation">
+                          {ai.explanation?.split("\n").map((para, i) => para.trim() && <p key={i}>{para}</p>)}
+                        </div>
+                        {ai.examples?.length > 0 && (
+                          <div className="ai-lesson-examples">
+                            <h4>Examples</h4>
+                            {ai.examples.map((ex, i) => (
+                              <div key={i} className="ai-example-item">
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <button type="button" className="tts-btn" onClick={() => speakText(ex.text)} style={{ padding: '6px 10px', fontSize: '0.8rem' }}>🔊</button>
+                                  <span className="ai-example-text">{ex.text}</span>
+                                </div>
+                                {ex.translation && <span className="ai-example-trans">{ex.translation}</span>}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        {ai.guidedPractice && (
+                          <div className="ai-lesson-tip">
+                            <strong>💡 Guided Practice:</strong> {ai.guidedPractice}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Step 1: MCQs */}
+                    {lessonStep === 1 && ai.mcqs?.length > 0 && (
+                      <div className="ai-lesson-step">
+                        <div className="ai-lesson-step-header">
+                          <span className="ai-step-badge">🎯 Multiple Choice Questions</span>
+                          <h3>Answer all {ai.mcqs.length} questions</h3>
+                        </div>
+                        {ai.mcqs.map((q, qIdx) => {
+                          const selected = lessonMcqAnswers[qIdx];
+                          const isAnswered = selected !== undefined;
+                          const isCorrect = isAnswered && selected === q.correctIndex;
+                          return (
+                            <div key={qIdx} className={`ai-mcq-block ${isAnswered ? (isCorrect ? "correct" : "incorrect") : ""}`}>
+                              <p className="ai-mcq-question"><strong>Q{qIdx + 1}:</strong> {q.question}</p>
+                              <div className="ai-mcq-options">
+                                {q.options.map((opt, oIdx) => (
+                                  <button
+                                    key={oIdx}
+                                    className={`ai-mcq-option ${selected === oIdx ? (isCorrect && oIdx === q.correctIndex ? "correct" : oIdx === selected ? "wrong" : "") : (isAnswered && oIdx === q.correctIndex ? "correct" : "")}`}
+                                    onClick={() => !isAnswered && checkLessonMcq(qIdx, oIdx)}
+                                    disabled={isAnswered}
+                                  >
+                                    <span className="option-letter">{String.fromCharCode(65 + oIdx)}</span> {opt}
+                                  </button>
+                                ))}
+                              </div>
+                              {isAnswered && (
+                                <div className={`ai-mcq-feedback ${isCorrect ? "correct" : "incorrect"}`}>
+                                  {isCorrect ? "✓ Correct! " : "✗ "}{q.explanation}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Step 2: Fill in the Blanks */}
+                    {lessonStep === 2 && ai.fillBlanks?.length > 0 && (
+                      <div className="ai-lesson-step">
+                        <div className="ai-lesson-step-header">
+                          <span className="ai-step-badge">✍️ Fill in the Blanks</span>
+                          <h3>Complete the sentences below</h3>
+                        </div>
+                        {ai.fillBlanks.map((fb, fIdx) => {
+                          const userAnswer = lessonFillAnswers[fIdx] || "";
+                          const isChecked = lessonFillAnswers[`${fIdx}_checked`];
+                          const isCorrect = userAnswer.trim().toLowerCase() === fb.answer.toLowerCase();
+                          return (
+                            <div key={fIdx} className="ai-fill-block">
+                              <p className="ai-fill-sentence">{fb.sentence.replace("___", "_____")}</p>
+                              <p style={{ color: 'var(--muted)', fontSize: '0.85rem', marginBottom: '8px' }}>Hint: {fb.hint}</p>
+                              <div style={{ display: 'flex', gap: '10px' }}>
+                                <input
+                                  type="text"
+                                  className="ai-fill-input"
+                                  placeholder="Type your answer..."
+                                  value={userAnswer}
+                                  onChange={(e) => setLessonFillAnswers(prev => ({ ...prev, [fIdx]: e.target.value }))}
+                                  disabled={!!isChecked}
+                                />
+                                {!isChecked && (
+                                  <button className="secondary-btn" onClick={() => setLessonFillAnswers(prev => ({ ...prev, [`${fIdx}_checked`]: true }))} disabled={!userAnswer.trim()}>Check</button>
+                                )}
+                              </div>
+                              {isChecked && (
+                                <div className={`ai-fill-feedback ${isCorrect ? "correct" : "incorrect"}`}>
+                                  {isCorrect ? `✓ Correct! "${fb.answer}"` : `✗ Answer: "${fb.answer}"`}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Step 3: Reading & Writing */}
+                    {lessonStep === 3 && (
+                      <div className="ai-lesson-step">
+                        <div className="ai-lesson-step-header">
+                          <span className="ai-step-badge">📚 Reading & Writing</span>
+                          <h3>Practice with a short passage</h3>
+                        </div>
+                        <div className="ai-reading-block">
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                            <h4>Read this passage:</h4>
+                            <button type="button" className="tts-btn" onClick={() => speakText(ai.readingPassage)}>🔊 Listen</button>
+                          </div>
+                          <div className="ai-passage-text">{ai.readingPassage}</div>
+                          {ai.readingQuestion && (
+                            <div style={{ marginTop: '20px' }}>
+                              <p><strong>Question:</strong> {ai.readingQuestion}</p>
+                              <input
+                                type="text"
+                                className="ai-fill-input"
+                                placeholder="Type your answer..."
+                                style={{ marginTop: '10px' }}
+                                value={lessonWritingText}
+                                onChange={(e) => setLessonWritingText(e.target.value)}
+                              />
+                            </div>
+                          )}
+                        </div>
+                        <div className="ai-writing-block" style={{ marginTop: '24px' }}>
+                          <h4>Writing Activity:</h4>
+                          <p style={{ color: 'var(--muted)', marginBottom: '12px' }}>{ai.writingActivity}</p>
+                          <textarea
+                            className="writing-textarea"
+                            rows={4}
+                            placeholder="Write your response here..."
+                            value={lessonWritingText}
+                            onChange={(e) => setLessonWritingText(e.target.value)}
+                            style={{ width: '100%' }}
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Step 4: Pronunciation */}
+                    {lessonStep === 4 && (
+                      <div className="ai-lesson-step">
+                        <div className="ai-lesson-step-header">
+                          <span className="ai-step-badge">🎤 Pronunciation Practice</span>
+                          <h3>Speak these words aloud</h3>
+                        </div>
+                        {ai.pronunciationTip && (
+                          <div className="ai-lesson-tip">
+                            <strong>💡 Tip:</strong> {ai.pronunciationTip}
+                          </div>
+                        )}
+                        <div className="ai-pronunciation-words">
+                          {(ai.pronunciationWords || []).map((word, wIdx) => (
+                            <div key={wIdx} className="ai-pronunciation-word">
+                              <span>{word}</span>
+                              <button type="button" className="tts-btn" onClick={() => speakText(word)}>🔊</button>
+                            </div>
+                          ))}
+                        </div>
+                        <div style={{ marginTop: '24px', padding: '20px', background: 'var(--card-bg)', borderRadius: '16px', textAlign: 'center' }}>
+                          <p style={{ marginBottom: '12px', fontWeight: 600 }}>Now try reading the full lesson passage aloud:</p>
+                          <div className="ai-passage-text" style={{ marginBottom: '16px', cursor: 'pointer' }} onClick={() => speakText(ai.readingPassage)}>
+                            {ai.readingPassage}
+                          </div>
+                          <button type="button" className="tts-btn" onClick={() => speakText(ai.readingPassage)} style={{ padding: '10px 24px', fontSize: '1rem' }}>🔊 Listen to full passage</button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Navigation footer */}
+                    <div className="lesson-overlay-footer" style={{ borderTop: 'none', padding: '24px 0 0' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
+                        {lessonStep > 0 && (
+                          <button type="button" className="secondary-btn" onClick={() => setLessonStep(p => p - 1)} style={{ flex: 1 }}>â† Back</button>
+                        )}
+                        <button
+                          type="button"
+                          className="lesson-check-btn"
+                          style={{ flex: 2 }}
+                          onClick={advanceLessonStep}
+                        >
+                          {lessonStep === 4 ? "✓ Complete Lesson" : "Continue →"}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
-
-            {lessonSession.status === "answering" && (
-              <div className="lesson-overlay-footer">
-                <button
-                  className="lesson-check-btn"
-                  onClick={checkLessonQuestion}
-                  disabled={
-                    (lessonSession.questions[lessonSession.currentQuestionIndex].type === "mcq" && !lessonSession.selectedMcqOption) ||
-                    (lessonSession.questions[lessonSession.currentQuestionIndex].type === "writing" && !lessonSession.writingAnswer)
-                  }
-                >
-                  Check
-                </button>
-              </div>
-            )}
-
-            {lessonSession.status === "feedback" && (
-              <div className={`lesson-feedback-banner ${lessonSession.feedback.correct ? "correct" : "incorrect"}`}>
-                <div className="lesson-feedback-info">
-                  <h4>{lessonSession.feedback.correct ? "Excellent!" : "Correct Answer"}</h4>
-                  <p>{lessonSession.feedback.message}</p>
-                </div>
-                <button className="lesson-check-btn" onClick={nextLessonStep}>
-                  Continue
-                </button>
-              </div>
-            )}
           </div>
         )}
+
+
       </div>
     );
   }
@@ -3546,10 +3457,10 @@ function App() {
                 <button key={l} className="lang-btn" onClick={() => handleLanguageSelect(l)}>
                   <span className="native">
                     {l === "English" && "English"}
-                    {l === "Hindi" && "हिन्दी"}
-                    {l === "Kannada" && "ಕನ್ನಡ"}
-                    {l === "Telugu" && "తెలుగు"}
-                    {l === "Tamil" && "தமிழ்"}
+                    {l === "Hindi" && "à¤¹à¤¿à¤¨à¥à¤¦à¥€"}
+                    {l === "Kannada" && "à²•à²¨à³à²¨à²¡"}
+                    {l === "Telugu" && "à°¤à±†à°²à±à°—à±"}
+                    {l === "Tamil" && "à®¤à®®à®¿à®´à¯"}
                   </span>
                   <span style={{ fontSize: "0.85rem", opacity: 0.7 }}>{l}</span>
                 </button>
