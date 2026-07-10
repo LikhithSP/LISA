@@ -1697,6 +1697,143 @@ function App() {
     </div>
   );
 
+  // Profile settings dropdown menu render helper
+  const renderProfileDropdown = () => {
+    const handleToggle = () => {
+      if (!profileDropdownOpen) {
+        setEditFullName(profile?.full_name || "");
+        setEditAge(profile?.age || "");
+        setEditPreferredLang(profile?.preferred_language || selectedLanguage || "English");
+        setEditEdLevel(profile?.education_level || "No formal education");
+      }
+      setProfileDropdownOpen(!profileDropdownOpen);
+    };
+
+    return (
+      <div className="profile-dropdown-container" ref={profileDropdownRef}>
+        <button
+          type="button"
+          className="profile-dropdown-trigger"
+          onClick={handleToggle}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            background: 'var(--panel-strong)',
+            border: '1px solid var(--line)',
+            borderRadius: '20px',
+            padding: '6px 16px',
+            fontWeight: '600',
+            cursor: 'pointer',
+            color: 'var(--text)'
+          }}
+        >
+          <span className="profile-avatar-mini" style={{
+            width: '24px',
+            height: '24px',
+            borderRadius: '50%',
+            background: 'var(--accent)',
+            color: 'white',
+            display: 'grid',
+            placeItems: 'center',
+            fontSize: '0.75rem',
+            fontWeight: '800'
+          }}>
+            {getUserInitials(profile?.full_name)}
+          </span>
+          <span className="profile-trigger-text">{t("myProfile") || "My Profile"}</span>
+          <span className="dropdown-arrow" style={{ fontSize: '0.8rem', opacity: 0.7 }}>▼</span>
+        </button>
+        {profileDropdownOpen && (
+          <div className="profile-dropdown-menu profile-dropdown-card" style={{ right: 0, padding: '20px' }}>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: '0 0 16px 0', color: 'var(--text)' }}>
+              Update Profile Settings
+            </h3>
+            <form onSubmit={(e) => {
+              handleSaveProfileEdit(e);
+              setProfileDropdownOpen(false);
+            }} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <label className="profile-dropdown-label">
+                Full Name
+                <input
+                  type="text"
+                  required
+                  value={editFullName}
+                  onChange={(e) => setEditFullName(e.target.value)}
+                  style={{ width: "100%", boxSizing: "border-box" }}
+                />
+              </label>
+              
+              <label className="profile-dropdown-label">
+                Age
+                <input
+                  type="number"
+                  min="5"
+                  max="120"
+                  required
+                  value={editAge}
+                  onChange={(e) => setEditAge(e.target.value)}
+                  style={{ width: "100%", boxSizing: "border-box" }}
+                />
+              </label>
+
+              <label className="profile-dropdown-label">
+                Preferred Language
+                <select
+                  required
+                  value={editPreferredLang}
+                  onChange={(e) => setEditPreferredLang(e.target.value)}
+                  style={{ width: "100%", boxSizing: "border-box" }}
+                >
+                  {languages.map((l) => (
+                    <option key={l} value={l}>{t(l + "Option")}</option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="profile-dropdown-label">
+                Current Education Status
+                <select
+                  required
+                  value={editEdLevel}
+                  onChange={(e) => setEditEdLevel(e.target.value)}
+                  style={{ width: "100%", boxSizing: "border-box" }}
+                >
+                  {educationLevels.map((ed) => (
+                    <option key={ed} value={ed}>{t(ed + "Option")}</option>
+                  ))}
+                </select>
+              </label>
+
+              <button
+                type="submit"
+                className="primary-btn"
+                style={{ width: '100%', padding: '10px', borderRadius: '12px', background: 'var(--accent)', color: '#fff', border: 'none', fontWeight: '700', cursor: 'pointer', marginTop: '4px' }}
+                disabled={submitting}
+              >
+                {submitting ? "Saving..." : "Save Changes"}
+              </button>
+            </form>
+            
+            <hr style={{ border: '0', borderTop: '1px solid var(--line)', margin: '16px 0 12px 0' }} />
+
+            <button
+              type="button"
+              className="profile-dropdown-item logout"
+              style={{ color: '#ef4444', justifyContent: 'center', width: '100%', padding: '10px 0' }}
+              onClick={() => {
+                setProfileDropdownOpen(false);
+                handleSignOut();
+              }}
+            >
+              🚪 {t("logout") || "Log Out"}
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   // Recovery Mode Form
   if (recoveryMode) {
     return (
@@ -1797,14 +1934,7 @@ function App() {
             <div className="dashboard-user-actions" style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
               {renderThemeToggle()}
               {renderLanguageDropdown(true)}
-              <button
-                type="button"
-                className="secondary-btn"
-                style={{ borderColor: 'rgba(239, 68, 68, 0.4)', color: '#ef4444' }}
-                onClick={() => handleSignOut()}
-              >
-                Log Out
-              </button>
+              {renderProfileDropdown()}
             </div>
           </header>
 
