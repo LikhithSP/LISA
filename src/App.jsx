@@ -721,60 +721,80 @@ function App() {
       1: {
         English: [
           { type: "mcq", question: "Which of the following is a capital letter?", options: ["a", "B", "c", "d"], correct: "B" },
+          { type: "mcq", question: "Find the word that starts with the letter 'A':", options: ["Cat", "Apple", "Dog", "Fish"], correct: "Apple" },
           { type: "writing", prompt: "Type the word: CAT", correct: "cat" },
+          { type: "writing", prompt: "Type the word: SUN", correct: "sun" },
           { type: "reading", targetText: "A small red apple" }
         ],
         Hindi: [
           { type: "mcq", question: "इनमें से कौन सा स्वर है?", options: ["क", "ख", "अ", "ग"], correct: "अ" },
+          { type: "mcq", question: "'घर' शब्द का पहला अक्षर क्या है?", options: ["घ", "र", "म", "न"], correct: "घ" },
           { type: "writing", prompt: "लिखें: घर", correct: "घर" },
+          { type: "writing", prompt: "लिखें: फल", correct: "फल" },
           { type: "reading", targetText: "आम मीठा है" }
         ]
       },
       2: {
         English: [
           { type: "mcq", question: "Select the action verb:", options: ["Dog", "Run", "Blue", "Happy"], correct: "Run" },
+          { type: "mcq", question: "Choose the naming word (noun):", options: ["Big", "Run", "Table", "Quickly"], correct: "Table" },
           { type: "writing", prompt: "Type the word: JUMP", correct: "jump" },
+          { type: "writing", prompt: "Type the word: PLAY", correct: "play" },
           { type: "reading", targetText: "The big dog runs fast" }
         ],
         Hindi: [
           { type: "mcq", question: "क्रिया शब्द चुनें:", options: ["पेड़", "दौड़ना", "सुंदर", "नया"], correct: "दौड़ना" },
+          { type: "mcq", question: "नाम वाला शब्द (संज्ञा) कौन सा है?", options: ["बड़ा", "रोहन", "खेलना", "धीरे"], correct: "रोहन" },
           { type: "writing", prompt: "लिखें: किताब", correct: "किताब" },
+          { type: "writing", prompt: "लिखें: कलम", correct: "कलम" },
           { type: "reading", targetText: "लड़का पानी पीता है" }
         ]
       },
       3: {
         English: [
           { type: "mcq", question: "Choose the correct pronoun: '___ is a teacher.' (referring to a lady)", options: ["He", "She", "It", "They"], correct: "She" },
+          { type: "mcq", question: "Complete the sentence: 'The cat is sleeping ___ the chair.'", options: ["under", "between", "through", "inside"], correct: "under" },
           { type: "writing", prompt: "Type the sentence: HE IS RUNNING", correct: "he is running" },
+          { type: "writing", prompt: "Type the sentence: I LIKE APPLES", correct: "i like apples" },
           { type: "reading", targetText: "She has a nice book" }
         ],
         Hindi: [
           { type: "mcq", question: "सही सर्वनाम चुनें: '___ बाज़ार जा रहा हूँ।'", options: ["तुम", "मैं", "वह", "हम"], correct: "मैं" },
+          { type: "mcq", question: "रिक्त स्थान भरें: 'बिल्ली मेज ___ बैठी है।'", options: ["के ऊपर", "के अंदर", "के द्वारा", "से"], correct: "के ऊपर" },
           { type: "writing", prompt: "लिखें: वह खाना खा रहा है", correct: "वह खाना खा रहा है" },
+          { type: "writing", prompt: "लिखें: हम स्कूल जाते हैं", correct: "हम स्कूल जाते हैं" },
           { type: "reading", targetText: "हम सब साथ पढ़ते हैं" }
         ]
       },
       4: {
         English: [
           { type: "mcq", question: "What does a red octagonal sign mean?", options: ["Go", "Stop", "Yield", "Speed Limit"], correct: "Stop" },
+          { type: "mcq", question: "If a bill shows 2 items costing 10 each, what is the total?", options: ["10", "20", "30", "40"], correct: "20" },
           { type: "writing", prompt: "Type the word: WARNING", correct: "warning" },
+          { type: "writing", prompt: "Type the word: CAUTION", correct: "caution" },
           { type: "reading", targetText: "Please wash your hands before eating" }
         ],
         Hindi: [
           { type: "mcq", question: "लाल अष्टकोणीय संकेत का क्या अर्थ है?", options: ["चलो", "रुको", "धीमे चलो", "खतरा"], correct: "रुको" },
+          { type: "mcq", question: "यदि एक रसीद में 10 रुपये की 2 वस्तुएं हैं, तो कुल कितना हुआ?", options: ["10", "20", "30", "40"], correct: "20" },
           { type: "writing", prompt: "लिखें: चेतावनी", correct: "चेतावनी" },
+          { type: "writing", prompt: "लिखें: सुरक्षा", correct: "सुरक्षा" },
           { type: "reading", targetText: "कृपया यहाँ कूड़ा न फेंकें" }
         ]
       },
       5: {
         English: [
           { type: "mcq", question: "What is the common abbreviation for 'Short Message Service'?", options: ["Email", "SMS", "PDF", "URL"], correct: "SMS" },
+          { type: "mcq", question: "Which of these buttons is typically used to complete an online registration?", options: ["Cancel", "Submit", "Refresh", "Back"], correct: "Submit" },
           { type: "writing", prompt: "Type the phrase: SUBMIT FORM NOW", correct: "submit form now" },
+          { type: "writing", prompt: "Type the phrase: CONFIRM PAYMENT", correct: "confirm payment" },
           { type: "reading", targetText: "Your bill payment of five hundred rupees is due tomorrow" }
         ],
         Hindi: [
           { type: "mcq", question: "मोबाइल संदेश को संक्षेप में क्या कहते हैं?", options: ["ईमेल", "एसएमएस", "फ़ॉर्म", "कॉल"], correct: "एसएमएस" },
+          { type: "mcq", question: "ऑनलाइन पंजीकरण पूरा करने के लिए किस बटन का उपयोग किया जाता है?", options: ["रद्द करें", "जमा करें", "ताज़ा करें", "पीछे जाएं"], correct: "जमा करें" },
           { type: "writing", prompt: "लिखें: फॉर्म जमा करें", correct: "फॉर्म जमा करें" },
+          { type: "writing", prompt: "लिखें: भुगतान की पुष्टि करें", correct: "भुगतान की पुष्टि करें" },
           { type: "reading", targetText: "आपका बिजली का बिल कल तक जमा होना चाहिए" }
         ]
       }
@@ -815,8 +835,13 @@ function App() {
       isCorrect = userAns === correctAns;
       feedbackMessage = isCorrect ? "Perfect spelling!" : `Correct spelling: ${currentQ.correct}`;
     } else if (currentQ.type === "reading") {
-      isCorrect = true;
-      feedbackMessage = "Fantastic job reading that sentence!";
+      const matched = lessonSession.matchedCount || 0;
+      const total = lessonSession.totalWords || 1;
+      const ratio = matched / total;
+      isCorrect = ratio >= 0.5;
+      feedbackMessage = isCorrect
+        ? `Excellent pronunciation! You read ${matched} out of ${total} words correctly.`
+        : `Keep practicing! You only read ${matched} out of ${total} words. Click the microphone to try again.`;
     }
 
     setLessonSession(prev => ({
@@ -1322,15 +1347,25 @@ function App() {
       return isMatched;
     });
 
-    setReadingAttempts(prev => ({
-      ...prev,
-      [currentStep]: {
-        transcript,
+    if (lessonSession) {
+      setLessonSession(prev => ({
+        ...prev,
+        spokenText: transcript,
         matchedCount,
         totalWords: targetWords.length,
         scores
-      }
-    }));
+      }));
+    } else {
+      setReadingAttempts(prev => ({
+        ...prev,
+        [currentStep]: {
+          transcript,
+          matchedCount,
+          totalWords: targetWords.length,
+          scores
+        }
+      }));
+    }
   };
 
   // Fallback Text Match
@@ -1564,6 +1599,16 @@ function App() {
     }
   };
 
+  const handleResetLessons = () => {
+    if (!session?.user?.id) return;
+    const userId = session.user.id;
+    setCompletedLessons([]);
+    setUserXp(0);
+    localStorage.removeItem(`lisa_completed_lessons_${userId}`);
+    localStorage.removeItem(`lisa_user_xp_${userId}`);
+    alert("Completed lessons and XP have been reset successfully!");
+  };
+
   // Skill calculations for Progress Analytics
   const calculateSkillProficiency = (skill) => {
     let totalScore = 0;
@@ -1731,7 +1776,7 @@ function App() {
     const speakWord = (text) => {
       if (typeof window !== "undefined" && window.speechSynthesis) {
         const u = new SpeechSynthesisUtterance(text);
-        u.lang = selectedLanguage === "English" ? "en-US" : selectedLanguage || "en-US";
+        u.lang = getLocale(selectedLanguage);
         window.speechSynthesis.cancel();
         window.speechSynthesis.speak(u);
       }
@@ -2479,7 +2524,7 @@ function App() {
                                             type="button"
                                             className="lesson-card-btn"
                                             onClick={() => {
-                                              if (status !== "locked") alert(`Starting Lesson Preview: ${lesson.title}`);
+                                              if (status !== "locked") startLessonSession(lesson);
                                             }}
                                             disabled={status === "locked"}
                                           >
@@ -2696,15 +2741,23 @@ function App() {
 
                   <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
                     <div className="current-level-card" style={{ margin: 0, padding: "24px" }}>
-                      <h3 className="current-level-title">Diagnostic Control</h3>
-                      <p style={{ fontSize: "0.85rem", color: "#ffffff", marginBottom: "16px" }}>Reset your assessment status to take the initial diagnostic test again.</p>
+                      <h3 className="current-level-title">Diagnostic & Dev Control</h3>
+                      <p style={{ fontSize: "0.85rem", color: "#ffffff", marginBottom: "16px" }}>Manage diagnostic state or clear developer progress milestones.</p>
                       <button
                         type="button"
                         className="secondary-btn"
-                        style={{ borderColor: "#ff1a1a", color: "#ff1a1a", width: "100%" }}
+                        style={{ borderColor: "#ff1a1a", color: "#ff1a1a", width: "100%", marginBottom: "12px" }}
                         onClick={() => handleResetAssessmentStatus()}
                       >
                         Reset Assessment Status
+                      </button>
+                      <button
+                        type="button"
+                        className="secondary-btn"
+                        style={{ borderColor: "#e67e22", color: "#e67e22", width: "100%" }}
+                        onClick={() => handleResetLessons()}
+                      >
+                        Reset Completed Lessons (Dev)
                       </button>
                     </div>
                   </div>
@@ -2725,7 +2778,11 @@ function App() {
                   style={{ width: `${(lessonSession.currentQuestionIndex / lessonSession.questions.length) * 100}%` }}
                 ></div>
               </div>
-              <div style={{ fontWeight: 800 }}>XP +10</div>
+              <div className="lesson-overlay-controls">
+                <div style={{ fontWeight: 800, whiteSpace: "nowrap" }}>XP +10</div>
+                {renderLanguageDropdown()}
+                {renderThemeToggle()}
+              </div>
             </div>
 
             <div className="lesson-overlay-body">
@@ -2780,14 +2837,108 @@ function App() {
                         )}
 
                         {currentQ.type === "reading" && (
-                          <div style={{ marginTop: "20px", display: "flex", flexDirection: "column", gap: "16px", alignItems: "center" }}>
-                            <button
-                              className="primary-btn"
-                              onClick={() => speakText(currentQ.targetText)}
-                            >
-                              🔊 Listen
-                            </button>
-                            <p style={{ color: "var(--muted)", fontSize: "0.9rem" }}>Read this out loud to practice your speech pronunciation.</p>
+                          <div className="reading-q-container" style={{ marginTop: "20px" }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                              <p className="helper-text" style={{ margin: 0 }}>{t("monkeyTypeTip")}</p>
+                              <button
+                                type="button"
+                                className="tts-btn"
+                                onClick={() => speakText(currentQ.targetText)}
+                                title="Listen to pronunciation"
+                              >
+                                🔊 {t("listenBtn") || "Listen"}
+                              </button>
+                            </div>
+
+                            <div className="monkeytype-text-block" style={{ marginBottom: "20px" }}>
+                              {currentQ.targetText.split(/\s+/).map((word, idx) => {
+                                const cleaned = cleanWord(word);
+                                let wordClass = "unspoken";
+                                if (lessonSession.scores) {
+                                  const targetWordsCleaned = currentQ.targetText.split(/\s+/).map(cleanWord);
+                                  const cleanIdx = targetWordsCleaned.indexOf(cleaned);
+                                  if (cleanIdx !== -1 && lessonSession.scores[cleanIdx]) {
+                                    wordClass = "correct";
+                                  } else if (!isListening) {
+                                    wordClass = "incorrect";
+                                  }
+                                }
+                                return (
+                                  <span key={idx} className={`mt-word ${wordClass}`}>
+                                    {word}{" "}
+                                  </span>
+                                );
+                              })}
+                            </div>
+
+                            <div className="voice-mic-controls">
+                              {!isListening ? (
+                                <div className="mic-outer-container">
+                                  <button
+                                    type="button"
+                                    className="mic-btn"
+                                    onClick={() => startListening(currentQ.targetText)}
+                                    disabled={lessonSession.status !== "answering"}
+                                  >
+                                    <svg className="mic-icon" width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                      <path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3z" />
+                                      <path d="M17 11a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z" />
+                                    </svg>
+                                    <span className="mic-btn-text">CLICK TO SPEAK</span>
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="mic-outer-container">
+                                  <button
+                                    type="button"
+                                    className="mic-btn"
+                                    onClick={stopListening}
+                                  >
+                                    <span className="voice-wave" aria-hidden="true">
+                                      <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+                                    </span>
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+
+                            {lessonSession.spokenText && (
+                              <div className="voice-transcript-log" style={{ marginTop: "16px" }}>
+                                <strong>Spoken:</strong> "{lessonSession.spokenText}"
+                              </div>
+                            )}
+
+                            {micError && <p className="mic-error-text">{micError}</p>}
+
+                            {/* Manual fallback input */}
+                            <div className="voice-fallback-area" style={{ marginTop: "16px" }}>
+                              <label className="fallback-label">{t("skipVoicePrompt")}</label>
+                              <div className="fallback-input-row">
+                                <input
+                                  type="text"
+                                  placeholder="Type sentence here if mic fails..."
+                                  value={lessonSession.writingAnswer}
+                                  onChange={(e) => {
+                                    if (lessonSession.status === "answering") {
+                                      setLessonSession(prev => ({ ...prev, writingAnswer: e.target.value }));
+                                    }
+                                  }}
+                                  disabled={lessonSession.status !== "answering"}
+                                />
+                                <button
+                                  type="button"
+                                  className="secondary-btn"
+                                  onClick={() => {
+                                    if (lessonSession.writingAnswer.trim()) {
+                                      evaluateSpeechText(lessonSession.writingAnswer, currentQ.targetText);
+                                    }
+                                  }}
+                                  disabled={lessonSession.status !== "answering" || !lessonSession.writingAnswer.trim()}
+                                >
+                                  Submit Type
+                                </button>
+                              </div>
+                            </div>
                           </div>
                         )}
                       </>
