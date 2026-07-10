@@ -2190,6 +2190,44 @@ function App() {
                 const currentLevelIndex = getLiteracyLevel(profile) || 1;
                 const latestAttempt = historyAttempts[0];
 
+                const readingScore = latestAttempt?.skills?.reading || 0;
+                const compScore = latestAttempt?.skills?.comprehension || 0;
+                const writingScore = latestAttempt?.skills?.writing || 0;
+                const overallPercent = latestAttempt?.percentage || 0;
+
+                // Identify Strong and Weak Areas
+                let strongAreas = [];
+                let weakAreas = [];
+
+                if (readingScore >= 70) strongAreas.push("Reading & Pronunciation");
+                else weakAreas.push("Reading & Pronunciation");
+
+                if (compScore >= 70) strongAreas.push("Comprehension & Vocabulary");
+                else weakAreas.push("Comprehension & Vocabulary");
+
+                if (writingScore >= 70) strongAreas.push("Writing & Dictation");
+                else weakAreas.push("Writing & Dictation");
+
+                if (overallPercent === 100) {
+                  strongAreas = ["All Foundational Literacy Skills (Reading, Writing, Comprehension)"];
+                  weakAreas = ["None! You are ready for Advanced Levels & Challenges!"];
+                } else {
+                  if (strongAreas.length === 0) {
+                    strongAreas = ["Beginning steps in all skills"];
+                  }
+                  if (weakAreas.length === 0) {
+                    weakAreas = ["None - Keep practicing to maintain excellence!"];
+                  }
+                }
+
+                // Recommend Daily Practice Time
+                let dailyPracticeTime = "15 Minutes/Day";
+                if (overallPercent >= 90) {
+                  dailyPracticeTime = "10 Minutes/Day (maintenance)";
+                } else if (overallPercent < 50) {
+                  dailyPracticeTime = "25 Minutes/Day (intensive support)";
+                }
+
                 return (
                   <div className="results-card" style={{ maxWidth: '800px', margin: '20px auto' }}>
                     <h2 className="results-completed-title">{t("resultsTitle")}</h2>
@@ -2215,8 +2253,8 @@ function App() {
                       </div>
                     </div>
 
-                    <div className="results-detail-row">
-                      <div className="benchmark-card">
+                    <div className="results-detail-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                      <div className="benchmark-card" style={{ margin: 0 }}>
                         <div className="benchmark-badge-icon">🎖️</div>
                         <h3 className="benchmark-title">{getLevelCategoryAndDescription(currentLevelIndex, currentLang).category}</h3>
                         <p className="benchmark-desc">
@@ -2224,7 +2262,7 @@ function App() {
                         </p>
                       </div>
 
-                      <div className="skill-breakdowns-box">
+                      <div className="skill-breakdowns-box" style={{ margin: 0 }}>
                         <h3>{t("skillBreakdown")}</h3>
                         <div className="skill-progress-bar">
                           <div className="skill-progress-label">
@@ -2256,15 +2294,60 @@ function App() {
                       </div>
                     </div>
 
-                    <button
-                      type="button"
-                      className="primary-btn dashboard-enter-btn"
-                      onClick={() => {
-                        setAssessmentState("not_started");
-                      }}
-                    >
-                      {t("continueToDashboard")}
-                    </button>
+                    {/* Insights & Recommendations Card */}
+                    <div className="insights-card">
+                      <div className="insights-card-head">
+                        <span className="insights-card-icon">💡</span>
+                        <h3>Your Personalized Insights</h3>
+                      </div>
+                      <div className="insights-grid">
+                        <div className="insight-box insight-strong">
+                          <div className="insight-badge">🌟</div>
+                          <h4>Strong Areas</h4>
+                          <ul>
+                            {strongAreas.map((area, idx) => <li key={idx}>{area}</li>)}
+                          </ul>
+                        </div>
+
+                        <div className="insight-box insight-improve">
+                          <div className="insight-badge">⚠️</div>
+                          <h4>Areas to Improve</h4>
+                          <ul>
+                            {weakAreas.map((area, idx) => <li key={idx}>{area}</li>)}
+                          </ul>
+                        </div>
+
+                        <div className="insight-box insight-time">
+                          <div className="insight-badge">🕒</div>
+                          <h4>Recommended Daily Commitment</h4>
+                          <p className="insight-time-val">{dailyPracticeTime}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', marginTop: '32px' }}>
+                      <button
+                        type="button"
+                        className="primary-btn"
+                        style={{ background: 'var(--accent)', border: 'none', color: 'white', padding: '12px 24px', borderRadius: '12px', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', flex: 1, maxWidth: '300px' }}
+                        onClick={() => {
+                          setDashboardTab("learn");
+                          setAssessmentState("not_started");
+                        }}
+                      >
+                        🧭 View Learning Path
+                      </button>
+                      <button
+                        type="button"
+                        className="secondary-btn"
+                        style={{ padding: '12px 24px', borderRadius: '12px', fontWeight: 700, cursor: 'pointer', flex: 1, maxWidth: '300px' }}
+                        onClick={() => {
+                          setAssessmentState("not_started");
+                        }}
+                      >
+                        {t("continueToDashboard")}
+                      </button>
+                    </div>
                   </div>
                 );
               })()}
