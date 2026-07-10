@@ -1332,11 +1332,25 @@ function App() {
     const weakAreas = getWeakSkills(skillScores);
     const strongAreas = getStrongSkills(skillScores);
 
-    // Overall percentage for legacy display
-    const allScores = Object.values(skillScores).filter(v => typeof v === "number");
-    const overallPercent = allScores.length > 0
-      ? Math.round(allScores.reduce((a, b) => a + b, 0) / allScores.length)
-      : 0;
+    // Compute marks out of 30: 10 comprehension MCQ (1 mark each) + 10 reading + 10 writing
+    let compMarks = 0;
+    let readingMarks = 0;
+    let writingMarks = 0;
+    assessmentQuestionsList.forEach((q, idx) => {
+      if (q.type === "comprehension") {
+        if (selectedAnswers[idx] === q.correctIndex) compMarks += 1;
+      } else if (q.type === "reading") {
+        const attempt = readingAttempts[idx];
+        const ratio = (attempt && attempt.totalWords > 0) ? attempt.matchedCount / attempt.totalWords : 0;
+        readingMarks = Math.round(ratio * 10);
+      } else if (q.type === "writing") {
+        const text = writingAnswers[idx] || "";
+        const res = q.evaluator ? q.evaluator(text) : { score: 0 };
+        writingMarks = res.score;
+      }
+    });
+    const totalMarks = compMarks + readingMarks + writingMarks;
+    const overallPercent = Math.round((totalMarks / 30) * 100);
 
     try {
       // Update Supabase profile
@@ -1368,8 +1382,8 @@ function App() {
       const attemptResult = {
         date: new Date().toLocaleDateString(),
         type: "Diagnostic Evaluation",
-        score: overallPercent,
-        maxScore: 100,
+        score: totalMarks,
+        maxScore: 30,
         percentage: overallPercent,
         level: diagnosedLevel,
         skills: {
@@ -2210,8 +2224,10 @@ function App() {
                 const overallPercent = latestAttempt?.percentage || 0;
 
                 // New 6-skill analysis
-                const strongAreas = latestAttempt?.strongAreas || getStrongSkills(skillScores);
-                const weakAreas = latestAttempt?.weakAreas || getWeakSkills(skillScores);
+                const rawStrong = latestAttempt?.strongAreas || getStrongSkills(skillScores);
+                const rawWeak = latestAttempt?.weakAreas || getWeakSkills(skillScores);
+                const strongAreas = rawStrong && rawStrong.length > 0 ? rawStrong : ["Beginning steps in all skills"];
+                const weakAreas = rawWeak && rawWeak.length > 0 ? rawWeak : ["None - Keep practicing to maintain excellence!"];
                 const learningPath = latestAttempt?.learningPath || [];
                 const profInfo = getProficiencyName(currentLevelIndex, "English");
 
