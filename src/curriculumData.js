@@ -16,6 +16,26 @@ export const SKILL_CATEGORIES = {
   pronunciation:      { label: "Pronunciation",       icon: "🎤", color: "#06b6d4" },
 };
 
+// Maps each skill key to its i18n translation key (see translations in App.jsx)
+export const SKILL_TRANSLATION_KEYS = {
+  letter_recognition: "skillLetterRecognition",
+  word_recognition: "skillWordRecognition",
+  sentence_reading: "skillSentenceReading",
+  comprehension: "skillComprehension",
+  writing: "skillWriting",
+  pronunciation: "skillPronunciation",
+};
+
+export const getStrongSkillKeys = (skillScores, threshold = 50) =>
+  Object.entries(skillScores || {})
+    .filter(([_, v]) => typeof v === "number" && v >= threshold)
+    .map(([k]) => k);
+
+export const getWeakSkillKeys = (skillScores, threshold = 50) =>
+  Object.entries(skillScores || {})
+    .filter(([_, v]) => typeof v === "number" && v < threshold)
+    .map(([k]) => k);
+
 // ─────────────────────────────────────────────────────────────────────────────
 // PROFICIENCY LEVELS (5-level system per spec)
 // ─────────────────────────────────────────────────────────────────────────────

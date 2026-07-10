@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "./supabaseClient";
 import {
   getRandomAssessment, computeSkillScores, generateLearningPath, getOrderedSections,
-  classifyProficiency, getProficiencyName, getWeakSkills, getStrongSkills,
+  classifyProficiency, getProficiencyName, getWeakSkills, getStrongSkills, getStrongSkillKeys, getWeakSkillKeys, SKILL_TRANSLATION_KEYS,
   SKILL_CATEGORIES, CURRICULUM_SECTIONS, PROFICIENCY_LEVELS, lessonsData
 } from "./curriculumData";
 import { generateLessonContent } from "./geminiClient";
@@ -126,7 +126,23 @@ const translations = {
     historyDate: "Date",
     historyScore: "Score",
     historyType: "Type",
-    historyStatus: "Result"
+    historyStatus: "Result",
+
+    personalizedInsights: "Your Personalized Insights",
+    strongAreas: "Strong Areas",
+    areasToImprove: "Areas to Improve",
+    dailyCommitment: "Recommended Daily Commitment",
+    noAreasToImprove: "None - Keep practicing to maintain excellence!",
+    skillLetterRecognition: "Letter Recognition",
+    skillWordRecognition: "Word Recognition",
+    skillSentenceReading: "Sentence Reading",
+    skillComprehension: "Comprehension",
+    skillWriting: "Writing",
+    skillPronunciation: "Pronunciation",
+    daily10min: "10 Minutes/Day",
+    daily15min: "15 Minutes/Day",
+    daily25min: "25 Minutes/Day",
+    viewLearningPath: "View Learning Path"
   },
   Hindi: {
     heroTitle: "लिसा: एआई-संचालित साक्षरता साथी",
@@ -240,7 +256,23 @@ const translations = {
     historyDate: "तिथि",
     historyScore: "स्कोर",
     historyType: "प्रकार",
-    historyStatus: "परिणाम"
+    historyStatus: "परिणाम",
+
+    personalizedInsights: "आपकी व्यक्तिगत अंतर्दृष्टि",
+    strongAreas: "मजबूत क्षेत्र",
+    areasToImprove: "सुधार के क्षेत्र",
+    dailyCommitment: "अनुशंसित दैनिक प्रतिबद्धता",
+    noAreasToImprove: "कोई नहीं - उत्कृष्टता बनाए रखने के लिए अभ्यास जारी रखें!",
+    skillLetterRecognition: "अक्षर पहचान",
+    skillWordRecognition: "शब्द पहचान",
+    skillSentenceReading: "वाक्य पठन",
+    skillComprehension: "समझ",
+    skillWriting: "लेखन",
+    skillPronunciation: "उच्चारण",
+    daily10min: "10 मिनट/दिन",
+    daily15min: "15 मिनट/दिन",
+    daily25min: "25 मिनट/दिन",
+    viewLearningPath: "सीखने का मार्ग देखें"
   },
   Kannada: {
     heroTitle: "ಲಿಸಾ: ವೈಯಕ್ತೀಕರಿಸಿದ ಸಾಕ್ಷರತಾ ಸಹಾಯಕಿ",
@@ -354,7 +386,23 @@ const translations = {
     historyDate: "ದಿನಾಂಕ",
     historyScore: "ಅಂಕಗಳು",
     historyType: "ಮಾದರಿ",
-    historyStatus: "ಫಲಿತಾಂಶ"
+    historyStatus: "ಫಲಿತಾಂಶ",
+
+    personalizedInsights: "ನಿಮ್ಮ ವೈಯಕ್ತಿಕ ಒಳನೋಟಗಳು",
+    strongAreas: "ಬಲವಾದ ಕ್ಷೇತ್ರಗಳು",
+    areasToImprove: "ಸುಧಾರಿಸಬೇಕಾದ ಕ್ಷೇತ್ರಗಳು",
+    dailyCommitment: "ಶಿಫಾರಸು ಮಾಡಿದ ದೈನಂದಿನ ಬದ್ಧತೆ",
+    noAreasToImprove: "ಯಾವುದೇ ಇಲ್ಲ - ಉತ್ಕೃಷ್ಟತೆ ಕಾಯ್ದುಕೊಳ್ಳಲು ಅಭ್ಯಾಸ ಮಾಡುತ್ತಿರಿ!",
+    skillLetterRecognition: "ಅಕ್ಷರ ಗುರುತಿಸುವಿಕೆ",
+    skillWordRecognition: "ಪದ ಗುರುತಿಸುವಿಕೆ",
+    skillSentenceReading: "ವಾಕ್ಯ ಓದುವಿಕೆ",
+    skillComprehension: "ಅರ್ಥಗ್ರಹಣ",
+    skillWriting: "ಬರವಣಿಗೆ",
+    skillPronunciation: "ಉಚ್ಚಾರಣೆ",
+    daily10min: "10 ನಿಮಿಷ/ದಿನ",
+    daily15min: "15 ನಿಮಿಷ/ದಿನ",
+    daily25min: "25 ನಿಮಿಷ/ದಿನ",
+    viewLearningPath: "ಕಲಿಕೆಯ ಮಾರ್ಗ ವೀಕ್ಷಿಸಿ"
   },
   Telugu: {
     heroTitle: "లిసా: మీ వ్యక్తిగతీకరించిన అక్షరాస్యత తోడు",
@@ -468,7 +516,23 @@ const translations = {
     historyDate: "తేదీ",
     historyScore: "అంకెలు",
     historyType: "రకం",
-    historyStatus: "ఫలితం"
+    historyStatus: "ఫలితం",
+
+    personalizedInsights: "మీ వ్యక్తిగత అంతర్దృష్టులు",
+    strongAreas: "బలమైన ప్రాంతాలు",
+    areasToImprove: "మెరుగుపరచాల్సిన ప్రాంతాలు",
+    dailyCommitment: "సిఫార్సు చేసిన రోజువారీ బాధ్యత",
+    noAreasToImprove: "ఏదీ లేదు - ఉత్తమత్వాన్ని కొనసాగించడానికి అభ్యాసం చేయండి!",
+    skillLetterRecognition: "అక్షర గుర్తింపు",
+    skillWordRecognition: "పద గుర్తింపు",
+    skillSentenceReading: "వాక్య పఠనం",
+    skillComprehension: "అవగాహన",
+    skillWriting: "రచన",
+    skillPronunciation: "ఉచ్చారణ",
+    daily10min: "10 నిమిషాలు/రోజు",
+    daily15min: "15 నిమిషాలు/రోజు",
+    daily25min: "25 నిమిషాలు/రోజు",
+    viewLearningPath: "అభ్యాస మార్గాన్ని చూడండి"
   },
   Tamil: {
     heroTitle: "லிசா: உங்களது தனிப்பயனாக்கப்பட்ட எழுத்தறிவுத் தோழி",
@@ -582,7 +646,23 @@ const translations = {
     historyDate: "தேதி",
     historyScore: "மதிப்பெண்",
     historyType: "வகை",
-    historyStatus: "முடிவு"
+    historyStatus: "முடிவு",
+
+    personalizedInsights: "உங்கள் தனிப்பட்ட நுண்ணறிவுகள்",
+    strongAreas: "வலுவான பகுதிகள்",
+    areasToImprove: "மேம்படுத்த வேண்டிய பகுதிகள்",
+    dailyCommitment: "பரிந்துரைக்கப்பட்ட தினசரி உறுதிப்பாடு",
+    noAreasToImprove: "எதுவுமில்லை - சிறப்பைத் தொடர பயிற்சி செய்யுங்கள்!",
+    skillLetterRecognition: "எழுத்தறிதல்",
+    skillWordRecognition: "சொல் அறிதல்",
+    skillSentenceReading: "வாக்கிய வாசிப்பு",
+    skillComprehension: "புரிதல்",
+    skillWriting: "எழுத்து",
+    skillPronunciation: "உச்சரிப்பு",
+    daily10min: "10 நிமிடங்கள்/நாள்",
+    daily15min: "15 நிமிடங்கள்/நாள்",
+    daily25min: "25 நிமிடங்கள்/நாள்",
+    viewLearningPath: "கற்றல் பாதையைக் காண்க"
   }
 };
 
@@ -1331,6 +1411,8 @@ function App() {
     const learningPath = generateLearningPath(skillScores);
     const weakAreas = getWeakSkills(skillScores);
     const strongAreas = getStrongSkills(skillScores);
+    const strongSkillKeys = getStrongSkillKeys(skillScores);
+    const weakSkillKeys = getWeakSkillKeys(skillScores);
 
     // Compute marks out of 30: 10 comprehension MCQ (1 mark each) + 10 reading + 10 writing
     let compMarks = 0;
@@ -1397,6 +1479,8 @@ function App() {
         skillScores,
         weakAreas,
         strongAreas,
+        strongSkillKeys,
+        weakSkillKeys,
         learningPath,
         passed: overallPercent >= 40
       };
@@ -2224,17 +2308,13 @@ function App() {
                 const overallPercent = latestAttempt?.percentage || 0;
 
                 // New 6-skill analysis
-                const rawStrong = latestAttempt?.strongAreas || getStrongSkills(skillScores);
-                const rawWeak = latestAttempt?.weakAreas || getWeakSkills(skillScores);
-                const strongAreas = rawStrong && rawStrong.length > 0 ? rawStrong : ["Beginning steps in all skills"];
-                const weakAreas = rawWeak && rawWeak.length > 0 ? rawWeak : ["None - Keep practicing to maintain excellence!"];
-                const learningPath = latestAttempt?.learningPath || [];
-                const profInfo = getProficiencyName(currentLevelIndex, "English");
+                const strongKeys = latestAttempt?.strongSkillKeys || getStrongSkillKeys(skillScores);
+                const weakKeys = latestAttempt?.weakSkillKeys || getWeakSkillKeys(skillScores);
 
                 // Recommend Daily Practice Time
-                let dailyPracticeTime = "15 Minutes/Day";
-                if (overallPercent >= 90) dailyPracticeTime = "10 Minutes/Day (maintenance)";
-                else if (overallPercent < 50) dailyPracticeTime = "25 Minutes/Day (intensive support)";
+                let dailyPracticeTime = t("daily15min");
+                if (overallPercent >= 90) dailyPracticeTime = t("daily10min");
+                else if (overallPercent < 50) dailyPracticeTime = t("daily25min");
 
                 const skillOrder = [
                   { key: "letter_recognition", label: "Letter Recognition", color: "#f59e0b", icon: "🔤" },
@@ -2316,28 +2396,30 @@ function App() {
                     <div className="insights-card">
                       <div className="insights-card-head">
                         <span className="insights-card-icon">💡</span>
-                        <h3>Your Personalized Insights</h3>
+                        <h3>{t("personalizedInsights")}</h3>
                       </div>
                       <div className="insights-grid">
                         <div className="insight-box insight-strong">
                           <div className="insight-badge">🌟</div>
-                          <h4>Strong Areas</h4>
+                          <h4>{t("strongAreas")}</h4>
                           <ul>
-                            {strongAreas.map((area, idx) => <li key={idx}>{area}</li>)}
+                            {strongKeys.map((k) => <li key={k}>{t(SKILL_TRANSLATION_KEYS[k])}</li>)}
                           </ul>
                         </div>
 
                         <div className="insight-box insight-improve">
                           <div className="insight-badge">⚠️</div>
-                          <h4>Areas to Improve</h4>
+                          <h4>{t("areasToImprove")}</h4>
                           <ul>
-                            {weakAreas.map((area, idx) => <li key={idx}>{area}</li>)}
+                            {weakKeys.length > 0
+                              ? weakKeys.map((k) => <li key={k}>{t(SKILL_TRANSLATION_KEYS[k])}</li>)
+                              : <li>{t("noAreasToImprove")}</li>}
                           </ul>
                         </div>
 
                         <div className="insight-box insight-time">
                           <div className="insight-badge">🕒</div>
-                          <h4>Recommended Daily Commitment</h4>
+                          <h4>{t("dailyCommitment")}</h4>
                           <p className="insight-time-val">{dailyPracticeTime}</p>
                         </div>
                       </div>
@@ -2353,7 +2435,7 @@ function App() {
                           setAssessmentState("not_started");
                         }}
                       >
-                        🧭 View Learning Path
+                        🧭 {t("viewLearningPath")}
                       </button>
                       <button
                         type="button"
