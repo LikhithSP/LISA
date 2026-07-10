@@ -381,19 +381,21 @@ export const computeSkillScores = (questions, selectedAnswers, readingAttempts, 
     if (!skillBuckets[skill]) skillBuckets[skill] = { correct: 0, total: 0 };
 
     if (q.type === "comprehension") {
-      skillBuckets[skill].total += 1;
-      if (selectedAnswers[idx] === q.correctIndex) skillBuckets[skill].correct += 1;
+      const isCorrect = selectedAnswers[idx] === q.correctIndex ? 1 : 0;
+      skillBuckets["comprehension"].total += 1;
+      skillBuckets["comprehension"].correct += isCorrect;
+      if (skill === "letter_recognition" || skill === "word_recognition") {
+        skillBuckets[skill].total += 1;
+        skillBuckets[skill].correct += isCorrect;
+      }
 
     } else if (q.type === "reading") {
       const attempt = readingAttempts[idx];
-      if (attempt && attempt.totalWords > 0) {
-        const ratio = attempt.matchedCount / attempt.totalWords;
-        skillBuckets["pronunciation"].total += 1;
-        skillBuckets["pronunciation"].correct += ratio;
-      } else {
-        skillBuckets["pronunciation"].total += 1;
-        skillBuckets["pronunciation"].correct += 0;
-      }
+      const ratio = (attempt && attempt.totalWords > 0) ? attempt.matchedCount / attempt.totalWords : 0;
+      skillBuckets["pronunciation"].total += 1;
+      skillBuckets["pronunciation"].correct += ratio;
+      skillBuckets["sentence_reading"].total += 1;
+      skillBuckets["sentence_reading"].correct += ratio;
 
     } else if (q.type === "writing") {
       const text = writingAnswers[idx] || "";

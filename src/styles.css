@@ -1843,10 +1843,11 @@ select:focus {
 }
 
 .insight-box {
-  background: var(--panel);
+  background: var(--panel-strong);
   border: 1px solid var(--line);
-  border-radius: 16px;
-  padding: 20px;
+  border-radius: 24px;
+  padding: 22px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);
 }
 
 .insight-strong {
@@ -1888,8 +1889,9 @@ select:focus {
 
 .insight-box h4 {
   margin: 0 0 10px 0;
-  font-size: 0.98rem;
+  font-size: 1.1rem;
   font-weight: 800;
+  letter-spacing: -0.01em;
 }
 
 .insight-strong h4 {
