@@ -166,3 +166,45 @@ const getFallbackLesson = (params) => {
 };
 
 export const clearLessonCache = () => lessonCache.clear();
+
+export const fetchWordOfDay = async (language = "English") => {
+  try {
+    const prompt = `You are a helpful literacy assistant. Suggest a unique, helpful "Word of the Day" in ${language} that is practical for learning. Also generate a simple, clear, age-appropriate example sentence showing how to use it.
+    
+    Return ONLY valid JSON with this exact structure (no markdown, no backticks):
+    {
+      "word": "string",
+      "example": "string"
+    }`;
+
+    const response = await fetch(GEMINI_API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0.8,
+          maxOutputTokens: 256,
+          responseMimeType: "application/json"
+        }
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch from Gemini");
+    }
+
+    const data = await response.json();
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    const cleaned = text.replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/\s*```$/i, "").trim();
+    return JSON.parse(cleaned);
+  } catch (err) {
+    console.error("Failed to fetch word of the day from Gemini, using fallback:", err);
+    return {
+      word: language === "Hindi" ? "परिश्रमी" : "Diligent",
+      example: language === "Hindi" 
+        ? "एक परिश्रमी छात्र हर दिन थोड़ा पढ़ता है।" 
+        : "A diligent student practices reading a little every day."
+    };
+  }
+};
