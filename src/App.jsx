@@ -1224,6 +1224,21 @@ function App() {
   const [editPreferredLang, setEditPreferredLang] = useState("");
   const [editEdLevel, setEditEdLevel] = useState("");
 
+  // Reset scroll position on view / tab switch
+  useEffect(() => {
+    const resetScroll = () => {
+      const mainContent = document.querySelector(".dashboard-main-content");
+      const mainView = document.querySelector(".dashboard-main-view");
+      if (mainContent) mainContent.scrollTop = 0;
+      if (mainView) mainView.scrollTop = 0;
+      window.scrollTo(0, 0);
+    };
+
+    resetScroll();
+    const t = setTimeout(resetScroll, 100);
+    return () => clearTimeout(t);
+  }, [dashboardTab, assessmentState, lessonSession]);
+
   useEffect(() => {
     if (!profile) return;
     setEditFullName(profile.full_name || "");
