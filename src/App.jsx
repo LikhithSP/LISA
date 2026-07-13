@@ -985,6 +985,7 @@ function App() {
   const [dailyLessons, setDailyLessons] = useState(0);
   const [activeQuests, setActiveQuests] = useState([]);
   const [timeLeftStr, setTimeLeftStr] = useState("24h 00m 00s");
+  const [questBonusClaimed, setQuestBonusClaimed] = useState(false);
 
   const getQuestProgress = (quest) => {
     if (quest.type === 'xp') {
@@ -1021,14 +1022,39 @@ function App() {
     if (!session?.user?.id) return;
     const userId = session.user.id;
     const today = new Date().toLocaleDateString("en-CA");
-    
+
     const storedDailyXp = localStorage.getItem(`lisa_daily_xp_${userId}_${today}`);
     const storedDailyTime = localStorage.getItem(`lisa_daily_time_${userId}_${today}`);
     const storedDailyLessons = localStorage.getItem(`lisa_daily_lessons_${userId}_${today}`);
-    
-    setDailyXp(storedDailyXp ? parseInt(storedDailyXp, 10) : 0);
-    setDailyTimeSpent(storedDailyTime ? parseInt(storedDailyTime, 10) : 0);
-    setDailyLessons(storedDailyLessons ? parseInt(storedDailyLessons, 10) : 0);
+
+    const initDaily = async () => {
+      let dbDailyXp = 0, dbDailyTime = 0, dbDailyLessons = 0;
+      try {
+        const { data } = await supabase.from("profiles").select("daily_xp,daily_time_spent,daily_lessons,daily_quest_date").eq("id", userId).single();
+        if (data) {
+          const storedDate = data.daily_quest_date;
+          if (storedDate === today) {
+            dbDailyXp = data.daily_xp || 0;
+            dbDailyTime = data.daily_time_spent || 0;
+            dbDailyLessons = data.daily_lessons || 0;
+          }
+        }
+      } catch {}
+
+      const finalXp = storedDailyXp !== null ? parseInt(storedDailyXp, 10) : dbDailyXp;
+      const finalTime = storedDailyTime !== null ? parseInt(storedDailyTime, 10) : dbDailyTime;
+      const finalLessons = storedDailyLessons !== null ? parseInt(storedDailyLessons, 10) : dbDailyLessons;
+
+      setDailyXp(finalXp);
+      setDailyTimeSpent(finalTime);
+      setDailyLessons(finalLessons);
+
+      localStorage.setItem(`lisa_daily_xp_${userId}_${today}`, finalXp);
+      localStorage.setItem(`lisa_daily_time_${userId}_${today}`, finalTime);
+      localStorage.setItem(`lisa_daily_lessons_${userId}_${today}`, finalLessons);
+    };
+
+    initDaily();
 
     const questsKey = `lisa_daily_quests_${userId}_${today}`;
     const storedQuests = localStorage.getItem(questsKey);
@@ -1045,7 +1071,27 @@ function App() {
       setActiveQuests(selected);
       localStorage.setItem(questsKey, JSON.stringify(selected));
     }
+
+    const questBonusKey = `lisa_quest_bonus_${userId}_${today}`;
+    setQuestBonusClaimed(!!localStorage.getItem(questBonusKey));
   }, [session?.user?.id]);
+
+  useEffect(() => {
+    if (!session?.user?.id || questBonusClaimed) return;
+    const userId = session.user.id;
+    const today = new Date().toLocaleDateString("en-CA");
+
+    if (activeQuests.length > 0 && activeQuests.every(q => getQuestProgress(q).completed)) {
+      setQuestBonusClaimed(true);
+      const bonusXp = 20;
+      setUserXp(prev => {
+        const next = prev + bonusXp;
+        localStorage.setItem(`lisa_user_xp_${userId}`, next);
+        return next;
+      });
+      localStorage.setItem(`lisa_quest_bonus_${userId}_${today}`, "1");
+    }
+  }, [activeQuests, dailyXp, dailyTimeSpent, dailyLessons, questBonusClaimed, session?.user?.id]);
 
   useEffect(() => {
     if (!session?.user?.id) return;
@@ -1322,13 +1368,27 @@ function App() {
     // Refresh day streak in real-time
     updateStreak(userId, profile);
 
-    // Sync XP and completed lessons list to the database
+    // Bonus XP for completing all daily quests
+    if (!questBonusClaimed && activeQuests.length > 0 && activeQuests.every(q => getQuestProgress(q).completed)) {
+      setQuestBonusClaimed(true);
+      const bonusXp = 20;
+      const bonusNewXp = newXp + bonusXp;
+      setUserXp(bonusNewXp);
+      localStorage.setItem(`lisa_user_xp_${userId}`, bonusNewXp);
+      localStorage.setItem(`lisa_quest_bonus_${userId}_${todayStr}`, "1");
+    }
+
+    // Sync XP, completed lessons, and daily quest progress to the database
     try {
       await supabase
         .from("profiles")
         .update({
           xp: newXp,
-          completed_lessons: newLessons
+          completed_lessons: newLessons,
+          daily_xp: nextDailyXp,
+          daily_time_spent: dailyTimeSpent,
+          daily_lessons: nextDailyLessons,
+          daily_quest_date: todayStr
         })
         .eq("id", userId);
     } catch (dbErr) {
@@ -1691,14 +1751,17 @@ function App() {
         updateStreak(userId, mergedProfile);
 
         // Load progress and preferences from the database, updating both React state and localStorage cache
-        if (mergedProfile.xp !== undefined && mergedProfile.xp !== null) {
+        if (mergedProfile.xp !== undefined && mergedProfile.xp !== null && Number(mergedProfile.xp) > 0) {
           setUserXp(Number(mergedProfile.xp));
           localStorage.setItem(`lisa_user_xp_${userId}`, mergedProfile.xp);
         }
-        if (mergedProfile.completed_lessons) {
-          const lessonsList = Array.isArray(mergedProfile.completed_lessons) ? mergedProfile.completed_lessons : [];
-          setCompletedLessons(lessonsList);
-          localStorage.setItem(`lisa_completed_lessons_${userId}`, JSON.stringify(lessonsList));
+        if (mergedProfile.completed_lessons && Array.isArray(mergedProfile.completed_lessons) && mergedProfile.completed_lessons.length > 0) {
+          const dbLessons = mergedProfile.completed_lessons;
+          const storedLessons = localStorage.getItem(`lisa_completed_lessons_${userId}`);
+          const localLessons = storedLessons ? JSON.parse(storedLessons) : [];
+          const merged = Array.from(new Set([...dbLessons, ...localLessons]));
+          setCompletedLessons(merged);
+          localStorage.setItem(`lisa_completed_lessons_${userId}`, JSON.stringify(merged));
         }
         if (mergedProfile.attempts_history) {
           const historyList = Array.isArray(mergedProfile.attempts_history) ? mergedProfile.attempts_history : [];
@@ -3357,33 +3420,33 @@ function App() {
                     <p>Welcome back! Pick up right where you left off.</p>
                   </div>
 
-                  <div className="resume-card">
-                    <div className="resume-card-info">
-                      <span className="resume-card-label">Continue learning</span>
-                      <h3 className="resume-card-title">{currentUnit?.title}</h3>
-                      <div className="resume-card-sub" style={{ display: 'flex', flexDirection: 'column' }}>
-                        <span style={{ fontSize: '0.85rem' }}>
-                          Section: {currentLevelSections[currentUnitPos.sectionIdx]?.title || `Section ${currentUnitPos.sectionIdx + 1}`}
-                        </span>
-                        <span style={{ 
-                          fontSize: '0.78rem', 
-                          marginTop: '10px', 
-                          whiteSpace: 'nowrap'
-                        }}>
-                          Unit: {currentLevelSections[currentUnitPos.sectionIdx]?.units[currentUnitPos.unitIdx]?.title || `Unit ${currentUnitPos.unitIdx + 1}`}
-                        </span>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      className="resume-btn"
-                      onClick={() => {
-                        setDashboardTab("learn");
-                      }}
-                    >
-                      ▶ Resume
-                    </button>
-                  </div>
+                   <div className="resume-card">
+                     <div className="resume-card-info">
+                       <span className="resume-card-label">Continue learning</span>
+                       <h3 className="resume-card-title">{currentUnit?.title || (currentLevelLessons[0]?.title || "Start Learning")}</h3>
+                       <div className="resume-card-sub" style={{ display: 'flex', flexDirection: 'column' }}>
+                         <span style={{ fontSize: '0.85rem' }}>
+                           Section: {currentLevelSections[currentUnitPos.sectionIdx]?.title || `Section ${currentUnitPos.sectionIdx + 1}`}
+                         </span>
+                         <span style={{ 
+                           fontSize: '0.78rem', 
+                           marginTop: '10px', 
+                           whiteSpace: 'nowrap'
+                         }}>
+                           Unit: {currentLevelSections[currentUnitPos.sectionIdx]?.units[currentUnitPos.unitIdx]?.title || `Unit ${currentUnitPos.unitIdx + 1}`}
+                         </span>
+                       </div>
+                     </div>
+                     <button
+                       type="button"
+                       className="resume-btn"
+                       onClick={() => {
+                         setDashboardTab("learn");
+                       }}
+                     >
+                       ▶ Resume
+                     </button>
+                   </div>
 
                   <div className="word-of-day-card">
                     <div className="word-of-day-head">
