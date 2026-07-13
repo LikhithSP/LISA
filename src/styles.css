@@ -3067,7 +3067,7 @@ select:focus {
   background: white;
   border: 1px solid rgba(0, 0, 0, 0.04);
   border-radius: 24px;
-  padding: 28px;
+  padding: 20px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
   text-align: left;
   margin-bottom: 32px;
@@ -3082,7 +3082,7 @@ select:focus {
 
 .daily-quests-header h3 {
   margin: 0;
-  font-size: 1.4rem;
+  font-size: 1.25rem;
   font-weight: 800;
   color: var(--text);
 }
@@ -3090,10 +3090,11 @@ select:focus {
 .daily-quests-timer {
   font-weight: 700;
   color: #f59e0b;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   background: #fff7ed;
-  padding: 4px 12px;
-  border-radius: 10px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  white-space: nowrap;
 }
 
 .quest-list {
@@ -3147,7 +3148,7 @@ select:focus {
 
 .quest-progress-fill {
   height: 100%;
-  background: #e5e7eb;
+  background: #f59e0b;
   border-radius: 4px;
   transition: width 0.3s ease;
 }
@@ -3171,7 +3172,7 @@ select:focus {
   background: linear-gradient(180deg, #d97706 0%, #b45309 100%);
   border: none;
   border-radius: 24px;
-  padding: 28px 32px;
+  padding: 20px;
   box-shadow: 0 8px 24px rgba(217, 119, 6, 0.25);
   color: white;
   text-align: left;
@@ -3181,7 +3182,7 @@ select:focus {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .streak-society-badge {
@@ -3202,18 +3203,18 @@ select:focus {
 }
 
 .streak-society-title {
-  margin: 0 0 10px 0;
-  font-size: 1.6rem;
+  margin: 0 0 8px 0;
+  font-size: 1.35rem;
   font-weight: 800;
   color: white;
 }
 
 .streak-society-message {
-  margin: 0 0 24px 0;
+  margin: 0;
   font-size: 0.95rem;
   line-height: 1.5;
   color: rgba(255, 255, 255, 0.9);
-  max-width: 90%;
+  max-width: 95%;
 }
 
 .streak-society-bar {
@@ -3735,7 +3736,7 @@ select:focus {
 }
 
 [data-theme="dark"] .quest-progress-fill {
-  background: rgba(255, 255, 255, 0.15);
+  background: #f59e0b;
 }
 
 [data-theme="dark"] .metric-icon-circle {
@@ -5074,12 +5075,18 @@ select:focus {
 }
 
 .lesson-overlay-header {
+  padding: 16px 24px;
+  border-bottom: 2px solid var(--line);
+  background: var(--panel);
+}
+
+.lesson-overlay-header-content {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 24px 48px;
-  border-bottom: 2px solid var(--line);
-  background: var(--panel);
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
 }
 
 .lesson-overlay-controls {
@@ -5134,9 +5141,8 @@ select:focus {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
-  padding: 40px;
+  padding: 40px 24px 120px;
   overflow-y: auto;
 }
 

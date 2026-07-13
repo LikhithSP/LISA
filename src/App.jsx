@@ -115,6 +115,54 @@ const ClockIcon = ({ className, style }) => (
   </svg>
 );
 
+const selectQuestsForToday = (userId, todayStr) => {
+  const seedStr = `${userId}_${todayStr}`;
+  let hash = 0;
+  for (let i = 0; i < seedStr.length; i++) {
+    hash = seedStr.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  
+  const pool = [
+    { id: 'earn_20_xp', type: 'xp', title: 'Earn 20 XP today', target: 20, unit: 'XP' },
+    { id: 'practice_5_min', type: 'time', title: 'Practice for 5 mins', target: 300, unit: 'min' },
+    { id: 'complete_1_lesson', type: 'lessons', title: 'Complete 1 Lesson', target: 1, unit: 'lesson' },
+    { id: 'practice_10_min', type: 'time', title: 'Practice for 10 mins', target: 600, unit: 'min' },
+    { id: 'earn_30_xp', type: 'xp', title: 'Earn 30 XP today', target: 30, unit: 'XP' },
+    { id: 'complete_2_lessons', type: 'lessons', title: 'Complete 2 Lessons', target: 2, unit: 'lessons' }
+  ];
+  
+  const nextRandom = (seed) => {
+    const x = Math.sin(seed++) * 10000;
+    return x - Math.floor(x);
+  };
+  
+  const shuffled = [...pool];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const r = Math.floor(nextRandom(hash + i) * (i + 1));
+    const temp = shuffled[i];
+    shuffled[i] = shuffled[r];
+    shuffled[r] = temp;
+  }
+  
+  const selected = [];
+  selected.push(shuffled[0]);
+  
+  // Find a second quest with a different type
+  for (let i = 1; i < shuffled.length; i++) {
+    if (shuffled[i].type !== selected[0].type) {
+      selected.push(shuffled[i]);
+      break;
+    }
+  }
+  
+  // Fallback
+  if (selected.length < 2) {
+    selected.push(shuffled[1]);
+  }
+  
+  return selected;
+};
+
 // Translation dictionary for regional languages
 const translations = {
   English: {
@@ -897,6 +945,108 @@ function App() {
   const [streakCount, setStreakCount] = useState(0);
   const [wordOfDay, setWordOfDay] = useState({ word: "Diligent", example: "A diligent student practices reading a little every day." });
 
+  const [dailyXp, setDailyXp] = useState(0);
+  const [dailyTimeSpent, setDailyTimeSpent] = useState(0); // in seconds
+  const [dailyLessons, setDailyLessons] = useState(0);
+  const [activeQuests, setActiveQuests] = useState([]);
+  const [timeLeftStr, setTimeLeftStr] = useState("24h 00m 00s");
+
+  const getQuestProgress = (quest) => {
+    if (quest.type === 'xp') {
+      return {
+        current: dailyXp,
+        target: quest.target,
+        completed: dailyXp >= quest.target,
+        percent: Math.min((dailyXp / quest.target) * 100, 100),
+        displayProgress: `${dailyXp}/${quest.target} XP`
+      };
+    } else if (quest.type === 'time') {
+      const minsCurrent = Math.floor(dailyTimeSpent / 60);
+      const minsTarget = quest.target / 60;
+      return {
+        current: minsCurrent,
+        target: minsTarget,
+        completed: dailyTimeSpent >= quest.target,
+        percent: Math.min((dailyTimeSpent / quest.target) * 100, 100),
+        displayProgress: `${Math.min(minsCurrent, minsTarget)}/${minsTarget} min`
+      };
+    } else if (quest.type === 'lessons') {
+      return {
+        current: dailyLessons,
+        target: quest.target,
+        completed: dailyLessons >= quest.target,
+        percent: Math.min((dailyLessons / quest.target) * 100, 100),
+        displayProgress: `${dailyLessons}/${quest.target} ${quest.target === 1 ? 'lesson' : 'lessons'}`
+      };
+    }
+    return { current: 0, target: 1, completed: false, percent: 0, displayProgress: '0/1' };
+  };
+
+  useEffect(() => {
+    if (!session?.user?.id) return;
+    const userId = session.user.id;
+    const today = new Date().toLocaleDateString("en-CA");
+    
+    const storedDailyXp = localStorage.getItem(`lisa_daily_xp_${userId}_${today}`);
+    const storedDailyTime = localStorage.getItem(`lisa_daily_time_${userId}_${today}`);
+    const storedDailyLessons = localStorage.getItem(`lisa_daily_lessons_${userId}_${today}`);
+    
+    setDailyXp(storedDailyXp ? parseInt(storedDailyXp, 10) : 0);
+    setDailyTimeSpent(storedDailyTime ? parseInt(storedDailyTime, 10) : 0);
+    setDailyLessons(storedDailyLessons ? parseInt(storedDailyLessons, 10) : 0);
+
+    const questsKey = `lisa_daily_quests_${userId}_${today}`;
+    const storedQuests = localStorage.getItem(questsKey);
+    if (storedQuests) {
+      try {
+        setActiveQuests(JSON.parse(storedQuests));
+      } catch {
+        const selected = selectQuestsForToday(userId, today);
+        setActiveQuests(selected);
+        localStorage.setItem(questsKey, JSON.stringify(selected));
+      }
+    } else {
+      const selected = selectQuestsForToday(userId, today);
+      setActiveQuests(selected);
+      localStorage.setItem(questsKey, JSON.stringify(selected));
+    }
+  }, [session?.user?.id]);
+
+  useEffect(() => {
+    if (!session?.user?.id) return;
+    const userId = session.user.id;
+    
+    const timer = setInterval(() => {
+      const today = new Date().toLocaleDateString("en-CA");
+      setDailyTimeSpent(prev => {
+        const next = prev + 1;
+        localStorage.setItem(`lisa_daily_time_${userId}_${today}`, next);
+        return next;
+      });
+    }, 1000);
+    
+    return () => clearInterval(timer);
+  }, [session?.user?.id]);
+
+  useEffect(() => {
+    const updateCountdown = () => {
+      const now = new Date();
+      const midnight = new Date();
+      midnight.setHours(24, 0, 0, 0); // Next midnight
+      const diffMs = midnight - now;
+      
+      const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
+      const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+      const diffSecs = Math.floor((diffMs % (1000 * 60)) / 1000);
+      
+      setTimeLeftStr(`${diffHrs}h ${diffMins}m ${diffSecs}s`);
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   // Auto-scroll to the current active (resumed) lesson node
   useEffect(() => {
     if (dashboardTab === "learn") {
@@ -1087,6 +1237,13 @@ function App() {
     setUserXp(newXp);
     localStorage.setItem(`lisa_user_xp_${userId}`, newXp);
 
+    // Update daily XP
+    const todayStr = new Date().toLocaleDateString("en-CA");
+    const storedDailyXp = localStorage.getItem(`lisa_daily_xp_${userId}_${todayStr}`);
+    const nextDailyXp = (storedDailyXp ? parseInt(storedDailyXp, 10) : 0) + xpAwarded;
+    setDailyXp(nextDailyXp);
+    localStorage.setItem(`lisa_daily_xp_${userId}_${todayStr}`, nextDailyXp);
+
     // Update completed lessons
     let newLessons = completedLessons;
     if (!completedLessons.includes(lessonId)) {
@@ -1094,6 +1251,12 @@ function App() {
       setCompletedLessons(newLessons);
       localStorage.setItem(`lisa_completed_lessons_${userId}`, JSON.stringify(newLessons));
     }
+
+    // Update daily lessons completed
+    const storedDailyLessons = localStorage.getItem(`lisa_daily_lessons_${userId}_${todayStr}`);
+    const nextDailyLessons = (storedDailyLessons ? parseInt(storedDailyLessons, 10) : 0) + 1;
+    setDailyLessons(nextDailyLessons);
+    localStorage.setItem(`lisa_daily_lessons_${userId}_${todayStr}`, nextDailyLessons);
 
     // Save active dates
     const today = new Date().toLocaleDateString("en-CA");
@@ -3174,23 +3337,72 @@ function App() {
                     <div className="daily-quests-card" style={{ margin: 0 }}>
                       <div className="daily-quests-header">
                         <h3>Daily Quests</h3>
-                        <span className="daily-quests-timer">22 HOURS</span>
+                        {activeQuests.length > 0 && activeQuests.every(q => getQuestProgress(q).completed) ? (
+                          <span className="daily-quests-timer" style={{ background: '#d1fae5', color: '#10b981' }}>✓ ALL COMPLETED</span>
+                        ) : (
+                          <span className="daily-quests-timer">{timeLeftStr.toUpperCase()} LEFT</span>
+                        )}
                       </div>
-                      <div className="quest-list">
-                        <div className="quest-item">
-                          <div className="quest-icon">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: 'middle' }}>
-                              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
-                            </svg>
-                          </div>
-                          <div className="quest-content">
-                            <div className="quest-title">Earn 20 XP</div>
-                            <div className="quest-progress-bg">
-                              <div className="quest-progress-fill" style={{ width: `${Math.min((userXp / 20) * 100, 100)}%` }}></div>
+                      <div className="quest-list" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                        {activeQuests.map((quest) => {
+                          const prog = getQuestProgress(quest);
+                          return (
+                            <div key={quest.id} className="quest-item" style={{ 
+                              gap: '10px', 
+                              padding: '12px',
+                              opacity: prog.completed ? 0.65 : 1,
+                              background: prog.completed ? 'var(--line)' : '#fafafa',
+                              borderColor: prog.completed ? 'transparent' : 'rgba(0, 0, 0, 0.04)'
+                            }}>
+                              <div className="quest-icon" style={{ width: '32px', height: '32px', borderRadius: '8px' }}>
+                                {quest.type === 'xp' && (
+                                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: 'middle' }}>
+                                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                                  </svg>
+                                )}
+                                {quest.type === 'time' && (
+                                  <ClockIcon style={{ color: '#3b82f6', marginRight: 0, width: '20px', height: '20px' }} />
+                                )}
+                                {quest.type === 'lessons' && (
+                                  <BookIcon style={{ color: '#10b981', marginRight: 0, width: '20px', height: '20px' }} />
+                                )}
+                              </div>
+                              <div className="quest-content">
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                                  <span style={{ fontWeight: '700', fontSize: '0.85rem', color: 'var(--text)', whiteSpace: 'nowrap', textDecoration: prog.completed ? 'line-through' : 'none' }}>
+                                    {quest.title}
+                                  </span>
+                                  <span style={{ fontWeight: '800', fontSize: '0.85rem', color: 'var(--accent)', whiteSpace: 'nowrap' }}>
+                                    {prog.displayProgress}
+                                  </span>
+                                </div>
+                                <div className="quest-progress-bg">
+                                  <div className="quest-progress-fill" style={{ 
+                                    width: `${prog.percent}%`,
+                                    background: prog.completed ? '#9ca3af' : '#f59e0b'
+                                  }}></div>
+                                </div>
+                              </div>
+                              <div className="quest-reward" style={{ display: 'grid', placeItems: 'center' }}>
+                                {prog.completed ? (
+                                  <div style={{
+                                    width: '22px',
+                                    height: '22px',
+                                    borderRadius: '50%',
+                                    background: '#10b981',
+                                    color: 'white',
+                                    display: 'grid',
+                                    placeItems: 'center',
+                                    fontWeight: 'bold',
+                                    fontSize: '0.8rem'
+                                  }}>✓</div>
+                                ) : (
+                                  <TrophyIcon style={{ color: '#8b8d96', marginRight: 0, width: '20px', height: '20px' }} />
+                                )}
+                              </div>
                             </div>
-                          </div>
-                          <div className="quest-reward"><TrophyIcon style={{ color: '#f59e0b', marginRight: 0 }} /></div>
-                        </div>
+                          );
+                        })}
                       </div>
                     </div>
                   </div>
@@ -3653,13 +3865,15 @@ function App() {
         {(lessonLoading || lessonSession) && (
           <div className="lesson-overlay-screen">
             <div className="lesson-overlay-header">
-              <button className="lesson-overlay-close" onClick={() => { setLessonSession(null); setLessonAiContent(null); setLessonLoading(false); setLessonStep(0); }}>✕</button>
-              <div className="lesson-progress-container">
-                <div className="lesson-progress-bar" style={{ width: lessonSession?.status === "completed" ? "100%" : `${(lessonStep / 4) * 100}%` }}></div>
-              </div>
-              <div className="lesson-overlay-controls">
-                <div style={{ fontWeight: 800, whiteSpace: "nowrap" }}>XP +15</div>
-                {renderThemeToggle()}
+              <div className="lesson-overlay-header-content">
+                <button className="lesson-overlay-close" onClick={() => { setLessonSession(null); setLessonAiContent(null); setLessonLoading(false); setLessonStep(0); }}>✕</button>
+                <div className="lesson-progress-container">
+                  <div className="lesson-progress-bar" style={{ width: lessonSession?.status === "completed" ? "100%" : `${(lessonStep / 4) * 100}%` }}></div>
+                </div>
+                <div className="lesson-overlay-controls">
+                  <div style={{ fontWeight: 800, whiteSpace: "nowrap" }}>XP +15</div>
+                  {renderThemeToggle()}
+                </div>
               </div>
             </div>
 
@@ -3895,16 +4109,31 @@ function App() {
                               const isSelectedOption = selected === oIdx;
                               let btnBg = 'var(--panel)';
                               let btnBorder = '2px solid var(--line)';
+                              let btnColor = 'var(--text)';
+                              let badgeBg = 'var(--line)';
+                              let badgeColor = 'var(--text)';
+
                               if (isAnswered) {
                                 if (oIdx === q.correctIndex) {
                                   btnBg = 'rgba(16, 185, 129, 0.1)';
                                   btnBorder = '2px solid #10b981';
+                                  btnColor = '#065f46';
+                                  badgeBg = '#10b981';
+                                  badgeColor = 'white';
                                 } else if (isSelectedOption) {
                                   btnBg = 'rgba(239, 68, 68, 0.1)';
                                   btnBorder = '2px solid #ef4444';
+                                  btnColor = '#991b1b';
+                                  badgeBg = '#ef4444';
+                                  badgeColor = 'white';
+                                } else {
+                                  btnColor = 'var(--muted)';
                                 }
                               } else if (isSelectedOption) {
                                 btnBorder = '2px solid var(--accent)';
+                                btnColor = 'var(--accent-dark)';
+                                badgeBg = 'var(--accent)';
+                                badgeColor = 'white';
                               }
 
                               return (
@@ -3914,6 +4143,9 @@ function App() {
                                   style={{
                                     background: btnBg,
                                     border: btnBorder,
+                                    color: btnColor,
+                                    opacity: 1,
+                                    WebkitTextFillColor: btnColor,
                                     borderRadius: '16px',
                                     padding: '20px',
                                     fontSize: '1.1rem',
@@ -3939,8 +4171,8 @@ function App() {
                                   disabled={isAnswered}
                                 >
                                   <span style={{
-                                    background: isSelectedOption ? 'var(--accent)' : 'var(--line)',
-                                    color: isSelectedOption ? 'white' : 'var(--text)',
+                                    background: badgeBg,
+                                    color: badgeColor,
                                     width: '32px',
                                     height: '32px',
                                     borderRadius: '8px',
@@ -3966,45 +4198,51 @@ function App() {
                               background: lessonMcqFeedback.isCorrect ? '#d1fae5' : '#fee2e2',
                               borderTop: `2px solid ${lessonMcqFeedback.isCorrect ? '#10b981' : '#ef4444'}`,
                               padding: '20px 40px',
-                              display: 'flex',
-                              justifyContent: 'space-between',
-                              alignItems: 'center',
                               zIndex: 100
                             }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                                <span style={{ fontSize: '2rem' }}>{lessonMcqFeedback.isCorrect ? "🎉" : "❌"}</span>
-                                <div>
-                                  <h4 style={{ margin: 0, color: lessonMcqFeedback.isCorrect ? '#065f46' : '#991b1b', fontWeight: '800', fontSize: '1.2rem' }}>
-                                    {lessonMcqFeedback.title}
-                                  </h4>
-                                  <p style={{ margin: '4px 0 0', color: lessonMcqFeedback.isCorrect ? '#047857' : '#b91c1c', fontSize: '0.95rem' }}>
-                                    {lessonMcqFeedback.explanation}
-                                  </p>
+                              <div style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                width: '100%',
+                                maxWidth: '1000px',
+                                margin: '0 auto'
+                              }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                  <span style={{ fontSize: '2rem' }}>{lessonMcqFeedback.isCorrect ? "🎉" : "❌"}</span>
+                                  <div>
+                                    <h4 style={{ margin: 0, color: lessonMcqFeedback.isCorrect ? '#065f46' : '#991b1b', fontWeight: '800', fontSize: '1.2rem' }}>
+                                      {lessonMcqFeedback.title}
+                                    </h4>
+                                    <p style={{ margin: '4px 0 0', color: lessonMcqFeedback.isCorrect ? '#047857' : '#b91c1c', fontSize: '0.95rem' }}>
+                                      {lessonMcqFeedback.explanation}
+                                    </p>
+                                  </div>
                                 </div>
+                                <button
+                                  type="button"
+                                  className="primary-btn"
+                                  style={{
+                                    background: lessonMcqFeedback.isCorrect ? '#10b981' : '#ef4444',
+                                    color: 'white',
+                                    border: 'none',
+                                    padding: '12px 30px',
+                                    borderRadius: '12px',
+                                    fontWeight: '800',
+                                    cursor: 'pointer'
+                                  }}
+                                  onClick={() => {
+                                    setLessonMcqFeedback(null);
+                                    if (lessonMcqIndex < ai.mcqs.length - 1) {
+                                      setLessonMcqIndex(lessonMcqIndex + 1);
+                                    } else {
+                                      setLessonStep(2);
+                                    }
+                                  }}
+                                >
+                                  Continue
+                                </button>
                               </div>
-                              <button
-                                type="button"
-                                className="primary-btn"
-                                style={{
-                                  background: lessonMcqFeedback.isCorrect ? '#10b981' : '#ef4444',
-                                  color: 'white',
-                                  border: 'none',
-                                  padding: '12px 30px',
-                                  borderRadius: '12px',
-                                  fontWeight: '800',
-                                  cursor: 'pointer'
-                                }}
-                                onClick={() => {
-                                  setLessonMcqFeedback(null);
-                                  if (lessonMcqIndex < ai.mcqs.length - 1) {
-                                    setLessonMcqIndex(lessonMcqIndex + 1);
-                                  } else {
-                                    setLessonStep(2);
-                                  }
-                                }}
-                              >
-                                Continue
-                              </button>
                             </div>
                           )}
                         </div>
@@ -4193,45 +4431,51 @@ function App() {
                               background: lessonFillFeedback.isCorrect ? '#d1fae5' : '#fee2e2',
                               borderTop: `2px solid ${lessonFillFeedback.isCorrect ? '#10b981' : '#ef4444'}`,
                               padding: '20px 40px',
-                              display: 'flex',
-                              justifyContent: 'space-between',
-                              alignItems: 'center',
                               zIndex: 100
                             }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                                <span style={{ fontSize: '2rem' }}>{lessonFillFeedback.isCorrect ? "🎉" : "❌"}</span>
-                                <div>
-                                  <h4 style={{ margin: 0, color: lessonFillFeedback.isCorrect ? '#065f46' : '#991b1b', fontWeight: '800', fontSize: '1.2rem' }}>
-                                    {lessonFillFeedback.title}
-                                  </h4>
-                                  <p style={{ margin: '4px 0 0', color: lessonFillFeedback.isCorrect ? '#047857' : '#b91c1c', fontSize: '0.95rem' }}>
-                                    {lessonFillFeedback.isCorrect ? "You got it right!" : `Correct Answer: "${lessonFillFeedback.correctAnswer}"`}
-                                  </p>
+                              <div style={{
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                width: '100%',
+                                maxWidth: '1000px',
+                                margin: '0 auto'
+                              }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                  <span style={{ fontSize: '2rem' }}>{lessonFillFeedback.isCorrect ? "🎉" : "❌"}</span>
+                                  <div>
+                                    <h4 style={{ margin: 0, color: lessonFillFeedback.isCorrect ? '#065f46' : '#991b1b', fontWeight: '800', fontSize: '1.2rem' }}>
+                                      {lessonFillFeedback.title}
+                                    </h4>
+                                    <p style={{ margin: '4px 0 0', color: lessonFillFeedback.isCorrect ? '#047857' : '#b91c1c', fontSize: '0.95rem' }}>
+                                      {lessonFillFeedback.isCorrect ? "You got it right!" : `Correct Answer: "${lessonFillFeedback.correctAnswer}"`}
+                                    </p>
+                                  </div>
                                 </div>
+                                <button
+                                  type="button"
+                                  className="primary-btn"
+                                  style={{
+                                    background: lessonFillFeedback.isCorrect ? '#10b981' : '#ef4444',
+                                    color: 'white',
+                                    border: 'none',
+                                    padding: '12px 30px',
+                                    borderRadius: '12px',
+                                    fontWeight: '800',
+                                    cursor: 'pointer'
+                                  }}
+                                  onClick={() => {
+                                    setLessonFillFeedback(null);
+                                    if (lessonFillIndex < ai.fillBlanks.length - 1) {
+                                      setLessonFillIndex(lessonFillIndex + 1);
+                                    } else {
+                                      setLessonStep(3);
+                                    }
+                                  }}
+                                >
+                                  Continue
+                                </button>
                               </div>
-                              <button
-                                type="button"
-                                className="primary-btn"
-                                style={{
-                                  background: lessonFillFeedback.isCorrect ? '#10b981' : '#ef4444',
-                                  color: 'white',
-                                  border: 'none',
-                                  padding: '12px 30px',
-                                  borderRadius: '12px',
-                                  fontWeight: '800',
-                                  cursor: 'pointer'
-                                }}
-                                onClick={() => {
-                                  setLessonFillFeedback(null);
-                                  if (lessonFillIndex < ai.fillBlanks.length - 1) {
-                                    setLessonFillIndex(lessonFillIndex + 1);
-                                  } else {
-                                    setLessonStep(3);
-                                  }
-                                }}
-                              >
-                                Continue
-                              </button>
                             </div>
                           )}
                         </div>
@@ -4354,31 +4598,37 @@ function App() {
                                   background: 'var(--panel-strong)',
                                   borderTop: '2px solid var(--accent)',
                                   padding: '20px 40px',
-                                  display: 'flex',
-                                  justifyContent: 'space-between',
-                                  alignItems: 'center',
                                   zIndex: 100
                                 }}>
-                                  <div style={{ flex: 1, marginRight: '20px' }}>
-                                    <div style={{ marginBottom: '8px' }}>
-                                      <strong style={{ color: 'var(--muted)' }}>Your Answer:</strong>
-                                      <p style={{ margin: '2px 0 0', fontWeight: '700' }}>{lessonReadingFeedback.userAnswer}</p>
+                                  <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    width: '100%',
+                                    maxWidth: '1000px',
+                                    margin: '0 auto'
+                                  }}>
+                                    <div style={{ flex: 1, marginRight: '20px' }}>
+                                      <div style={{ marginBottom: '8px' }}>
+                                        <strong style={{ color: 'var(--muted)' }}>Your Answer:</strong>
+                                        <p style={{ margin: '2px 0 0', fontWeight: '700' }}>{lessonReadingFeedback.userAnswer}</p>
+                                      </div>
+                                      <div>
+                                        <strong style={{ color: 'var(--accent)' }}>LISA's Suggested Answer:</strong>
+                                        <p style={{ margin: '2px 0 0', fontWeight: '700', color: 'var(--accent)' }}>{lessonReadingFeedback.suggestedAnswer}</p>
+                                      </div>
                                     </div>
-                                    <div>
-                                      <strong style={{ color: 'var(--accent)' }}>LISA\'s Suggested Answer:</strong>
-                                      <p style={{ margin: '2px 0 0', fontWeight: '700', color: 'var(--accent)' }}>{lessonReadingFeedback.suggestedAnswer}</p>
-                                    </div>
+                                    <button
+                                      type="button"
+                                      className="primary-btn"
+                                      onClick={() => {
+                                        setLessonReadingFeedback(null);
+                                        setLessonReadingStep(2);
+                                      }}
+                                    >
+                                      Continue
+                                    </button>
                                   </div>
-                                  <button
-                                    type="button"
-                                    className="primary-btn"
-                                    onClick={() => {
-                                      setLessonReadingFeedback(null);
-                                      setLessonReadingStep(2);
-                                    }}
-                                  >
-                                    Continue
-                                  </button>
                                 </div>
                               )}
                             </div>
