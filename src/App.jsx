@@ -1983,8 +1983,6 @@ function App() {
 
     // Classify proficiency level (1-5) from skill averages
     const diagnosedLevel = classifyProficiency(skillScores);
-    const profInfo = getProficiencyName(diagnosedLevel, "English");
-    const levelString = profInfo.name;
 
     // Generate learning path from weak skills
     const learningPath = generateLearningPath(skillScores);
@@ -2043,9 +2041,8 @@ function App() {
       setHistoryAttempts(updatedHistory);
       localStorage.setItem("lisa_attempts_history", JSON.stringify(updatedHistory));
 
-      // Update Supabase profile
+      // Update Supabase profile (do not overwrite the user's chosen education_level)
       await supabase.from("profiles").update({
-        education_level: levelString,
         literacy_level: diagnosedLevel,
         assessment_completed: true,
         attempts_history: updatedHistory
@@ -2054,7 +2051,6 @@ function App() {
       // Update local state
       setProfile(prev => ({
         ...prev,
-        education_level: levelString,
         literacy_level: diagnosedLevel,
         assessment_completed: true,
         skill_scores: skillScores,
@@ -3258,7 +3254,7 @@ function App() {
               <div className="dashboard-overview">
                 <div className="dashboard-col dashboard-col-left">
                   <div className="dashboard-greeting">
-                    <h1>Hello, {profile?.full_name || "Learner"}</h1>
+                    <h1>Hello, {profile?.full_name || "Learner"} 👋🏻</h1>
                     <p>Welcome back! Pick up right where you left off.</p>
                   </div>
 
