@@ -5,12 +5,115 @@ import {
   classifyProficiency, getProficiencyName, getWeakSkills, getStrongSkills, getStrongSkillKeys, getWeakSkillKeys, SKILL_TRANSLATION_KEYS,
   SKILL_CATEGORIES, CURRICULUM_SECTIONS, PROFICIENCY_LEVELS, lessonsData
 } from "./curriculumData";
-import { generateLessonContent } from "./geminiClient";
+import { generateLessonContent, fetchWordOfDay } from "./geminiClient";
 
 const languages = ["English", "Hindi", "Kannada", "Telugu", "Tamil"];
 const educationLevels = ["No formal education", "Primary", "Secondary", "Higher secondary", "Graduate"];
 
+const DashboardIcon = ({ className, style }) => (
+  <svg className={className} style={{ marginRight: "10px", verticalAlign: "middle", ...style }} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="3" width="7" height="9" rx="1" />
+    <rect x="14" y="3" width="7" height="5" rx="1" />
+    <rect x="14" y="12" width="7" height="9" rx="1" />
+    <rect x="3" y="16" width="7" height="5" rx="1" />
+  </svg>
+);
 
+const LearnIcon = ({ className, style }) => (
+  <svg className={className} style={{ marginRight: "10px", verticalAlign: "middle", ...style }} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+    <polyline points="9 22 9 12 15 12 15 22" />
+  </svg>
+);
+
+const PracticeIcon = ({ className, style }) => (
+  <svg className={className} style={{ marginRight: "10px", verticalAlign: "middle", ...style }} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
+    <rect x="2" y="8" width="16" height="8" rx="2" />
+    <line x1="6" y1="12" x2="14" y2="12" />
+  </svg>
+);
+
+const ProfileIcon = ({ className, style }) => (
+  <svg className={className} style={{ marginRight: "10px", verticalAlign: "middle", ...style }} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+    <circle cx="12" cy="7" r="4" />
+  </svg>
+);
+
+const LogoutIcon = ({ className, style }) => (
+  <svg className={className} style={{ marginRight: "10px", verticalAlign: "middle", ...style }} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+    <polyline points="16 17 21 12 16 7" />
+    <line x1="21" y1="12" x2="9" y2="12" />
+  </svg>
+);
+
+const FlameIcon = ({ className, style }) => (
+  <svg className={className} style={{ marginRight: "4px", verticalAlign: "middle", ...style }} width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+    <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
+  </svg>
+);
+
+const StarIcon = ({ className, style }) => (
+  <svg className={className} style={{ marginRight: "4px", verticalAlign: "middle", ...style }} width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="1">
+    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+  </svg>
+);
+
+const BookIcon = ({ className, style }) => (
+  <svg className={className} style={{ verticalAlign: "middle", ...style }} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+  </svg>
+);
+
+const BrainIcon = ({ className, style }) => (
+  <svg className={className} style={{ verticalAlign: "middle", ...style }} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1 0-3.12 3 3 0 0 1 0-4.88 2.5 2.5 0 0 1 0-3.12A2.5 2.5 0 0 1 9.5 2Z" />
+    <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44 2.5 2.5 0 0 0 0-3.12 3 3 0 0 0 0-4.88 2.5 2.5 0 0 0 0-3.12A2.5 2.5 0 0 0 14.5 2Z" />
+  </svg>
+);
+
+const EditIcon = ({ className, style }) => (
+  <svg className={className} style={{ verticalAlign: "middle", ...style }} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 20h9" />
+    <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+  </svg>
+);
+
+const TrophyIcon = ({ className, style }) => (
+  <svg className={className} style={{ verticalAlign: "middle", ...style }} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+    <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+    <path d="M4 22h16" />
+    <path d="M10 14.66V17c0 .55-.45 1-1 1H4v2h16v-2h-5c-.55 0-1-.45-1-1v-2.34" />
+    <path d="M12 2a6 6 0 0 1 6 6v5a6 6 0 0 1-6 6 6 6 0 0 1-6-6V8a6 6 0 0 1 6-6Z" />
+  </svg>
+);
+
+const LightbulbIcon = ({ className, style }) => (
+  <svg className={className} style={{ verticalAlign: "middle", ...style }} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A5 5 0 0 0 8 8c0 1 .5 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5" />
+    <path d="M9 18h6" />
+    <path d="M10 22h4" />
+  </svg>
+);
+
+const AlertTriangleIcon = ({ className, style }) => (
+  <svg className={className} style={{ verticalAlign: "middle", ...style }} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+    <line x1="12" y1="9" x2="12" y2="13" />
+    <line x1="12" y1="17" x2="12.01" y2="17" />
+  </svg>
+);
+
+const ClockIcon = ({ className, style }) => (
+  <svg className={className} style={{ verticalAlign: "middle", ...style }} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10" />
+    <polyline points="12 6 12 12 16 14" />
+  </svg>
+);
 
 // Translation dictionary for regional languages
 const translations = {
@@ -740,6 +843,15 @@ const levelBadgeIcon = (level) => {
   return icons[level] || "📚";
 };
 
+const getStreakMessage = (streak) => {
+  if (streak === 0) return "Start learning today to build your streak!";
+  if (streak === 1) return "Great start! Come back tomorrow to keep it going.";
+  if (streak >= 2 && streak <= 4) return `${streak} days in a row! You're building a great habit.`;
+  if (streak >= 5 && streak <= 9) return `Amazing! A ${streak} day streak. You are unstoppable!`;
+  if (streak >= 10 && streak <= 20) return `Incredible! A ${streak} day streak of continuous learning. Keep it up!`;
+  return `You're on fire! An epic ${streak} day streak. Keep the momentum going!`;
+};
+
 function App() {
   const [selectedLanguage, setSelectedLanguage] = useState(
     localStorage.getItem("lisa_lang") || null
@@ -748,25 +860,182 @@ function App() {
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const profileDropdownRef = useRef(null);
 
+  const [streakPopupOpen, setStreakPopupOpen] = useState(false);
+  const streakPopupRef = useRef(null);
+
+  const [activeLessonPopup, setActiveLessonPopup] = useState(null);
+
   useEffect(() => {
-    if (!profileDropdownOpen) return;
     const handleClickOutside = (e) => {
-      if (profileDropdownRef.current && !profileDropdownRef.current.contains(e.target)) {
+      if (profileDropdownOpen && profileDropdownRef.current && !profileDropdownRef.current.contains(e.target)) {
         setProfileDropdownOpen(false);
+      }
+      if (streakPopupOpen && streakPopupRef.current && !streakPopupRef.current.contains(e.target)) {
+        setStreakPopupOpen(false);
+      }
+      if (activeLessonPopup && !e.target.closest('.duo-node-container')) {
+        setActiveLessonPopup(null);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [profileDropdownOpen]);
+  }, [profileDropdownOpen, streakPopupOpen, activeLessonPopup]);
   const [session, setSession] = useState(null);
   const [profile, setProfile] = useState(null);
+  const [profileBg, setProfileBg] = useState("#e86b6b");
+  const [profileAvatar, setProfileAvatar] = useState("/as1.png");
+  const [isEditingCover, setIsEditingCover] = useState(false);
   const [activeTab, setActiveTab] = useState("login"); // "login", "register", "forgot"
   const [dashboardTab, setDashboardTab] = useState("dashboard"); // "dashboard", "learn", "practice", "profile"
   const [activeSection, setActiveSection] = useState(0); // paginated section in learn tab
   const learnJourneyRef = useRef(null);
+  const activeNodeRef = useRef(null);
+
   const [userXp, setUserXp] = useState(0);
   const [completedLessons, setCompletedLessons] = useState([]);
   const [lessonSession, setLessonSession] = useState(null);
+  const [streakCount, setStreakCount] = useState(0);
+  const [wordOfDay, setWordOfDay] = useState({ word: "Diligent", example: "A diligent student practices reading a little every day." });
+
+  // Auto-scroll to the current active (resumed) lesson node
+  useEffect(() => {
+    if (dashboardTab === "learn") {
+      const scrollActiveNode = () => {
+        if (activeNodeRef.current) {
+          activeNodeRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      };
+
+      // Staggered scrolls to guarantee accuracy as images load and DOM finishes laying out
+      const t1 = setTimeout(scrollActiveNode, 100);
+      const t2 = setTimeout(scrollActiveNode, 400);
+      const t3 = setTimeout(scrollActiveNode, 800);
+
+      return () => {
+        clearTimeout(t1);
+        clearTimeout(t2);
+        clearTimeout(t3);
+      };
+    }
+  }, [dashboardTab, completedLessons]);
+
+  useEffect(() => {
+    let active = true;
+    const loadWordOfDay = async () => {
+      const res = await fetchWordOfDay(selectedLanguage || "English");
+      if (active && res) {
+        setWordOfDay(res);
+      }
+    };
+    loadWordOfDay();
+    return () => { active = false; };
+  }, [selectedLanguage]);
+
+  useEffect(() => {
+    if (profile?.avatar_url) {
+      setProfileAvatar(profile.avatar_url);
+    }
+  }, [profile?.avatar_url]);
+
+  const updateStreak = async (userId, currentProfile) => {
+    try {
+      const today = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD local format
+      const yesterdayDate = new Date();
+      yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+      const yesterday = yesterdayDate.toLocaleDateString("en-CA");
+
+      let currentStreak = currentProfile?.streak ?? 0;
+      let lastActive = currentProfile?.last_active_date;
+
+      const localStreak = localStorage.getItem(`lisa_streak_${userId}`);
+      const localLastActive = localStorage.getItem(`lisa_last_active_date_${userId}`);
+
+      if (localStreak && !currentProfile?.streak) {
+        currentStreak = parseInt(localStreak, 10);
+      }
+      if (localLastActive && !lastActive) {
+        lastActive = localLastActive;
+      }
+
+      let newStreak = currentStreak;
+
+      if (!lastActive) {
+        newStreak = 1;
+      } else if (lastActive === today) {
+        newStreak = currentStreak || 1;
+      } else if (lastActive === yesterday) {
+        newStreak = currentStreak + 1;
+      } else {
+        newStreak = 1;
+      }
+
+      localStorage.setItem(`lisa_streak_${userId}`, newStreak);
+      localStorage.setItem(`lisa_last_active_date_${userId}`, today);
+      
+      let activeDates = [];
+      try {
+        const stored = localStorage.getItem(`lisa_active_dates_${userId}`);
+        activeDates = stored ? JSON.parse(stored) : [];
+      } catch {}
+      if (!activeDates.includes(today)) {
+        activeDates.push(today);
+        localStorage.setItem(`lisa_active_dates_${userId}`, JSON.stringify(activeDates));
+      }
+
+      setStreakCount(newStreak);
+
+      await supabase
+        .from("profiles")
+        .update({
+          streak: newStreak,
+          last_active_date: today
+        })
+        .eq("id", userId);
+
+      setProfile(prev => prev ? { ...prev, streak: newStreak, last_active_date: today } : null);
+    } catch (err) {
+      console.warn("Could not sync streak with DB, utilizing local storage:", err);
+    }
+  };
+  const getPastSevenDaysStatus = () => {
+    if (!session?.user?.id) return [];
+    const userId = session.user.id;
+    
+    let activeDates = [];
+    try {
+      const stored = localStorage.getItem(`lisa_active_dates_${userId}`);
+      activeDates = stored ? JSON.parse(stored) : [];
+    } catch {
+      activeDates = [];
+    }
+
+    const todayStr = new Date().toLocaleDateString("en-CA");
+    const lastActiveLocal = localStorage.getItem(`lisa_last_active_date_${userId}`);
+    if (lastActiveLocal === todayStr && !activeDates.includes(todayStr)) {
+      activeDates.push(todayStr);
+      try {
+        localStorage.setItem(`lisa_active_dates_${userId}`, JSON.stringify(activeDates));
+      } catch {}
+    }
+
+    const days = [];
+    const weekdayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toLocaleDateString("en-CA");
+      const dayLabel = weekdayLabels[d.getDay()];
+      days.push({
+        label: dayLabel,
+        date: dateStr,
+        isCompleted: activeDates.includes(dateStr),
+        isToday: i === 0
+      });
+    }
+    return days;
+  };
+
   useEffect(() => {
     if (session?.user?.id) {
       const userId = session.user.id;
@@ -775,9 +1044,20 @@ function App() {
 
       const storedLessons = localStorage.getItem(`lisa_completed_lessons_${userId}`);
       setCompletedLessons(storedLessons ? JSON.parse(storedLessons) : []);
+
+      const localStreak = localStorage.getItem(`lisa_streak_${userId}`);
+      setStreakCount(localStreak ? parseInt(localStreak, 10) : 0);
+
+      const bg = localStorage.getItem(`lisa_profile_bg_${userId}`) || "#e86b6b";
+      const av = localStorage.getItem(`lisa_profile_avatar_${userId}`) || "/as1.png";
+      setProfileBg(bg);
+      setProfileAvatar(av);
     } else {
       setUserXp(0);
       setCompletedLessons([]);
+      setStreakCount(0);
+      setProfileBg("#e86b6b");
+      setProfileAvatar("/as1.png");
     }
   }, [session]);
 
@@ -804,6 +1084,21 @@ function App() {
       setCompletedLessons(newLessons);
       localStorage.setItem(`lisa_completed_lessons_${userId}`, JSON.stringify(newLessons));
     }
+
+    // Save active dates
+    const today = new Date().toLocaleDateString("en-CA");
+    let activeDates = [];
+    try {
+      const stored = localStorage.getItem(`lisa_active_dates_${userId}`);
+      activeDates = stored ? JSON.parse(stored) : [];
+    } catch {}
+    if (!activeDates.includes(today)) {
+      activeDates.push(today);
+      localStorage.setItem(`lisa_active_dates_${userId}`, JSON.stringify(activeDates));
+    }
+
+    // Refresh day streak in real-time
+    updateStreak(userId, profile);
   };
 
   // AI-powered lesson session starter
@@ -865,7 +1160,8 @@ function App() {
       setLessonStep(prev => prev + 1);
     } else {
       // Complete the lesson
-      completeLesson(lessonSession?.lessonId, 15);
+      const isExam = lessonSession?.lessonId?.endsWith("l5");
+      completeLesson(lessonSession?.lessonId, isExam ? 60 : 15);
       setLessonSession(prev => prev ? { ...prev, status: "completed" } : null);
     }
   };
@@ -996,6 +1292,48 @@ function App() {
     };
   }, []);
 
+  // Update document title dynamically based on the current page/state
+  useEffect(() => {
+    if (!session) {
+      if (!selectedLanguage) {
+        document.title = "LISA | Choose Language";
+      } else if (recoveryMode) {
+        document.title = "LISA | Reset Password";
+      } else if (activeTab === "register") {
+        document.title = "LISA | Create Learner Profile";
+      } else if (activeTab === "forgot") {
+        document.title = "LISA | Forgot Password";
+      } else {
+        document.title = "LISA | Login";
+      }
+    } else {
+      if (assessmentState === "answering") {
+        document.title = "LISA | Initial Assessment";
+      } else if (assessmentState === "results") {
+        document.title = "LISA | Assessment Results";
+      } else if (lessonSession) {
+        document.title = `LISA | Lesson: ${lessonSession.title || "Personalized Lesson"}`;
+      } else {
+        switch (dashboardTab) {
+          case "dashboard":
+            document.title = "LISA | Dashboard";
+            break;
+          case "learn":
+            document.title = "LISA | Learning Path";
+            break;
+          case "practice":
+            document.title = "LISA | Practice";
+            break;
+          case "profile":
+            document.title = "LISA | Profile Settings";
+            break;
+          default:
+            document.title = "LISA | AI Literacy Companion";
+        }
+      }
+    }
+  }, [session, selectedLanguage, recoveryMode, activeTab, assessmentState, lessonSession, dashboardTab]);
+
   // Auto-play the dictation sentence when the writing section is opened
   useEffect(() => {
     if (assessmentState !== "answering") return;
@@ -1018,7 +1356,7 @@ function App() {
         console.warn("Could not fetch profile, setting default session:", error.message);
         const storedAssessment = getStoredAssessmentState(userId);
         // Fallback for demo users
-        setProfile({
+        const defaultProfile = {
           id: userId,
           full_name: session?.user?.user_metadata?.full_name || session?.user?.email || "Learner",
           age: session?.user?.user_metadata?.age || 20,
@@ -1026,7 +1364,9 @@ function App() {
           education_level: session?.user?.user_metadata?.education_level || "No formal education",
           literacy_level: storedAssessment?.literacy_level ?? null,
           assessment_completed: storedAssessment?.assessment_completed ?? false
-        });
+        };
+        setProfile(defaultProfile);
+        updateStreak(userId, defaultProfile);
       } else {
         const storedAssessment = getStoredAssessmentState(userId);
         const mergedProfile = storedAssessment
@@ -1038,6 +1378,7 @@ function App() {
           : data;
 
         setProfile(mergedProfile);
+        updateStreak(userId, mergedProfile);
         // Sync locally selected language from login screen to database profile
         const localLang = localStorage.getItem("lisa_lang") || selectedLanguage || "English";
         if (localLang && mergedProfile.preferred_language !== localLang) {
@@ -1133,7 +1474,7 @@ function App() {
     if (data.user) {
       if (data.session) {
         setMessage(t("successAccountCreated"));
-        setProfile({
+        const newProfile = {
           id: data.user.id,
           full_name: fullName,
           age,
@@ -1141,7 +1482,9 @@ function App() {
           education_level: educationLevel,
           literacy_level: null,
           assessment_completed: false
-        });
+        };
+        setProfile(newProfile);
+        updateStreak(data.user.id, newProfile);
       } else {
         setMessage(t("checkEmailConfirm"));
       }
@@ -1535,6 +1878,52 @@ function App() {
     }
   };
 
+  const handleAvatarUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file || !session?.user?.id) return;
+
+    try {
+      setSubmitting(true);
+      const userId = session.user.id;
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${userId}/avatar_${Date.now()}.${fileExt}`;
+
+      // Upload file to Supabase Storage bucket 'avatars'
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+      // Update profile avatar_url in the database
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrl })
+        .eq('id', userId);
+
+      if (updateError) {
+        throw updateError;
+      }
+
+      // Update states
+      setProfileAvatar(publicUrl);
+      setProfile(prev => prev ? { ...prev, avatar_url: publicUrl } : null);
+      localStorage.setItem(`lisa_profile_avatar_${userId}`, publicUrl);
+    } catch (error) {
+      console.error("Error uploading avatar:", error.message);
+      alert("Failed to upload avatar: " + error.message + "\n\nPlease ensure you have created a public bucket named 'avatars' in your Supabase storage.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleStartEdit = () => {
     setEditFullName(profile?.full_name || "");
     setEditAge(profile?.age || "");
@@ -1890,10 +2279,7 @@ function App() {
       return { sectionIdx: 0, unitIdx: 0, lessonIdx: 0 };
     })();
 
-    const wordOfDay = {
-      word: "Diligent",
-      example: "A diligent student practices reading a little every day.",
-    };
+
 
     const speakWord = (text) => {
       if (typeof window !== "undefined" && window.speechSynthesis) {
@@ -2470,28 +2856,44 @@ function App() {
               className={`sidebar-item ${dashboardTab === "dashboard" ? "active" : ""}`}
               onClick={() => setDashboardTab("dashboard")}
             >
-              📊 Dashboard
+              <DashboardIcon /> Dashboard
             </button>
             <button
               type="button"
               className={`sidebar-item ${dashboardTab === "learn" ? "active" : ""}`}
               onClick={() => setDashboardTab("learn")}
             >
-              🏠 Learn
+              <LearnIcon /> Learn
             </button>
             <button
               type="button"
               className={`sidebar-item ${dashboardTab === "practice" ? "active" : ""}`}
               onClick={() => setDashboardTab("practice")}
             >
-              🏋️ Practice
+              <PracticeIcon /> Practice
             </button>
             <button
               type="button"
               className={`sidebar-item ${dashboardTab === "profile" ? "active" : ""}`}
               onClick={() => setDashboardTab("profile")}
+              style={{ display: 'flex', alignItems: 'center' }}
             >
-              👤 Profile
+              {profileAvatar && profileAvatar.startsWith("http") ? (
+                <img 
+                  src={profileAvatar} 
+                  alt="Profile" 
+                  style={{ 
+                    width: "28px", 
+                    height: "28px", 
+                    borderRadius: "50%", 
+                    objectFit: "cover", 
+                    marginRight: "10px" 
+                  }} 
+                />
+              ) : (
+                <ProfileIcon />
+              )}
+              Profile
             </button>
           </div>
           <div className="sidebar-footer">
@@ -2501,7 +2903,7 @@ function App() {
               style={{ color: '#ef4444' }}
               onClick={() => handleSignOut()}
             >
-              🚪 {t("logout")}
+              <LogoutIcon /> {t("logout")}
             </button>
           </div>
         </aside>
@@ -2510,9 +2912,76 @@ function App() {
         <div className="dashboard-main-content">
           {/* Topbar */}
           <div className="dashboard-topbar">
-            <div className="topbar-indicators">
-              <div className="indicator-pill streak">🔥 36</div>
-              <div className="indicator-pill xp">⭐ {userXp} XP</div>
+            <div className="topbar-indicators" style={{ position: 'relative' }}>
+              <div 
+                className="indicator-pill streak" 
+                onClick={() => setStreakPopupOpen(!streakPopupOpen)}
+                style={{ cursor: 'pointer', position: 'relative' }}
+                ref={streakPopupRef}
+              >
+                <FlameIcon style={{ color: '#ff4d00' }} /> {streakCount}
+
+                {/* Streak Popup */}
+                {streakPopupOpen && (
+                  <div 
+                    className="streak-popup-overlay" 
+                    style={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: '0',
+                      marginTop: '12px',
+                      width: '290px',
+                      background: 'var(--panel-strong)',
+                      border: '2px solid var(--line)',
+                      borderRadius: '16px',
+                      boxShadow: 'var(--shadow)',
+                      padding: '16px',
+                      zIndex: 1000,
+                      cursor: 'default'
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px', textAlign: 'left' }}>
+                      <FlameIcon style={{ width: '28px', height: '28px', color: '#ff4d00', marginRight: 0 }} />
+                      <div>
+                        <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: 'var(--text)' }}>{streakCount} Day Streak!</h3>
+                        <p style={{ margin: '2px 0 0', fontSize: '0.78rem', color: 'var(--muted)' }}>
+                          {streakCount > 0 ? "You're doing great! Keep it up." : "Start a lesson to begin your streak!"}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Past 7 days grid */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '6px', textAlign: 'center' }}>
+                      {getPastSevenDaysStatus().map((day, idx) => (
+                        <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                          <span style={{ fontSize: '0.7rem', fontWeight: 700, color: day.isToday ? 'var(--accent)' : 'var(--muted)' }}>
+                            {day.label}
+                          </span>
+                          <div style={{
+                            width: '26px',
+                            height: '26px',
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            background: day.isCompleted 
+                              ? 'linear-gradient(135deg, #ff6b00, #ff4d00)' 
+                              : 'rgba(0,0,0,0.05)',
+                            color: day.isCompleted ? 'white' : 'var(--muted)',
+                            border: day.isToday ? '2px solid var(--accent)' : 'none',
+                            fontSize: '0.75rem',
+                            fontWeight: 700
+                          }}>
+                            {day.isCompleted ? '🔥' : ''}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className="indicator-pill xp"><StarIcon style={{ color: '#f59e0b' }} /> {userXp} XP</div>
             </div>
             {renderThemeToggle()}
             {renderLanguageDropdown(true)}
@@ -2525,7 +2994,7 @@ function App() {
               <div className="dashboard-overview">
                 <div className="dashboard-col dashboard-col-left">
                   <div className="dashboard-greeting">
-                    <h1>Hello, {profile?.full_name || "Learner"} 👋</h1>
+                    <h1>Hello, {profile?.full_name || "Learner"}</h1>
                     <p>Welcome back! Pick up right where you left off.</p>
                   </div>
 
@@ -2586,10 +3055,10 @@ function App() {
                     <div className="streak-widget-card streak-society-card" style={{ margin: 0 }}>
                       <div className="streak-society-header">
                         <span className="streak-society-badge">STREAK SOCIETY</span>
-                        <div className="streak-society-icon">🔥</div>
+                        <div className="streak-society-icon"><FlameIcon style={{ width: "36px", height: "36px", color: '#ff4d00', marginRight: 0 }} /></div>
                       </div>
-                      <h4 className="streak-society-title">36 day streak</h4>
-                      <p className="streak-society-message">You're on fire. Keep the momentum going!</p>
+                      <h4 className="streak-society-title">{streakCount} day streak</h4>
+                      <p className="streak-society-message">{getStreakMessage(streakCount)}</p>
                     </div>
 
                     <div className="daily-quests-card" style={{ margin: 0 }}>
@@ -2599,14 +3068,18 @@ function App() {
                       </div>
                       <div className="quest-list">
                         <div className="quest-item">
-                          <div className="quest-icon">⚡</div>
+                          <div className="quest-icon">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: 'middle' }}>
+                              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                            </svg>
+                          </div>
                           <div className="quest-content">
                             <div className="quest-title">Earn 20 XP</div>
                             <div className="quest-progress-bg">
                               <div className="quest-progress-fill" style={{ width: `${Math.min((userXp / 20) * 100, 100)}%` }}></div>
                             </div>
                           </div>
-                          <div className="quest-reward">📦</div>
+                          <div className="quest-reward"><TrophyIcon style={{ color: '#f59e0b', marginRight: 0 }} /></div>
                         </div>
                       </div>
                     </div>
@@ -2618,10 +3091,10 @@ function App() {
                     </div>
                     <div className="achievements-list">
                       {[
-                        { id: 1, title: "First Steps", desc: "Complete your first assessment", icon: "🌟", earned: true, color: "#f59e0b" },
-                        { id: 2, title: "Reading Star", desc: "Score 75% or higher in reading", icon: "📖", earned: calculateSkillProficiency("reading") >= 75, color: "#3b82f6" },
-                        { id: 3, title: "Comprehension Pro", desc: "Score 75% or higher in comprehension", icon: "🧠", earned: calculateSkillProficiency("comprehension") >= 75, color: "#10b981" },
-                        { id: 4, title: "Wordsmith", desc: "Score 75% or higher in writing", icon: "✍️", earned: calculateSkillProficiency("writing") >= 75, color: "#a855f7" },
+                        { id: 1, title: "First Steps", desc: "Complete your first assessment", icon: <StarIcon style={{ marginRight: 0 }} />, earned: true, color: "#f59e0b" },
+                        { id: 2, title: "Reading Star", desc: "Score 75% or higher in reading", icon: <BookIcon style={{ marginRight: 0 }} />, earned: calculateSkillProficiency("reading") >= 75, color: "#3b82f6" },
+                        { id: 3, title: "Comprehension Pro", desc: "Score 75% or higher in comprehension", icon: <BrainIcon style={{ marginRight: 0 }} />, earned: calculateSkillProficiency("comprehension") >= 75, color: "#10b981" },
+                        { id: 4, title: "Wordsmith", desc: "Score 75% or higher in writing", icon: <EditIcon style={{ marginRight: 0 }} />, earned: calculateSkillProficiency("writing") >= 75, color: "#a855f7" },
                       ].map((a) => (
                         <div key={a.id} className={`achievement-row ${a.earned ? "earned" : ""}`}>
                           <div className="achievement-badge-box" style={{ background: a.color }}>
@@ -2641,124 +3114,192 @@ function App() {
               </div>
             )}
 
-            {/* 3.1. Learn Tab — 7-Section AI Curriculum */}
+            {/* 3.1. Learn Tab — Duolingo-style Continuous Curriculum Path */}
             {dashboardTab === "learn" && (() => {
               const storedSkills = (() => { try { const s = getStoredAssessmentState(session?.user?.id); return s?.skill_scores || profile?.skill_scores || {}; } catch { return {}; } })();
-              const orderedSections = getOrderedSections(storedSkills);
               const weakSkillLabels = getWeakSkills(storedSkills);
-              const aSection = orderedSections[Math.min(activeSection, orderedSections.length - 1)];
+
+              // Render all sections sequentially in standard order (1 to 7) per spec
+              const orderedSections = CURRICULUM_SECTIONS; 
+
+              // Build a flat ordered list of all lessons in the curriculum for chain unlocking
+              const allLessonsList = [];
+              orderedSections.forEach((sec) => {
+                sec.units.forEach((uni) => {
+                  uni.lessons.forEach((les) => {
+                    allLessonsList.push(les.id);
+                  });
+                });
+              });
+
+              // Determine starting lesson index based on diagnosed literacy level (per Spec mapping 1-5 levels)
+              const startingLessonId = (() => {
+                const level = profile?.literacy_level || 1;
+                if (level === 2) return "s2u1l1";
+                if (level === 3) return "s3u1l1";
+                if (level === 4) return "s5u1l1";
+                if (level === 5) return "s7u1l1";
+                return "s1u1l1"; // Default/Level 1
+              })();
+
+              const startingLessonIndex = allLessonsList.indexOf(startingLessonId);
+
+              let unitCounter = 0;
 
               return (
-                <div className="learn-grid-layout">
-                  {/* Section Selector Tabs */}
-                  <div className="curriculum-section-tabs" ref={learnJourneyRef}>
-                    {orderedSections.map((sec, idx) => (
-                      <button
-                        key={sec.id}
-                        type="button"
-                        className={`curriculum-section-tab ${activeSection === idx ? "active" : ""}`}
-                        style={{ borderColor: activeSection === idx ? sec.color : "transparent" }}
-                        onClick={() => setActiveSection(idx)}
-                      >
-                        <span className="curriculum-tab-icon">{sec.icon}</span>
-                        <span className="curriculum-tab-num">Section {sec.num}</span>
-                        {weakSkillLabels.some(w => w.toLowerCase().includes(sec.skillTarget?.replace("_", " ") || "")) && (
-                          <span className="curriculum-tab-badge">★</span>
-                        )}
-                      </button>
-                    ))}
-                  </div>
+                <div className="duo-learn-container" ref={learnJourneyRef}>
+                  {orderedSections.map((section, secIdx) => {
+                    const isSectionRecommended = weakSkillLabels.some(w => w.toLowerCase().includes(section.skillTarget?.replace("_", " ") || ""));
 
-                  {/* Section Content */}
-                  {aSection && (
-                    <div className="lesson-path-column">
-                      <div className="lesson-section-banner" style={{ background: `linear-gradient(135deg, ${aSection.color}22 0%, ${aSection.color}44 100%)`, borderLeft: `4px solid ${aSection.color}` }}>
-                        <div className="lesson-section-banner-info">
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            <span style={{ fontSize: '2rem' }}>{aSection.icon}</span>
-                            <div>
-                              <h2 className="lesson-section-banner-meta">Section {aSection.num} of 7</h2>
-                              <p className="lesson-section-banner-unit">{aSection.title}</p>
-                            </div>
+                    return (
+                      <div key={section.id} className="duo-section-block">
+                        {/* Section Checkpoint Header */}
+                        <div className="duo-section-banner" style={{ background: `linear-gradient(135deg, ${section.color} 0%, ${section.color}cc 100%)`, boxShadow: `0 8px 24px ${section.color}33` }}>
+                          <span className="duo-section-banner-icon">{section.icon}</span>
+                          <div className="duo-section-banner-text">
+                            <span className="duo-section-banner-meta">Section {section.num} of {orderedSections.length}</span>
+                            <h2 className="duo-section-banner-title">{section.title}</h2>
                           </div>
-                          {weakSkillLabels.some(w => w.toLowerCase().includes(aSection.skillTarget?.replace("_", " ") || "")) && (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '12px' }}>
-                              <span style={{ background: '#f59e0b', color: 'white', padding: '4px 12px', borderRadius: '99px', fontSize: '0.75rem', fontWeight: 700 }}>⭐ Recommended for You</span>
-                              <span style={{ color: 'var(--muted)', fontSize: '0.8rem' }}>This section targets your weak area</span>
-                            </div>
+                          {isSectionRecommended && (
+                            <span className="duo-section-badge">⭐ Recommended</span>
                           )}
                         </div>
-                      </div>
 
-                      {aSection.units.map((unit) => {
-                        const unitLessons = unit.lessons;
-                        const completedInUnit = unitLessons.filter(l => completedLessons.includes(l.id)).length;
-                        return (
-                          <div key={unit.id} className="lesson-unit">
-                            <div className="lesson-unit-header">
-                              <h3 className="lesson-unit-title">Unit {unit.num}</h3>
-                              <span className="lesson-unit-topic">{unit.title}</span>
-                              <span style={{ marginLeft: 'auto', fontSize: '0.8rem', color: 'var(--muted)' }}>{completedInUnit}/{unitLessons.length} done</span>
-                            </div>
+                        {section.units.map((unit) => {
+                          const unitLessons = unit.lessons;
+                          const completedInUnit = unitLessons.filter(l => completedLessons.includes(l.id)).length;
+                          const currentUnitIndex = unitCounter++;
+                          const mascotNum = (currentUnitIndex % 4) + 1;
+                          const sideClass = currentUnitIndex % 2 === 0 ? "mascot-left" : "mascot-right";
 
-                            {unitLessons.map((lesson, lIdx) => {
-                              const isCompleted = completedLessons.includes(lesson.id);
-                              const prevCompleted = lIdx === 0 || completedLessons.includes(unitLessons[lIdx - 1].id);
-                              const isUnlocked = lIdx === 0 || prevCompleted;
-                              const status = isCompleted ? "completed" : isUnlocked ? "unlocked" : "locked";
-                              const lessonXp = 15;
+                          return (
+                            <div key={unit.id} className="duo-unit-block">
+                              <div className="duo-unit-header">
+                                <h3 className="duo-unit-title">Unit {unit.num}</h3>
+                                <span className="duo-unit-topic">{unit.title}</span>
+                                <span className="duo-unit-progress">{completedInUnit}/{unitLessons.length} Done</span>
+                              </div>
 
-                              return (
-                                <div key={lesson.id} className={`lesson-card ${status}`}>
-                                  <div className="lesson-card-spine">
-                                    <span className="lesson-card-node" style={{ background: isCompleted ? '#10b981' : isUnlocked ? aSection.color : '#6b7280' }}>
-                                      {status === "completed" ? "✓" : lIdx + 1}
-                                    </span>
-                                  </div>
+                              {/* Centered Snaking Lesson Path */}
+                              <div className="duo-lessons-path" style={{ position: 'relative' }}>
+                                <div className="duo-path-line"></div>
+                                
+                                {/* Mascot on alternating sides per unit */}
+                                <div className={`duo-path-mascot ${sideClass}`}>
+                                  <img 
+                                    src={`/as${mascotNum}.png`} 
+                                    alt="LISA Mascot" 
+                                    style={{ width: '130px', height: '130px', objectFit: 'contain' }} 
+                                  />
+                                </div>
+                                
+                                {unitLessons.map((lesson, lIdx) => {
+                                  const isCompleted = completedLessons.includes(lesson.id);
+                                  const lessonIndexInCurriculum = allLessonsList.indexOf(lesson.id);
+                                  const isUnlocked = lessonIndexInCurriculum <= startingLessonIndex || completedLessons.includes(allLessonsList[lessonIndexInCurriculum - 1]);
+                                  const status = isCompleted ? "completed" : isUnlocked ? "unlocked" : "locked";
+                                  const lessonXp = lIdx === 4 ? 60 : 15;
 
-                                  <div className="lesson-card-main">
-                                    <div className="lesson-card-icon">{lesson.icon}</div>
+                                  // Calculate snaking offset class
+                                  // Path: Center -> Right -> Center -> Left -> Repeat
+                                  const snakePositions = ["snake-center", "snake-right", "snake-center", "snake-left"];
+                                  const snakeClass = snakePositions[lIdx % 4];
 
-                                    <div className="lesson-card-body">
-                                      <h4 className="lesson-card-title">{aSection.title} — Lesson {lIdx + 1}</h4>
-                                      <p className="lesson-card-desc">AI-generated, personalized for your literacy level</p>
-                                    </div>
+                                  const isPopupOpen = activeLessonPopup === lesson.id;
 
-                                    <div className="lesson-card-action">
-                                      <span className={`lesson-card-pill ${status}`}>
-                                        {status === "completed" ? "✓ Done" : status === "unlocked" ? "Ready" : "🔒"}
-                                      </span>
+                                  // Find the active resumed lesson ID (starting from their diagnosed level)
+                                  const currentActiveLessonId = allLessonsList.slice(startingLessonIndex).find(id => !completedLessons.includes(id)) || allLessonsList[0];
+                                  const isActiveNode = lesson.id === currentActiveLessonId;
+
+                                  return (
+                                    <div 
+                                      key={lesson.id} 
+                                      className={`duo-node-container ${snakeClass} ${status}`}
+                                      style={{ zIndex: isPopupOpen ? 1100 : 2 }}
+                                      ref={isActiveNode ? activeNodeRef : null}
+                                    >
+                                      {/* Circular Checkpoint Node */}
                                       <button
                                         type="button"
-                                        className="lesson-card-btn"
-                                        disabled={status === "locked" || lessonLoading}
-                                        onClick={() => {
-                                          if (status !== "locked") startLessonSession(lesson, aSection, unit);
+                                        className={`duo-node-circle ${status}`}
+                                        style={{ 
+                                          background: isCompleted ? '#10b981' : isUnlocked ? section.color : undefined
                                         }}
-                                        style={{ background: isCompleted ? '#10b981' : isUnlocked ? aSection.color : '#6b7280' }}
+                                        onClick={() => {
+                                          if (activeLessonPopup === lesson.id) {
+                                            setActiveLessonPopup(null);
+                                          } else {
+                                            setActiveLessonPopup(lesson.id);
+                                          }
+                                        }}
                                       >
-                                        {status === "completed" ? `✦ Review +${lessonXp} XP` : status === "unlocked" ? `▶ Start +${lessonXp} XP` : "Locked"}
+                                        <span className="duo-node-icon" style={{ color: isCompleted || isUnlocked ? 'white' : 'var(--muted)' }}>
+                                          {isCompleted ? '✓' : lesson.icon || '📚'}
+                                        </span>
                                       </button>
-                                    </div>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        );
-                      })}
 
-                      {/* Section navigation */}
-                      <div className="lesson-section-nav">
-                        {activeSection > 0 && (
-                          <button type="button" className="lesson-next-section-btn prev" onClick={() => { setActiveSection(i => i - 1); learnJourneyRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }); }}>← Previous Section</button>
-                        )}
-                        {activeSection < orderedSections.length - 1 && (
-                          <button type="button" className="lesson-next-section-btn" onClick={() => { setActiveSection(i => i + 1); learnJourneyRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }); }}>Next: {orderedSections[activeSection + 1].title} →</button>
-                        )}
+                                      {/* Duolingo Info Popover */}
+                                      {isPopupOpen && (
+                                        <div className="duo-popover-card">
+                                          <div className="duo-popover-header">
+                                            <span className="duo-popover-badge" style={{ 
+                                              background: isCompleted ? 'rgba(16, 185, 129, 0.15)' : isUnlocked ? `${section.color}22` : 'rgba(120, 120, 120, 0.15)',
+                                              color: isCompleted ? '#0f9d6b' : isUnlocked ? section.color : '#8a8f98'
+                                            }}>
+                                              {status === "completed" ? "✓ Done" : status === "unlocked" ? "Ready" : "🔒 Locked"}
+                                            </span>
+                                            <span className="duo-popover-xp">+{lessonXp} XP</span>
+                                          </div>
+                                          <h4 className="duo-popover-title">{unit.title} — {lIdx === 4 ? "Unit Exam" : `Lesson ${lIdx + 1}`}</h4>
+                                          <p className="duo-popover-desc">
+                                            {lIdx === 4 
+                                              ? "A comprehensive unit exam testing skills from the first 4 lessons." 
+                                              : "Personalized AI lesson targeting your curriculum goals."}
+                                          </p>
+                                          
+                                          <button
+                                            type="button"
+                                            className="duo-popover-btn"
+                                            disabled={status === "locked" || lessonLoading}
+                                            onClick={() => {
+                                              setActiveLessonPopup(null);
+                                              startLessonSession(lesson, section, unit);
+                                            }}
+                                            style={{ 
+                                              background: isCompleted ? '#10b981' : isUnlocked ? section.color : '#6b7280',
+                                              boxShadow: isCompleted ? '0 4px 12px rgba(16, 185, 129, 0.3)' : isUnlocked ? `0 4px 12px ${section.color}55` : 'none'
+                                            }}
+                                          >
+                                            {lIdx === 4 
+                                              ? (status === "completed" ? "Review Exam" : "Start Exam") 
+                                              : (status === "completed" ? "Review Lesson" : "Start Lesson")}
+                                          </button>
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
-                    </div>
-                  )}
+                    );
+                  })}
+
+                  {/* Floating Scroll to Top button */}
+                  <button 
+                    type="button" 
+                    className="scroll-top-btn"
+                    onClick={() => {
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                      learnJourneyRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }}
+                    title="Scroll to Top"
+                    aria-label="Scroll to top of learning path"
+                  >
+                    ↑
+                  </button>
                 </div>
               );
             })()}
@@ -2848,8 +3389,59 @@ function App() {
             {dashboardTab === "profile" && (
               <div className="profile-view-container">
                 <div className="profile-card-large">
-                  <div className="profile-avatar-large">
-                    {getUserInitials(profile?.full_name)}
+                  <div 
+                    className="profile-avatar-large" 
+                    style={{ 
+                      display: "flex", 
+                      alignItems: "center", 
+                      justifyContent: "center", 
+                      overflow: "hidden",
+                      position: "relative",
+                      border: "4px solid var(--accent)",
+                      boxShadow: "0 8px 24px rgba(0,0,0,0.12)"
+                    }}
+                  >
+                    {profileAvatar && profileAvatar.startsWith("http") ? (
+                      <img src={profileAvatar} alt="Profile" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    ) : (
+                      getUserInitials(profile?.full_name)
+                    )}
+
+                    {/* Direct Image File Uploader Input */}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleAvatarUpload}
+                      disabled={submitting}
+                      style={{ display: "none" }}
+                      id="direct-avatar-upload-file"
+                    />
+                    
+                    {/* Pencil Edit Badge overlay at bottom right */}
+                    <label 
+                      htmlFor="direct-avatar-upload-file" 
+                      style={{
+                        position: "absolute",
+                        bottom: "4px",
+                        right: "4px",
+                        width: "28px",
+                        height: "28px",
+                        borderRadius: "50%",
+                        background: "var(--accent)",
+                        color: "white",
+                        display: "grid",
+                        placeItems: "center",
+                        cursor: "pointer",
+                        fontSize: "0.75rem",
+                        boxShadow: "0 4px 10px rgba(0,0,0,0.25)",
+                        transition: "all 0.15s ease",
+                        border: "none"
+                      }}
+                      title={submitting ? "Uploading image..." : "Upload Profile Picture"}
+                      className="profile-avatar-edit-badge"
+                    >
+                      {submitting ? "⏳" : "✏️"}
+                    </label>
                   </div>
                   <div className="profile-info-large">
                     <h2>{profile?.full_name || "Learner"}</h2>

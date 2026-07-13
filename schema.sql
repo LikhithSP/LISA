@@ -12,6 +12,8 @@ create table if not exists public.profiles (
 
 alter table public.profiles add column if not exists literacy_level integer;
 alter table public.profiles add column if not exists assessment_completed boolean not null default false;
+alter table public.profiles add column if not exists streak integer not null default 0;
+alter table public.profiles add column if not exists last_active_date date;
 
 -- Set up Row Level Security
 alter table public.profiles enable row level security;
@@ -29,7 +31,7 @@ create policy "Users can update their own profile." on public.profiles
 create or replace function public.handle_new_user()
 returns trigger as $$
 begin
-  insert into public.profiles (id, full_name, age, preferred_language, education_level, literacy_level, assessment_completed)
+  insert into public.profiles (id, full_name, age, preferred_language, education_level, literacy_level, assessment_completed, streak, last_active_date)
   values (
     new.id,
     coalesce(new.raw_user_meta_data->>'full_name', ''),
@@ -37,7 +39,9 @@ begin
     coalesce(new.raw_user_meta_data->>'preferred_language', ''),
     coalesce(new.raw_user_meta_data->>'education_level', ''),
     null,
-    false
+    false,
+    0,
+    null
   )
   on conflict (id) do nothing;
   return new;
