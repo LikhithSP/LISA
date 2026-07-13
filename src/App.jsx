@@ -4482,229 +4482,149 @@ function App() {
                       );
                     })()}
 
-                    {/* Step 3: Reading & Writing */}
+                    {/* Step 3: Reading Comprehension */}
                     {lessonStep === 3 && (() => {
-                      const isTask1 = lessonReadingStep === 1;
                       const isChecked = lessonReadingFeedback !== null;
-                      
                       return (
                         <div className="ai-lesson-step" style={{ paddingBottom: '120px' }}>
-                          {isTask1 ? (
-                            <div>
-                              <div className="ai-lesson-step-header" style={{ marginBottom: '16px' }}>
-                                <span className="ai-step-badge">📚 Reading Comprehension (Task 1 of 2)</span>
-                              </div>
+                          <div className="ai-lesson-step-header" style={{ marginBottom: '16px' }}>
+                            <span className="ai-step-badge">📚 Reading Comprehension</span>
+                          </div>
 
+                          <div style={{
+                            background: 'var(--panel)',
+                            border: '2px solid var(--line)',
+                            borderRadius: '24px',
+                            padding: '24px',
+                            margin: '20px 0',
+                            position: 'relative'
+                          }}>
+                            <div style={{ display: 'flex', ['justify' + 'Content']: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                              <h4 style={{ margin: 0 }}>Reading Passage:</h4>
+                              <button type="button" className="tts-btn" onClick={() => speakText(ai.readingPassage)}>🔊 Listen</button>
+                            </div>
+                            <div className="ai-passage-text" style={{ fontSize: '1.15rem', lineHeight: '1.6', fontWeight: 500 }}>
+                              {ai.readingPassage}
+                            </div>
+                          </div>
+
+                          {/* Mascot & Speech bubble for reading question */}
+                          <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '20px',
+                            margin: '20px 0'
+                          }}>
+                            {/* Mascot */}
+                            <div style={{ flexShrink: 0 }}>
+                              <img 
+                                src="/as1.png" 
+                                alt="LISA Mascot" 
+                                style={{ width: '80px', height: '80px', objectFit: 'contain' }}
+                              />
+                            </div>
+                            {/* Speech bubble */}
+                            <div style={{
+                              flexGrow: 1,
+                              background: 'var(--panel)',
+                              border: '2px solid var(--line)',
+                              borderRadius: '20px',
+                              padding: '16px 24px',
+                              position: 'relative'
+                            }}>
                               <div style={{
+                                position: 'absolute',
+                                left: '-9px',
+                                top: '32px',
+                                width: '14px',
+                                height: '14px',
                                 background: 'var(--panel)',
-                                border: '2px solid var(--line)',
-                                borderRadius: '24px',
-                                padding: '24px',
-                                margin: '20px 0',
-                                position: 'relative'
-                              }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                                  <h4 style={{ margin: 0 }}>Reading Passage:</h4>
-                                  <button type="button" className="tts-btn" onClick={() => speakText(ai.readingPassage)}>🔊 Listen</button>
-                                </div>
-                                <div className="ai-passage-text" style={{ fontSize: '1.15rem', lineHeight: '1.6', fontWeight: 500 }}>
-                                  {ai.readingPassage}
-                                </div>
-                              </div>
+                                borderLeft: '2px solid var(--line)',
+                                borderBottom: '2px solid var(--line)',
+                                transform: 'rotate(45deg)'
+                              }}></div>
+                              <p style={{ fontSize: '1.2rem', fontWeight: '800', margin: 0 }}>{ai.readingQuestion}</p>
+                            </div>
+                          </div>
 
-                              {/* Mascot & Speech bubble for reading question */}
+                          <div style={{ marginTop: '24px' }}>
+                            <input
+                              type="text"
+                              className="ai-fill-input"
+                              placeholder="Type your answer based on the passage..."
+                              style={{
+                                width: '100%',
+                                padding: '12px 20px',
+                                borderRadius: '12px',
+                                border: '2px solid var(--line)',
+                                fontSize: '1rem',
+                                marginTop: '10px'
+                              }}
+                              value={lessonReadingAnswer}
+                              onChange={(e) => setLessonReadingAnswer(e.target.value)}
+                              disabled={isChecked}
+                            />
+                          </div>
+
+                          {!isChecked && (
+                            <div style={{ display: 'flex', ['justify' + 'Content']: 'center', marginTop: '20px' }}>
+                              <button
+                                type="button"
+                                className="primary-btn"
+                                style={{ padding: '12px 40px', borderRadius: '12px' }}
+                                onClick={() => {
+                                  setLessonTotalQuestions(t => t + 1);
+                                  setLessonCorrectCount(c => c + 1);
+                                  setLessonReadingFeedback({
+                                    userAnswer: lessonReadingAnswer,
+                                    suggestedAnswer: ai.readingAnswer
+                                  });
+                                }}
+                                disabled={!lessonReadingAnswer.trim()}
+                              >
+                                Check Answer
+                              </button>
+                            </div>
+                          )}
+
+                          {lessonReadingFeedback && (
+                            <div style={{
+                              position: 'absolute',
+                              bottom: 0,
+                              left: 0,
+                              right: 0,
+                              background: 'var(--panel-strong)',
+                              borderTop: '2px solid var(--accent)',
+                              padding: '20px 40px',
+                              zIndex: 100
+                            }}>
                               <div style={{
                                 display: 'flex',
+                                ['justify' + 'Content']: 'space-between',
                                 alignItems: 'center',
-                                gap: '20px',
-                                margin: '20px 0'
+                                width: '100%',
+                                maxWidth: '1000px',
+                                margin: '0 auto'
                               }}>
-                                {/* Mascot */}
-                                <div style={{ flexShrink: 0 }}>
-                                  <img 
-                                    src="/as1.png" 
-                                    alt="LISA Mascot" 
-                                    style={{ width: '80px', height: '80px', objectFit: 'contain' }}
-                                  />
-                                </div>
-                                {/* Speech bubble */}
-                                <div style={{
-                                  flexGrow: 1,
-                                  background: 'var(--panel)',
-                                  border: '2px solid var(--line)',
-                                  borderRadius: '20px',
-                                  padding: '16px 24px',
-                                  position: 'relative'
-                                }}>
-                                  <div style={{
-                                    position: 'absolute',
-                                    left: '-9px',
-                                    top: '32px',
-                                    width: '14px',
-                                    height: '14px',
-                                    background: 'var(--panel)',
-                                    borderLeft: '2px solid var(--line)',
-                                    borderBottom: '2px solid var(--line)',
-                                    transform: 'rotate(45deg)'
-                                  }}></div>
-                                  <p style={{ fontSize: '1.2rem', fontWeight: '800', margin: 0 }}>{ai.readingQuestion}</p>
-                                </div>
-                              </div>
-
-                              <div style={{ marginTop: '24px' }}>
-                                <input
-                                  type="text"
-                                  className="ai-fill-input"
-                                  placeholder="Type your answer based on the passage..."
-                                  style={{
-                                    width: '100%',
-                                    padding: '12px 20px',
-                                    borderRadius: '12px',
-                                    border: '2px solid var(--line)',
-                                    fontSize: '1rem',
-                                    marginTop: '10px'
-                                  }}
-                                  value={lessonReadingAnswer}
-                                  onChange={(e) => setLessonReadingAnswer(e.target.value)}
-                                  disabled={isChecked}
-                                />
-                              </div>
-
-                              {!isChecked && (
-                                <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
-                                  <button
-                                    type="button"
-                                    className="primary-btn"
-                                    style={{ padding: '12px 40px', borderRadius: '12px' }}
-                                    onClick={() => {
-                                      setLessonReadingFeedback({
-                                        userAnswer: lessonReadingAnswer,
-                                        suggestedAnswer: ai.readingAnswer
-                                      });
-                                    }}
-                                    disabled={!lessonReadingAnswer.trim()}
-                                  >
-                                    Check Answer
-                                  </button>
-                                </div>
-                              )}
-
-                              {lessonReadingFeedback && (
-                                <div style={{
-                                  position: 'absolute',
-                                  bottom: 0,
-                                  left: 0,
-                                  right: 0,
-                                  background: 'var(--panel-strong)',
-                                  borderTop: '2px solid var(--accent)',
-                                  padding: '20px 40px',
-                                  zIndex: 100
-                                }}>
-                                  <div style={{
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'center',
-                                    width: '100%',
-                                    maxWidth: '1000px',
-                                    margin: '0 auto'
-                                  }}>
-                                    <div style={{ flex: 1, marginRight: '20px' }}>
-                                      <div style={{ marginBottom: '8px' }}>
-                                        <strong style={{ color: 'var(--muted)' }}>Your Answer:</strong>
-                                        <p style={{ margin: '2px 0 0', fontWeight: '700' }}>{lessonReadingFeedback.userAnswer}</p>
-                                      </div>
-                                      <div>
-                                        <strong style={{ color: 'var(--accent)' }}>LISA's Suggested Answer:</strong>
-                                        <p style={{ margin: '2px 0 0', fontWeight: '700', color: 'var(--accent)' }}>{lessonReadingFeedback.suggestedAnswer}</p>
-                                      </div>
-                                    </div>
-                                    <button
-                                      type="button"
-                                      className="primary-btn"
-                                      onClick={() => {
-                                        setLessonReadingFeedback(null);
-                                        setLessonReadingStep(2);
-                                      }}
-                                    >
-                                      Continue
-                                    </button>
+                                <div style={{ flex: 1, marginRight: '20px' }}>
+                                  <div style={{ marginBottom: '8px' }}>
+                                    <strong style={{ color: 'var(--muted)' }}>Your Answer:</strong>
+                                    <p style={{ margin: '2px 0 0', fontWeight: '700' }}>{lessonReadingFeedback.userAnswer}</p>
+                                  </div>
+                                  <div>
+                                    <strong style={{ color: 'var(--accent)' }}>LISA's Suggested Answer:</strong>
+                                    <p style={{ margin: '2px 0 0', fontWeight: '700', color: 'var(--accent)' }}>{lessonReadingFeedback.suggestedAnswer}</p>
                                   </div>
                                 </div>
-                              )}
-                            </div>
-                          ) : (
-                            <div>
-                              <div className="ai-lesson-step-header" style={{ marginBottom: '16px' }}>
-                                <span className="ai-step-badge">✍️ Writing Activity (Task 2 of 2)</span>
-                              </div>
-
-                              {/* Mascot & Speech bubble for prompt */}
-                              <div style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '20px',
-                                margin: '20px 0'
-                              }}>
-                                {/* Mascot */}
-                                <div style={{ flexShrink: 0 }}>
-                                  <img 
-                                    src="/as1.png" 
-                                    alt="LISA Mascot" 
-                                    style={{ width: '80px', height: '80px', objectFit: 'contain' }}
-                                  />
-                                </div>
-                                {/* Speech bubble */}
-                                <div style={{
-                                  flexGrow: 1,
-                                  background: 'var(--panel)',
-                                  border: '2px solid var(--line)',
-                                  borderRadius: '20px',
-                                  padding: '16px 24px',
-                                  position: 'relative'
-                                }}>
-                                  <div style={{
-                                    position: 'absolute',
-                                    left: '-9px',
-                                    top: '32px',
-                                    width: '14px',
-                                    height: '14px',
-                                    background: 'var(--panel)',
-                                    borderLeft: '2px solid var(--line)',
-                                    borderBottom: '2px solid var(--line)',
-                                    transform: 'rotate(45deg)'
-                                  }}></div>
-                                  <p style={{ fontSize: '1.2rem', fontWeight: '800', margin: 0 }}>{ai.writingActivity}</p>
-                                </div>
-                              </div>
-
-                              <textarea
-                                className="writing-textarea"
-                                rows={6}
-                                placeholder="Type your response here..."
-                                value={lessonWritingText}
-                                onChange={(e) => setLessonWritingText(e.target.value)}
-                                style={{
-                                  width: '100%',
-                                  padding: '16px',
-                                  borderRadius: '16px',
-                                  border: '2px solid var(--line)',
-                                  fontSize: '1rem',
-                                  fontFamily: 'inherit',
-                                  background: 'var(--panel)'
-                                }}
-                              />
-
-                              <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
                                 <button
                                   type="button"
                                   className="primary-btn"
-                                  style={{ padding: '12px 40px', borderRadius: '12px' }}
                                   onClick={() => {
+                                    setLessonReadingFeedback(null);
                                     setLessonStep(4);
                                   }}
-                                  disabled={!lessonWritingText.trim()}
                                 >
-                                  Complete Activity
+                                  Continue
                                 </button>
                               </div>
                             </div>
@@ -4713,111 +4633,1068 @@ function App() {
                       );
                     })()}
 
-                    {/* Step 4: Pronunciation */}
+                    {/* Step 4: Writing Activity */}
                     {lessonStep === 4 && (
-                      <div className="ai-lesson-step">
-                        <div className="ai-lesson-step-header">
-                          <span className="ai-step-badge">🎤 Pronunciation Practice</span>
-                          <h3>Speak these words aloud</h3>
+                      <div className="ai-lesson-step" style={{ paddingBottom: '120px' }}>
+                        <div className="ai-lesson-step-header" style={{ marginBottom: '16px' }}>
+                          <span className="ai-step-badge">✍️ Writing Activity</span>
                         </div>
-                        {ai.pronunciationTip && (
-                          <div className="ai-lesson-tip">
-                            <strong>💡 Tip:</strong> {ai.pronunciationTip}
-                          </div>
-                        )}
-                        <div className="ai-pronunciation-words" style={{
-                          display: 'grid',
-                          gridTemplateColumns: 'repeat(2, 1fr)',
-                          gap: '16px',
+
+                        {/* Mascot & Speech bubble for prompt */}
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '20px',
                           margin: '20px 0'
                         }}>
-                          {(ai.pronunciationWords || []).map((word, wIdx) => (
-                            <div 
-                              key={wIdx} 
-                              className="ai-pronunciation-word-card"
-                              style={{
-                                border: '2px solid var(--line)',
-                                borderRadius: '16px',
-                                padding: '20px',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: '12px',
-                                background: 'var(--panel)',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s ease',
-                                textAlign: 'center',
-                                minHeight: '120px',
-                                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)'
-                              }}
-                              onClick={() => speakText(word)}
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.borderColor = 'var(--accent)';
-                                e.currentTarget.style.transform = 'translateY(-2px)';
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.borderColor = 'var(--line)';
-                                e.currentTarget.style.transform = 'translateY(0)';
-                              }}
-                            >
-                              <span style={{ fontSize: '1.25rem', fontWeight: '700', color: 'var(--text)' }}>{word}</span>
-                              <button 
-                                type="button" 
-                                className="tts-btn" 
-                                style={{
-                                  background: 'var(--accent)',
-                                  color: 'white',
-                                  border: 'none',
-                                  borderRadius: '50%',
-                                  width: '40px',
-                                  height: '40px',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  cursor: 'pointer',
-                                  fontSize: '1.1rem',
-                                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                                  transition: 'all 0.15s ease'
-                                }}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  speakText(word);
-                                }}
-                              >
-                                🔊
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                        <div style={{ marginTop: '24px', padding: '20px', background: 'var(--card-bg)', borderRadius: '16px', textAlign: 'center' }}>
-                          <p style={{ marginBottom: '12px', fontWeight: 600 }}>Now try reading the full lesson passage aloud:</p>
-                          <div className="ai-passage-text" style={{ marginBottom: '16px', cursor: 'pointer' }} onClick={() => speakText(ai.readingPassage)}>
-                            {ai.readingPassage}
+                          {/* Mascot */}
+                          <div style={{ flexShrink: 0 }}>
+                            <img 
+                              src="/as1.png" 
+                              alt="LISA Mascot" 
+                              style={{ width: '80px', height: '80px', objectFit: 'contain' }}
+                            />
                           </div>
-                          <button type="button" className="tts-btn" onClick={() => speakText(ai.readingPassage)} style={{ padding: '10px 24px', fontSize: '1rem' }}>🔊 Listen to full passage</button>
+                          {/* Speech bubble */}
+                          <div style={{
+                            flexGrow: 1,
+                            background: 'var(--panel)',
+                            border: '2px solid var(--line)',
+                            borderRadius: '20px',
+                            padding: '16px 24px',
+                            position: 'relative'
+                          }}>
+                            <div style={{
+                              position: 'absolute',
+                              left: '-9px',
+                              top: '32px',
+                              width: '14px',
+                              height: '14px',
+                              background: 'var(--panel)',
+                              borderLeft: '2px solid var(--line)',
+                              borderBottom: '2px solid var(--line)',
+                              transform: 'rotate(45deg)'
+                            }}></div>
+                            <p style={{ fontSize: '1.2rem', fontWeight: '800', margin: 0 }}>{ai.writingActivity}</p>
+                          </div>
                         </div>
-                      </div>
-                    )}
 
-                    {/* Navigation footer */}
-                    {(lessonStep === 0 || lessonStep === 4) && (
-                      <div className="lesson-overlay-footer" style={{ borderTop: 'none', padding: '24px 0 0' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
-                          {lessonStep > 0 && (
-                            <button type="button" className="secondary-btn" onClick={() => setLessonStep(p => p - 1)} style={{ flex: 1 }}>← Back</button>
-                          )}
+                        <textarea
+                          className="writing-textarea"
+                          rows={6}
+                          placeholder="Type your response here..."
+                          value={lessonWritingText}
+                          onChange={(e) => setLessonWritingText(e.target.value)}
+                          style={{
+                            width: '100%',
+                            padding: '16px',
+                            borderRadius: '16px',
+                            border: '2px solid var(--line)',
+                            fontSize: '1rem',
+                            fontFamily: 'inherit',
+                            background: 'var(--panel)'
+                          }}
+                        />
+
+                        <div style={{ display: 'flex', ['justify' + 'Content']: 'center', marginTop: '20px' }}>
                           <button
                             type="button"
-                            className="lesson-check-btn"
-                            style={{ flex: 2 }}
-                            onClick={advanceLessonStep}
+                            className="primary-btn"
+                            style={{ padding: '12px 40px', borderRadius: '12px' }}
+                            onClick={() => {
+                              setLessonTotalQuestions(t => t + 1);
+                              setLessonCorrectCount(c => c + 1);
+                              setLessonStep(5);
+                            }}
+                            disabled={!lessonWritingText.trim()}
                           >
-                            {lessonStep === 4 ? "✓ Complete Lesson" : "Continue →"}
+                            Complete Activity
                           </button>
                         </div>
                       </div>
                     )}
+
+                    {/* Step 5: Speak this sentence */}
+                    {lessonStep === 5 && (() => {
+                      const sentence = ai.speakSentence || "Hello, welcome to LISA.";
+                      const isChecked = lessonSpeakFeedback !== null;
+                      
+                      const startSpeaking = () => {
+                        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                        if (!SpeechRecognition) {
+                          setLessonSpeakError("Speech recognition is not supported in this browser. Please use Chrome/Edge.");
+                          return;
+                        }
+                        
+                        try {
+                          const rec = new SpeechRecognition();
+                          rec.continuous = false;
+                          rec.interimResults = false;
+                          rec.lang = selectedLanguage === "Kannada" ? "kn-IN" :
+                                     selectedLanguage === "Hindi" ? "hi-IN" :
+                                     selectedLanguage === "Telugu" ? "te-IN" :
+                                     selectedLanguage === "Tamil" ? "ta-IN" : "en-US";
+                                     
+                          rec.onstart = () => {
+                            setLessonSpeakIsListening(true);
+                            setLessonSpeakTranscript("");
+                            setLessonSpeakError("");
+                          };
+                          
+                          rec.onerror = (e) => {
+                            setLessonSpeakError("Mic error, please check connection.");
+                            setLessonSpeakIsListening(false);
+                          };
+                          
+                          rec.onend = () => {
+                            setLessonSpeakIsListening(false);
+                          };
+                          
+                          rec.onresult = (event) => {
+                            const transcript = event.results[0][0].transcript;
+                            setLessonSpeakTranscript(transcript);
+                            
+                            const clean = (w) => w.replace(/[.,\/#!$%\^&\*;:{}=\-_\u0060()?]/g, "").toLowerCase().trim();
+                            const targetWords = sentence.split(/\s+/).filter(Boolean).map(clean);
+                            const spokenWords = transcript.split(/\s+/).filter(Boolean).map(clean);
+                            
+                            let matched = 0;
+                            targetWords.forEach(w => {
+                              if (spokenWords.includes(w)) matched++;
+                            });
+                            
+                            const percent = targetWords.length > 0 ? (matched / targetWords.length) * 100 : 100;
+                            const isCorrect = percent >= 50;
+                            
+                            setLessonSpeakFeedback({
+                              isCorrect,
+                              matchedCount: matched,
+                              totalWords: targetWords.length,
+                              percent: Math.round(percent)
+                            });
+                            
+                            setLessonTotalQuestions(t => t + 1);
+                            if (isCorrect) setLessonCorrectCount(c => c + 1);
+                          };
+                          
+                          rec.start();
+                        } catch (err) {
+                          setLessonSpeakError("Could not start speech recognition.");
+                          setLessonSpeakIsListening(false);
+                        }
+                      };
+                      
+                      return (
+                        <div className="ai-lesson-step" style={{ paddingBottom: '120px' }}>
+                          <div className="ai-lesson-step-header" style={{ marginBottom: '16px' }}>
+                            <span className="ai-step-badge">🎤 Speak this sentence</span>
+                          </div>
+                          
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '20px', margin: '20px 0' }}>
+                            <img src="/as1.png" alt="LISA Mascot" style={{ width: '80px', height: '80px', objectFit: 'contain' }} />
+                            <div style={{
+                              flexGrow: 1,
+                              background: 'var(--panel)',
+                              border: '2px solid var(--line)',
+                              borderRadius: '20px',
+                              padding: '24px',
+                              position: 'relative',
+                              fontSize: '1.4rem',
+                              fontWeight: '700',
+                              textAlign: 'center',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'center',
+                              gap: '12px'
+                            }}>
+                              <div style={{
+                                position: 'absolute',
+                                left: '-9px',
+                                top: '32px',
+                                width: '14px',
+                                height: '14px',
+                                background: 'var(--panel)',
+                                borderLeft: '2px solid var(--line)',
+                                borderBottom: '2px solid var(--line)',
+                                transform: 'rotate(45deg)'
+                              }}></div>
+                              
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <button type="button" className="tts-btn" style={{ borderRadius: '50%', width: '40px', height: '40px', padding: 0 }} onClick={() => speakText(sentence)}>🔊</button>
+                                <span style={{ color: 'var(--text)' }}>{sentence}</span>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', margin: '30px 0' }}>
+                            <button
+                              type="button"
+                              onClick={startSpeaking}
+                              disabled={lessonSpeakIsListening || isChecked}
+                              style={{
+                                background: lessonSpeakIsListening ? '#ef4444' : 'var(--accent)',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '16px',
+                                padding: '16px 32px',
+                                fontSize: '1.2rem',
+                                fontWeight: '800',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '10px',
+                                boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                              }}
+                            >
+                              <span>{lessonSpeakIsListening ? "🛑 RECORDING..." : "🎙️ CLICK TO SPEAK"}</span>
+                            </button>
+                            
+                            {lessonSpeakTranscript && (
+                              <p style={{ fontStyle: 'italic', color: 'var(--text)', fontSize: '1.1rem' }}>
+                                You said: "<strong>{lessonSpeakTranscript}</strong>"
+                              </p>
+                            )}
+                            
+                            {lessonSpeakError && (
+                              <p style={{ color: '#ef4444', fontWeight: 600 }}>{lessonSpeakError}</p>
+                            )}
+                          </div>
+                          
+                          {isChecked && (
+                            <div style={{
+                              position: 'absolute',
+                              bottom: 0,
+                              left: 0,
+                              right: 0,
+                              background: lessonSpeakFeedback.isCorrect ? '#d1fae5' : '#fee2e2',
+                              borderTop: `2px solid ${lessonSpeakFeedback.isCorrect ? '#10b981' : '#ef4444'}`,
+                              padding: '20px 40px',
+                              zIndex: 100
+                            }}>
+                              <div style={{
+                                display: 'flex',
+                                ['justify' + 'Content']: 'space-between',
+                                alignItems: 'center',
+                                width: '100%',
+                                maxWidth: '1000px',
+                                margin: '0 auto'
+                              }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                  <span style={{ fontSize: '2rem' }}>{lessonSpeakFeedback.isCorrect ? "🎉" : "❌"}</span>
+                                  <div>
+                                    <h4 style={{ margin: 0, color: lessonSpeakFeedback.isCorrect ? '#065f46' : '#991b1b', fontWeight: '800', fontSize: '1.2rem' }}>
+                                      {lessonSpeakFeedback.isCorrect ? "Awesome Pronunciation!" : "Need Practice!"}
+                                    </h4>
+                                    <p style={{ margin: '4px 0 0', color: lessonSpeakFeedback.isCorrect ? '#047857' : '#b91c1c', fontSize: '0.95rem' }}>
+                                      Matched {lessonSpeakFeedback.percent}% of the sentence ({lessonSpeakFeedback.matchedCount}/{lessonSpeakFeedback.totalWords} words).
+                                    </p>
+                                  </div>
+                                </div>
+                                <button
+                                  type="button"
+                                  className="primary-btn"
+                                  style={{
+                                    background: lessonSpeakFeedback.isCorrect ? '#10b981' : '#ef4444',
+                                    color: 'white',
+                                    border: 'none',
+                                    padding: '12px 30px',
+                                    borderRadius: '12px',
+                                    fontWeight: '800',
+                                    cursor: 'pointer'
+                                  }}
+                                  onClick={() => {
+                                    setLessonSpeakFeedback(null);
+                                    setLessonSpeakTranscript("");
+                                    setLessonStep(6);
+                                  }}
+                                >
+                                  Continue
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
+
+                    {/* Step 6: Select the correct meaning */}
+                    {lessonStep === 6 && (() => {
+                      const mq = ai.meaningQuestion || { phrase: "Thank you", options: ["Dhanyavadagalu", "Namaskara", "Hogi baruttene"], correctIndex: 0 };
+                      const isChecked = lessonMeaningFeedback !== null;
+                      
+                      return (
+                        <div className="ai-lesson-step" style={{ paddingBottom: '120px' }}>
+                          <div className="ai-lesson-step-header" style={{ marginBottom: '16px' }}>
+                            <span className="ai-step-badge">🧠 Select the correct meaning</span>
+                          </div>
+                          
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '20px', margin: '20px 0' }}>
+                            <img src="/as1.png" alt="LISA Mascot" style={{ width: '80px', height: '80px', objectFit: 'contain' }} />
+                            <div style={{
+                              flexGrow: 1,
+                              background: 'var(--panel)',
+                              border: '2px solid var(--line)',
+                              borderRadius: '20px',
+                              padding: '16px 24px',
+                              position: 'relative'
+                            }}>
+                              <div style={{
+                                position: 'absolute',
+                                left: '-9px',
+                                top: '32px',
+                                width: '14px',
+                                height: '14px',
+                                background: 'var(--panel)',
+                                borderLeft: '2px solid var(--line)',
+                                borderBottom: '2px solid var(--line)',
+                                transform: 'rotate(45deg)'
+                              }}></div>
+                              <p style={{ fontSize: '1.25rem', fontWeight: '800', margin: 0 }}>"{mq.phrase}" means:</p>
+                            </div>
+                          </div>
+                          
+                          <div className="mcq-options-container" style={{ display: 'flex', flexDirection: 'column', gap: '12px', margin: '20px 0' }}>
+                            {mq.options.map((opt, oIdx) => {
+                              const isSelected = lessonMeaningAnswer === oIdx;
+                              let btnBorder = '2px solid var(--line)';
+                              let btnBg = 'var(--panel)';
+                              if (isSelected) {
+                                btnBorder = '2px solid var(--accent)';
+                                btnBg = 'rgba(var(--accent-rgb), 0.05)';
+                              }
+                              
+                              return (
+                                <button
+                                  key={oIdx}
+                                  type="button"
+                                  style={{
+                                    border: btnBorder,
+                                    borderRadius: '16px',
+                                    padding: '16px 20px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '12px',
+                                    background: btnBg,
+                                    width: '100%',
+                                    textAlign: 'left',
+                                    fontSize: '1.1rem',
+                                    fontWeight: '700',
+                                    color: 'var(--text)',
+                                    cursor: 'pointer'
+                                  }}
+                                  onClick={() => {
+                                    if (!isChecked) {
+                                      setLessonMeaningAnswer(oIdx);
+                                    }
+                                  }}
+                                  disabled={isChecked}
+                                >
+                                  <span style={{
+                                    background: isSelected ? 'var(--accent)' : 'var(--panel-strong)',
+                                    color: isSelected ? 'white' : 'var(--text-muted)',
+                                    width: '30px',
+                                    height: '30px',
+                                    borderRadius: '50%',
+                                    display: 'grid',
+                                    placeItems: 'center',
+                                    fontWeight: '800'
+                                  }}>{oIdx + 1}</span>
+                                  <span>{opt}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                          
+                          {!isChecked && (
+                            <div style={{ display: 'flex', ['justify' + 'Content']: 'center', marginTop: '20px' }}>
+                              <button
+                                type="button"
+                                className="primary-btn"
+                                style={{ padding: '12px 40px', borderRadius: '12px' }}
+                                onClick={() => {
+                                  const correct = lessonMeaningAnswer === mq.correctIndex;
+                                  setLessonTotalQuestions(t => t + 1);
+                                  if (correct) setLessonCorrectCount(c => c + 1);
+                                  setLessonMeaningFeedback({
+                                    isCorrect: correct,
+                                    correctAnswer: mq.options[mq.correctIndex]
+                                  });
+                                }}
+                                disabled={lessonMeaningAnswer === null}
+                              >
+                                Check Answer
+                              </button>
+                            </div>
+                          )}
+                          
+                          {isChecked && (
+                            <div style={{
+                              position: 'absolute',
+                              bottom: 0,
+                              left: 0,
+                              right: 0,
+                              background: lessonMeaningFeedback.isCorrect ? '#d1fae5' : '#fee2e2',
+                              borderTop: `2px solid ${lessonMeaningFeedback.isCorrect ? '#10b981' : '#ef4444'}`,
+                              padding: '20px 40px',
+                              zIndex: 100
+                            }}>
+                              <div style={{
+                                display: 'flex',
+                                ['justify' + 'Content']: 'space-between',
+                                alignItems: 'center',
+                                width: '100%',
+                                maxWidth: '1000px',
+                                margin: '0 auto'
+                              }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                  <span style={{ fontSize: '2rem' }}>{lessonMeaningFeedback.isCorrect ? "🎉" : "❌"}</span>
+                                  <div>
+                                    <h4 style={{ margin: 0, color: lessonMeaningFeedback.isCorrect ? '#065f46' : '#991b1b', fontWeight: '800', fontSize: '1.2rem' }}>
+                                      {lessonMeaningFeedback.isCorrect ? "Excellent!" : "Incorrect"}
+                                    </h4>
+                                    <p style={{ margin: '4px 0 0', color: lessonMeaningFeedback.isCorrect ? '#047857' : '#b91c1c', fontSize: '0.95rem' }}>
+                                      {lessonMeaningFeedback.isCorrect ? "You matched the meaning correctly!" : `Correct meaning: "${lessonMeaningFeedback.correctAnswer}"`}
+                                    </p>
+                                  </div>
+                                </div>
+                                <button
+                                  type="button"
+                                  className="primary-btn"
+                                  style={{
+                                    background: lessonMeaningFeedback.isCorrect ? '#10b981' : '#ef4444',
+                                    color: 'white',
+                                    border: 'none',
+                                    padding: '12px 30px',
+                                    borderRadius: '12px',
+                                    fontWeight: '800',
+                                    cursor: 'pointer'
+                                  }}
+                                  onClick={() => {
+                                    setLessonMeaningFeedback(null);
+                                    setLessonMeaningAnswer(null);
+                                    setLessonStep(7);
+                                  }}
+                                >
+                                  Continue
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
+
+                    {/* Step 7: Write this in English (word tiles) */}
+                    {lessonStep === 7 && (() => {
+                      const tt = ai.translationTask || { sentence: "Namaskara", englishTranslation: "Hello", tiles: ["Hello", "Bye", "Thank", "You"] };
+                      const isChecked = lessonTranslationFeedback !== null;
+                      
+                      return (
+                        <div className="ai-lesson-step" style={{ paddingBottom: '120px' }}>
+                          <div className="ai-lesson-step-header" style={{ marginBottom: '16px' }}>
+                            <span className="ai-step-badge">✍️ Write this in English</span>
+                          </div>
+                          
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '20px', margin: '20px 0' }}>
+                            <img src="/as1.png" alt="LISA Mascot" style={{ width: '80px', height: '80px', objectFit: 'contain' }} />
+                            <div style={{
+                              flexGrow: 1,
+                              background: 'var(--panel)',
+                              border: '2px solid var(--line)',
+                              borderRadius: '20px',
+                              padding: '16px 24px',
+                              position: 'relative'
+                            }}>
+                              <div style={{
+                                position: 'absolute',
+                                left: '-9px',
+                                top: '32px',
+                                width: '14px',
+                                height: '14px',
+                                background: 'var(--panel)',
+                                borderLeft: '2px solid var(--line)',
+                                borderBottom: '2px solid var(--line)',
+                                transform: 'rotate(45deg)'
+                              }}></div>
+                              <p style={{ fontSize: '1.25rem', fontWeight: '800', margin: 0 }}>"{tt.sentence}"</p>
+                            </div>
+                          </div>
+                          
+                          <div style={{
+                            borderBottom: '2px solid var(--line)',
+                            minHeight: '80px',
+                            margin: '30px 0 20px',
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            gap: '10px',
+                            padding: '10px 0',
+                            alignItems: 'center'
+                          }}>
+                            {lessonTranslationSelected.map((word, wIdx) => (
+                              <button
+                                key={wIdx}
+                                type="button"
+                                style={{
+                                  background: 'var(--accent)',
+                                  color: 'white',
+                                  border: 'none',
+                                  borderRadius: '10px',
+                                  padding: '10px 16px',
+                                  fontSize: '1.1rem',
+                                  fontWeight: '700',
+                                  cursor: 'pointer',
+                                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                                }}
+                                onClick={() => {
+                                  if (!isChecked) {
+                                    setLessonTranslationSelected(prev => prev.filter((_, idx) => idx !== wIdx));
+                                  }
+                                }}
+                                disabled={isChecked}
+                              >
+                                {word}
+                              </button>
+                            ))}
+                            {lessonTranslationSelected.length === 0 && (
+                              <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Tap words below to translate...</span>
+                            )}
+                          </div>
+                          
+                          <div style={{
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            gap: '10px',
+                            ['justify' + 'Content']: 'center',
+                            margin: '20px 0 30px'
+                          }}>
+                            {tt.tiles.map((word, wIdx) => {
+                              const isUsed = lessonTranslationSelected.includes(word);
+                              return (
+                                <button
+                                  key={wIdx}
+                                  type="button"
+                                  style={{
+                                    background: isUsed ? 'var(--line)' : 'var(--panel)',
+                                    color: isUsed ? 'transparent' : 'var(--text)',
+                                    border: '2px solid var(--line)',
+                                    borderRadius: '10px',
+                                    padding: '10px 16px',
+                                    fontSize: '1.1rem',
+                                    fontWeight: '700',
+                                    cursor: isUsed ? 'default' : 'pointer',
+                                    boxShadow: isUsed ? 'none' : '0 2px 4px rgba(0,0,0,0.05)',
+                                    opacity: isUsed ? 0.3 : 1
+                                  }}
+                                  onClick={() => {
+                                    if (!isChecked && !isUsed) {
+                                      setLessonTranslationSelected(prev => [...prev, word]);
+                                    }
+                                  }}
+                                  disabled={isChecked || isUsed}
+                                >
+                                  {word}
+                                </button>
+                              );
+                            })}
+                          </div>
+                          
+                          {!isChecked && (
+                            <div style={{ display: 'flex', ['justify' + 'Content']: 'center' }}>
+                              <button
+                                type="button"
+                                className="primary-btn"
+                                style={{ padding: '12px 40px', borderRadius: '12px' }}
+                                onClick={() => {
+                                  const userSentence = lessonTranslationSelected.join(" ").trim().toLowerCase();
+                                  const clean = (s) => s.replace(/[.,\/#!$%\^&\*;:{}=\-_\u0060()?]/g, "").toLowerCase().trim();
+                                  const correct = clean(userSentence) === clean(tt.englishTranslation);
+                                  
+                                  setLessonTotalQuestions(t => t + 1);
+                                  if (correct) setLessonCorrectCount(c => c + 1);
+                                  setLessonTranslationFeedback({
+                                    isCorrect: correct,
+                                    correctAnswer: tt.englishTranslation
+                                  });
+                                }}
+                                disabled={lessonTranslationSelected.length === 0}
+                              >
+                                Check Answer
+                              </button>
+                            </div>
+                          )}
+                          
+                          {isChecked && (
+                            <div style={{
+                              position: 'absolute',
+                              bottom: 0,
+                              left: 0,
+                              right: 0,
+                              background: lessonTranslationFeedback.isCorrect ? '#d1fae5' : '#fee2e2',
+                              borderTop: `2px solid ${lessonTranslationFeedback.isCorrect ? '#10b981' : '#ef4444'}`,
+                              padding: '20px 40px',
+                              zIndex: 100
+                            }}>
+                              <div style={{
+                                display: 'flex',
+                                ['justify' + 'Content']: 'space-between',
+                                alignItems: 'center',
+                                width: '100%',
+                                maxWidth: '1000px',
+                                margin: '0 auto'
+                              }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                  <span style={{ fontSize: '2rem' }}>{lessonTranslationFeedback.isCorrect ? "🎉" : "❌"}</span>
+                                  <div>
+                                    <h4 style={{ margin: 0, color: lessonTranslationFeedback.isCorrect ? '#065f46' : '#991b1b', fontWeight: '800', fontSize: '1.2rem' }}>
+                                      {lessonTranslationFeedback.isCorrect ? "Excellent!" : "Incorrect"}
+                                    </h4>
+                                    <p style={{ margin: '4px 0 0', color: lessonTranslationFeedback.isCorrect ? '#047857' : '#b91c1c', fontSize: '0.95rem' }}>
+                                      {lessonTranslationFeedback.isCorrect ? "Beautiful translation!" : `Correct Translation: "${lessonTranslationFeedback.correctAnswer}"`}
+                                    </p>
+                                  </div>
+                                </div>
+                                <button
+                                  type="button"
+                                  className="primary-btn"
+                                  style={{
+                                    background: lessonTranslationFeedback.isCorrect ? '#10b981' : '#ef4444',
+                                    color: 'white',
+                                    border: 'none',
+                                    padding: '12px 30px',
+                                    borderRadius: '12px',
+                                    fontWeight: '800',
+                                    cursor: 'pointer'
+                                  }}
+                                  onClick={() => {
+                                    setLessonTranslationFeedback(null);
+                                    setLessonTranslationSelected([]);
+                                    setLessonStep(8);
+                                  }}
+                                >
+                                  Continue
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
+
+                    {/* Step 8: Match Sentence / Pairs */}
+                    {lessonStep === 8 && (() => {
+                      const pairs = ai.matchingPairs || [
+                        { left: "Shale", right: "School" },
+                        { left: "Pustaka", right: "Book" },
+                        { left: "Huduga", right: "Boy" },
+                        { left: "Neeru", right: "Water" }
+                      ];
+                      
+                      const leftItems = pairs.map(p => p.left);
+                      const rightItems = [...pairs].map(p => p.right).sort();
+
+                      const isStepFinished = lessonMatchCompleted.length === pairs.length;
+
+                      const handleLeftClick = (item) => {
+                        if (lessonMatchCompleted.includes(item)) return;
+                        setLessonMatchSelectedLeft(item);
+                        if (lessonMatchSelectedRight) {
+                          const pair = pairs.find(p => p.left === item && p.right === lessonMatchSelectedRight);
+                          if (pair) {
+                            setLessonMatchCompleted(prev => [...prev, item]);
+                            setLessonTotalQuestions(t => t + 1);
+                            setLessonCorrectCount(c => c + 1);
+                          } else {
+                            setLessonMatchFeedback("Incorrect pair!");
+                            setTimeout(() => setLessonMatchFeedback(null), 1000);
+                          }
+                          setLessonMatchSelectedLeft(null);
+                          setLessonMatchSelectedRight(null);
+                        }
+                      };
+
+                      const handleRightClick = (item) => {
+                        const pair = pairs.find(p => p.right === item);
+                        if (pair && lessonMatchCompleted.includes(pair.left)) return;
+                        
+                        setLessonMatchSelectedRight(item);
+                        if (lessonMatchSelectedLeft) {
+                          const pObj = pairs.find(p => p.left === lessonMatchSelectedLeft && p.right === item);
+                          if (pObj) {
+                            setLessonMatchCompleted(prev => [...prev, lessonMatchSelectedLeft]);
+                            setLessonTotalQuestions(t => t + 1);
+                            setLessonCorrectCount(c => c + 1);
+                          } else {
+                            setLessonMatchFeedback("Incorrect pair!");
+                            setTimeout(() => setLessonMatchFeedback(null), 1000);
+                          }
+                          setLessonMatchSelectedLeft(null);
+                          setLessonMatchSelectedRight(null);
+                        }
+                      };
+
+                      return (
+                        <div className="ai-lesson-step" style={{ paddingBottom: '120px' }}>
+                          <div className="ai-lesson-step-header" style={{ marginBottom: '16px' }}>
+                            <span className="ai-step-badge">🔗 Make the correct pairs of words</span>
+                          </div>
+
+                          <div style={{
+                            display: 'grid',
+                            gridTemplateColumns: '1fr 1fr',
+                            gap: '24px',
+                            margin: '30px 0'
+                          }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                              {leftItems.map((item, idx) => {
+                                const isCompleted = lessonMatchCompleted.includes(item);
+                                const isSelected = lessonMatchSelectedLeft === item;
+                                
+                                return (
+                                  <button
+                                    key={idx}
+                                    type="button"
+                                    onClick={() => handleLeftClick(item)}
+                                    style={{
+                                      padding: '16px',
+                                      borderRadius: '16px',
+                                      border: isSelected ? '2px solid var(--accent)' : '2px solid var(--line)',
+                                      background: isCompleted ? 'var(--line)' : isSelected ? 'rgba(var(--accent-rgb), 0.1)' : 'var(--panel)',
+                                      color: isCompleted ? 'var(--text-muted)' : 'var(--text)',
+                                      textDecoration: isCompleted ? 'line-through' : 'none',
+                                      fontWeight: '700',
+                                      fontSize: '1.1rem',
+                                      cursor: isCompleted ? 'default' : 'pointer',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      ['justify' + 'Content']: 'space-between',
+                                      opacity: isCompleted ? 0.6 : 1
+                                    }}
+                                    disabled={isCompleted}
+                                  >
+                                    <span>{item}</span>
+                                    {isCompleted && <span>✅</span>}
+                                  </button>
+                                );
+                              })}
+                            </div>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                              {rightItems.map((item, idx) => {
+                                const matchedPair = pairs.find(p => p.right === item);
+                                const isCompleted = matchedPair && lessonMatchCompleted.includes(matchedPair.left);
+                                const isSelected = lessonMatchSelectedRight === item;
+
+                                return (
+                                  <button
+                                    key={idx}
+                                    type="button"
+                                    onClick={() => handleRightClick(item)}
+                                    style={{
+                                      padding: '16px',
+                                      borderRadius: '16px',
+                                      border: isSelected ? '2px solid var(--accent)' : '2px solid var(--line)',
+                                      background: isCompleted ? 'var(--line)' : isSelected ? 'rgba(var(--accent-rgb), 0.1)' : 'var(--panel)',
+                                      color: isCompleted ? 'var(--text-muted)' : 'var(--text)',
+                                      textDecoration: isCompleted ? 'line-through' : 'none',
+                                      fontWeight: '700',
+                                      fontSize: '1.1rem',
+                                      cursor: isCompleted ? 'default' : 'pointer',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      ['justify' + 'Content']: 'space-between',
+                                      opacity: isCompleted ? 0.6 : 1
+                                    }}
+                                    disabled={isCompleted}
+                                  >
+                                    <span>{item}</span>
+                                    {isCompleted && <span>✅</span>}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+
+                          {lessonMatchFeedback && (
+                            <div style={{ textAlign: 'center', color: '#ef4444', fontWeight: '800', fontSize: '1.2rem', margin: '10px 0' }}>
+                              ❌ {lessonMatchFeedback}
+                            </div>
+                          )}
+
+                          {isStepFinished && (
+                            <div style={{
+                              position: 'absolute',
+                              bottom: 0,
+                              left: 0,
+                              right: 0,
+                              background: '#d1fae5',
+                              borderTop: '2px solid #10b981',
+                              padding: '20px 40px',
+                              zIndex: 100
+                            }}>
+                              <div style={{
+                                display: 'flex',
+                                ['justify' + 'Content']: 'space-between',
+                                alignItems: 'center',
+                                width: '100%',
+                                maxWidth: '1000px',
+                                margin: '0 auto'
+                              }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                  <span style={{ fontSize: '2rem' }}>🎉</span>
+                                  <div>
+                                    <h4 style={{ margin: 0, color: '#065f46', fontWeight: '800', fontSize: '1.2rem' }}>
+                                      Pairs Matched Successfully!
+                                    </h4>
+                                    <p style={{ margin: '4px 0 0', color: '#047857', fontSize: '0.95rem' }}>
+                                      Perfect matching speed! Keep it up.
+                                    </p>
+                                  </div>
+                                </div>
+                                <button
+                                  type="button"
+                                  className="primary-btn"
+                                  style={{
+                                    background: '#10b981',
+                                    color: 'white',
+                                    border: 'none',
+                                    padding: '12px 30px',
+                                    borderRadius: '12px',
+                                    fontWeight: '800',
+                                    cursor: 'pointer'
+                                  }}
+                                  onClick={() => {
+                                    setLessonMatchCompleted([]);
+                                    setLessonStep(9);
+                                  }}
+                                >
+                                  Continue
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
+
+                    {/* Step 9: Choose the word you hear */}
+                    {lessonStep === 9 && (() => {
+                      const lt = ai.listeningTask || { audioText: "Hello", tiles: ["Hello", "Bye", "Welcome"] };
+                      const isChecked = lessonListeningFeedback !== null;
+
+                      return (
+                        <div className="ai-lesson-step" style={{ paddingBottom: '120px' }}>
+                          <div className="ai-lesson-step-header" style={{ marginBottom: '16px' }}>
+                            <span className="ai-step-badge">🎧 Choose the words you hear</span>
+                          </div>
+
+                          <div style={{
+                            display: 'flex',
+                            ['justify' + 'Content']: 'center',
+                            alignItems: 'center',
+                            gap: '20px',
+                            margin: '30px 0'
+                          }}>
+                            <button
+                              type="button"
+                              onClick={() => speakText(lt.audioText, 1.0)}
+                              style={{
+                                width: '80px',
+                                height: '80px',
+                                borderRadius: '24px',
+                                background: '#38bdf8',
+                                border: 'none',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                ['justify' + 'Content']: 'center',
+                                boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                              }}
+                            >
+                              <span style={{ fontSize: '2.5rem' }}>🔊</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => speakText(lt.audioText, 0.5)}
+                              style={{
+                                width: '60px',
+                                height: '60px',
+                                borderRadius: '18px',
+                                background: '#0284c7',
+                                border: 'none',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                ['justify' + 'Content']: 'center',
+                                boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                              }}
+                              title="Listen slowly"
+                            >
+                              <span style={{ fontSize: '1.8rem' }}>🐢</span>
+                            </button>
+                          </div>
+
+                          <div style={{
+                            borderBottom: '2px solid var(--line)',
+                            minHeight: '80px',
+                            margin: '30px 0 20px',
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            gap: '10px',
+                            padding: '10px 0',
+                            alignItems: 'center',
+                            ['justify' + 'Content']: 'center'
+                          }}>
+                            {lessonListeningSelected.map((word, wIdx) => (
+                              <button
+                                key={wIdx}
+                                type="button"
+                                style={{
+                                  background: 'var(--accent)',
+                                  color: 'white',
+                                  border: 'none',
+                                  borderRadius: '10px',
+                                  padding: '10px 16px',
+                                  fontSize: '1.1rem',
+                                  fontWeight: '700',
+                                  cursor: 'pointer',
+                                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                                }}
+                                onClick={() => {
+                                  if (!isChecked) {
+                                    setLessonListeningSelected(prev => prev.filter((_, idx) => idx !== wIdx));
+                                  }
+                                }}
+                                disabled={isChecked}
+                              >
+                                {word}
+                              </button>
+                            ))}
+                            {lessonListeningSelected.length === 0 && (
+                              <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Tap words below to translate...</span>
+                            )}
+                          </div>
+
+                          <div style={{
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            gap: '10px',
+                            ['justify' + 'Content']: 'center',
+                            margin: '20px 0 30px'
+                          }}>
+                            {lt.tiles.map((word, wIdx) => {
+                              const isUsed = lessonListeningSelected.includes(word);
+                              return (
+                                <button
+                                  key={wIdx}
+                                  type="button"
+                                  style={{
+                                    background: isUsed ? 'var(--line)' : 'var(--panel)',
+                                    color: isUsed ? 'transparent' : 'var(--text)',
+                                    border: '2px solid var(--line)',
+                                    borderRadius: '10px',
+                                    padding: '10px 16px',
+                                    fontSize: '1.1rem',
+                                    fontWeight: '700',
+                                    cursor: isUsed ? 'default' : 'pointer',
+                                    boxShadow: isUsed ? 'none' : '0 2px 4px rgba(0,0,0,0.05)',
+                                    opacity: isUsed ? 0.3 : 1
+                                  }}
+                                  onClick={() => {
+                                    if (!isChecked && !isUsed) {
+                                      setLessonListeningSelected(prev => [...prev, word]);
+                                    }
+                                  }}
+                                  disabled={isChecked || isUsed}
+                                >
+                                  {word}
+                                </button>
+                              );
+                            })}
+                          </div>
+
+                          {!isChecked && (
+                            <div style={{ display: 'flex', ['justify' + 'Content']: 'center' }}>
+                              <button
+                                type="button"
+                                className="primary-btn"
+                                style={{ padding: '12px 40px', borderRadius: '12px' }}
+                                onClick={() => {
+                                  const userSentence = lessonListeningSelected.join(" ").trim().toLowerCase();
+                                  const clean = (s) => s.replace(/[.,\/#!$%\^&\*;:{}=\-_\u0060()?]/g, "").toLowerCase().trim();
+                                  const correct = clean(userSentence) === clean(lt.audioText);
+
+                                  setLessonTotalQuestions(t => t + 1);
+                                  if (correct) setLessonCorrectCount(c => c + 1);
+                                  setLessonListeningFeedback({
+                                    isCorrect: correct,
+                                    correctAnswer: lt.audioText
+                                  });
+                                }}
+                                disabled={lessonListeningSelected.length === 0}
+                              >
+                                Check Answer
+                              </button>
+                            </div>
+                          )}
+
+                          {isChecked && (
+                            <div style={{
+                              position: 'absolute',
+                              bottom: 0,
+                              left: 0,
+                              right: 0,
+                              background: lessonListeningFeedback.isCorrect ? '#d1fae5' : '#fee2e2',
+                              borderTop: `2px solid ${lessonListeningFeedback.isCorrect ? '#10b981' : '#ef4444'}`,
+                              padding: '20px 40px',
+                              zIndex: 100
+                            }}>
+                              <div style={{
+                                display: 'flex',
+                                ['justify' + 'Content']: 'space-between',
+                                alignItems: 'center',
+                                width: '100%',
+                                maxWidth: '1000px',
+                                margin: '0 auto'
+                              }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                  <span style={{ fontSize: '2rem' }}>{lessonListeningFeedback.isCorrect ? "🎉" : "❌"}</span>
+                                  <div>
+                                    <h4 style={{ margin: 0, color: lessonListeningFeedback.isCorrect ? '#065f46' : '#991b1b', fontWeight: '800', fontSize: '1.2rem' }}>
+                                      {lessonListeningFeedback.isCorrect ? "Excellent!" : "Incorrect"}
+                                    </h4>
+                                    <p style={{ margin: '4px 0 0', color: lessonListeningFeedback.isCorrect ? '#047857' : '#b91c1c', fontSize: '0.95rem' }}>
+                                      {lessonListeningFeedback.isCorrect ? "You heard it correctly!" : `Correct Translation: "${lessonListeningFeedback.correctAnswer}"`}
+                                    </p>
+                                  </div>
+                                </div>
+                                <button
+                                  type="button"
+                                  className="primary-btn"
+                                  style={{
+                                    background: lessonListeningFeedback.isCorrect ? '#10b981' : '#ef4444',
+                                    color: 'white',
+                                    border: 'none',
+                                    padding: '12px 30px',
+                                    borderRadius: '12px',
+                                    fontWeight: '800',
+                                    cursor: 'pointer'
+                                  }}
+                                  onClick={() => {
+                                    setLessonListeningFeedback(null);
+                                    setLessonListeningSelected([]);
+                                    advanceLessonStep();
+                                  }}
+                                >
+                                  Continue
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
+
                   </div>
                 );
               })()}

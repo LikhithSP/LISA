@@ -59,3 +59,10 @@ create trigger on_auth_user_created
 -- ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS literacy_level integer;
 -- ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS assessment_completed boolean NOT NULL DEFAULT false;
 
+-- Dynamic Daily Quests Tracking Columns:
+-- ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS daily_xp integer NOT NULL DEFAULT 0;
+-- ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS daily_time_spent integer NOT NULL DEFAULT 0;
+-- ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS daily_lessons integer NOT NULL DEFAULT 0;
+-- ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS daily_quests jsonb;
+-- ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS daily_quest_date date;
+

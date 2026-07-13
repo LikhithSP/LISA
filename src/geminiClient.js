@@ -73,6 +73,28 @@ Return ONLY valid JSON with this exact structure (no markdown, no backticks):
   "writingActivity": "string (clear writing prompt or task instruction in ${language})",
   "pronunciationWords": ["word1", "word2", "word3", "word4", "word5"],
   "pronunciationTip": "string (pronunciation guidance in ${language})",
+  "speakSentence": "string (a full sentence in ${language} for the user to practice speaking)",
+  "meaningQuestion": {
+    "phrase": "string (a sentence or phrase in ${language})",
+    "options": ["correct English translation", "incorrect translation distractor 1", "incorrect translation distractor 2"],
+    "correctIndex": 0
+  },
+  "translationTask": {
+    "sentence": "string (a sentence in ${language})",
+    "englishTranslation": "string (correct English translation)",
+    "tiles": ["array of 6-8 English words containing all words from englishTranslation plus 2-3 distractor words"]
+  },
+  "matchingPairs": [
+    {"left": "word or short phrase in ${language} 1", "right": "matching English word or phrase 1"},
+    {"left": "word or short phrase in ${language} 2", "right": "matching English word or phrase 2"},
+    {"left": "word or short phrase in ${language} 3", "right": "matching English word or phrase 3"},
+    {"left": "word or short phrase in ${language} 4", "right": "matching English word or phrase 4"},
+    {"left": "word or short phrase in ${language} 5", "right": "matching English word or phrase 5"}
+  ],
+  "listeningTask": {
+    "audioText": "string (a simple sentence or phrase in ${language} for the user to listen to)",
+    "tiles": ["array of 6-8 words in ${language} containing all words from audioText plus 2-3 distractor words"]
+  },
   "aiFeedbackPositive": "string (encouraging message for correct answers in ${language})",
   "aiFeedbackNegative": "string (gentle corrective message in ${language})"
 }`;
@@ -141,7 +163,6 @@ const getFallbackLesson = (params) => {
       { text: "Example 2: Write what you see.", translation: "" },
       { text: "Example 3: Listen and repeat.", translation: "" }
     ],
-    guidedPractice: "Read the examples above, then try the practice questions below.",
     mcqs: [
       { question: "Which of the following is a complete sentence?", options: ["cat run", "The cat runs.", "run cat the", "cat the run"], correctIndex: 1, explanation: "A complete sentence has a subject and verb." },
       { question: "What comes at the end of a sentence?", options: ["comma", "period", "apostrophe", "hyphen"], correctIndex: 1, explanation: "A period marks the end of a sentence." },
@@ -160,6 +181,27 @@ const getFallbackLesson = (params) => {
     writingActivity: "Write 2-3 sentences about your daily routine using simple words.",
     pronunciationWords: ["school", "teacher", "notebook", "reading", "writing"],
     pronunciationTip: "Speak each word clearly and slowly. Break it into syllables.",
+    speakSentence: language === "Hindi" ? "राम हर दिन स्कूल जाता है।" : language === "Kannada" ? "ರಾಮ್ ಪ್ರತಿ ದಿನ ಶಾಲೆಗೆ ಹೋಗುತ್ತಾನೆ." : "Ram goes to school every day.",
+    meaningQuestion: {
+      phrase: language === "Hindi" ? "नमस्ते" : language === "Kannada" ? "ನಮಸ್ಕಾರ" : "Namaskar",
+      options: ["Hello", "Goodbye", "Thank you"],
+      correctIndex: 0
+    },
+    translationTask: {
+      sentence: language === "Hindi" ? "वह स्कूल जाता है" : language === "Kannada" ? "ಅವನು ಶಾಲೆಗೆ ಹೋಗುತ್ತಾನೆ" : "Avanu shalege hoguttane",
+      englishTranslation: "He goes to school",
+      tiles: ["He", "goes", "to", "school", "runs", "they", "market"]
+    },
+    matchingPairs: [
+      { left: language === "Hindi" ? "स्कूल" : language === "Kannada" ? "ಶಾಲೆ" : "Shale", right: "School" },
+      { left: language === "Hindi" ? "किताब" : language === "Kannada" ? "ಪುಸ್ತಕ" : "Pustaka", right: "Book" },
+      { left: language === "Hindi" ? "लड़का" : language === "Kannada" ? "ಹುಡುಗ" : "Huduga", right: "Boy" },
+      { left: language === "Hindi" ? "पानी" : language === "Kannada" ? "ನೀರು" : "Neeru", right: "Water" }
+    ],
+    listeningTask: {
+      audioText: language === "Hindi" ? "वह जाता है" : language === "Kannada" ? "ಅವನು ಹೋಗುತ್ತಾನೆ" : "He goes",
+      tiles: language === "Hindi" ? ["वह", "जाता", "है", "तुम", "हम"] : language === "Kannada" ? ["ಅವನು", "ಹೋಗುತ್ತಾನೆ", "ಬರುತ್ತಾನೆ", "ನಾವು"] : ["He", "goes", "comes", "we"]
+    },
     aiFeedbackPositive: "Excellent work! You are making great progress.",
     aiFeedbackNegative: "Good try! Review the lesson and attempt again. You can do it!"
   };
