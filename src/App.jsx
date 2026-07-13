@@ -68,20 +68,6 @@ const BookIcon = ({ className, style }) => (
   </svg>
 );
 
-const BrainIcon = ({ className, style }) => (
-  <svg className={className} style={{ verticalAlign: "middle", ...style }} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.44 2.5 2.5 0 0 1 0-3.12 3 3 0 0 1 0-4.88 2.5 2.5 0 0 1 0-3.12A2.5 2.5 0 0 1 9.5 2Z" />
-    <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.44 2.5 2.5 0 0 0 0-3.12 3 3 0 0 0 0-4.88 2.5 2.5 0 0 0 0-3.12A2.5 2.5 0 0 0 14.5 2Z" />
-  </svg>
-);
-
-const EditIcon = ({ className, style }) => (
-  <svg className={className} style={{ verticalAlign: "middle", ...style }} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M12 20h9" />
-    <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
-  </svg>
-);
-
 const TrophyIcon = ({ className, style }) => (
   <svg className={className} style={{ verticalAlign: "middle", ...style }} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
@@ -1226,6 +1212,20 @@ function App() {
   const [lessonReadingStep, setLessonReadingStep] = useState(1); // 1 = Task 1 (passage+question), 2 = Task 2 (writing)
   const [lessonReadingFeedback, setLessonReadingFeedback] = useState(null);
   const [lessonReadingAnswer, setLessonReadingAnswer] = useState("");
+  const [lessonMeaningFeedback, setLessonMeaningFeedback] = useState(null);
+  const [lessonMeaningAnswer, setLessonMeaningAnswer] = useState(null);
+  const [lessonTranslationFeedback, setLessonTranslationFeedback] = useState(null);
+  const [lessonTranslationSelected, setLessonTranslationSelected] = useState([]);
+  const [lessonListeningFeedback, setLessonListeningFeedback] = useState(null);
+  const [lessonListeningSelected, setLessonListeningSelected] = useState([]);
+  const [lessonMatchFeedback, setLessonMatchFeedback] = useState(null);
+  const [lessonMatchCompleted, setLessonMatchCompleted] = useState([]);
+  const [lessonMatchSelectedLeft, setLessonMatchSelectedLeft] = useState(null);
+  const [lessonMatchSelectedRight, setLessonMatchSelectedRight] = useState(null);
+  const [lessonSpeakFeedback, setLessonSpeakFeedback] = useState(null);
+  const [lessonSpeakError, setLessonSpeakError] = useState("");
+  const [lessonSpeakIsListening, setLessonSpeakIsListening] = useState(false);
+  const [lessonSpeakTranscript, setLessonSpeakTranscript] = useState("");
 
   const completeLesson = async (lessonId, xpAwarded) => {
 
@@ -3406,23 +3406,27 @@ function App() {
                   <div className="achievements-card" style={{ margin: 0 }}>
                     <div className="achievements-card-header">
                       <h4>Achievements</h4>
+                      <button className="achievements-view-all">VIEW ALL</button>
                     </div>
                     <div className="achievements-list">
                       {[
-                        { id: 1, title: "First Steps", desc: "Complete your first assessment", icon: <StarIcon style={{ marginRight: 0 }} />, earned: true, color: "#f59e0b" },
-                        { id: 2, title: "Reading Star", desc: "Score 75% or higher in reading", icon: <BookIcon style={{ marginRight: 0 }} />, earned: calculateSkillProficiency("reading") >= 75, color: "#3b82f6" },
-                        { id: 3, title: "Comprehension Pro", desc: "Score 75% or higher in comprehension", icon: <BrainIcon style={{ marginRight: 0 }} />, earned: calculateSkillProficiency("comprehension") >= 75, color: "#10b981" },
-                        { id: 4, title: "Wordsmith", desc: "Score 75% or higher in writing", icon: <EditIcon style={{ marginRight: 0 }} />, earned: calculateSkillProficiency("writing") >= 75, color: "#a855f7" },
+                        { id: 1, title: "First Steps", desc: "Complete your first assessment", icon: "⭐", earned: true, color: "#f59e0b", progress: 100 },
+                        { id: 2, title: "Reading Star", desc: "Score 75% or higher in reading", icon: "📚", earned: calculateSkillProficiency("reading") >= 75, color: "#3b82f6", progress: Math.min(100, Math.round(calculateSkillProficiency("reading"))) },
+                        { id: 3, title: "Comprehension Pro", desc: "Score 75% or higher in comprehension", icon: "🧠", earned: calculateSkillProficiency("comprehension") >= 75, color: "#10b981", progress: Math.min(100, Math.round(calculateSkillProficiency("comprehension"))) },
+                        { id: 4, title: "Wordsmith", desc: "Score 75% or higher in writing", icon: "✍️", earned: calculateSkillProficiency("writing") >= 75, color: "#a855f7", progress: Math.min(100, Math.round(calculateSkillProficiency("writing"))) },
                       ].map((a) => (
                         <div key={a.id} className={`achievement-row ${a.earned ? "earned" : ""}`}>
-                          <div className="achievement-badge-box" style={{ background: a.color }}>
-                            <span className="achievement-badge-icon">{a.icon}</span>
+                          <div className="achievement-badge-box" style={{ background: a.earned ? a.color : 'var(--line)' }}>
+                            <span className="achievement-badge-icon">{a.earned ? a.icon : '🔒'}</span>
                           </div>
                           <div className="achievement-info">
                             <div className="achievement-info-header">
                               <span className="achievement-title">{a.title}</span>
                             </div>
                             <p className="achievement-desc">{a.desc}</p>
+                            <div className="achievement-progress-track">
+                              <div className="achievement-progress-fill" style={{ width: `${a.progress}%`, background: a.earned ? a.color : 'var(--muted)' }}></div>
+                            </div>
                           </div>
                         </div>
                       ))}
@@ -4040,6 +4044,25 @@ function App() {
                             </div>
                           </div>
                         )}
+
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
+                          <button
+                            type="button"
+                            className="primary-btn"
+                            style={{
+                              background: 'var(--accent)',
+                              color: 'white',
+                              border: 'none',
+                              padding: '12px 30px',
+                              borderRadius: '12px',
+                              fontWeight: '800',
+                              cursor: 'pointer'
+                            }}
+                            onClick={() => setLessonStep(1)}
+                          >
+                            Continue
+                          </button>
+                        </div>
                       </div>
                     )}
 
@@ -4568,14 +4591,12 @@ function App() {
                                 type="button"
                                 className="primary-btn"
                                 style={{ padding: '12px 40px', borderRadius: '12px' }}
-                                onClick={() => {
-                                  setLessonTotalQuestions(t => t + 1);
-                                  setLessonCorrectCount(c => c + 1);
-                                  setLessonReadingFeedback({
-                                    userAnswer: lessonReadingAnswer,
-                                    suggestedAnswer: ai.readingAnswer
-                                  });
-                                }}
+                                  onClick={() => {
+                                    setLessonReadingFeedback({
+                                      userAnswer: lessonReadingAnswer,
+                                      suggestedAnswer: ai.readingAnswer
+                                    });
+                                  }}
                                 disabled={!lessonReadingAnswer.trim()}
                               >
                                 Check Answer
@@ -4698,13 +4719,12 @@ function App() {
                             className="primary-btn"
                             style={{ padding: '12px 40px', borderRadius: '12px' }}
                             onClick={() => {
-                              setLessonTotalQuestions(t => t + 1);
-                              setLessonCorrectCount(c => c + 1);
+
                               setLessonStep(5);
                             }}
                             disabled={!lessonWritingText.trim()}
                           >
-                            Complete Activity
+                            Continue
                           </button>
                         </div>
                       </div>
@@ -4762,16 +4782,14 @@ function App() {
                             const percent = targetWords.length > 0 ? (matched / targetWords.length) * 100 : 100;
                             const isCorrect = percent >= 50;
                             
-                            setLessonSpeakFeedback({
-                              isCorrect,
-                              matchedCount: matched,
-                              totalWords: targetWords.length,
-                              percent: Math.round(percent)
-                            });
-                            
-                            setLessonTotalQuestions(t => t + 1);
-                            if (isCorrect) setLessonCorrectCount(c => c + 1);
-                          };
+                              setLessonSpeakFeedback({
+                                isCorrect,
+                                matchedCount: matched,
+                                totalWords: targetWords.length,
+                                percent: Math.round(percent)
+                              });
+                              
+                            };
                           
                           rec.start();
                         } catch (err) {
@@ -5009,8 +5027,6 @@ function App() {
                                 style={{ padding: '12px 40px', borderRadius: '12px' }}
                                 onClick={() => {
                                   const correct = lessonMeaningAnswer === mq.correctIndex;
-                                  setLessonTotalQuestions(t => t + 1);
-                                  if (correct) setLessonCorrectCount(c => c + 1);
                                   setLessonMeaningFeedback({
                                     isCorrect: correct,
                                     correctAnswer: mq.options[mq.correctIndex]
@@ -5205,8 +5221,6 @@ function App() {
                                   const clean = (s) => s.replace(/[.,\/#!$%\^&\*;:{}=\-_\u0060()?]/g, "").toLowerCase().trim();
                                   const correct = clean(userSentence) === clean(tt.englishTranslation);
                                   
-                                  setLessonTotalQuestions(t => t + 1);
-                                  if (correct) setLessonCorrectCount(c => c + 1);
                                   setLessonTranslationFeedback({
                                     isCorrect: correct,
                                     correctAnswer: tt.englishTranslation
@@ -5297,8 +5311,6 @@ function App() {
                           const pair = pairs.find(p => p.left === item && p.right === lessonMatchSelectedRight);
                           if (pair) {
                             setLessonMatchCompleted(prev => [...prev, item]);
-                            setLessonTotalQuestions(t => t + 1);
-                            setLessonCorrectCount(c => c + 1);
                           } else {
                             setLessonMatchFeedback("Incorrect pair!");
                             setTimeout(() => setLessonMatchFeedback(null), 1000);
@@ -5317,8 +5329,6 @@ function App() {
                           const pObj = pairs.find(p => p.left === lessonMatchSelectedLeft && p.right === item);
                           if (pObj) {
                             setLessonMatchCompleted(prev => [...prev, lessonMatchSelectedLeft]);
-                            setLessonTotalQuestions(t => t + 1);
-                            setLessonCorrectCount(c => c + 1);
                           } else {
                             setLessonMatchFeedback("Incorrect pair!");
                             setTimeout(() => setLessonMatchFeedback(null), 1000);
@@ -5620,8 +5630,6 @@ function App() {
                                   const clean = (s) => s.replace(/[.,\/#!$%\^&\*;:{}=\-_\u0060()?]/g, "").toLowerCase().trim();
                                   const correct = clean(userSentence) === clean(lt.audioText);
 
-                                  setLessonTotalQuestions(t => t + 1);
-                                  if (correct) setLessonCorrectCount(c => c + 1);
                                   setLessonListeningFeedback({
                                     isCorrect: correct,
                                     correctAnswer: lt.audioText
