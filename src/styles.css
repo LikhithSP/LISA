@@ -5520,21 +5520,49 @@ select:focus {
 
 /* ── AI Pronunciation ───────────────────────────────────── */
 .ai-pronunciation-words {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
   margin-top: 16px;
 }
 .ai-pronunciation-word {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
-  padding: 12px 18px;
-  background: var(--card-bg);
-  border-radius: 12px;
-  border: 2px solid var(--border);
-  font-size: 1.1rem;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px;
+  background: var(--panel-strong);
+  border-radius: 16px;
+  border: 2px solid var(--line);
+  font-size: 1.25rem;
   font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+.ai-pronunciation-word:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(198, 95, 45, 0.12);
+}
+.ai-pronunciation-word .tts-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 1.1rem;
+}
+.ai-pronunciation-word:hover .tts-btn {
+  background: var(--accent);
+  color: white;
 }
 
 /* ── 6-Skill Results Bars ──────────────────────────────── */

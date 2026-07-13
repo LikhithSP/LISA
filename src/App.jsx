@@ -1068,7 +1068,16 @@ function App() {
   const [lessonWritingText, setLessonWritingText] = useState("");
   const [lessonAiContent, setLessonAiContent] = useState(null);
 
-  const completeLesson = (lessonId, xpAwarded) => {
+  // Single-question-at-a-time state variables
+  const [lessonMcqIndex, setLessonMcqIndex] = useState(0);
+  const [lessonMcqFeedback, setLessonMcqFeedback] = useState(null);
+  const [lessonFillIndex, setLessonFillIndex] = useState(0);
+  const [lessonFillFeedback, setLessonFillFeedback] = useState(null);
+  const [lessonReadingStep, setLessonReadingStep] = useState(1); // 1 = Task 1 (passage+question), 2 = Task 2 (writing)
+  const [lessonReadingFeedback, setLessonReadingFeedback] = useState(null);
+  const [lessonReadingAnswer, setLessonReadingAnswer] = useState("");
+
+  const completeLesson = async (lessonId, xpAwarded) => {
 
     if (!session?.user?.id) return;
     const userId = session.user.id;
@@ -1079,8 +1088,9 @@ function App() {
     localStorage.setItem(`lisa_user_xp_${userId}`, newXp);
 
     // Update completed lessons
+    let newLessons = completedLessons;
     if (!completedLessons.includes(lessonId)) {
-      const newLessons = [...completedLessons, lessonId];
+      newLessons = [...completedLessons, lessonId];
       setCompletedLessons(newLessons);
       localStorage.setItem(`lisa_completed_lessons_${userId}`, JSON.stringify(newLessons));
     }
@@ -1099,6 +1109,19 @@ function App() {
 
     // Refresh day streak in real-time
     updateStreak(userId, profile);
+
+    // Sync XP and completed lessons list to the database
+    try {
+      await supabase
+        .from("profiles")
+        .update({
+          xp: newXp,
+          completed_lessons: newLessons
+        })
+        .eq("id", userId);
+    } catch (dbErr) {
+      console.warn("Could not sync lesson progress to Supabase:", dbErr);
+    }
   };
 
   // AI-powered lesson session starter
@@ -1109,6 +1132,13 @@ function App() {
     setLessonFillAnswers({});
     setLessonWritingText("");
     setLessonAiContent(null);
+    setLessonMcqIndex(0);
+    setLessonMcqFeedback(null);
+    setLessonFillIndex(0);
+    setLessonFillFeedback(null);
+    setLessonReadingStep(1);
+    setLessonReadingFeedback(null);
+    setLessonReadingAnswer("");
     setLessonSession({
       lessonId: lesson.id,
       title: lesson.title,
@@ -1378,7 +1408,10 @@ function App() {
           preferred_language: session?.user?.user_metadata?.preferred_language || selectedLanguage || "English",
           education_level: session?.user?.user_metadata?.education_level || "No formal education",
           literacy_level: storedAssessment?.literacy_level ?? null,
-          assessment_completed: storedAssessment?.assessment_completed ?? false
+          assessment_completed: storedAssessment?.assessment_completed ?? false,
+          xp: 0,
+          completed_lessons: [],
+          attempts_history: []
         };
         setProfile(defaultProfile);
         updateStreak(userId, defaultProfile);
@@ -1394,6 +1427,31 @@ function App() {
 
         setProfile(mergedProfile);
         updateStreak(userId, mergedProfile);
+
+        // Load progress and preferences from the database, updating both React state and localStorage cache
+        if (mergedProfile.xp !== undefined && mergedProfile.xp !== null) {
+          setUserXp(Number(mergedProfile.xp));
+          localStorage.setItem(`lisa_user_xp_${userId}`, mergedProfile.xp);
+        }
+        if (mergedProfile.completed_lessons) {
+          const lessonsList = Array.isArray(mergedProfile.completed_lessons) ? mergedProfile.completed_lessons : [];
+          setCompletedLessons(lessonsList);
+          localStorage.setItem(`lisa_completed_lessons_${userId}`, JSON.stringify(lessonsList));
+        }
+        if (mergedProfile.attempts_history) {
+          const historyList = Array.isArray(mergedProfile.attempts_history) ? mergedProfile.attempts_history : [];
+          setHistoryAttempts(historyList);
+          localStorage.setItem("lisa_attempts_history", JSON.stringify(historyList));
+        }
+        if (mergedProfile.profile_bg) {
+          setProfileBg(mergedProfile.profile_bg);
+          localStorage.setItem(`lisa_profile_bg_${userId}`, mergedProfile.profile_bg);
+        }
+        if (mergedProfile.avatar_url) {
+          setProfileAvatar(mergedProfile.avatar_url);
+          localStorage.setItem(`lisa_profile_avatar_${userId}`, mergedProfile.avatar_url);
+        }
+
         // Sync locally selected language from login screen to database profile
         const localLang = localStorage.getItem("lisa_lang") || selectedLanguage || "English";
         if (localLang && mergedProfile.preferred_language !== localLang) {
@@ -1793,31 +1851,6 @@ function App() {
     const overallPercent = Math.round((totalMarks / 30) * 100);
 
     try {
-      // Update Supabase profile
-      await supabase.from("profiles").update({
-        education_level: levelString,
-        literacy_level: diagnosedLevel,
-        assessment_completed: true
-      }).eq("id", session.user.id);
-
-      // Update local state
-      setProfile(prev => ({
-        ...prev,
-        education_level: levelString,
-        literacy_level: diagnosedLevel,
-        assessment_completed: true,
-        skill_scores: skillScores,
-        learning_path: learningPath
-      }));
-
-      // Store skill scores + learning path in localStorage
-      setStoredAssessmentState(session.user.id, {
-        literacy_level: diagnosedLevel,
-        assessment_completed: true,
-        skill_scores: skillScores,
-        learning_path: learningPath
-      });
-
       // Save to history
       const attemptResult = {
         date: new Date().toLocaleDateString(),
@@ -1846,6 +1879,32 @@ function App() {
       const updatedHistory = [attemptResult, ...historyAttempts];
       setHistoryAttempts(updatedHistory);
       localStorage.setItem("lisa_attempts_history", JSON.stringify(updatedHistory));
+
+      // Update Supabase profile
+      await supabase.from("profiles").update({
+        education_level: levelString,
+        literacy_level: diagnosedLevel,
+        assessment_completed: true,
+        attempts_history: updatedHistory
+      }).eq("id", session.user.id);
+
+      // Update local state
+      setProfile(prev => ({
+        ...prev,
+        education_level: levelString,
+        literacy_level: diagnosedLevel,
+        assessment_completed: true,
+        skill_scores: skillScores,
+        learning_path: learningPath
+      }));
+
+      // Store skill scores + learning path in localStorage
+      setStoredAssessmentState(session.user.id, {
+        literacy_level: diagnosedLevel,
+        assessment_completed: true,
+        skill_scores: skillScores,
+        learning_path: learningPath
+      });
 
       setDashboardTab("dashboard");
       setAssessmentState("results");
@@ -1954,7 +2013,8 @@ function App() {
         .update({
           education_level: "No formal education",
           literacy_level: null,
-          assessment_completed: false
+          assessment_completed: false,
+          attempts_history: []
         })
         .eq("id", session.user.id);
 
@@ -1975,7 +2035,8 @@ function App() {
         ...prev,
         education_level: "No formal education",
         literacy_level: null,
-        assessment_completed: false
+        assessment_completed: false,
+        attempts_history: []
       } : null);
       clearStoredAssessmentState(session.user.id);
       setHistoryAttempts([]);
@@ -1988,9 +2049,20 @@ function App() {
     }
   };
 
-  const handleResetLessons = () => {
+  const handleResetLessons = async () => {
     if (!session?.user?.id) return;
     const userId = session.user.id;
+    try {
+      await supabase
+        .from("profiles")
+        .update({
+          completed_lessons: [],
+          xp: 0
+        })
+        .eq("id", userId);
+    } catch (dbErr) {
+      console.warn("Could not reset lessons in database:", dbErr);
+    }
     setCompletedLessons([]);
     setUserXp(0);
     localStorage.removeItem(`lisa_completed_lessons_${userId}`);
@@ -2270,9 +2342,23 @@ function App() {
 
     const currentLevelSections = lessonsData[currentLevelNum] || [];
     const currentLevelLessons = currentLevelSections.flatMap((s) => s.units.flatMap((u) => u.lessons));
+    const startingLessonId = (() => {
+      const level = currentLevelNum;
+      if (level === 2) return "s2u1l1";
+      if (level === 3) return "s3u1l1";
+      if (level === 4) return "s5u1l1";
+      if (level === 5) return "s7u1l1";
+      return "s1u1l1";
+    })();
+    const startingLessonIndex = currentLevelLessons.findIndex(l => l.id === startingLessonId);
+
     const currentUnitIdx = (() => {
-      const firstIncomplete = currentLevelLessons.findIndex((l) => !completedLessons.includes(l.id));
-      return firstIncomplete === -1 ? Math.max(currentLevelLessons.length - 1, 0) : firstIncomplete;
+      const startSearchIdx = startingLessonIndex !== -1 ? startingLessonIndex : 0;
+      const firstIncomplete = currentLevelLessons.slice(startSearchIdx).findIndex((l) => !completedLessons.includes(l.id));
+      if (firstIncomplete === -1) {
+        return Math.max(currentLevelLessons.length - 1, 0);
+      }
+      return startSearchIdx + firstIncomplete;
     })();
     const currentUnit = currentLevelLessons[currentUnitIdx];
 
@@ -3017,9 +3103,18 @@ function App() {
                     <div className="resume-card-info">
                       <span className="resume-card-label">Continue learning</span>
                       <h3 className="resume-card-title">{currentUnit?.title}</h3>
-                      <p className="resume-card-sub">
-                        Section {currentUnitPos.sectionIdx + 1}, Unit {currentUnitPos.unitIdx + 1}
-                      </p>
+                      <div className="resume-card-sub" style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontSize: '0.85rem' }}>
+                          Section: {currentLevelSections[currentUnitPos.sectionIdx]?.title || `Section ${currentUnitPos.sectionIdx + 1}`}
+                        </span>
+                        <span style={{ 
+                          fontSize: '0.78rem', 
+                          marginTop: '10px', 
+                          whiteSpace: 'nowrap'
+                        }}>
+                          Unit: {currentLevelSections[currentUnitPos.sectionIdx]?.units[currentUnitPos.unitIdx]?.title || `Unit ${currentUnitPos.unitIdx + 1}`}
+                        </span>
+                      </div>
                     </div>
                     <button
                       type="button"
@@ -3594,20 +3689,9 @@ function App() {
               {/* Active Lesson Steps */}
               {!lessonLoading && lessonSession && lessonSession.status !== "completed" && lessonAiContent && (() => {
                 const ai = lessonAiContent;
-                const stepLabels = ["Explanation", "Practice MCQ", "Fill in Blanks", "Reading & Writing", "Pronunciation"];
 
                 return (
                   <div className="ai-lesson-content">
-                    {/* Step indicator */}
-                    <div className="ai-lesson-step-bar">
-                      {stepLabels.map((label, i) => (
-                        <div key={i} className={`ai-lesson-step-dot ${i < lessonStep ? "done" : i === lessonStep ? "active" : ""}`}>
-                          <span className="dot-num">{i < lessonStep ? "✓" : i + 1}</span>
-                          <span className="dot-label">{label}</span>
-                        </div>
-                      ))}
-                    </div>
-
                     {/* Step 0: Explanation */}
                     {lessonStep === 0 && (
                       <div className="ai-lesson-step">
@@ -3616,148 +3700,768 @@ function App() {
                           <h3>{ai.lessonTitle}</h3>
                           <p style={{ color: 'var(--accent)', fontWeight: 600 }}>Skill Focus: {ai.skillFocus}</p>
                         </div>
-                        <div className="ai-lesson-explanation">
-                          {ai.explanation?.split("\n").map((para, i) => para.trim() && <p key={i}>{para}</p>)}
+
+                        {/* Mascot & Speech bubble */}
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          gap: '24px',
+                          margin: '24px 0'
+                        }}>
+                          {/* Mascot */}
+                          <div style={{ flexShrink: 0 }}>
+                            <img 
+                              src="/as1.png" 
+                              alt="LISA Mascot" 
+                              style={{ width: '120px', height: '120px', objectFit: 'contain' }}
+                            />
+                          </div>
+                          {/* Speech bubble */}
+                          <div style={{
+                            flexGrow: 1,
+                            background: 'var(--panel)',
+                            border: '2px solid var(--line)',
+                            borderRadius: '24px',
+                            padding: '20px',
+                            position: 'relative'
+                          }}>
+                            {/* Speech bubble tail */}
+                            <div style={{
+                              position: 'absolute',
+                              left: '-10px',
+                              top: '40px',
+                              width: '16px',
+                              height: '16px',
+                              background: 'var(--panel)',
+                              borderLeft: '2px solid var(--line)',
+                              borderBottom: '2px solid var(--line)',
+                              transform: 'rotate(45deg)'
+                            }}></div>
+                            
+                            <div className="ai-lesson-explanation" style={{ fontSize: '1.05rem', lineHeight: '1.6', margin: 0 }}>
+                              {ai.explanation?.split("\n").map((para, i) => para.trim() && <p key={i} style={{ margin: '0 0 10px 0' }}>{para}</p>)}
+                            </div>
+                          </div>
                         </div>
+
+                        {/* Audio Example Cards */}
                         {ai.examples?.length > 0 && (
-                          <div className="ai-lesson-examples">
-                            <h4>Examples</h4>
-                            {ai.examples.map((ex, i) => (
-                              <div key={i} className="ai-example-item">
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                  <button type="button" className="tts-btn" onClick={() => speakText(ex.text)} style={{ padding: '6px 10px', fontSize: '0.8rem' }}>🔊</button>
-                                  <span className="ai-example-text">{ex.text}</span>
+                          <div className="ai-lesson-examples" style={{ margin: '24px 0' }}>
+                            <h4 style={{ marginBottom: '16px', fontWeight: '800' }}>Examples (Tap to listen)</h4>
+                            <div style={{
+                              display: 'grid',
+                              gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+                              gap: '16px'
+                            }}>
+                              {ai.examples.map((ex, i) => (
+                                <div 
+                                  key={i} 
+                                  className="ai-example-card"
+                                  style={{
+                                    border: '2px solid var(--line)',
+                                    borderRadius: '16px',
+                                    padding: '16px',
+                                    background: 'var(--panel)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '14px',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s ease',
+                                    boxShadow: '0 4px 6px rgba(0,0,0,0.03)'
+                                  }}
+                                  onClick={() => speakText(ex.text)}
+                                  onMouseEnter={(e) => {
+                                    e.currentTarget.style.borderColor = 'var(--accent)';
+                                    e.currentTarget.style.transform = 'translateY(-2px)';
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.currentTarget.style.borderColor = 'var(--line)';
+                                    e.currentTarget.style.transform = 'translateY(0)';
+                                  }}
+                                >
+                                  <button 
+                                    type="button" 
+                                    className="tts-btn" 
+                                    style={{
+                                      background: 'var(--accent)',
+                                      color: 'white',
+                                      border: 'none',
+                                      borderRadius: '50%',
+                                      width: '36px',
+                                      height: '36px',
+                                      display: 'grid',
+                                      placeItems: 'center',
+                                      cursor: 'pointer',
+                                      flexShrink: 0
+                                    }}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      speakText(ex.text);
+                                    }}
+                                  >
+                                    🔊
+                                  </button>
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                    <span className="ai-example-text" style={{ fontWeight: '700', fontSize: '1.1rem' }}>{ex.text}</span>
+                                    {ex.translation && <span className="ai-example-trans" style={{ fontSize: '0.85rem', color: 'var(--muted)' }}>{ex.translation}</span>}
+                                  </div>
                                 </div>
-                                {ex.translation && <span className="ai-example-trans">{ex.translation}</span>}
-                              </div>
-                            ))}
+                              ))}
+                            </div>
                           </div>
                         )}
+
+                        {/* Highlighted Tip Banner */}
                         {ai.guidedPractice && (
-                          <div className="ai-lesson-tip">
-                            <strong>💡 Guided Practice:</strong> {ai.guidedPractice}
+                          <div className="ai-lesson-tip" style={{
+                            background: 'rgba(245, 158, 11, 0.1)',
+                            border: '2px dashed #f59e0b',
+                            borderRadius: '16px',
+                            padding: '16px 20px',
+                            margin: '24px 0',
+                            display: 'flex',
+                            gap: '12px',
+                            alignItems: 'center'
+                          }}>
+                            <span style={{ fontSize: '1.5rem' }}>💡</span>
+                            <div style={{ color: '#b45309', fontSize: '0.95rem' }}>
+                              <strong style={{ display: 'block', marginBottom: '2px', fontWeight: '800' }}>Guided Tip:</strong> 
+                              {ai.guidedPractice}
+                            </div>
                           </div>
                         )}
                       </div>
                     )}
 
                     {/* Step 1: MCQs */}
-                    {lessonStep === 1 && ai.mcqs?.length > 0 && (
-                      <div className="ai-lesson-step">
-                        <div className="ai-lesson-step-header">
-                          <span className="ai-step-badge">🎯 Multiple Choice Questions</span>
-                          <h3>Answer all {ai.mcqs.length} questions</h3>
-                        </div>
-                        {ai.mcqs.map((q, qIdx) => {
-                          const selected = lessonMcqAnswers[qIdx];
-                          const isAnswered = selected !== undefined;
-                          const isCorrect = isAnswered && selected === q.correctIndex;
-                          return (
-                            <div key={qIdx} className={`ai-mcq-block ${isAnswered ? (isCorrect ? "correct" : "incorrect") : ""}`}>
-                              <p className="ai-mcq-question"><strong>Q{qIdx + 1}:</strong> {q.question}</p>
-                              <div className="ai-mcq-options">
-                                {q.options.map((opt, oIdx) => (
-                                  <button
-                                    key={oIdx}
-                                    className={`ai-mcq-option ${selected === oIdx ? (isCorrect && oIdx === q.correctIndex ? "correct" : oIdx === selected ? "wrong" : "") : (isAnswered && oIdx === q.correctIndex ? "correct" : "")}`}
-                                    onClick={() => !isAnswered && checkLessonMcq(qIdx, oIdx)}
-                                    disabled={isAnswered}
-                                  >
-                                    <span className="option-letter">{String.fromCharCode(65 + oIdx)}</span> {opt}
-                                  </button>
-                                ))}
-                              </div>
-                              {isAnswered && (
-                                <div className={`ai-mcq-feedback ${isCorrect ? "correct" : "incorrect"}`}>
-                                  {isCorrect ? "✓ Correct! " : "✗ "}{q.explanation}
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
+                    {lessonStep === 1 && ai.mcqs?.length > 0 && (() => {
+                      const q = ai.mcqs[lessonMcqIndex];
+                      const selected = lessonMcqAnswers[lessonMcqIndex];
+                      const isAnswered = selected !== undefined;
+                      const isCorrect = isAnswered && selected === q.correctIndex;
 
-                    {/* Step 2: Fill in the Blanks */}
-                    {lessonStep === 2 && ai.fillBlanks?.length > 0 && (
-                      <div className="ai-lesson-step">
-                        <div className="ai-lesson-step-header">
-                          <span className="ai-step-badge">✍️ Fill in the Blanks</span>
-                          <h3>Complete the sentences below</h3>
-                        </div>
-                        {ai.fillBlanks.map((fb, fIdx) => {
-                          const userAnswer = lessonFillAnswers[fIdx] || "";
-                          const isChecked = lessonFillAnswers[`${fIdx}_checked`];
-                          const isCorrect = userAnswer.trim().toLowerCase() === fb.answer.toLowerCase();
-                          return (
-                            <div key={fIdx} className="ai-fill-block">
-                              <p className="ai-fill-sentence">{fb.sentence.replace("___", "_____")}</p>
-                              <p style={{ color: 'var(--muted)', fontSize: '0.85rem', marginBottom: '8px' }}>Hint: {fb.hint}</p>
-                              <div style={{ display: 'flex', gap: '10px' }}>
-                                <input
-                                  type="text"
-                                  className="ai-fill-input"
-                                  placeholder="Type your answer..."
-                                  value={userAnswer}
-                                  onChange={(e) => setLessonFillAnswers(prev => ({ ...prev, [fIdx]: e.target.value }))}
-                                  disabled={!!isChecked}
-                                />
-                                {!isChecked && (
-                                  <button className="secondary-btn" onClick={() => setLessonFillAnswers(prev => ({ ...prev, [`${fIdx}_checked`]: true }))} disabled={!userAnswer.trim()}>Check</button>
-                                )}
-                              </div>
-                              {isChecked && (
-                                <div className={`ai-fill-feedback ${isCorrect ? "correct" : "incorrect"}`}>
-                                  {isCorrect ? `✓ Correct! "${fb.answer}"` : `✗ Answer: "${fb.answer}"`}
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-
-                    {/* Step 3: Reading & Writing */}
-                    {lessonStep === 3 && (
-                      <div className="ai-lesson-step">
-                        <div className="ai-lesson-step-header">
-                          <span className="ai-step-badge">📚 Reading & Writing</span>
-                          <h3>Practice with a short passage</h3>
-                        </div>
-                        <div className="ai-reading-block">
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                            <h4>Read this passage:</h4>
-                            <button type="button" className="tts-btn" onClick={() => speakText(ai.readingPassage)}>🔊 Listen</button>
+                      return (
+                        <div className="ai-lesson-step" style={{ paddingBottom: '120px' }}>
+                          <div className="ai-lesson-step-header" style={{ marginBottom: '16px' }}>
+                            <span className="ai-step-badge">🎯 Multiple Choice (Question {lessonMcqIndex + 1} of {ai.mcqs.length})</span>
                           </div>
-                          <div className="ai-passage-text">{ai.readingPassage}</div>
-                          {ai.readingQuestion && (
-                            <div style={{ marginTop: '20px' }}>
-                              <p><strong>Question:</strong> {ai.readingQuestion}</p>
-                              <input
-                                type="text"
-                                className="ai-fill-input"
-                                placeholder="Type your answer..."
-                                style={{ marginTop: '10px' }}
-                                value={lessonWritingText}
-                                onChange={(e) => setLessonWritingText(e.target.value)}
+                          
+                          {/* Mascot & Speech bubble */}
+                          <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '20px',
+                            margin: '20px 0'
+                          }}>
+                            {/* Mascot */}
+                            <div style={{ flexShrink: 0 }}>
+                              <img 
+                                src="/as1.png" 
+                                alt="LISA Mascot" 
+                                style={{ width: '80px', height: '80px', objectFit: 'contain' }}
                               />
+                            </div>
+                            {/* Speech bubble */}
+                            <div style={{
+                              flexGrow: 1,
+                              background: 'var(--panel)',
+                              border: '2px solid var(--line)',
+                              borderRadius: '20px',
+                              padding: '16px 24px',
+                              position: 'relative'
+                            }}>
+                              <div style={{
+                                position: 'absolute',
+                                left: '-9px',
+                                top: '32px',
+                                width: '14px',
+                                height: '14px',
+                                background: 'var(--panel)',
+                                borderLeft: '2px solid var(--line)',
+                                borderBottom: '2px solid var(--line)',
+                                transform: 'rotate(45deg)'
+                              }}></div>
+                              <h3 style={{ fontSize: '1.4rem', fontWeight: '800', margin: 0 }}>{q.question}</h3>
+                            </div>
+                          </div>
+                          
+                          <div style={{
+                            display: 'grid',
+                            gridTemplateColumns: 'repeat(2, 1fr)',
+                            gap: '16px',
+                            margin: '30px 0'
+                          }}>
+                            {q.options.map((opt, oIdx) => {
+                              const isSelectedOption = selected === oIdx;
+                              let btnBg = 'var(--panel)';
+                              let btnBorder = '2px solid var(--line)';
+                              if (isAnswered) {
+                                if (oIdx === q.correctIndex) {
+                                  btnBg = 'rgba(16, 185, 129, 0.1)';
+                                  btnBorder = '2px solid #10b981';
+                                } else if (isSelectedOption) {
+                                  btnBg = 'rgba(239, 68, 68, 0.1)';
+                                  btnBorder = '2px solid #ef4444';
+                                }
+                              } else if (isSelectedOption) {
+                                btnBorder = '2px solid var(--accent)';
+                              }
+
+                              return (
+                                <button
+                                  key={oIdx}
+                                  type="button"
+                                  style={{
+                                    background: btnBg,
+                                    border: btnBorder,
+                                    borderRadius: '16px',
+                                    padding: '20px',
+                                    fontSize: '1.1rem',
+                                    fontWeight: '600',
+                                    cursor: isAnswered ? 'default' : 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '12px',
+                                    transition: 'all 0.2s ease',
+                                    textAlign: 'left'
+                                  }}
+                                  onClick={() => {
+                                    if (!isAnswered) {
+                                      checkLessonMcq(lessonMcqIndex, oIdx);
+                                      const correct = oIdx === q.correctIndex;
+                                      setLessonMcqFeedback({
+                                        isCorrect: correct,
+                                        title: correct ? "Excellent!" : "Incorrect",
+                                        explanation: q.explanation
+                                      });
+                                    }
+                                  }}
+                                  disabled={isAnswered}
+                                >
+                                  <span style={{
+                                    background: isSelectedOption ? 'var(--accent)' : 'var(--line)',
+                                    color: isSelectedOption ? 'white' : 'var(--text)',
+                                    width: '32px',
+                                    height: '32px',
+                                    borderRadius: '8px',
+                                    display: 'grid',
+                                    placeItems: 'center',
+                                    fontWeight: '800'
+                                  }}>
+                                    {String.fromCharCode(65 + oIdx)}
+                                  </span>
+                                  <span>{opt}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+
+                          {/* Duolingo style bottom feedback bar */}
+                          {lessonMcqFeedback && (
+                            <div style={{
+                              position: 'absolute',
+                              bottom: 0,
+                              left: 0,
+                              right: 0,
+                              background: lessonMcqFeedback.isCorrect ? '#d1fae5' : '#fee2e2',
+                              borderTop: `2px solid ${lessonMcqFeedback.isCorrect ? '#10b981' : '#ef4444'}`,
+                              padding: '20px 40px',
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              zIndex: 100
+                            }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                <span style={{ fontSize: '2rem' }}>{lessonMcqFeedback.isCorrect ? "🎉" : "❌"}</span>
+                                <div>
+                                  <h4 style={{ margin: 0, color: lessonMcqFeedback.isCorrect ? '#065f46' : '#991b1b', fontWeight: '800', fontSize: '1.2rem' }}>
+                                    {lessonMcqFeedback.title}
+                                  </h4>
+                                  <p style={{ margin: '4px 0 0', color: lessonMcqFeedback.isCorrect ? '#047857' : '#b91c1c', fontSize: '0.95rem' }}>
+                                    {lessonMcqFeedback.explanation}
+                                  </p>
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                className="primary-btn"
+                                style={{
+                                  background: lessonMcqFeedback.isCorrect ? '#10b981' : '#ef4444',
+                                  color: 'white',
+                                  border: 'none',
+                                  padding: '12px 30px',
+                                  borderRadius: '12px',
+                                  fontWeight: '800',
+                                  cursor: 'pointer'
+                                }}
+                                onClick={() => {
+                                  setLessonMcqFeedback(null);
+                                  if (lessonMcqIndex < ai.mcqs.length - 1) {
+                                    setLessonMcqIndex(lessonMcqIndex + 1);
+                                  } else {
+                                    setLessonStep(2);
+                                  }
+                                }}
+                              >
+                                Continue
+                              </button>
                             </div>
                           )}
                         </div>
-                        <div className="ai-writing-block" style={{ marginTop: '24px' }}>
-                          <h4>Writing Activity:</h4>
-                          <p style={{ color: 'var(--muted)', marginBottom: '12px' }}>{ai.writingActivity}</p>
-                          <textarea
-                            className="writing-textarea"
-                            rows={4}
-                            placeholder="Write your response here..."
-                            value={lessonWritingText}
-                            onChange={(e) => setLessonWritingText(e.target.value)}
-                            style={{ width: '100%' }}
-                          />
+                      );
+                    })()}
+
+                    {/* Step 2: Fill in the Blanks */}
+                    {lessonStep === 2 && ai.fillBlanks?.length > 0 && (() => {
+                      const fb = ai.fillBlanks[lessonFillIndex];
+                      const userAnswer = lessonFillAnswers[lessonFillIndex] || "";
+                      const isChecked = lessonFillFeedback !== null;
+                      
+                      // Build a list of tiles for word bank
+                      const otherBlanks = ai.fillBlanks.map(x => x.answer).filter(x => x !== fb.answer);
+                      const allChoices = Array.from(new Set([fb.answer, ...otherBlanks])).slice(0, 4);
+                      
+                      return (
+                        <div className="ai-lesson-step" style={{ paddingBottom: '120px' }}>
+                          <div className="ai-lesson-step-header" style={{ marginBottom: '16px' }}>
+                            <span className="ai-step-badge">✍️ Fill in the Blank (Question {lessonFillIndex + 1} of {ai.fillBlanks.length})</span>
+                          </div>
+
+                          <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '20px',
+                            margin: '20px 0'
+                          }}>
+                            {/* Mascot */}
+                            <div style={{ flexShrink: 0 }}>
+                              <img 
+                                src="/as1.png" 
+                                alt="LISA Mascot" 
+                                style={{ width: '80px', height: '80px', objectFit: 'contain' }}
+                              />
+                            </div>
+                            {/* Speech bubble */}
+                            <div style={{
+                              flexGrow: 1,
+                              background: 'var(--panel)',
+                              border: '2px solid var(--line)',
+                              borderRadius: '20px',
+                              padding: '24px',
+                              position: 'relative',
+                              fontSize: '1.3rem',
+                              fontWeight: '700',
+                              textAlign: 'center'
+                            }}>
+                              <div style={{
+                                position: 'absolute',
+                                left: '-9px',
+                                top: '32px',
+                                width: '14px',
+                                height: '14px',
+                                background: 'var(--panel)',
+                                borderLeft: '2px solid var(--line)',
+                                borderBottom: '2px solid var(--line)',
+                                transform: 'rotate(45deg)'
+                              }}></div>
+                              
+                              {/* Render sentence with blank highlighted */}
+                              <div>
+                                {fb.sentence.split("___").map((part, index, arr) => (
+                                  <React.Fragment key={index}>
+                                    {part}
+                                    {index < arr.length - 1 && (
+                                      <span style={{
+                                        borderBottom: '3px solid var(--accent)',
+                                        padding: '2px 10px',
+                                        color: 'var(--accent)',
+                                        margin: '0 8px',
+                                        minWidth: '100px',
+                                        display: 'inline-block',
+                                        textAlign: 'center',
+                                        background: 'rgba(var(--accent-rgb), 0.05)'
+                                      }}>
+                                        {userAnswer || "\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0"}
+                                      </span>
+                                    )}
+                                  </React.Fragment>
+                                ))}
+                              </div>
+
+                              {/* Hint placed inside speech bubble */}
+                              {fb.hint && (
+                                <div style={{ 
+                                  fontSize: '0.9rem', 
+                                  color: 'var(--muted)', 
+                                  marginTop: '16px',
+                                  fontWeight: '600',
+                                  fontStyle: 'italic',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  gap: '6px'
+                                }}>
+                                  <span>💡</span>
+                                  <span>Hint: {fb.hint}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Interactive word bank tiles */}
+                          {!isChecked && (
+                            <div style={{
+                              display: 'flex',
+                              justifyContent: 'center',
+                              gap: '12px',
+                              margin: '20px 0',
+                              flexWrap: 'wrap'
+                            }}>
+                              {allChoices.map((choice, cIdx) => (
+                                <button
+                                  key={cIdx}
+                                  type="button"
+                                  style={{
+                                    background: 'var(--panel-strong)',
+                                    border: '2px solid var(--line)',
+                                    borderRadius: '12px',
+                                    padding: '10px 20px',
+                                    fontSize: '1.1rem',
+                                    fontWeight: '700',
+                                    cursor: 'pointer',
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+                                    transition: 'all 0.15s ease'
+                                  }}
+                                  onClick={() => {
+                                    setLessonFillAnswers(prev => ({ ...prev, [lessonFillIndex]: choice }));
+                                  }}
+                                >
+                                  {choice}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Fallback Text Input */}
+                          <div style={{ display: 'flex', justifyContent: 'center', margin: '20px 0' }}>
+                            <input
+                              type="text"
+                              className="ai-fill-input"
+                              placeholder="Or type your answer here..."
+                              style={{
+                                maxWidth: '300px',
+                                padding: '12px 20px',
+                                borderRadius: '12px',
+                                border: '2px solid var(--line)',
+                                fontSize: '1rem',
+                                textAlign: 'center'
+                              }}
+                              value={userAnswer}
+                              onChange={(e) => setLessonFillAnswers(prev => ({ ...prev, [lessonFillIndex]: e.target.value }))}
+                              disabled={isChecked}
+                            />
+                          </div>
+
+                          {!isChecked && (
+                            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
+                              <button
+                                type="button"
+                                className="primary-btn"
+                                style={{ padding: '12px 40px', borderRadius: '12px' }}
+                                onClick={() => {
+                                  const correct = userAnswer.trim().toLowerCase() === fb.answer.toLowerCase();
+                                  setLessonFillFeedback({
+                                    isCorrect: correct,
+                                    title: correct ? "Excellent!" : "Incorrect",
+                                    correctAnswer: fb.answer
+                                  });
+                                }}
+                                disabled={!userAnswer.trim()}
+                              >
+                                Check Answer
+                              </button>
+                            </div>
+                          )}
+
+                          {/* Duolingo style bottom feedback bar */}
+                          {lessonFillFeedback && (
+                            <div style={{
+                              position: 'absolute',
+                              bottom: 0,
+                              left: 0,
+                              right: 0,
+                              background: lessonFillFeedback.isCorrect ? '#d1fae5' : '#fee2e2',
+                              borderTop: `2px solid ${lessonFillFeedback.isCorrect ? '#10b981' : '#ef4444'}`,
+                              padding: '20px 40px',
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              zIndex: 100
+                            }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                <span style={{ fontSize: '2rem' }}>{lessonFillFeedback.isCorrect ? "🎉" : "❌"}</span>
+                                <div>
+                                  <h4 style={{ margin: 0, color: lessonFillFeedback.isCorrect ? '#065f46' : '#991b1b', fontWeight: '800', fontSize: '1.2rem' }}>
+                                    {lessonFillFeedback.title}
+                                  </h4>
+                                  <p style={{ margin: '4px 0 0', color: lessonFillFeedback.isCorrect ? '#047857' : '#b91c1c', fontSize: '0.95rem' }}>
+                                    {lessonFillFeedback.isCorrect ? "You got it right!" : `Correct Answer: "${lessonFillFeedback.correctAnswer}"`}
+                                  </p>
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                className="primary-btn"
+                                style={{
+                                  background: lessonFillFeedback.isCorrect ? '#10b981' : '#ef4444',
+                                  color: 'white',
+                                  border: 'none',
+                                  padding: '12px 30px',
+                                  borderRadius: '12px',
+                                  fontWeight: '800',
+                                  cursor: 'pointer'
+                                }}
+                                onClick={() => {
+                                  setLessonFillFeedback(null);
+                                  if (lessonFillIndex < ai.fillBlanks.length - 1) {
+                                    setLessonFillIndex(lessonFillIndex + 1);
+                                  } else {
+                                    setLessonStep(3);
+                                  }
+                                }}
+                              >
+                                Continue
+                              </button>
+                            </div>
+                          )}
                         </div>
-                      </div>
-                    )}
+                      );
+                    })()}
+
+                    {/* Step 3: Reading & Writing */}
+                    {lessonStep === 3 && (() => {
+                      const isTask1 = lessonReadingStep === 1;
+                      const isChecked = lessonReadingFeedback !== null;
+                      
+                      return (
+                        <div className="ai-lesson-step" style={{ paddingBottom: '120px' }}>
+                          {isTask1 ? (
+                            <div>
+                              <div className="ai-lesson-step-header" style={{ marginBottom: '16px' }}>
+                                <span className="ai-step-badge">📚 Reading Comprehension (Task 1 of 2)</span>
+                              </div>
+
+                              <div style={{
+                                background: 'var(--panel)',
+                                border: '2px solid var(--line)',
+                                borderRadius: '24px',
+                                padding: '24px',
+                                margin: '20px 0',
+                                position: 'relative'
+                              }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                                  <h4 style={{ margin: 0 }}>Reading Passage:</h4>
+                                  <button type="button" className="tts-btn" onClick={() => speakText(ai.readingPassage)}>🔊 Listen</button>
+                                </div>
+                                <div className="ai-passage-text" style={{ fontSize: '1.15rem', lineHeight: '1.6', fontWeight: 500 }}>
+                                  {ai.readingPassage}
+                                </div>
+                              </div>
+
+                              {/* Mascot & Speech bubble for reading question */}
+                              <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '20px',
+                                margin: '20px 0'
+                              }}>
+                                {/* Mascot */}
+                                <div style={{ flexShrink: 0 }}>
+                                  <img 
+                                    src="/as1.png" 
+                                    alt="LISA Mascot" 
+                                    style={{ width: '80px', height: '80px', objectFit: 'contain' }}
+                                  />
+                                </div>
+                                {/* Speech bubble */}
+                                <div style={{
+                                  flexGrow: 1,
+                                  background: 'var(--panel)',
+                                  border: '2px solid var(--line)',
+                                  borderRadius: '20px',
+                                  padding: '16px 24px',
+                                  position: 'relative'
+                                }}>
+                                  <div style={{
+                                    position: 'absolute',
+                                    left: '-9px',
+                                    top: '32px',
+                                    width: '14px',
+                                    height: '14px',
+                                    background: 'var(--panel)',
+                                    borderLeft: '2px solid var(--line)',
+                                    borderBottom: '2px solid var(--line)',
+                                    transform: 'rotate(45deg)'
+                                  }}></div>
+                                  <p style={{ fontSize: '1.2rem', fontWeight: '800', margin: 0 }}>{ai.readingQuestion}</p>
+                                </div>
+                              </div>
+
+                              <div style={{ marginTop: '24px' }}>
+                                <input
+                                  type="text"
+                                  className="ai-fill-input"
+                                  placeholder="Type your answer based on the passage..."
+                                  style={{
+                                    width: '100%',
+                                    padding: '12px 20px',
+                                    borderRadius: '12px',
+                                    border: '2px solid var(--line)',
+                                    fontSize: '1rem',
+                                    marginTop: '10px'
+                                  }}
+                                  value={lessonReadingAnswer}
+                                  onChange={(e) => setLessonReadingAnswer(e.target.value)}
+                                  disabled={isChecked}
+                                />
+                              </div>
+
+                              {!isChecked && (
+                                <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
+                                  <button
+                                    type="button"
+                                    className="primary-btn"
+                                    style={{ padding: '12px 40px', borderRadius: '12px' }}
+                                    onClick={() => {
+                                      setLessonReadingFeedback({
+                                        userAnswer: lessonReadingAnswer,
+                                        suggestedAnswer: ai.readingAnswer
+                                      });
+                                    }}
+                                    disabled={!lessonReadingAnswer.trim()}
+                                  >
+                                    Check Answer
+                                  </button>
+                                </div>
+                              )}
+
+                              {lessonReadingFeedback && (
+                                <div style={{
+                                  position: 'absolute',
+                                  bottom: 0,
+                                  left: 0,
+                                  right: 0,
+                                  background: 'var(--panel-strong)',
+                                  borderTop: '2px solid var(--accent)',
+                                  padding: '20px 40px',
+                                  display: 'flex',
+                                  justifyContent: 'space-between',
+                                  alignItems: 'center',
+                                  zIndex: 100
+                                }}>
+                                  <div style={{ flex: 1, marginRight: '20px' }}>
+                                    <div style={{ marginBottom: '8px' }}>
+                                      <strong style={{ color: 'var(--muted)' }}>Your Answer:</strong>
+                                      <p style={{ margin: '2px 0 0', fontWeight: '700' }}>{lessonReadingFeedback.userAnswer}</p>
+                                    </div>
+                                    <div>
+                                      <strong style={{ color: 'var(--accent)' }}>LISA\'s Suggested Answer:</strong>
+                                      <p style={{ margin: '2px 0 0', fontWeight: '700', color: 'var(--accent)' }}>{lessonReadingFeedback.suggestedAnswer}</p>
+                                    </div>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    className="primary-btn"
+                                    onClick={() => {
+                                      setLessonReadingFeedback(null);
+                                      setLessonReadingStep(2);
+                                    }}
+                                  >
+                                    Continue
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <div>
+                              <div className="ai-lesson-step-header" style={{ marginBottom: '16px' }}>
+                                <span className="ai-step-badge">✍️ Writing Activity (Task 2 of 2)</span>
+                              </div>
+
+                              {/* Mascot & Speech bubble for prompt */}
+                              <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '20px',
+                                margin: '20px 0'
+                              }}>
+                                {/* Mascot */}
+                                <div style={{ flexShrink: 0 }}>
+                                  <img 
+                                    src="/as1.png" 
+                                    alt="LISA Mascot" 
+                                    style={{ width: '80px', height: '80px', objectFit: 'contain' }}
+                                  />
+                                </div>
+                                {/* Speech bubble */}
+                                <div style={{
+                                  flexGrow: 1,
+                                  background: 'var(--panel)',
+                                  border: '2px solid var(--line)',
+                                  borderRadius: '20px',
+                                  padding: '16px 24px',
+                                  position: 'relative'
+                                }}>
+                                  <div style={{
+                                    position: 'absolute',
+                                    left: '-9px',
+                                    top: '32px',
+                                    width: '14px',
+                                    height: '14px',
+                                    background: 'var(--panel)',
+                                    borderLeft: '2px solid var(--line)',
+                                    borderBottom: '2px solid var(--line)',
+                                    transform: 'rotate(45deg)'
+                                  }}></div>
+                                  <p style={{ fontSize: '1.2rem', fontWeight: '800', margin: 0 }}>{ai.writingActivity}</p>
+                                </div>
+                              </div>
+
+                              <textarea
+                                className="writing-textarea"
+                                rows={6}
+                                placeholder="Type your response here..."
+                                value={lessonWritingText}
+                                onChange={(e) => setLessonWritingText(e.target.value)}
+                                style={{
+                                  width: '100%',
+                                  padding: '16px',
+                                  borderRadius: '16px',
+                                  border: '2px solid var(--line)',
+                                  fontSize: '1rem',
+                                  fontFamily: 'inherit',
+                                  background: 'var(--panel)'
+                                }}
+                              />
+
+                              <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
+                                <button
+                                  type="button"
+                                  className="primary-btn"
+                                  style={{ padding: '12px 40px', borderRadius: '12px' }}
+                                  onClick={() => {
+                                    setLessonStep(4);
+                                  }}
+                                  disabled={!lessonWritingText.trim()}
+                                >
+                                  Complete Activity
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
 
                     {/* Step 4: Pronunciation */}
                     {lessonStep === 4 && (
@@ -3771,11 +4475,68 @@ function App() {
                             <strong>💡 Tip:</strong> {ai.pronunciationTip}
                           </div>
                         )}
-                        <div className="ai-pronunciation-words">
+                        <div className="ai-pronunciation-words" style={{
+                          display: 'grid',
+                          gridTemplateColumns: 'repeat(2, 1fr)',
+                          gap: '16px',
+                          margin: '20px 0'
+                        }}>
                           {(ai.pronunciationWords || []).map((word, wIdx) => (
-                            <div key={wIdx} className="ai-pronunciation-word">
-                              <span>{word}</span>
-                              <button type="button" className="tts-btn" onClick={() => speakText(word)}>🔊</button>
+                            <div 
+                              key={wIdx} 
+                              className="ai-pronunciation-word-card"
+                              style={{
+                                border: '2px solid var(--line)',
+                                borderRadius: '16px',
+                                padding: '20px',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '12px',
+                                background: 'var(--panel)',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease',
+                                textAlign: 'center',
+                                minHeight: '120px',
+                                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)'
+                              }}
+                              onClick={() => speakText(word)}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.borderColor = 'var(--accent)';
+                                e.currentTarget.style.transform = 'translateY(-2px)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.borderColor = 'var(--line)';
+                                e.currentTarget.style.transform = 'translateY(0)';
+                              }}
+                            >
+                              <span style={{ fontSize: '1.25rem', fontWeight: '700', color: 'var(--text)' }}>{word}</span>
+                              <button 
+                                type="button" 
+                                className="tts-btn" 
+                                style={{
+                                  background: 'var(--accent)',
+                                  color: 'white',
+                                  border: 'none',
+                                  borderRadius: '50%',
+                                  width: '40px',
+                                  height: '40px',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  cursor: 'pointer',
+                                  fontSize: '1.1rem',
+                                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                                  transition: 'all 0.15s ease'
+                                }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  speakText(word);
+                                }}
+                              >
+                                🔊
+                              </button>
                             </div>
                           ))}
                         </div>
@@ -3790,21 +4551,23 @@ function App() {
                     )}
 
                     {/* Navigation footer */}
-                    <div className="lesson-overlay-footer" style={{ borderTop: 'none', padding: '24px 0 0' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
-                        {lessonStep > 0 && (
-                          <button type="button" className="secondary-btn" onClick={() => setLessonStep(p => p - 1)} style={{ flex: 1 }}>← Back</button>
-                        )}
-                        <button
-                          type="button"
-                          className="lesson-check-btn"
-                          style={{ flex: 2 }}
-                          onClick={advanceLessonStep}
-                        >
-                          {lessonStep === 4 ? "✓ Complete Lesson" : "Continue →"}
-                        </button>
+                    {(lessonStep === 0 || lessonStep === 4) && (
+                      <div className="lesson-overlay-footer" style={{ borderTop: 'none', padding: '24px 0 0' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
+                          {lessonStep > 0 && (
+                            <button type="button" className="secondary-btn" onClick={() => setLessonStep(p => p - 1)} style={{ flex: 1 }}>← Back</button>
+                          )}
+                          <button
+                            type="button"
+                            className="lesson-check-btn"
+                            style={{ flex: 2 }}
+                            onClick={advanceLessonStep}
+                          >
+                            {lessonStep === 4 ? "✓ Complete Lesson" : "Continue →"}
+                          </button>
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 );
               })()}
