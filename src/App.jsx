@@ -816,6 +816,14 @@ const getLiteracyLevel = (userProfile) => {
   return null;
 };
 
+const calculateProgressiveLevel = (userProfile, completedLessonsList) => {
+  const baseLevel = getLiteracyLevel(userProfile) || 1;
+  const completedCount = completedLessonsList?.filter(id => typeof id === 'string' && !id.startsWith("ach_")).length || 0;
+  // Every 2 completed lessons increases the level by 1, up to level 12!
+  const levelBonus = Math.floor(completedCount / 2);
+  return Math.min(12, baseLevel + levelBonus);
+};
+
 const hasCompletedAssessment = (userProfile) => {
   return userProfile?.assessment_completed === true || getLiteracyLevel(userProfile) !== null;
 };
@@ -855,13 +863,28 @@ const getLevelCategoryAndDescription = (level, lang) => {
   };
 };
 
+const darkenHex = (hex, factor = 0.85) => {
+  const num = parseInt(hex.replace('#', ''), 16);
+  const r = Math.max(0, Math.round(((num >> 16) & 0xff) * factor));
+  const g = Math.max(0, Math.round(((num >> 8) & 0xff) * factor));
+  const b = Math.max(0, Math.round((num & 0xff) * factor));
+  return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
+};
+
 const levelBadgeColor = (level) => {
   const colors = {
     1: "#10b981",
     2: "#3b82f6",
     3: "#f59e0b",
     4: "#a855f7",
-    5: "#ef4444"
+    5: "#ef4444",
+    6: "#0ea5e9",
+    7: "#ec4899",
+    8: "#f43f5e",
+    9: "#06b6d4",
+    10: "#8b5cf6",
+    11: "#6366f1",
+    12: "#e11d48"
   };
   return colors[level] || "#6b7280";
 };
@@ -872,7 +895,14 @@ const levelBadgeIcon = (level) => {
     2: "📖",
     3: "✍️",
     4: "🧠",
-    5: "👑"
+    5: "👑",
+    6: "🌟",
+    7: "🎓",
+    8: "🏆",
+    9: "🚀",
+    10: "🔥",
+    11: "🌌",
+    12: "🎖️"
   };
   return icons[level] || "📚";
 };
@@ -926,6 +956,25 @@ function App() {
   const activeNodeRef = useRef(null);
 
   const [userXp, setUserXp] = useState(0);
+  const [showAllAchievementsModal, setShowAllAchievementsModal] = useState(false);
+
+  const getLevelEncouragementMessage = (level) => {
+    const messages = {
+      1: "You're taking your first steps! Proud of you.",
+      2: "Great start! You're recognizing words and building skills.",
+      3: "Amazing! You are reading simple sentences smoothly.",
+      4: "Keep it up! Your reading fluency is expanding.",
+      5: "Fantastic progress! You are understanding more complex texts.",
+      6: "Sensational! You are capturing key insights from paragraphs.",
+      7: "Superb! Your communications are getting highly refined.",
+      8: "Excellent! You are mastering functional daily literacy.",
+      9: "Brilliant! Spelling and grammar are becoming second nature.",
+      10: "Outstanding! You communicate with absolute confidence.",
+      11: "Spectacular! You read and write at a professional level.",
+      12: "Literacy Champion! You have achieved complete mastery."
+    };
+    return messages[level] || "Keep it up! Good Work";
+  };
   const [completedLessons, setCompletedLessons] = useState([]);
   const [lessonSession, setLessonSession] = useState(null);
   const [streakCount, setStreakCount] = useState(0);
@@ -1321,7 +1370,7 @@ function App() {
       } catch { return {}; }
     })();
     const weakAreas = getWeakSkills(storedSkillScores);
-    const currentLevelNum = getLiteracyLevel(profile) || 1;
+    const currentLevelNum = calculateProgressiveLevel(profile, completedLessons);
     const profInfo = getProficiencyName(currentLevelNum, "English");
 
     const aiContent = await generateLessonContent({
@@ -1459,6 +1508,56 @@ function App() {
     }
     return dict[key] || translations["English"][key] || key;
   };
+
+  useEffect(() => {
+    const checkAndAwardAchievements = async () => {
+      if (!session?.user?.id || !profile) return;
+      const userId = session.user.id;
+      const currentLevel = calculateProgressiveLevel(profile, completedLessons);
+      
+      const achievementsDefinitions = [
+        { id: 1, condition: true },
+        { id: 2, condition: calculateSkillProficiency("reading") >= 75 },
+        { id: 3, condition: calculateSkillProficiency("comprehension") >= 75 },
+        { id: 4, condition: calculateSkillProficiency("writing") >= 75 },
+        { id: 5, condition: userXp >= 100 },
+        { id: 6, condition: completedLessons.filter(id => !id.startsWith("ach_")).length >= 3 },
+        { id: 7, condition: calculateSkillProficiency("pronunciation") >= 75 },
+        { id: 8, condition: currentLevel >= 8 },
+        { id: 9, condition: currentLevel >= 12 },
+      ];
+
+      let newLessons = completedLessons.filter(id => typeof id === 'string' && !id.startsWith("ach_"));
+
+      achievementsDefinitions.forEach(a => {
+        const achIdStr = `ach_${a.id}`;
+        if (a.condition) {
+          newLessons.push(achIdStr);
+        }
+      });
+
+      const currentAchList = completedLessons.filter(id => typeof id === 'string' && id.startsWith("ach_")).sort();
+      const newAchList = newLessons.filter(id => typeof id === 'string' && id.startsWith("ach_")).sort();
+      const changed = JSON.stringify(currentAchList) !== JSON.stringify(newAchList);
+
+      if (changed) {
+        setCompletedLessons(newLessons);
+        localStorage.setItem(`lisa_completed_lessons_${userId}`, JSON.stringify(newLessons));
+        try {
+          await supabase
+            .from("profiles")
+            .update({
+              completed_lessons: newLessons
+            })
+            .eq("id", userId);
+        } catch (e) {
+          console.warn("Error syncing achievements to Supabase:", e);
+        }
+      }
+    };
+
+    checkAndAwardAchievements();
+  }, [userXp, completedLessons, profile, session]);
 
   useEffect(() => {
     // Load ResponsiveVoice client script on initial mount
@@ -2496,7 +2595,7 @@ function App() {
   if (session) {
     const userLevel = getLiteracyLevel(profile);
     const hasDiagnosed = hasCompletedAssessment(profile);
-    const currentLevelNum = getLiteracyLevel(profile) || 1;
+    const currentLevelNum = calculateProgressiveLevel(profile, completedLessons);
     const currentLang = selectedLanguage || "English";
 
     const currentLevelSections = lessonsData[currentLevelNum] || [];
@@ -3304,18 +3403,38 @@ function App() {
                 </div>
 
                 <div className="dashboard-col dashboard-col-right">
-                  <div className="current-level-card" style={{ margin: 0 }}>
+                  <div className="current-level-card" style={{ 
+                    margin: 0,
+                    background: `linear-gradient(135deg, ${levelBadgeColor(currentLevelNum)} 0%, ${darkenHex(levelBadgeColor(currentLevelNum), 0.88)} 100%)`,
+                    border: `2px solid ${levelBadgeColor(currentLevelNum)}88`,
+                    boxShadow: `0 8px 32px ${levelBadgeColor(currentLevelNum)}40`,
+                    color: '#ffffff',
+                    position: 'relative',
+                    overflow: 'hidden'
+                  }}>
+                    {/* Premium abstract background glow */}
+                    <div style={{
+                      position: 'absolute',
+                      top: '-20px',
+                      right: '-20px',
+                      width: '120px',
+                      height: '120px',
+                      borderRadius: '50%',
+                      background: 'rgba(255, 255, 255, 0.12)',
+                      filter: 'blur(20px)',
+                      pointerEvents: 'none'
+                    }} />
                     <div className="current-level-header">
-                      <h3 className="current-level-title">Current Level</h3>
+                      <h3 className="current-level-title" style={{ color: '#ffffff', textShadow: '0 2px 4px rgba(0,0,0,0.15)' }}>Current Level</h3>
                     </div>
                     <div className="current-level-body">
-                      <div className="current-level-badge" style={{ background: levelBadgeColor(currentLevelNum) }}>
+                      <div className="current-level-badge" style={{ background: 'rgba(255, 255, 255, 0.25)', border: '2px solid rgba(255, 255, 255, 0.4)' }}>
                         <span className="current-level-badge-icon">{levelBadgeIcon(currentLevelNum)}</span>
-                        <span className="current-level-badge-level">LEVEL {currentLevelNum}</span>
+                        <span className="current-level-badge-level" style={{ color: '#ffffff', fontWeight: '900' }}>LEVEL {currentLevelNum}</span>
                       </div>
                       <div className="current-level-info">
-                        <p className="current-level-name">{getLevelCategoryAndDescription(currentLevelNum, selectedLanguage).category}</p>
-                        <p className="current-level-msg">Keep it up! Good Work</p>
+                        <p className="current-level-name" style={{ color: '#ffffff', textShadow: '0 2px 4px rgba(0,0,0,0.15)' }}>{getLevelCategoryAndDescription(currentLevelNum, selectedLanguage).category}</p>
+                        <p className="current-level-msg" style={{ color: 'rgba(255, 255, 255, 0.9)', fontWeight: '500' }}>{getLevelEncouragementMessage(currentLevelNum)}</p>
                       </div>
                     </div>
                   </div>
@@ -3406,30 +3525,54 @@ function App() {
                   <div className="achievements-card" style={{ margin: 0 }}>
                     <div className="achievements-card-header">
                       <h4>Achievements</h4>
-                      <button className="achievements-view-all">VIEW ALL</button>
+                      <button className="achievements-view-all" onClick={() => setShowAllAchievementsModal(true)}>VIEW ALL</button>
                     </div>
                     <div className="achievements-list">
-                      {[
-                        { id: 1, title: "First Steps", desc: "Complete your first assessment", icon: "⭐", earned: true, color: "#f59e0b", progress: 100 },
-                        { id: 2, title: "Reading Star", desc: "Score 75% or higher in reading", icon: "📚", earned: calculateSkillProficiency("reading") >= 75, color: "#3b82f6", progress: Math.min(100, Math.round(calculateSkillProficiency("reading"))) },
-                        { id: 3, title: "Comprehension Pro", desc: "Score 75% or higher in comprehension", icon: "🧠", earned: calculateSkillProficiency("comprehension") >= 75, color: "#10b981", progress: Math.min(100, Math.round(calculateSkillProficiency("comprehension"))) },
-                        { id: 4, title: "Wordsmith", desc: "Score 75% or higher in writing", icon: "✍️", earned: calculateSkillProficiency("writing") >= 75, color: "#a855f7", progress: Math.min(100, Math.round(calculateSkillProficiency("writing"))) },
-                      ].map((a) => (
-                        <div key={a.id} className={`achievement-row ${a.earned ? "earned" : ""}`}>
-                          <div className="achievement-badge-box" style={{ background: a.earned ? a.color : 'var(--line)' }}>
-                            <span className="achievement-badge-icon">{a.earned ? a.icon : '🔒'}</span>
-                          </div>
-                          <div className="achievement-info">
-                            <div className="achievement-info-header">
-                              <span className="achievement-title">{a.title}</span>
+                      {(() => {
+                        const achievementsList = [
+                          { id: 1, title: "First Steps", desc: "Complete your first assessment", icon: "⭐", earned: true, color: "#f59e0b", progress: 100 },
+                          { id: 2, title: "Reading Star", desc: "Score 75% or higher in reading", icon: "📚", earned: calculateSkillProficiency("reading") >= 75, color: "#3b82f6", progress: Math.min(100, Math.round(calculateSkillProficiency("reading"))) },
+                          { id: 3, title: "Comprehension Pro", desc: "Score 75% or higher in comprehension", icon: "🧠", earned: calculateSkillProficiency("comprehension") >= 75, color: "#10b981", progress: Math.min(100, Math.round(calculateSkillProficiency("comprehension"))) },
+                          { id: 4, title: "Wordsmith", desc: "Score 75% or higher in writing", icon: "✍️", earned: calculateSkillProficiency("writing") >= 75, color: "#a855f7", progress: Math.min(100, Math.round(calculateSkillProficiency("writing"))) },
+                          { id: 5, title: "XP Collector", desc: "Earn 100 XP or more", icon: "💎", earned: userXp >= 100, color: "#e11d48", progress: Math.min(100, Math.round((userXp / 100) * 100)) },
+                          { id: 6, title: "Dedicated Learner", desc: "Complete 3 lessons or more", icon: "🔥", earned: completedLessons.filter(id => !id.startsWith("ach_")).length >= 3, color: "#f97316", progress: Math.min(100, Math.round((completedLessons.filter(id => !id.startsWith("ach_")).length / 3) * 100)) },
+                          { id: 7, title: "Speech Maestro", desc: "Score 75% or higher in pronunciation", icon: "🗣️", earned: calculateSkillProficiency("pronunciation") >= 75, color: "#06b6d4", progress: Math.min(100, Math.round(calculateSkillProficiency("pronunciation"))) },
+                          { id: 8, title: "Elite Scholar", desc: "Reach Progressive Level 8", icon: "🎓", earned: currentLevelNum >= 8, color: "#8b5cf6", progress: Math.min(100, Math.round((currentLevelNum / 8) * 100)) },
+                          { id: 9, title: "Grandmaster", desc: "Reach Progressive Level 12", icon: "👑", earned: currentLevelNum >= 12, color: "#ef4444", progress: Math.min(100, Math.round((currentLevelNum / 12) * 100)) },
+                        ];
+
+                        // Find chronologically earned achievements from completed_lessons order
+                        const earnedAchievementIds = completedLessons
+                          .filter(id => id.startsWith("ach_"))
+                          .map(id => parseInt(id.replace("ach_", ""), 10));
+
+                        // Find corresponding badge definitions
+                        const earnedList = earnedAchievementIds
+                          .map(id => achievementsList.find(a => a.id === id))
+                          .filter(Boolean);
+
+                        // Display only the last 2 recently earned badges, or the first two items in general if none earned yet
+                        const displayedList = earnedList.length > 0 
+                          ? earnedList.slice(-2) 
+                          : achievementsList.slice(0, 2);
+
+                        return displayedList.map((a) => (
+                          <div key={a.id} className={`achievement-row ${a.earned ? "earned" : ""}`}>
+                            <div className="achievement-badge-box" style={{ background: a.earned ? a.color : 'var(--line)' }}>
+                              <span className="achievement-badge-icon">{a.earned ? a.icon : '🔒'}</span>
                             </div>
-                            <p className="achievement-desc">{a.desc}</p>
-                            <div className="achievement-progress-track">
-                              <div className="achievement-progress-fill" style={{ width: `${a.progress}%`, background: a.earned ? a.color : 'var(--muted)' }}></div>
+                            <div className="achievement-info">
+                              <div className="achievement-info-header">
+                                <span className="achievement-title">{a.title}</span>
+                              </div>
+                              <p className="achievement-desc">{a.desc}</p>
+                              <div className="achievement-progress-track">
+                                <div className="achievement-progress-fill" style={{ width: `${a.progress}%`, background: a.earned ? a.color : 'var(--muted)' }}></div>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        ));
+                      })()}
                     </div>
                   </div>
                 </div>
@@ -3834,7 +3977,7 @@ function App() {
                   </div>
 
                   <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-                    <div className="current-level-card" style={{ margin: 0, padding: "24px" }}>
+                     <div className="current-level-card" style={{ margin: 0, padding: "24px", background: '#5e4a87' }}>
                       <h3 className="current-level-title">Diagnostic & Dev Control</h3>
                       <p style={{ fontSize: "0.85rem", color: "#ffffff", marginBottom: "16px" }}>Manage diagnostic state or clear developer progress milestones.</p>
                       <button
@@ -5707,6 +5850,76 @@ function App() {
         )}
 
 
+      {showAllAchievementsModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0,0,0,0.6)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 10000,
+          padding: '20px'
+        }}>
+          <div style={{
+            background: 'var(--panel)',
+            border: '2px solid var(--line)',
+            borderRadius: '24px',
+            width: '100%',
+            maxWidth: '550px',
+            maxHeight: '85vh',
+            overflowY: 'auto',
+            padding: '30px',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
+            position: 'relative'
+          }}>
+            <button 
+              onClick={() => setShowAllAchievementsModal(false)}
+              style={{
+                position: 'absolute',
+                top: '20px',
+                right: '20px',
+                background: 'none',
+                border: 'none',
+                fontSize: '1.5rem',
+                color: 'var(--text)',
+                cursor: 'pointer'
+              }}
+            >✕</button>
+            <h3 style={{ margin: '0 0 20px', fontSize: '1.6rem', fontWeight: '800' }}>All Achievements</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {[
+                { id: 1, title: "First Steps", desc: "Complete your first assessment", icon: "⭐", earned: true, color: "#f59e0b", progress: 100 },
+                { id: 2, title: "Reading Star", desc: "Score 75% or higher in reading", icon: "📚", earned: calculateSkillProficiency("reading") >= 75, color: "#3b82f6", progress: Math.min(100, Math.round(calculateSkillProficiency("reading"))) },
+                { id: 3, title: "Comprehension Pro", desc: "Score 75% or higher in comprehension", icon: "🧠", earned: calculateSkillProficiency("comprehension") >= 75, color: "#10b981", progress: Math.min(100, Math.round(calculateSkillProficiency("comprehension"))) },
+                { id: 4, title: "Wordsmith", desc: "Score 75% or higher in writing", icon: "✍️", earned: calculateSkillProficiency("writing") >= 75, color: "#a855f7", progress: Math.min(100, Math.round(calculateSkillProficiency("writing"))) },
+                { id: 5, title: "XP Collector", desc: "Earn 100 XP or more", icon: "💎", earned: userXp >= 100, color: "#e11d48", progress: Math.min(100, Math.round((userXp / 100) * 100)) },
+                { id: 6, title: "Dedicated Learner", desc: "Complete 3 lessons or more", icon: "🔥", earned: completedLessons.filter(id => !id.startsWith("ach_")).length >= 3, color: "#f97316", progress: Math.min(100, Math.round((completedLessons.filter(id => !id.startsWith("ach_")).length / 3) * 100)) },
+                { id: 7, title: "Speech Maestro", desc: "Score 75% or higher in pronunciation", icon: "🗣️", earned: calculateSkillProficiency("pronunciation") >= 75, color: "#06b6d4", progress: Math.min(100, Math.round(calculateSkillProficiency("pronunciation"))) },
+                { id: 8, title: "Elite Scholar", desc: "Reach Progressive Level 8", icon: "🎓", earned: currentLevelNum >= 8, color: "#8b5cf6", progress: Math.min(100, Math.round((currentLevelNum / 8) * 100)) },
+                { id: 9, title: "Grandmaster", desc: "Reach Progressive Level 12", icon: "👑", earned: currentLevelNum >= 12, color: "#ef4444", progress: Math.min(100, Math.round((currentLevelNum / 12) * 100)) },
+              ].map((a) => (
+                <div key={a.id} className={`achievement-row ${a.earned ? "earned" : ""}`} style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '12px', border: '2px solid var(--line)', borderRadius: '16px', background: 'var(--panel-strong)' }}>
+                  <div className="achievement-badge-box" style={{ background: a.earned ? a.color : 'var(--line)', width: '50px', height: '50px', borderRadius: '12px', display: 'grid', placeItems: 'center', fontSize: '1.5rem', flexShrink: 0 }}>
+                    <span className="achievement-badge-icon">{a.earned ? a.icon : '🔒'}</span>
+                  </div>
+                  <div style={{ flexGrow: 1 }}>
+                    <div style={{ fontWeight: '800', color: 'var(--text)' }}>{a.title}</div>
+                    <p style={{ margin: '4px 0 0', fontSize: '0.9rem', color: 'var(--text-muted)' }}>{a.desc}</p>
+                    <div className="achievement-progress-track" style={{ height: '8px', background: 'var(--line)', borderRadius: '4px', overflow: 'hidden', marginTop: '8px' }}>
+                      <div className="achievement-progress-fill" style={{ width: `${a.progress}%`, height: '100%', background: a.earned ? a.color : 'var(--muted)' }}></div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
       </div>
     );
   }
