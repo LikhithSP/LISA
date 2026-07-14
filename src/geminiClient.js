@@ -287,3 +287,274 @@ export const fetchWordOfDay = async (language = "English") => {
     };
   }
 };
+
+const buildPracticePrompt = (params) => {
+  const { practiceType, language, literacyLevel, literacyLevelName, mistakesList } = params;
+
+  if (practiceType === "Perfect Pronunciation" || practiceType === "Speak Practice") {
+    return `You are LISA, an expert AI literacy tutor. Generate exactly 10 speaking/pronunciation practice questions in ${language} suitable for a learner at Literacy Level ${literacyLevel} (${literacyLevelName}).
+Each question must be a simple, practical, everyday sentence in ${language}.
+
+Return ONLY valid JSON with this exact structure:
+{
+  "questions": [
+    {
+      "id": 1,
+      "sentence": "A simple, encouraging sentence to read aloud in ${language}",
+      "englishTranslation": "The English translation of the sentence"
+    }
+  ]
+} (Make sure there are exactly 10 items in the array)`;
+  }
+
+  if (practiceType === "Listen Practice") {
+    return `You are LISA, an expert AI literacy tutor. Generate exactly 10 listening practice questions in ${language} suitable for a learner at Literacy Level ${literacyLevel} (${literacyLevelName}).
+Each question must be a simple, practical sentence in ${language}. Provide the sentence and an array of word tiles in ${language} that the user will tap to reconstruct the sentence (include all words of the sentence plus 2-3 distractor words).
+
+Return ONLY valid JSON with this exact structure:
+{
+  "questions": [
+    {
+      "id": 1,
+      "audioText": "The sentence in ${language} to listen to",
+      "tiles": ["array of 6-8 words in ${language} containing all words from audioText plus 2-3 distractor words"]
+    }
+  ]
+} (Make sure there are exactly 10 items in the array)`;
+  }
+
+  if (practiceType === "Mistakes Practice") {
+    const mistakesFormatted = mistakesList && mistakesList.length > 0
+      ? mistakesList.map((m, idx) => `${idx + 1}. Type: ${m.type}, Prompt/Question: ${m.question || m.sentence || m.phrase || m.audioText}, Correct Answer: ${m.correctAnswer || m.answer || m.englishTranslation}`).join("\n")
+      : "No specific mistake history yet.";
+
+    return `You are LISA, an expert AI literacy tutor. The user wants to review and correct their past mistakes.
+Here is the history of mistakes they made:
+${mistakesFormatted}
+
+Generate exactly 10 review questions in ${language} to help them practice and correct these mistakes (or general literacy review if no mistakes listed). Mix of multiple choice (mcq) and fill-in-the-blanks (fillBlank).
+Keep them simple and helpful for Level ${literacyLevel} (${literacyLevelName}).
+
+Return ONLY valid JSON with this exact structure:
+{
+  "questions": [
+    {
+      "id": 1,
+      "type": "mcq",
+      "question": "Multiple choice question in ${language} targeting a mistake or rule",
+      "options": ["A", "B", "C", "D"],
+      "correctIndex": 0,
+      "explanation": "Why this is correct"
+    },
+    {
+      "id": 2,
+      "type": "fillBlank",
+      "sentence": "A sentence in ${language} with ___ for the blank",
+      "answer": "correct word to fill",
+      "hint": "helpful hint in ${language}"
+    }
+  ]
+} (Make sure there are exactly 10 items in the array in total)`;
+  }
+
+  if (practiceType === "Words Practice") {
+    return `You are LISA, an expert AI literacy tutor. Generate exactly 10 vocabulary/words practice questions in ${language} suitable for a learner at Literacy Level ${literacyLevel} (${literacyLevelName}).
+Mix of two types:
+1. "meaning": Select the correct English meaning/translation of a target language word.
+2. "spelling": Fill in the blank to complete the spelling of a target language word in a sentence context.
+
+Return ONLY valid JSON with this exact structure:
+{
+  "questions": [
+    {
+      "id": 1,
+      "type": "meaning",
+      "phrase": "Word or short phrase in ${language}",
+      "options": ["Correct English translation", "incorrect distractor 1", "incorrect distractor 2"],
+      "correctIndex": 0
+    },
+    {
+      "id": 2,
+      "type": "spelling",
+      "sentence": "A simple sentence in ${language} with a word missing letters, e.g. 'I read a bo___.' or target language equivalent with ___",
+      "answer": "The missing letters/word",
+      "hint": "Hint in ${language}"
+    }
+  ]
+} (Make sure there are exactly 10 items in the array)`;
+  }
+
+  if (practiceType === "Stories Practice") {
+    return `You are LISA, an expert AI literacy tutor. Generate a short, interesting, age-appropriate story (about 50-80 words, 3-5 sentences) in ${language} suitable for a learner at Literacy Level ${literacyLevel} (${literacyLevelName}).
+Then generate exactly 10 reading comprehension/vocabulary questions about this story.
+
+Return ONLY valid JSON with this exact structure:
+{
+  "story": "The complete story in ${language}",
+  "questions": [
+    {
+      "id": 1,
+      "question": "Comprehension question in ${language} about the story",
+      "options": ["Option A", "Option B", "Option C", "Option D"],
+      "correctIndex": 0,
+      "explanation": "Explanation of correct answer in ${language}"
+    }
+  ]
+} (Make sure there are exactly 10 questions in the array)`;
+  }
+
+  return "";
+};
+
+const getFallbackPractice = (params) => {
+  const { practiceType, language } = params;
+  
+  if (practiceType === "Perfect Pronunciation" || practiceType === "Speak Practice") {
+    const sentences = language === "Hindi" ? [
+      "राम स्कूल जाता है।", "वह किताब पढ़ता है।", "सीता गाना गाती है।", "आज मौसम अच्छा है।", "मुझे फल खाना पसंद है।",
+      "यह मेरी पुस्तक है।", "हम सब मिलकर खेलेंगे।", "पानी बहुत ठंडा है।", "पेड़ पर पक्षी हैं।", "समय बहुत मूल्यवान है।"
+    ] : language === "Kannada" ? [
+      "ರಾಮ್ ಶಾಲೆಗೆ ಹೋಗುತ್ತಾನೆ.", "ಅವನು ಪುಸ್ತಕ ಓದುತ್ತಾನೆ.", "ಸೀತಾ ಹಾಡು ಹಾಡುತ್ತಾಳೆ.", "ಇಂದು ಹವಾಮಾನ ಚೆನ್ನಾಗಿದೆ.", "ನನಗೆ ಹಣ್ಣು ತಿನ್ನಲು ಇಷ್ಟ.",
+      "ಇದು ನನ್ನ ಪುಸ್ತಕ.", "ನಾವೆಲ್ಲರೂ ಒಟ್ಟಿಗೆ ಆಡೋಣ.", "ನೀರು ತುಂಬಾ ತಣ್ಣಗಿದೆ.", "ಮರದ ಮೇಲೆ ಹಕ್ಕಿಗಳಿವೆ.", "ಸಮಯ ತುಂಬಾ ಅಮೂಲ್ಯವಾಗಿದೆ."
+    ] : [
+      "The sun shines bright.", "I love reading books.", "We go to school.", "Water is clean and fresh.", "She speaks very kindly.",
+      "This is my favorite story.", "Let's play together today.", "The trees are green.", "Birds fly high in sky.", "Practice makes perfect."
+    ];
+    return {
+      questions: sentences.map((s, idx) => ({
+        id: idx + 1,
+        sentence: s,
+        englishTranslation: "Speak this sentence clearly."
+      }))
+    };
+  }
+
+  if (practiceType === "Listen Practice") {
+    const sentences = language === "Hindi" ? [
+      { audioText: "वह स्कूल जाता है", tiles: ["वह", "स्कूल", "जाता", "है", "घर", "खाता"] },
+      { audioText: "राम किताब पढ़ता है", tiles: ["राम", "किताब", "पढ़ता", "है", "लिखता", "सीता"] },
+      { audioText: "सीता गाना गाती है", tiles: ["सीता", "गाना", "गाती", "है", "नाचती", "गीत"] },
+      { audioText: "आज मौसम बहुत अच्छा है", tiles: ["आज", "मौसम", "बहुत", "अच्छा", "है", "बुरा", "कल"] },
+      { audioText: "मुझे फल खाना पसंद है", tiles: ["मुझे", "फल", "खाना", "पसंद", "है", "नापसंद", "पानी"] },
+      { audioText: "यह मेरी नई पुस्तक है", tiles: ["यह", "मेरी", "नई", "पुस्तक", "है", "पुरानी", "कलम"] },
+      { audioText: "हम सब मिलकर खेलेंगे", tiles: ["हम", "सब", "मिलकर", "खेलेंगे", "पढ़ेंगे", "आप"] },
+      { audioText: "पानी बहुत ठंडा है", tiles: ["पानी", "बहुत", "ठंडा", "है", "गर्म", "चाय"] },
+      { audioText: "पेड़ पर पक्षी बैठे हैं", tiles: ["पेड़", "पर", "पक्षी", "बैठे", "हैं", "बिल्ली", "नीचे"] },
+      { audioText: "समय बहुत मूल्यवान होता है", tiles: ["समय", "बहुत", "मूल्यवान", "होता", "है", "बेकार", "सस्ता"] }
+    ] : language === "Kannada" ? [
+      { audioText: "ಅವನು ಶಾಲೆಗೆ ಹೋಗುತ್ತಾನೆ", tiles: ["ಅವನು", "ಶಾಲೆಗೆ", "ಹೋಗುತ್ತಾನೆ", "ಮನೆಗೆ", "ಬರುತ್ತಾನೆ"] },
+      { audioText: "ರಾಮ್ ಪುಸ್ತಕ ಓದುತ್ತಾನೆ", tiles: ["ರಾಮ್", "ಪುಸ್ತಕ", "ಓದುತ್ತಾನೆ", "ಬರೆಯುತ್ತಾನೆ", "ಸೀತಾ"] },
+      { audioText: "ಸೀತಾ ಹಾಡು ಹಾಡುತ್ತಾಳೆ", tiles: ["ಸೀತಾ", "ಹಾಡು", "ಹಾಡುತ್ತಾಳೆ", "ಕುಣಿಯುತ್ತಾಳೆ", "ಹಾಡುಗಾರ"] },
+      { audioText: "ಇಂದು ಹವಾಮಾನ ಚೆನ್ನಾಗಿದೆ", tiles: ["ಇಂದು", "ಹವಾಮಾನ", "ಚೆನ್ನಾಗಿದೆ", "ಬಿಸಿಲಿದೆ", "ನಾಳೆ"] },
+      { audioText: "ನನಗೆ ಹಣ್ಣು ತಿನ್ನಲು ಇಷ್ಟ", tiles: ["ನನಗೆ", "ಹಣ್ಣು", "ತಿನ್ನಲು", "ಇಷ್ಟ", "ತರಕಾರಿ", "ಕಷ್ಟ"] },
+      { audioText: "ಇದು ನನ್ನ ಪುಸ್ತಕ", tiles: ["ಇದು", "ನನ್ನ", "ಪುಸ್ತಕ", "ಕಂಪ್ಯೂಟರ್", "ಅವಳ"] },
+      { audioText: "ನಾವೆಲ್ಲರೂ ಒಟ್ಟಿಗೆ ಆಡೋಣ", tiles: ["ನಾವೆಲ್ಲರೂ", "ಒಟ್ಟಿಗೆ", "ಆಡೋಣ", "ಓದೋಣ", "ನೀವು"] },
+      { audioText: "ನೀರು ತುಂಬಾ ತಣ್ಣಗಿದೆ", tiles: ["ನೀರು", "ತುಂಬಾ", "ತಣ್ಣಗಿದೆ", "ಬಿಸಿಯಾಗಿದೆ", "ಹಾಲು"] },
+      { audioText: "ಮರದ ಮೇಲೆ ಹಕ್ಕಿಗಳಿವೆ", tiles: ["ಮರದ", "ಮೇಲೆ", "ಹಕ್ಕಿಗಳಿವೆ", "ಕೋತಿಗಳಿವೆ", "ಕೆಳಗೆ"] },
+      { audioText: "ಸಮಯ ತುಂಬಾ ಅಮೂಲ್ಯವಾಗಿದೆ", tiles: ["ಸಮಯ", "ತುಂಬಾ", "ಅಮೂಲ್ಯವಾಗಿದೆ", "ವೇಸ್ಟ್", "ಹಣ"] }
+    ] : [
+      { audioText: "He goes to school", tiles: ["He", "goes", "to", "school", "runs", "they", "market"] },
+      { audioText: "Ram reads a book", tiles: ["Ram", "reads", "a", "book", "writes", "paper", "she"] },
+      { audioText: "Sita sings a song", tiles: ["Sita", "sings", "a", "song", "dances", "beautiful", "he"] },
+      { audioText: "Today the weather is good", tiles: ["Today", "the", "weather", "is", "good", "bad", "hot"] },
+      { audioText: "I like eating fresh fruits", tiles: ["I", "like", "eating", "fresh", "fruits", "vegetables", "dislike"] },
+      { audioText: "This is my new notebook", tiles: ["This", "is", "my", "new", "notebook", "old", "pen"] },
+      { audioText: "We will all play together", tiles: ["We", "will", "all", "play", "together", "study", "alone"] },
+      { audioText: "The drinking water is cold", tiles: ["The", "drinking", "water", "is", "cold", "hot", "warm"] },
+      { audioText: "Birds are sitting on trees", tiles: ["Birds", "are", "sitting", "on", "trees", "ground", "flying"] },
+      { audioText: "Time is very valuable indeed", tiles: ["Time", "is", "very", "valuable", "indeed", "wasted", "money"] }
+    ];
+    return {
+      questions: sentences.map((item, idx) => ({
+        id: idx + 1,
+        audioText: item.audioText,
+        tiles: item.tiles
+      }))
+    };
+  }
+
+  if (practiceType === "Mistakes Practice") {
+    return {
+      questions: Array.from({ length: 10 }, (_, i) => ({
+        id: i + 1,
+        type: i % 2 === 0 ? "mcq" : "fillBlank",
+        question: `Review Question ${i + 1}: Select the grammatically correct option.`,
+        options: ["He goes to school.", "He go to school.", "He going to school.", "He gone to school."],
+        correctIndex: 0,
+        explanation: "Subject-verb agreement requires 'goes' with 'He'.",
+        sentence: `The children are playing with ___ toys.`,
+        answer: "their",
+        hint: "Possessive pronoun for they"
+      }))
+    };
+  }
+
+  if (practiceType === "Words Practice") {
+    return {
+      questions: Array.from({ length: 10 }, (_, i) => ({
+        id: i + 1,
+        type: i % 2 === 0 ? "meaning" : "spelling",
+        phrase: language === "Hindi" ? "पुस्तकालय" : language === "Kannada" ? "ಗ್ರಂಥಾಲಯ" : "Library",
+        options: ["Library", "School", "Market"],
+        correctIndex: 0,
+        sentence: "Please open the do___ to let air in.",
+        answer: "or",
+        hint: "The entrance barrier"
+      }))
+    };
+  }
+
+  return {
+    story: language === "Hindi" 
+      ? "एक गाँव में एक छोटा लड़का रहता था। उसका नाम राहुल था। राहुल को पढ़ना बहुत पसंद था। वह हर दिन पुस्तकालय जाता था और नई कहानियाँ पढ़ता था।"
+      : language === "Kannada"
+      ? "ಒಂದು ಹಳ್ಳಿಯಲ್ಲಿ ಒಬ್ಬ ಸಣ್ಣ ಹುಡುಗನಿದ್ದನು. ಅವನ ಹೆಸರು ರಾಹುಲ್. ರಾಹುಲ್ ಗೆ ಓದುವುದೆಂದರೆ ತುಂಬಾ ಇಷ್ಟ. ಅವನು ಪ್ರತಿದಿನ ಗ್ರಂಥಾಲಯಕ್ಕೆ ಹೋಗಿ ಹೊಸ ಕಥೆಗಳನ್ನು ಓದುತ್ತಿದ್ದನು."
+      : "A little boy named Rahul lived in a green village. Rahul loved reading books very much. Every single day, he visited the local library to read new and exciting stories.",
+    questions: Array.from({ length: 10 }, (_, i) => ({
+      id: i + 1,
+      question: language === "Hindi" 
+        ? `कहानी प्रश्न ${i + 1}: मुख्य पात्र का क्या नाम था?` 
+        : language === "Kannada" 
+        ? `ಕಥೆಯ ಪ್ರಶ್ನೆ ${i + 1}: ಮುಖ್ಯ ಪಾತ್ರದ ಹೆಸರೇನು?` 
+        : `Story Question ${i + 1}: What was the name of the main character?`,
+      options: ["Rahul", "Ravi", "Amit", "Vijay"],
+      correctIndex: 0,
+      explanation: "The story states the boy's name was Rahul."
+    }))
+  };
+};
+
+export const generatePracticeContent = async (params) => {
+  const prompt = buildPracticePrompt(params);
+  if (!prompt) return null;
+
+  try {
+    const response = await fetch(OPENROUTER_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${OPENROUTER_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: MODEL_NAME,
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.7,
+        max_tokens: 4096,
+        response_format: { type: "json_object" }
+      })
+    });
+
+    if (!response.ok) {
+      const err = await response.text();
+      console.error("OpenRouter Practice API error:", err);
+      return getFallbackPractice(params);
+    }
+
+    const data = await response.json();
+    const text = data?.choices?.[0]?.message?.content || "";
+    return extractJSON(text);
+  } catch (err) {
+    console.error("Failed to generate practice content:", err);
+    return getFallbackPractice(params);
+  }
+};
