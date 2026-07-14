@@ -4954,7 +4954,7 @@ function App() {
               <div className="lesson-overlay-header-content">
                 <button className="lesson-overlay-close" onClick={() => { setLessonSession(null); setLessonAiContent(null); setLessonLoading(false); setLessonStep(0); }}>✕</button>
                 <div className="lesson-progress-container">
-                  <div className="lesson-progress-bar" style={{ width: lessonSession?.status === "completed" ? "100%" : `${(lessonStep / (lessonSession?.isPractice ? 9 : 4)) * 100}%` }}></div>
+                  <div className="lesson-progress-bar" style={{ width: lessonSession?.status === "completed" ? "100%" : `${(lessonStep / (lessonSession?.isPractice ? 9 : 12)) * 100}%` }}></div>
                 </div>
                 <div className="lesson-overlay-controls">
                   <div style={{ fontWeight: 800, whiteSpace: "nowrap" }}>XP +15</div>
@@ -5055,7 +5055,7 @@ function App() {
                         </div>
 
                         {/* Audio Example Cards */}
-                        {ai.examples?.length > 0 && (
+                        {false && ai.examples?.length > 0 && (
                           <div className="ai-lesson-examples" style={{ margin: '24px 0' }}>
                             <h4 style={{ marginBottom: '16px', fontWeight: '800' }}>Examples (Tap to listen)</h4>
                             <div style={{
@@ -5172,7 +5172,7 @@ function App() {
                       return (
                         <div className="ai-lesson-step" style={{ paddingBottom: '120px' }}>
                           <div className="ai-lesson-step-header" style={{ marginBottom: '16px' }}>
-                            <span className="ai-step-badge">🎯 Multiple Choice (Question {lessonMcqIndex + 1} of {ai.mcqs.length})</span>
+                            <span className="ai-step-badge">🎯 Multiple Choice</span>
                           </div>
 
                           {/* Mascot & Speech bubble */}
@@ -5348,11 +5348,7 @@ function App() {
                                   }}
                                   onClick={() => {
                                     setLessonMcqFeedback(null);
-                                    if (lessonMcqIndex < ai.mcqs.length - 1) {
-                                      setLessonMcqIndex(lessonMcqIndex + 1);
-                                    } else {
-                                      setLessonStep(2);
-                                    }
+                                    setLessonStep(2);
                                   }}
                                 >
                                   Continue
@@ -5377,7 +5373,7 @@ function App() {
                       return (
                         <div className="ai-lesson-step" style={{ paddingBottom: '120px' }}>
                           <div className="ai-lesson-step-header" style={{ marginBottom: '16px' }}>
-                            <span className="ai-step-badge">✍️ Fill in the Blank (Question {lessonFillIndex + 1} of {ai.fillBlanks.length})</span>
+                            <span className="ai-step-badge">✍️ Fill in the Blank{ai.fillBlanks.length > 1 && false ? ` (Question {lessonFillIndex + 1} of {ai.fillBlanks.length})` : ""}</span>
                           </div>
 
                           <div style={{
@@ -5581,11 +5577,7 @@ function App() {
                                   }}
                                   onClick={() => {
                                     setLessonFillFeedback(null);
-                                    if (lessonFillIndex < ai.fillBlanks.length - 1) {
-                                      setLessonFillIndex(lessonFillIndex + 1);
-                                    } else {
-                                      setLessonStep(3);
-                                    }
+                                    setLessonStep(3);
                                   }}
                                 >
                                   Continue
@@ -6193,14 +6185,14 @@ function App() {
                     })()}
 
                     {/* Step 7: Write this in English (word tiles) */}
-                    {lessonStep === 7 && (() => {
-                      const tt = ai.translationTask || { sentence: "Namaskara", englishTranslation: "Hello", tiles: ["Hello", "Bye", "Thank", "You"] };
+                     {lessonStep === 7 && (() => {
+                      const tt = ai.translationTask || { sentence: "Namaskara", prompt: "Arrange the words to form a sentence: say hello", englishTranslation: "Hello", tiles: ["Hello", "Bye", "Thank", "You"] };
                       const isChecked = lessonTranslationFeedback !== null;
 
                       return (
                         <div className="ai-lesson-step" style={{ paddingBottom: '120px' }}>
                           <div className="ai-lesson-step-header" style={{ marginBottom: '16px' }}>
-                            <span className="ai-step-badge">✍️ Write this in English</span>
+                            <span className="ai-step-badge">🧩 Arrange the words</span>
                           </div>
 
                           <div style={{ display: 'flex', alignItems: 'center', gap: '20px', margin: '20px 0' }}>
@@ -6224,7 +6216,7 @@ function App() {
                                 borderBottom: '2px solid var(--line)',
                                 transform: 'rotate(45deg)'
                               }}></div>
-                              <p style={{ fontSize: '1.25rem', fontWeight: '800', margin: 0 }}>"{tt.sentence}"</p>
+                              <p style={{ fontSize: '1.25rem', fontWeight: '800', margin: 0 }}>{tt.prompt}</p>
                             </div>
                           </div>
 
@@ -6817,7 +6809,7 @@ function App() {
                       return (
                         <div className="ai-lesson-step" style={{ paddingBottom: '120px' }}>
                           <div className="ai-lesson-step-header" style={{ marginBottom: '16px' }}>
-                            <span className="ai-step-badge">🔤 Unscramble (Question {lessonUnscrambleIndex + 1} of {list.length})</span>
+                            <span className="ai-step-badge">🔤 Unscramble</span>
                           </div>
 
                           <div style={{ display: 'flex', alignItems: 'center', gap: '20px', margin: '20px 0' }}>
@@ -6879,14 +6871,10 @@ function App() {
                                   onClick={() => {
                                     setLessonUnscrambleFeedback(null);
                                     setLessonUnscrambleSelected([]);
-                                    if (lessonUnscrambleIndex < list.length - 1) {
-                                      setLessonUnscrambleIndex(lessonUnscrambleIndex + 1);
-                                    } else {
-                                      setLessonImageChoiceIndex(0);
-                                      setLessonImageChoiceSel(null);
-                                      setLessonImageChoiceFeedback(null);
-                                      setLessonStep(11);
-                                    }
+                                    setLessonImageChoiceIndex(0);
+                                    setLessonImageChoiceSel(null);
+                                    setLessonImageChoiceFeedback(null);
+                                    setLessonStep(11);
                                   }}>Continue</button>
                               </div>
                             </div>
@@ -6904,7 +6892,7 @@ function App() {
                       return (
                         <div className="ai-lesson-step" style={{ paddingBottom: '120px' }}>
                           <div className="ai-lesson-step-header" style={{ marginBottom: '16px' }}>
-                            <span className="ai-step-badge">🖼️ Choose the correct picture (Question {lessonImageChoiceIndex + 1} of {list.length})</span>
+                            <span className="ai-step-badge">🖼️ Choose the correct picture</span>
                           </div>
 
                           <div style={{ display: 'flex', alignItems: 'center', gap: '20px', margin: '20px 0' }}>
@@ -6959,13 +6947,9 @@ function App() {
                                   onClick={() => {
                                     setLessonImageChoiceFeedback(null);
                                     setLessonImageChoiceSel(null);
-                                    if (lessonImageChoiceIndex < list.length - 1) {
-                                      setLessonImageChoiceIndex(lessonImageChoiceIndex + 1);
-                                    } else {
-                                      setLessonTracingIndex(0);
-                                      setLessonTracingDone(false);
-                                      setLessonStep(12);
-                                    }
+                                    setLessonTracingIndex(0);
+                                    setLessonTracingDone(false);
+                                    setLessonStep(12);
                                   }}>Continue</button>
                               </div>
                             </div>
@@ -7016,7 +7000,7 @@ function App() {
                       return (
                         <div className="ai-lesson-step" style={{ paddingBottom: '120px' }}>
                           <div className="ai-lesson-step-header" style={{ marginBottom: '16px' }}>
-                            <span className="ai-step-badge">✍️ Trace the letter (Step {lessonTracingIndex + 1} of {list.length})</span>
+                            <span className="ai-step-badge">✍️ Trace the letter</span>
                           </div>
 
                           <div style={{ display: 'flex', alignItems: 'center', gap: '20px', margin: '16px 0' }}>
@@ -7048,11 +7032,7 @@ function App() {
                           <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
                             <button type="button" className="primary-btn" style={{ padding: '12px 40px', borderRadius: '12px' }}
                               onClick={() => {
-                                if (lessonTracingIndex < list.length - 1) {
-                                  setLessonTracingIndex(lessonTracingIndex + 1);
-                                } else {
-                                  advanceLessonStep();
-                                }
+                                advanceLessonStep();
                               }}
                               disabled={!lessonTracingDone}>Continue</button>
                           </div>
