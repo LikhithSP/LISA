@@ -1,372 +1,103 @@
-// Reading & Writing Assessment Questions
-// Structure: assessmentReadingWriting[ageGroup_level_N].reading[lang] and .writing[lang]
-// Reading: user reads the targetText aloud (voice-to-text)
-// Writing: dictation — the robot speaks an ENGLISH sentence (dictation) and the user
-//          writes it down in English. `writing[lang]` holds the instruction shown to the user.
-
+// Single source (English) reading & writing assessment questions data
 export const assessmentReadingWriting = {
-
-  // ─────────────────────────── CHILD ───────────────────────────
-  child_level_1: {
-    reading: {
-      English:  "The cat sat on the mat.",
-      Hindi:    "बिल्ली चटाई पर बैठी है।",
-      Kannada:  "ಬೆಕ್ಕು ಚಾಪೆಯ ಮೇಲೆ ಕುಳಿತಿದೆ.",
-      Telugu:   "పిల్లి చాప మీద కూర్చుంది.",
-      Tamil:    "பூனை பாயில் உட்கார்ந்தது.",
-    },
-    writing: {
-      English:  "Listen to the sentence and write exactly what you hear (in English).",
-      Hindi:    "वाक्य सुनें और जो सुनें वही अंग्रेज़ी में लिखें।",
-      Kannada:  "ವಾಕ್ಯವನ್ನು ಕೇಳಿ ಮತ್ತು ನೀವು ಕೇಳಿದ್ದನ್ನು ಇಂಗ್ಲಿಷ್‌ನಲ್ಲಿ ಅದೇ ರೀತಿ ಬರೆಯಿರಿ.",
-      Telugu:   "వాక్యాన్ని వినండి మరియు మీరు విన్నదాన్ని ఇంగ్లీషులో అలాగే రాయండి.",
-      Tamil:    "வாக்கியத்தைக் கேளுங்கள் மற்றும் நீங்கள் கேட்டதை ஆங்கிலத்தில் அப்படியே எழுதுங்கள்.",
-    },
-    dictation: "The sun is hot.",
+  "child_level_1": {
+    "reading": "The cat sat on the mat.",
+    "writing": "Listen to the sentence and write exactly what you hear (in English).",
+    "dictation": "The sun is hot."
   },
-
-  child_level_2: {
-    reading: {
-      English:  "The big red ball is fun to play with.",
-      Hindi:    "बड़ी लाल गेंद से खेलना मज़ेदार है।",
-      Kannada:  "ದೊಡ್ಡ ಕೆಂಪು ಚೆಂಡಿನೊಂದಿಗೆ ಆಡುವುದು ತಮಾಷೆಯಾಗಿದೆ.",
-      Telugu:   "పెద్ద ఎర్రటి బంతితో ఆడటం సరదాగా ఉంటుంది.",
-      Tamil:    "பெரிய சிவப்புப் பந்துடன் விளையாடுவது மகிழ்ச்சியாக இருக்கிறது.",
-    },
-    writing: {
-      English:  "Listen to the sentence and write exactly what you hear (in English).",
-      Hindi:    "वाक्य सुनें और जो सुनें वही अंग्रेज़ी में लिखें।",
-      Kannada:  "ವಾಕ್ಯವನ್ನು ಕೇಳಿ ಮತ್ತು ನೀವು ಕೇಳಿದ್ದನ್ನು ಇಂಗ್ಲಿಷ್‌ನಲ್ಲಿ ಅದೇ ರೀತಿ ಬರೆಯಿರಿ.",
-      Telugu:   "వాక్యాన్ని వినండి మరియు మీరు విన్నదాన్ని ఇంగ్లీషులో అలాగే రాయండి.",
-      Tamil:    "வாக்கியத்தைக் கேளுங்கள் மற்றும் நீங்கள் கேட்டதை ஆங்கிலத்தில் அப்படியே எழுதுங்கள்.",
-    },
-    dictation: "The dog runs in the park.",
+  "child_level_2": {
+    "reading": "The big red ball is fun to play with.",
+    "writing": "Listen to the sentence and write exactly what you hear (in English).",
+    "dictation": "The dog runs in the park."
   },
-
-  child_level_3: {
-    reading: {
-      English:  "Tom has a dog. The dog likes to run and play in the park.",
-      Hindi:    "टॉम के पास एक कुत्ता है। कुत्ता पार्क में दौड़ना और खेलना पसंद करता है।",
-      Kannada:  "ಟಾಮ್ ಬಳಿ ಒಂದು ನಾಯಿ ಇದೆ. ನಾಯಿ ಪಾರ್ಕ್‌ನಲ್ಲಿ ಓಡುವುದು ಮತ್ತು ಆಡುವುದು ಇಷ್ಟ.",
-      Telugu:   "టామ్‌కి ఒక కుక్క ఉంది. కుక్క పార్కులో పరుగెత్తడం మరియు ఆడుకోవడం ఇష్టపడుతుంది.",
-      Tamil:    "டாமிடம் ஒரு நாய் இருக்கிறது. அந்த நாய் பூங்காவில் ஓடி விளையாட விரும்புகிறது.",
-    },
-    writing: {
-      English:  "Listen to the sentence and write exactly what you hear (in English).",
-      Hindi:    "वाक्य सुनें और जो सुनें वही अंग्रेज़ी में लिखें।",
-      Kannada:  "ವಾಕ್ಯವನ್ನು ಕೇಳಿ ಮತ್ತು ನೀವು ಕೇಳಿದ್ದನ್ನು ಇಂಗ್ಲಿಷ್‌ನಲ್ಲಿ ಅದೇ ರೀತಿ ಬರೆಯಿರಿ.",
-      Telugu:   "వాక్యాన్ని వినండి మరియు మీరు విన్నదాన్ని ఇంగ్లీషులో అలాగే రాయండి.",
-      Tamil:    "வாக்கியத்தைக் கேளுங்கள் மற்றும் நீங்கள் கேட்டதை ஆங்கிலத்தில் அப்படியே எழுதுங்கள்.",
-    },
-    dictation: "Tom eats an apple every morning.",
+  "child_level_3": {
+    "reading": "Tom has a dog. The dog likes to run and play in the park.",
+    "writing": "Listen to the sentence and write exactly what you hear (in English).",
+    "dictation": "Tom eats an apple every morning."
   },
-
-  child_level_4: {
-    reading: {
-      English:  "DANGER: Do not touch the electric fence. Stay on the safe path at all times.",
-      Hindi:    "खतरा: बिजली की बाड़ को न छुएं। हमेशा सुरक्षित रास्ते पर रहें।",
-      Kannada:  "ಅಪಾಯ: ವಿದ್ಯುತ್ ಬೇಲಿಯನ್ನು ಮುಟ್ಟಬೇಡಿ. ಯಾವಾಗಲೂ ಸುರಕ್ಷಿತ ದಾರಿಯಲ್ಲಿ ಇರಿ.",
-      Telugu:   "ప్రమాదం: విద్యుత్ కంచెను తాకవద్దు. ఎల్లప్పుడూ సురక్షితమైన దారిలో ఉండండి.",
-      Tamil:    "ஆபத்து: மின்சார வேலியைத் தொடாதீர்கள். எப்போதும் பாதுகாப்பான பாதையில் இருங்கள்.",
-    },
-    writing: {
-      English:  "Listen to the sentence and write exactly what you hear (in English).",
-      Hindi:    "वाक्य सुनें और जो सुनें वही अंग्रेज़ी में लिखें।",
-      Kannada:  "ವಾಕ್ಯವನ್ನು ಕೇಳಿ ಮತ್ತು ನೀವು ಕೇಳಿದ್ದನ್ನು ಇಂಗ್ಲಿಷ್‌ನಲ್ಲಿ ಅದೇ ರೀತಿ ಬರೆಯಿರಿ.",
-      Telugu:   "వాక్యాన్ని వినండి మరియు మీరు విన్నదాన్ని ఇంగ్లీషులో అలాగే రాయండి.",
-      Tamil:    "வாக்கியத்தைக் கேளுங்கள் மற்றும் நீங்கள் கேட்டதை ஆங்கிலத்தில் அப்படியே எழுதுங்கள்.",
-    },
-    dictation: "Do not touch the hot stove.",
+  "child_level_4": {
+    "reading": "DANGER: Do not touch the electric fence. Stay on the safe path at all times.",
+    "writing": "Listen to the sentence and write exactly what you hear (in English).",
+    "dictation": "Do not touch the hot stove."
   },
-
-  child_level_5: {
-    reading: {
-      English:  "Library Notice: Books must be returned within 7 days. A fine of 2 per day will be charged for late returns.",
-      Hindi:    "पुस्तकालय सूचना: पुस्तकें 7 दिनों के भीतर वापस करनी होंगी। देर से वापस करने पर प्रतिदिन 2 का जुर्माना लगेगा।",
-      Kannada:  "ಗ್ರಂಥಾಲಯ ಸೂಚನೆ: ಪುಸ್ತಕಗಳನ್ನು 7 ದಿನಗಳಲ್ಲಿ ಹಿಂದಿರುಗಿಸಬೇಕು. ತಡ ವಾಪಸಾತಿಗೆ ದಿನಕ್ಕೆ 2 ದಂಡ ವಿಧಿಸಲಾಗುವುದು.",
-      Telugu:   "లైబ్రరీ నోటీసు: పుస్తకాలు 7 రోజుల్లో తిరిగి ఇవ్వాలి. ఆలస్యంగా ఇస్తే రోజుకు 2 జరిమానా విధించబడుతుంది.",
-      Tamil:    "நூலக அறிவிப்பு: புத்தகங்களை 7 நாட்களுக்குள் திரும்பக் கொடுக்க வேண்டும். தாமதமாக கொடுத்தால் ஒரு நாளுக்கு 2 அபராதம் விதிக்கப்படும்.",
-    },
-    writing: {
-      English:  "Listen to the sentence and write exactly what you hear (in English).",
-      Hindi:    "वाक्य सुनें और जो सुनें वही अंग्रेज़ी में लिखें।",
-      Kannada:  "ವಾಕ್ಯವನ್ನು ಕೇಳಿ ಮತ್ತು ನೀವು ಕೇಳಿದ್ದನ್ನು ಇಂಗ್ಲಿಷ್‌ನಲ್ಲಿ ಅದೇ ರೀತಿ ಬರೆಯಿರಿ.",
-      Telugu:   "వాక్యాన్ని వినండి మరియు మీరు విన్నదాన్ని ఇంగ్లీషులో అలాగే రాయండి.",
-      Tamil:    "வாக்கியத்தைக் கேளுங்கள் மற்றும் நீங்கள் கேட்டதை ஆங்கிலத்தில் அப்படியே எழுதுங்கள்.",
-    },
-    dictation: "Return the book to the library on time.",
+  "child_level_5": {
+    "reading": "Library Notice: Books must be returned within 7 days. A fine of 2 per day will be charged for late returns.",
+    "writing": "Listen to the sentence and write exactly what you hear (in English).",
+    "dictation": "Return the book to the library on time."
   },
-
-  // ─────────────────────────── TEEN ───────────────────────────
-  teen_level_1: {
-    reading: {
-      English:  "My name is Ravi. I go to school every day.",
-      Hindi:    "मेरा नाम रवि है। मैं हर रोज़ स्कूल जाता हूँ।",
-      Kannada:  "ನನ್ನ ಹೆಸರು ರವಿ. ನಾನು ಪ್ರತಿದಿನ ಶಾಲೆಗೆ ಹೋಗುತ್ತೇನೆ.",
-      Telugu:   "నా పేరు రవి. నేను ప్రతిరోజూ పాఠశాలకు వెళ్తాను.",
-      Tamil:    "என் பெயர் ரவி. நான் தினமும் பள்ளிக்குச் செல்கிறேன்.",
-    },
-    writing: {
-      English:  "Listen to the sentence and write exactly what you hear (in English).",
-      Hindi:    "वाक्य सुनें और जो सुनें वही अंग्रेज़ी में लिखें।",
-      Kannada:  "ವಾಕ್ಯವನ್ನು ಕೇಳಿ ಮತ್ತು ನೀವು ಕೇಳಿದ್ದನ್ನು ಇಂಗ್ಲಿಷ್‌ನಲ್ಲಿ ಅದೇ ರೀತಿ ಬರೆಯಿರಿ.",
-      Telugu:   "వాక్యాన్ని వినండి మరియు మీరు విన్నదాన్ని ఇంగ్లీషులో అలాగే రాయండి.",
-      Tamil:    "வாக்கியத்தைக் கேளுங்கள் மற்றும் நீங்கள் கேட்டதை ஆங்கிலத்தில் அப்படியே எழுதுங்கள்.",
-    },
-    dictation: "My school is near the market.",
+  "teen_level_1": {
+    "reading": "My name is Ravi. I go to school every day.",
+    "writing": "Listen to the sentence and write exactly what you hear (in English).",
+    "dictation": "My school is near the market."
   },
-
-  teen_level_2: {
-    reading: {
-      English:  "The market opens at 8 AM and closes at 8 PM on all days.",
-      Hindi:    "बाज़ार सभी दिनों में सुबह 8 बजे खुलता है और रात 8 बजे बंद होता है।",
-      Kannada:  "ಮಾರ್ಕೆಟ್ ಎಲ್ಲಾ ದಿನ ಬೆಳಿಗ್ಗೆ 8 ಗಂಟೆಗೆ ತೆರೆಯುತ್ತದೆ ಮತ್ತು ರಾತ್ರಿ 8 ಗಂಟೆಗೆ ಮುಚ್ಚುತ್ತದೆ.",
-      Telugu:   "మార్కెట్ అన్ని రోజులు ఉదయం 8 గంటలకు తెరుచుకుని రాత్రి 8 గంటలకు మూసుకుంటుంది.",
-      Tamil:    "சந்தை அனைத்து நாட்களும் காலை 8 மணிக்குத் திறக்கிறது மற்றும் இரவு 8 மணிக்கு மூடுகிறது.",
-    },
-    writing: {
-      English:  "Listen to the sentence and write exactly what you hear (in English).",
-      Hindi:    "वाक्य सुनें और जो सुनें वही अंग्रेज़ी में लिखें।",
-      Kannada:  "ವಾಕ್ಯವನ್ನು ಕೇಳಿ ಮತ್ತು ನೀವು ಕೇಳಿದ್ದನ್ನು ಇಂಗ್ಲಿಷ್‌ನಲ್ಲಿ ಅದೇ ರೀತಿ ಬರೆಯಿರಿ.",
-      Telugu:   "వాక్యాన్ని వినండి మరియు మీరు విన్నదాన్ని ఇంగ్లీషులో అలాగే రాయండి.",
-      Tamil:    "வாக்கியத்தைக் கேளுங்கள் மற்றும் நீங்கள் கேட்டதை ஆங்கிலத்தில் அப்படியே எழுதுங்கள்.",
-    },
-    dictation: "The bus leaves at eight in the morning.",
+  "teen_level_2": {
+    "reading": "The market opens at 8 AM and closes at 8 PM on all days.",
+    "writing": "Listen to the sentence and write exactly what you hear (in English).",
+    "dictation": "The bus leaves at eight in the morning."
   },
-
-  teen_level_3: {
-    reading: {
-      English:  "Please keep the classroom clean. Put waste in the dustbin. Do not write on the walls.",
-      Hindi:    "कृपया कक्षा को साफ रखें। कचरा डस्टबिन में डालें। दीवारों पर न लिखें।",
-      Kannada:  "ದಯವಿಟ್ಟು ತರಗತಿಯನ್ನು ಸ್ವಚ್ಛವಾಗಿ ಇರಿಸಿ. ಕಸವನ್ನು ಕಸದ ಬುಟ್ಟಿಗೆ ಹಾಕಿ. ಗೋಡೆಗಳ ಮೇಲೆ ಬರೆಯಬೇಡಿ.",
-      Telugu:   "దయచేసి తరగతి గదిని శుభ్రంగా ఉంచండి. చెత్తను డస్ట్‌బిన్‌లో వేయండి. గోడలపై రాయకండి.",
-      Tamil:    "வகுப்பறையை சுத்தமாக வைத்திருங்கள். குப்பைகளை தூக்கல் தொட்டியில் போடுங்கள். சுவர்களில் எழுதாதீர்கள்.",
-    },
-    writing: {
-      English:  "Listen to the sentence and write exactly what you hear (in English).",
-      Hindi:    "वाक्य सुनें और जो सुनें वही अंग्रेज़ी में लिखें।",
-      Kannada:  "ವಾಕ್ಯವನ್ನು ಕೇಳಿ ಮತ್ತು ನೀವು ಕೇಳಿದ್ದನ್ನು ಇಂಗ್ಲಿಷ್‌ನಲ್ಲಿ ಅದೇ ರೀತಿ ಬರೆಯಿರಿ.",
-      Telugu:   "వాక్యాన్ని వినండి మరియు మీరు విన్నదాన్ని ఇంగ్లీషులో అలాగే రాయండి.",
-      Tamil:    "வாக்கியத்தைக் கேளுங்கள் மற்றும் நீங்கள் கேட்டதை ஆங்கிலத்தில் அப்படியே எழுதுங்கள்.",
-    },
-    dictation: "Please keep your desk clean and tidy.",
+  "teen_level_3": {
+    "reading": "Please keep the classroom clean. Put waste in the dustbin. Do not write on the walls.",
+    "writing": "Listen to the sentence and write exactly what you hear (in English).",
+    "dictation": "Please keep your desk clean and tidy."
   },
-
-  teen_level_4: {
-    reading: {
-      English:  "Bus Timetable: Route 12 departs from City Centre at 7:00 AM, 9:00 AM and 11:00 AM. Last bus returns at 8:30 PM.",
-      Hindi:    "बस समय-सारिणी: रूट 12 सिटी सेंटर से सुबह 7:00 बजे, 9:00 बजे और 11:00 बजे चलती है। अंतिम बस शाम 8:30 बजे लौटती है।",
-      Kannada:  "ಬಸ್ ವೇಳಾಪಟ್ಟಿ: ರೂಟ್ 12 ಸಿಟಿ ಸೆಂಟರ್‌ನಿಂದ ಬೆಳಿಗ್ಗೆ 7:00, 9:00 ಮತ್ತು 11:00 ಕ್ಕೆ ಹೊರಡುತ್ತದೆ. ಕೊನೆಯ ಬಸ್ ರಾತ್ರಿ 8:30 ಕ್ಕೆ ಹಿಂದಿರುಗುತ್ತದೆ.",
-      Telugu:   "బస్సు సమయపట్టిక: రూట్ 12 సిటీ సెంటర్ నుండి ఉదయం 7:00, 9:00 మరియు 11:00 గంటలకు బయలుదేరుతుంది. చివరి బస్సు రాత్రి 8:30 గంటలకు తిరిగి వస్తుంది.",
-      Tamil:    "பேருந்து அட்டவணை: வழி 12 நகர மையத்திலிருந்து காலை 7:00, 9:00 மற்றும் 11:00 மணிக்கு கிளம்புகிறது. கடைசி பேருந்து இரவு 8:30 மணிக்குத் திரும்புகிறது.",
-    },
-    writing: {
-      English:  "Listen to the sentence and write exactly what you hear (in English).",
-      Hindi:    "वाक्य सुनें और जो सुनें वही अंग्रेज़ी में लिखें।",
-      Kannada:  "ವಾಕ್ಯವನ್ನು ಕೇಳಿ ಮತ್ತು ನೀವು ಕೇಳಿದ್ದನ್ನು ಇಂಗ್ಲಿಷ್‌ನಲ್ಲಿ ಅದೇ ರೀತಿ ಬರೆಯಿರಿ.",
-      Telugu:   "వాక్యాన్ని వినండి మరియు మీరు విన్నదాన్ని ఇంగ్లీషులో అలాగే రాయండి.",
-      Tamil:    "வாக்கியத்தைக் கேளுங்கள் மற்றும் நீங்கள் கேட்டதை ஆங்கிலத்தில் அப்படியே எழுதுங்கள்.",
-    },
-    dictation: "The first bus departs at seven in the morning.",
+  "teen_level_4": {
+    "reading": "Bus Timetable: Route 12 departs from City Centre at 7:00 AM, 9:00 AM and 11:00 AM. Last bus returns at 8:30 PM.",
+    "writing": "Listen to the sentence and write exactly what you hear (in English).",
+    "dictation": "The first bus departs at seven in the morning."
   },
-
-  teen_level_5: {
-    reading: {
-      English:  "Job Notice: Helper needed at Green Grocery. Working hours: 8 AM to 2 PM. Pay: 300 per day. Contact Mr. Kumar at 9876543210.",
-      Hindi:    "नौकरी सूचना: ग्रीन ग्रॉसरी में सहायक की आवश्यकता है। काम के घंटे: सुबह 8 बजे से दोपहर 2 बजे तक। वेतन: 300 प्रतिदिन। श्री कुमार से 9876543210 पर संपर्क करें।",
-      Kannada:  "ಉದ್ಯೋಗ ಸೂಚನೆ: ಗ್ರೀನ್ ಗ್ರೋಸರಿಯಲ್ಲಿ ಸಹಾಯಕ ಬೇಕಾಗಿದೆ. ಕೆಲಸದ ಸಮಯ: ಬೆಳಿಗ್ಗೆ 8 ರಿಂದ ಮಧ್ಯಾಹ್ನ 2 ರವರೆಗೆ. ವೇತನ: ದಿನಕ್ಕೆ 300. ಶ್ರೀ ಕುಮಾರ್ ಅವರನ್ನು 9876543210 ಕ್ಕೆ ಸಂಪರ್ಕಿಸಿ.",
-      Telugu:   "ఉద్యోగ నోటీసు: గ్రీన్ గ్రాసరీలో సహాయకుడు అవసరం. పని సమయం: ఉదయం 8 నుండి మధ్యాహ్నం 2 వరకు. జీతం: రోజుకు 300. శ్రీ కుమార్‌ని 9876543210 వద్ద సంప్రదించండి.",
-      Tamil:    "வேலை அறிவிப்பு: கிரீன் கிரோசரியில் உதவியாளர் தேவை. பணி நேரம்: காலை 8 முதல் பிற்பகல் 2 வரை. ஊதியம்: ஒரு நாளுக்கு 300. திரு. குமாரை 9876543210 இல் தொடர்புகொள்ளவும்.",
-    },
-    writing: {
-      English:  "Listen to the sentence and write exactly what you hear (in English).",
-      Hindi:    "वाक्य सुनें और जो सुनें वही अंग्रेज़ी में लिखें।",
-      Kannada:  "ವಾಕ್ಯವನ್ನು ಕೇಳಿ ಮತ್ತು ನೀವು ಕೇಳಿದ್ದನ್ನು ಇಂಗ್ಲಿಷ್‌ನಲ್ಲಿ ಅದೇ ರೀತಿ ಬರೆಯಿರಿ.",
-      Telugu:   "వాక్యాన్ని వినండి మరియు మీరు విన్నదాన్ని ఇంగ్లీషులో అలాగే రాయండి.",
-      Tamil:    "வாக்கியத்தைக் கேளுங்கள் மற்றும் நீங்கள் கேட்டதை ஆங்கிலத்தில் அப்படியே எழுதுங்கள்.",
-    },
-    dictation: "I can work from eight to two every day.",
+  "teen_level_5": {
+    "reading": "Job Notice: Helper needed at Green Grocery. Working hours: 8 AM to 2 PM. Pay: 300 per day. Contact Mr. Kumar at 9876543210.",
+    "writing": "Listen to the sentence and write exactly what you hear (in English).",
+    "dictation": "I can work from eight to two every day."
   },
-
-  // ─────────────────────────── ADULT ───────────────────────────
-  adult_level_1: {
-    reading: {
-      English:  "Open. Close. Stop. Go.",
-      Hindi:    "खोलो। बंद करो। रुको। जाओ।",
-      Kannada:  "ತೆರೆ. ಮುಚ್ಚು. ನಿಲ್ಲು. ಹೋಗು.",
-      Telugu:   "తెరవు. మూయి. ఆగు. వెళ్ళు.",
-      Tamil:    "திற. மூடு. நில். செல்.",
-    },
-    writing: {
-      English:  "Listen to the sentence and write exactly what you hear (in English).",
-      Hindi:    "वाक्य सुनें और जो सुनें वही अंग्रेज़ी में लिखें।",
-      Kannada:  "ವಾಕ್ಯವನ್ನು ಕೇಳಿ ಮತ್ತು ನೀವು ಕೇಳಿದ್ದನ್ನು ಇಂಗ್ಲಿಷ್‌ನಲ್ಲಿ ಅದೇ ರೀತಿ ಬರೆಯಿರಿ.",
-      Telugu:   "వాక్యాన్ని వినండి మరియు మీరు విన్నదాన్ని ఇంగ్లీషులో అలాగే రాయండి.",
-      Tamil:    "வாக்கியத்தைக் கேளுங்கள் மற்றும் நீங்கள் கேட்டதை ஆங்கிலத்தில் அப்படியே எழுதுங்கள்.",
-    },
-    dictation: "I write my name clearly.",
+  "adult_level_1": {
+    "reading": "Open. Close. Stop. Go.",
+    "writing": "Listen to the sentence and write exactly what you hear (in English).",
+    "dictation": "I write my name clearly."
   },
-
-  adult_level_2: {
-    reading: {
-      English:  "The shop is open from Monday to Saturday. Sunday is a holiday.",
-      Hindi:    "दुकान सोमवार से शनिवार तक खुली रहती है। रविवार को छुट्टी होती है।",
-      Kannada:  "ಅಂಗಡಿ ಸೋಮವಾರದಿಂದ ಶನಿವಾರದವರೆಗೆ ತೆರೆದಿರುತ್ತದೆ. ಭಾನುವಾರ ರಜೆ.",
-      Telugu:   "దుకాణం సోమవారం నుండి శనివారం వరకు తెరిచి ఉంటుంది. ఆదివారం సెలవు.",
-      Tamil:    "கடை திங்கள் முதல் சனிக்கிழமை வரை திறந்திருக்கும். ஞாயிறு விடுமுறை.",
-    },
-    writing: {
-      English:  "Listen to the sentence and write exactly what you hear (in English).",
-      Hindi:    "वाक्य सुनें और जो सुनें वही अंग्रेज़ी में लिखें।",
-      Kannada:  "ವಾಕ್ಯವನ್ನು ಕೇಳಿ ಮತ್ತು ನೀವು ಕೇಳಿದ್ದನ್ನು ಇಂಗ್ಲಿಷ್‌ನಲ್ಲಿ ಅದೇ ರೀತಿ ಬರೆಯಿರಿ.",
-      Telugu:   "వాక్యాన్ని వినండి మరియు మీరు విన్నదాన్ని ఇంగ్లీషులో అలాగే రాయండి.",
-      Tamil:    "வாக்கியத்தைக் கேளுங்கள் மற்றும் நீங்கள் கேட்டதை ஆங்கிலத்தில் அப்படியே எழுதுங்கள்.",
-    },
-    dictation: "The shop opens on Monday.",
+  "adult_level_2": {
+    "reading": "The shop is open from Monday to Saturday. Sunday is a holiday.",
+    "writing": "Listen to the sentence and write exactly what you hear (in English).",
+    "dictation": "The shop opens on Monday."
   },
-
-  adult_level_3: {
-    reading: {
-      English:  "Dear Customer, Your electricity bill of 850 is due on 15th of this month. Please pay on time to avoid disconnection.",
-      Hindi:    "प्रिय ग्राहक, इस महीने की 15 तारीख को आपका 850 का बिजली बिल देय है। कनेक्शन कटने से बचने के लिए समय पर भुगतान करें।",
-      Kannada:  "ಆತ್ಮೀಯ ಗ್ರಾಹಕರೇ, ಈ ತಿಂಗಳ 15 ರಂದು ನಿಮ್ಮ 850 ವಿದ್ಯುತ್ ಬಿಲ್ ಪಾವತಿ ಬಾಕಿ ಇದೆ. ಸಂಪರ್ಕ ಕಡಿತ ತಪ್ಪಿಸಲು ಸಮಯಕ್ಕೆ ಪಾವತಿಸಿ.",
-      Telugu:   "ప్రియమైన కస్టమర్, ఈ నెల 15వ తేదీన మీ 850 విద్యుత్ బిల్లు చెల్లించాలి. డిస్‌కనెక్షన్ నివారించడానికి సమయానికి చెల్లించండి.",
-      Tamil:    "அன்பான வாடிக்கையாளரே, இந்த மாதம் 15ஆம் தேதி உங்கள் 850 மின்சார கட்டணம் செலுத்த வேண்டும். துண்டிப்பைத் தவிர்க்க சரியான நேரத்தில் செலுத்தவும்.",
-    },
-    writing: {
-      English:  "Listen to the sentence and write exactly what you hear (in English).",
-      Hindi:    "वाक्य सुनें और जो सुनें वही अंग्रेज़ी में लिखें।",
-      Kannada:  "ವಾಕ್ಯವನ್ನು ಕೇಳಿ ಮತ್ತು ನೀವು ಕೇಳಿದ್ದನ್ನು ಇಂಗ್ಲಿಷ್‌ನಲ್ಲಿ ಅದೇ ರೀತಿ ಬರೆಯಿರಿ.",
-      Telugu:   "వాక్యాన్ని వినండి మరియు మీరు విన్నదాన్ని ఇంగ్లీషులో అలాగే రాయండి.",
-      Tamil:    "வாக்கியத்தைக் கேளுங்கள் மற்றும் நீங்கள் கேட்டதை ஆங்கிலத்தில் அப்படியே எழுதுங்கள்.",
-    },
-    dictation: "Pay your bill before the fifteenth.",
+  "adult_level_3": {
+    "reading": "Dear Customer, Your electricity bill of 850 is due on 15th of this month. Please pay on time to avoid disconnection.",
+    "writing": "Listen to the sentence and write exactly what you hear (in English).",
+    "dictation": "Pay your bill before the fifteenth."
   },
-
-  adult_level_4: {
-    reading: {
-      English:  "Ration Card Notice: All ration card holders must update their Aadhaar details at the nearest ration office by 31st March. Failing to do so will result in suspension of benefits.",
-      Hindi:    "राशन कार्ड सूचना: सभी राशन कार्ड धारकों को 31 मार्च तक निकटतम राशन कार्यालय में अपना आधार विवरण अपडेट करना होगा। ऐसा न करने पर लाभ निलंबित हो जाएगा।",
-      Kannada:  "ರೇಷನ್ ಕಾರ್ಡ್ ಸೂಚನೆ: ಎಲ್ಲಾ ರೇಷನ್ ಕಾರ್ಡ್ ಹೊಂದಿರುವವರು 31 ಮಾರ್ಚ್‌ ಒಳಗೆ ಹತ್ತಿರದ ರೇಷನ್ ಕಛೇರಿಯಲ್ಲಿ ಆಧಾರ್ ವಿವರಗಳನ್ನು ನವೀಕರಿಸಬೇಕು. ಇಲ್ಲದಿದ್ದರೆ ಸೌಲಭ್ಯಗಳು ಅಮಾನತ್ತಾಗುತ್ತವೆ.",
-      Telugu:   "రేషన్ కార్డు నోటీసు: అన్ని రేషన్ కార్డు హోల్డర్లు మార్చి 31 లోపు సమీపంలోని రేషన్ కార్యాలయంలో తమ ఆధార్ వివరాలు నవీకరించాలి. అలా చేయకపోతే ప్రయోజనాలు నిలిపివేయబడతాయి.",
-      Tamil:    "ரேஷன் அட்டை அறிவிப்பு: அனைத்து ரேஷன் அட்டைதாரர்களும் மார்ச் 31க்குள் அருகிலுள்ள ரேஷன் அலுவலகத்தில் ஆதார் விவரங்களை புதுப்பிக்க வேண்டும். இல்லாவிட்டால் சலுகைகள் நிறுத்தப்படும்.",
-    },
-    writing: {
-      English:  "Listen to the sentence and write exactly what you hear (in English).",
-      Hindi:    "वाक्य सुनें और जो सुनें वही अंग्रेज़ी में लिखें।",
-      Kannada:  "ವಾಕ್ಯವನ್ನು ಕೇಳಿ ಮತ್ತು ನೀವು ಕೇಳಿದ್ದನ್ನು ಇಂಗ್ಲಿಷ್‌ನಲ್ಲಿ ಅದೇ ರೀತಿ ಬರೆಯಿರಿ.",
-      Telugu:   "వాక్యాన్ని వినండి మరియు మీరు విన్నదాన్ని ఇంగ్లీషులో అలాగే రాయండి.",
-      Tamil:    "வாக்கியத்தைக் கேளுங்கள் மற்றும் நீங்கள் கேட்டதை ஆங்கிலத்தில் அப்படியே எழுதுங்கள்.",
-    },
-    dictation: "Update your Aadhaar at the ration office.",
+  "adult_level_4": {
+    "reading": "Ration Card Notice: All ration card holders must update their Aadhaar details at the nearest ration office by 31st March. Failing to do so will result in suspension of benefits.",
+    "writing": "Listen to the sentence and write exactly what you hear (in English).",
+    "dictation": "Update your Aadhaar at the ration office."
   },
-
-  adult_level_5: {
-    reading: {
-      English:  "Dear Applicant, Your application for the PM Housing Scheme has been approved. Please visit the Block Development Office with original documents (Aadhaar, income certificate, and land documents) within 30 days to complete registration.",
-      Hindi:    "प्रिय आवेदक, पीएम आवास योजना के लिए आपका आवेदन स्वीकृत हो गया है। पंजीकरण पूरा करने के लिए 30 दिनों के भीतर मूल दस्तावेज़ों (आधार, आय प्रमाण पत्र, और भूमि दस्तावेज़) के साथ ब्लॉक विकास कार्यालय में जाएं।",
-      Kannada:  "ಆತ್ಮೀಯ ಅರ್ಜಿದಾರರೇ, ಪಿಎಂ ಹೌಸಿಂಗ್ ಸ್ಕೀಮ್‌ಗಾಗಿ ನಿಮ್ಮ ಅರ್ಜಿ ಅನುಮೋದಿಸಲಾಗಿದೆ. ನೋಂದಣಿ ಪೂರ್ಣಗೊಳಿಸಲು 30 ದಿನಗಳಲ್ಲಿ ಮೂಲ ದಾಖಲೆಗಳೊಂದಿಗೆ (ಆಧಾರ್, ಆದಾಯ ಪ್ರಮಾಣಪತ್ರ, ಮತ್ತು ಭೂ ದಾಖಲೆಗಳು) ಬ್ಲಾಕ್ ಅಭಿವೃದ್ಧಿ ಕಛೇರಿಗೆ ಭೇಟಿ ಕೊಡಿ.",
-      Telugu:   "ప్రియమైన దరఖాస్తుదారుడు, PM హౌసింగ్ స్కీమ్ కోసం మీ దరఖాస్తు ఆమోదించబడింది. నమోదు పూర్తి చేయడానికి 30 రోజుల్లో అసలు పత్రాలతో (ఆధార్, ఆదాయ సర్టిఫికేట్, భూ పత్రాలు) బ్లాక్ డెవలప్‌మెంట్ ఆఫీసుకు వెళ్ళండి.",
-      Tamil:    "அன்பான விண்ணப்பதாரர், PM வீட்டுவசதி திட்டத்திற்கான உங்கள் விண்ணப்பம் அனுமதிக்கப்பட்டுள்ளது. பதிவை முடிக்க 30 நாட்களுக்குள் அசல் ஆவணங்களுடன் (ஆதார், வருமான சான்றிதழ், நில ஆவணங்கள்) தொகுதி வளர்ச்சி அலுவலகத்திற்கு வாருங்கள்.",
-    },
-    writing: {
-      English:  "Listen to the sentence and write exactly what you hear (in English).",
-      Hindi:    "वाक्य सुनें और जो सुनें वही अंग्रेज़ी में लिखें।",
-      Kannada:  "ವಾಕ್ಯವನ್ನು ಕೇಳಿ ಮತ್ತು ನೀವು ಕೇಳಿದ್ದನ್ನು ಇಂಗ್ಲಿಷ್‌ನಲ್ಲಿ ಅದೇ ರೀತಿ ಬರೆಯಿರಿ.",
-      Telugu:   "వాక్యాన్ని వినండి మరియు మీరు విన్నదాన్ని ఇంగ్లీషులో అలాగే రాయండి.",
-      Tamil:    "வாக்கியத்தைக் கேளுங்கள் மற்றும் நீங்கள் கேட்டதை ஆங்கிலத்தில் அப்படியே எழுதுங்கள்.",
-    },
-    dictation: "Bring your documents to the office soon.",
+  "adult_level_5": {
+    "reading": "Dear Applicant, Your application for the PM Housing Scheme has been approved. Please visit the Block Development Office with original documents (Aadhaar, income certificate, and land documents) within 30 days to complete registration.",
+    "writing": "Listen to the sentence and write exactly what you hear (in English).",
+    "dictation": "Bring your documents to the office soon."
   },
-
-  // ─────────────────────────── SENIOR ───────────────────────────
-  senior_level_1: {
-    reading: {
-      English:  "In. Out. Hot. Cold.",
-      Hindi:    "अंदर। बाहर। गर्म। ठंडा।",
-      Kannada:  "ಒಳಗೆ. ಹೊರಗೆ. ಬಿಸಿ. ತಣ್ಣನೆ.",
-      Telugu:   "లోపల. బయట. వేడి. చల్లని.",
-      Tamil:    "உள்ளே. வெளியே. சூடு. குளிர்.",
-    },
-    writing: {
-      English:  "Listen to the sentence and write exactly what you hear (in English).",
-      Hindi:    "वाक्य सुनें और जो सुनें वही अंग्रेज़ी में लिखें।",
-      Kannada:  "ವಾಕ್ಯವನ್ನು ಕೇಳಿ ಮತ್ತು ನೀವು ಕೇಳಿದ್ದನ್ನು ಇಂಗ್ಲಿಷ್‌ನಲ್ಲಿ ಅದೇ ರೀತಿ ಬರೆಯಿರಿ.",
-      Telugu:   "వాక్యాన్ని వినండి మరియు మీరు విన్నదాన్ని ఇంగ్లీషులో అలాగే రాయండి.",
-      Tamil:    "வாக்கியத்தைக் கேளுங்கள் மற்றும் நீங்கள் கேட்டதை ஆங்கிலத்தில் அப்படியே எழுதுங்கள்.",
-    },
-    dictation: "I live in a small village.",
+  "senior_level_1": {
+    "reading": "In. Out. Hot. Cold.",
+    "writing": "Listen to the sentence and write exactly what you hear (in English).",
+    "dictation": "I live in a small village."
   },
-
-  senior_level_2: {
-    reading: {
-      English:  "Take one tablet every morning after breakfast. Keep out of reach of children.",
-      Hindi:    "हर सुबह नाश्ते के बाद एक गोली लें। बच्चों की पहुंच से दूर रखें।",
-      Kannada:  "ಪ್ರತಿ ಬೆಳಿಗ್ಗೆ ಉಪಾಹಾರದ ನಂತರ ಒಂದು ಮಾತ್ರೆ ತೆಗೆದುಕೊಳ್ಳಿ. ಮಕ್ಕಳ ಕೈಗೆ ಸಿಗದಂತೆ ಇರಿಸಿ.",
-      Telugu:   "ప్రతి ఉదయం అల్పాహారం తర్వాత ఒక మాత్ర తీసుకోండి. పిల్లలకు అందకుండా ఉంచండి.",
-      Tamil:    "ஒவ்வொரு காலையும் காலை உணவுக்கு பிறகு ஒரு மாத்திரை எடுத்துக்கொள்ளுங்கள். குழந்தைகளுக்கு எட்டாதவாறு வைத்திருங்கள்.",
-    },
-    writing: {
-      English:  "Listen to the sentence and write exactly what you hear (in English).",
-      Hindi:    "वाक्य सुनें और जो सुनें वही अंग्रेज़ी में लिखें।",
-      Kannada:  "ವಾಕ್ಯವನ್ನು ಕೇಳಿ ಮತ್ತು ನೀವು ಕೇಳಿದ್ದನ್ನು ಇಂಗ್ಲಿಷ್‌ನಲ್ಲಿ ಅದೇ ರೀತಿ ಬರೆಯಿರಿ.",
-      Telugu:   "వాక్యాన్ని వినండి మరియు మీరు విన్నదాన్ని ఇంగ్లీషులో అలాగే రాయండి.",
-      Tamil:    "வாக்கியத்தைக் கேளுங்கள் மற்றும் நீங்கள் கேட்டதை ஆங்கிலத்தில் அப்படியே எழுதுங்கள்.",
-    },
-    dictation: "Take your medicine after breakfast.",
+  "senior_level_2": {
+    "reading": "Take one tablet every morning after breakfast. Keep out of reach of children.",
+    "writing": "Listen to the sentence and write exactly what you hear (in English).",
+    "dictation": "Take your medicine after breakfast."
   },
-
-  senior_level_3: {
-    reading: {
-      English:  "Health Camp Notice: A free health checkup camp will be held at the Community Hall on Sunday, 20th. All senior citizens above 60 years are welcome. Bring your Aadhaar card.",
-      Hindi:    "स्वास्थ्य शिविर सूचना: रविवार, 20 तारीख को सामुदायिक हॉल में निःशुल्क स्वास्थ्य जांच शिविर आयोजित होगा। 60 वर्ष से अधिक आयु के सभी वरिष्ठ नागरिकों का स्वागत है। अपना आधार कार्ड लेकर आएं।",
-      Kannada:  "ಆರೋಗ್ಯ ಶಿಬಿರ ಸೂಚನೆ: ರವಿವಾರ 20 ರಂದು ಸಮುದಾಯ ಹಾಲ್‌ನಲ್ಲಿ ಉಚಿತ ಆರೋಗ್ಯ ತಪಾಸಣೆ ಶಿಬಿರ ನಡೆಯಲಿದೆ. 60 ವರ್ಷ ಮೇಲ್ಪಟ್ಟ ಎಲ್ಲಾ ಹಿರಿಯ ನಾಗರಿಕರಿಗೆ ಸ್ವಾಗತ. ಆಧಾರ್ ಕಾರ್ಡ್ ತನ್ನಿ.",
-      Telugu:   "ఆరోగ్య శిబిరం నోటీసు: ఆదివారం 20వ తేదీన కమ్యూనిటీ హాల్‌లో ఉచిత ఆరోగ్య తనిఖీ శిబిరం జరుగుతుంది. 60 సంవత్సరాల పైబడిన అందరు సీనియర్ సిటిజన్లకు స్వాగతం. మీ ఆధార్ కార్డు తీసుకొని రండి.",
-      Tamil:    "ஆரோக்கிய முகாம் அறிவிப்பு: ஞாயிற்றுக்கிழமை 20ஆம் தேதி சமுதாய மண்டபத்தில் இலவச ஆரோக்கிய பரிசோதனை முகாம் நடைபெறும். 60 வயதுக்கு மேற்பட்ட அனைத்து மூத்த குடிமக்களும் வரவேற்கப்படுகிறார்கள். உங்கள் ஆதார் அட்டையை கொண்டு வாருங்கள்.",
-    },
-    writing: {
-      English:  "Listen to the sentence and write exactly what you hear (in English).",
-      Hindi:    "वाक्य सुनें और जो सुनें वही अंग्रेज़ी में लिखें।",
-      Kannada:  "ವಾಕ್ಯವನ್ನು ಕೇಳಿ ಮತ್ತು ನೀವು ಕೇಳಿದ್ದನ್ನು ಇಂಗ್ಲಿಷ್‌ನಲ್ಲಿ ಅದೇ ರೀತಿ ಬರೆಯಿರಿ.",
-      Telugu:   "వాక్యాన్ని వినండి మరియు మీరు విన్నదాన్ని ఇంగ్లీషులో అలాగే రాయండి.",
-      Tamil:    "வாக்கியத்தைக் கேளுங்கள் மற்றும் நீங்கள் கேட்டதை ஆங்கிலத்தில் அப்படியே எழுதுங்கள்.",
-    },
-    dictation: "The health camp is on Sunday.",
+  "senior_level_3": {
+    "reading": "Health Camp Notice: A free health checkup camp will be held at the Community Hall on Sunday, 20th. All senior citizens above 60 years are welcome. Bring your Aadhaar card.",
+    "writing": "Listen to the sentence and write exactly what you hear (in English).",
+    "dictation": "The health camp is on Sunday."
   },
-
-  senior_level_4: {
-    reading: {
-      English:  "Pension Office Notice: Senior citizens must submit a Life Certificate (Jeevan Pramaan) every November to continue receiving pension. Visit your nearest bank branch with Aadhaar and fingerprint.",
-      Hindi:    "पेंशन कार्यालय सूचना: वरिष्ठ नागरिकों को पेंशन प्राप्त करना जारी रखने के लिए हर नवंबर में जीवन प्रमाण पत्र जमा करना होगा। अपने नज़दीकी बैंक शाखा में आधार और फिंगरप्रिंट के साथ जाएं।",
-      Kannada:  "ಪಿಂಚಣಿ ಕಛೇರಿ ಸೂಚನೆ: ಹಿರಿಯ ನಾಗರಿಕರು ಪಿಂಚಣಿ ಪಡೆಯುವುದನ್ನು ಮುಂದುವರೆಸಲು ಪ್ರತಿ ನವೆಂಬರ್‌ನಲ್ಲಿ ಜೀವನ ಪ್ರಮಾಣ ಪತ್ರ ಸಲ್ಲಿಸಬೇಕು. ಆಧಾರ್ ಮತ್ತು ಬೆರಳಚ್ಚಿನೊಂದಿಗೆ ಹತ್ತಿರದ ಬ್ಯಾಂಕ್ ಶಾಖೆಗೆ ಭೇಟಿ ಕೊಡಿ.",
-      Telugu:   "పెన్షన్ కార్యాలయం నోటీసు: పెన్షన్ పొందడం కొనసాగించడానికి సీనియర్ సిటిజన్లు ప్రతి నవంబర్‌లో జీవన్ ప్రమాన్ సర్టిఫికేట్ సమర్పించాలి. ఆధార్ మరియు వేలి ముద్రతో సమీప బ్యాంకు శాఖను సందర్శించండి.",
-      Tamil:    "ஓய்வூதிய அலுவலக அறிவிப்பு: மூத்த குடிமக்கள் ஓய்வூதியம் தொடர்ந்து பெற ஒவ்வொரு நவம்பரிலும் ஜீவன் பிரமாண் சான்றிதழ் சமர்ப்பிக்க வேண்டும். ஆதார் மற்றும் கைரேகையுடன் அருகிலுள்ள வங்கி கிளைக்கு செல்லுங்கள்.",
-    },
-    writing: {
-      English:  "Listen to the sentence and write exactly what you hear (in English).",
-      Hindi:    "वाक्य सुनें और जो सुनें वही अंग्रेज़ी में लिखें।",
-      Kannada:  "ವಾಕ್ಯವನ್ನು ಕೇಳಿ ಮತ್ತು ನೀವು ಕೇಳಿದ್ದನ್ನು ಇಂಗ್ಲಿಷ್‌ನಲ್ಲಿ ಅದೇ ರೀತಿ ಬರೆಯಿರಿ.",
-      Telugu:   "వాక్యాన్ని వినండి మరియు మీరు విన్నదాన్ని ఇంగ్లీషులో అలాగే రాయండి.",
-      Tamil:    "வாக்கியத்தைக் கேளுங்கள் மற்றும் நீங்கள் கேட்டதை ஆங்கிலத்தில் அப்படியே எழுதுங்கள்.",
-    },
-    dictation: "Submit your life certificate every year.",
+  "senior_level_4": {
+    "reading": "Pension Office Notice: Senior citizens must submit a Life Certificate (Jeevan Pramaan) every November to continue receiving pension. Visit your nearest bank branch with Aadhaar and fingerprint.",
+    "writing": "Listen to the sentence and write exactly what you hear (in English).",
+    "dictation": "Submit your life certificate every year."
   },
-
-  senior_level_5: {
-    reading: {
-      English:  "Mobile Banking Alert: A transaction of 5,000 has been debited from your account ending in 4321. If you did not authorise this, please call our helpline at 1800 XXXX XXXX immediately.",
-      Hindi:    "मोबाइल बैंकिंग अलर्ट: आपके खाते, जो 4321 पर समाप्त होता है, से 5,000 डेबिट किए गए हैं। यदि आपने इसे अधिकृत नहीं किया है, तो तुरंत हमारी हेल्पलाइन 1800 XXXX XXXX पर कॉल करें।",
-      Kannada:  "ಮೊಬೈಲ್ ಬ್ಯಾಂಕಿಂಗ್ ಎಚ್ಚರಿಕೆ: ನಿಮ್ಮ ಖಾತೆ, 4321 ರಲ್ಲಿ ಕೊನೆಗೊಳ್ಳುವ, ನಿಂದ 5,000 ಡೆಬಿಟ್ ಆಗಿದೆ. ನೀವು ಇದನ್ನು ಅನುಮೋದಿಸದಿದ್ದರೆ, ತಕ್ಷಣ ನಮ್ಮ ಹೆಲ್ಪ್‌ಲೈನ್ 1800 XXXX XXXX ಗೆ ಕರೆ ಮಾಡಿ.",
-      Telugu:   "మొబైల్ బ్యాంకింగ్ అలర్ట్: మీ ఖాతా, 4321తో అంతమయ్యే, నుండి 5,000 డెబిట్ అయింది. మీరు దీన్ని అనుమతించలేదంటే, వెంటనే మా హెల్ప్‌లైన్ 1800 XXXX XXXX కి కాల్ చేయండి.",
-      Tamil:    "மொபைல் வங்கி எச்சரிக்கை: 4321 என முடியும் உங்கள் கணக்கிலிருந்து 5,000 பற்று வைக்கப்பட்டுள்ளது. நீங்கள் இதற்கு அனுமதிக்கவில்லை என்றால், உடனே எங்கள் உதவி எண் 1800 XXXX XXXX இல் அழையுங்கள்.",
-    },
-    writing: {
-      English:  "Listen to the sentence and write exactly what you hear (in English).",
-      Hindi:    "वाक्य सुनें और जो सुनें वही अंग्रेज़ी में लिखें।",
-      Kannada:  "ವಾಕ್ಯವನ್ನು ಕೇಳಿ ಮತ್ತು ನೀವು ಕೇಳಿದ್ದನ್ನು ಇಂಗ್ಲಿಷ್‌ನಲ್ಲಿ ಅದೇ ರೀತಿ ಬರೆಯಿರಿ.",
-      Telugu:   "వాక్యాన్ని వినండి మరియు మీరు విన్నదాన్ని ఇంగ్లీషులో అలాగే రాయండి.",
-      Tamil:    "வாக்கியத்தைக் கேளுங்கள் மற்றும் நீங்கள் கேட்டதை ஆங்கிலத்தில் அப்படியே எழுதுங்கள்.",
-    },
-    dictation: "Call the bank if you see a wrong charge.",
-  },
+  "senior_level_5": {
+    "reading": "Mobile Banking Alert: A transaction of 5,000 has been debited from your account ending in 4321. If you did not authorise this, please call our helpline at 1800 XXXX XXXX immediately.",
+    "writing": "Listen to the sentence and write exactly what you hear (in English).",
+    "dictation": "Call the bank if you see a wrong charge."
+  }
 };
