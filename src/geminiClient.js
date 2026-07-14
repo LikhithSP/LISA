@@ -101,6 +101,7 @@ Return ONLY valid JSON with this exact structure (no markdown, no backticks):
   },
   "translationTask": {
     "sentence": "string (a sentence in ${language})",
+    "prompt": "string (an instruction in ${language} telling the learner to arrange the word tiles into a sentence, WITHOUT showing the exact answer, e.g. 'Arrange the words to form a sentence about a boy going to school')",
     "englishTranslation": "string (correct English translation)",
     "tiles": ["array of 6-8 English words containing all words from englishTranslation plus 2-3 distractor words"]
   },
@@ -220,15 +221,16 @@ const getFallbackLesson = (params) => {
       correctIndex: 0
     },
     translationTask: {
-      sentence: language === "Hindi" ? "वह स्कूल जाता है" : language === "Kannada" ? "ಅವನು ಶಾಲೆಗೆ ಹೋಗುತ್ತಾನೆ" : "Avanu shalege hoguttane",
-      englishTranslation: "He goes to school",
-      tiles: ["He", "goes", "to", "school", "runs", "they", "market"]
+      sentence: language === "Hindi" ? "लड़का स्कूल जाता है" : language === "Kannada" ? "ಹುಡುಗ ಶಾಲೆಗೆ ಹೋಗುತ್ತಾನೆ" : "The boy goes to school",
+      prompt: "Arrange the words to form a sentence: a boy goes to school",
+      englishTranslation: "The boy goes to school",
+      tiles: ["The", "boy", "goes", "to", "school", "girl", "they"]
     },
     matchingPairs: [
-      { left: language === "Hindi" ? "स्कूल" : language === "Kannada" ? "ಶಾಲೆ" : "Shale", right: "School" },
-      { left: language === "Hindi" ? "किताब" : language === "Kannada" ? "ಪುಸ್ತಕ" : "Pustaka", right: "Book" },
-      { left: language === "Hindi" ? "लड़का" : language === "Kannada" ? "ಹುಡುಗ" : "Huduga", right: "Boy" },
-      { left: language === "Hindi" ? "पानी" : language === "Kannada" ? "ನೀರು" : "Neeru", right: "Water" }
+      { left: language === "Hindi" ? "स्कूल" : language === "Kannada" ? "ಶಾಲೆ" : "🏫", right: "School" },
+      { left: language === "Hindi" ? "किताब" : language === "Kannada" ? "ಪುಸ್ತಕ" : "📖", right: "Book" },
+      { left: language === "Hindi" ? "लड़का" : language === "Kannada" ? "ಹುಡುಗ" : "🧒", right: "Boy" },
+      { left: language === "Hindi" ? "पानी" : language === "Kannada" ? "ನೀರು" : "💧", right: "Water" }
     ],
     listeningTask: {
       audioText: language === "Hindi" ? "वह जाता है" : language === "Kannada" ? "ಅವನು ಹೋಗುತ್ತಾನೆ" : "He goes",
@@ -240,7 +242,7 @@ const getFallbackLesson = (params) => {
       { hint: "The bright star of the day", emoji: "🌞", answer: "SUN", tiles: ["N", "U", "S"] }
     ],
     imageChoice: [
-      { word: "school", prompt: "Tap the picture that means school", options: ["🏫", "🍎", "🚗"], correctIndex: 0 },
+      { word: "car", prompt: "Tap the picture that means car", options: ["🚗", "🏫", "🍎"], correctIndex: 0 },
       { word: "water", prompt: "Tap the picture that means water", options: ["🔥", "💧", "🌞"], correctIndex: 1 },
       { word: "apple", prompt: "Tap the picture that means apple", options: ["🍎", "🏫", "🌞"], correctIndex: 0 }
     ],
