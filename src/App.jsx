@@ -798,6 +798,8 @@ function App() {
     const handleNext = () => {
       // Clear current step state
       setLessonSpeakFeedback(null);
+      setLessonSpeakTranscript("");
+      setLessonSpeakIsListening(false);
       setLessonSpeakError("");
       setLessonListeningFeedback(null);
       setLessonListeningSelected([]);
@@ -911,6 +913,27 @@ function App() {
                   }}>
                     <p style={{ fontSize: '1.6rem', fontWeight: '800', color: 'var(--text)', margin: '0 0 10px' }}>{sentence}</p>
                     <p style={{ fontSize: '1.1rem', color: 'var(--muted)', margin: 0 }}>{currentQuestion.englishTranslation}</p>
+                    <button
+                      type="button"
+                      onClick={() => speakText(sentence)}
+                      disabled={lessonSpeakIsListening || isChecked}
+                      style={{
+                        marginTop: '16px',
+                        background: '#38bdf8',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '12px',
+                        padding: '10px 22px',
+                        fontSize: '1rem',
+                        fontWeight: '800',
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '8px'
+                      }}
+                    >
+                      <span>🔊 LISTEN</span>
+                    </button>
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', marginTop: '20px' }}>
