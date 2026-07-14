@@ -4113,146 +4113,151 @@ function App() {
 
     return (
       <div className="dashboard-container-new">
-        {/* Left Navigation Sidebar */}
-        <aside className="dashboard-sidebar">
-          <div className="sidebar-logo" style={{ color: 'var(--accent)', cursor: 'default' }}>
-            LISA
-          </div>
-          <div className="sidebar-menu">
-            <button
-              type="button"
-              className={`sidebar-item ${dashboardTab === "dashboard" ? "active" : ""}`}
-              onClick={() => setDashboardTab("dashboard")}
-            >
-              <DashboardIcon /> {t("sidebarDashboard")}
-            </button>
-            <button
-              type="button"
-              className={`sidebar-item ${dashboardTab === "learn" ? "active" : ""}`}
-              onClick={() => setDashboardTab("learn")}
-            >
-              <LearnIcon /> {t("sidebarLearn")}
-            </button>
-            <button
-              type="button"
-              className={`sidebar-item ${dashboardTab === "practice" ? "active" : ""}`}
-              onClick={() => setDashboardTab("practice")}
-            >
-              <PracticeIcon /> {t("sidebarPractice")}
-            </button>
-            <button
-              type="button"
-              className={`sidebar-item ${dashboardTab === "profile" ? "active" : ""}`}
-              onClick={() => setDashboardTab("profile")}
-              style={{ display: 'flex', alignItems: 'center' }}
-            >
-              {profileAvatar && profileAvatar.startsWith("http") ? (
-                <img
-                  src={profileAvatar}
-                  alt="Profile"
-                  style={{
-                    width: "28px",
-                    height: "28px",
-                    borderRadius: "50%",
-                    objectFit: "cover",
-                    marginRight: "10px"
-                  }}
-                />
-              ) : (
-                <ProfileIcon />
-              )}
-              {t("sidebarProfile")}
-            </button>
-          </div>
-          <div className="sidebar-footer">
-            <button
-              type="button"
-              className="sidebar-item"
-              style={{ color: '#ef4444' }}
-              onClick={() => handleSignOut()}
-            >
-              <LogoutIcon /> {t("logout")}
-            </button>
-          </div>
-        </aside>
-
         {/* Main Content Column */}
         <div className="dashboard-main-content">
-          {/* Topbar */}
+          {/* Topbar with embedded sidebar navigation */}
           <div className="dashboard-topbar">
-            <div className="topbar-indicators" style={{ position: 'relative' }}>
-              <div
-                className="indicator-pill streak"
-                onClick={() => setStreakPopupOpen(!streakPopupOpen)}
-                style={{ cursor: 'pointer', position: 'relative' }}
-                ref={streakPopupRef}
-              >
-                <FlameIcon style={{ color: '#ff4d00' }} /> {streakCount}
+            <div className="topbar-left">
+              <div className="topbar-indicators" style={{ position: 'relative' }}>
+                <div
+                  className="indicator-pill streak"
+                  onClick={() => setStreakPopupOpen(!streakPopupOpen)}
+                  style={{ cursor: 'pointer', position: 'relative' }}
+                  ref={streakPopupRef}
+                >
+                  <FlameIcon style={{ color: '#ff4d00' }} /> {streakCount}
 
-                {/* Streak Popup */}
-                {streakPopupOpen && (
-                  <div
-                    className="streak-popup-overlay"
-                    style={{
-                      position: 'absolute',
-                      top: '100%',
-                      left: '0',
-                      marginTop: '12px',
-                      width: '290px',
-                      background: 'var(--panel-strong)',
-                      border: '2px solid var(--line)',
-                      borderRadius: '16px',
-                      boxShadow: 'var(--shadow)',
-                      padding: '16px',
-                      zIndex: 1000,
-                      cursor: 'default'
-                    }}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px', textAlign: 'left' }}>
-                      <FlameIcon style={{ width: '28px', height: '28px', color: '#ff4d00', marginRight: 0 }} />
-                      <div>
-                        <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: 'var(--text)' }}>{streakCount} Day Streak!</h3>
-                        <p style={{ margin: '2px 0 0', fontSize: '0.78rem', color: 'var(--muted)' }}>
-                          {streakCount > 0 ? "You're doing great! Keep it up." : "Start a lesson to begin your streak!"}
-                        </p>
+                  {/* Streak Popup */}
+                  {streakPopupOpen && (
+                    <div
+                      className="streak-popup-overlay"
+                      style={{
+                        position: 'absolute',
+                        top: '100%',
+                        left: '0',
+                        marginTop: '12px',
+                        width: '290px',
+                        background: 'var(--panel-strong)',
+                        border: '2px solid var(--line)',
+                        borderRadius: '16px',
+                        boxShadow: 'var(--shadow)',
+                        padding: '16px',
+                        zIndex: 1000,
+                        cursor: 'default'
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px', textAlign: 'left' }}>
+                        <FlameIcon style={{ width: '28px', height: '28px', color: '#ff4d00', marginRight: 0 }} />
+                        <div>
+                          <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: 'var(--text)' }}>{streakCount} Day Streak!</h3>
+                          <p style={{ margin: '2px 0 0', fontSize: '0.78rem', color: 'var(--muted)' }}>
+                            {streakCount > 0 ? "You're doing great! Keep it up." : "Start a lesson to begin your streak!"}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Past 7 days grid */}
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '6px', textAlign: 'center' }}>
+                        {getPastSevenDaysStatus().map((day, idx) => (
+                          <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                            <span style={{ fontSize: '0.7rem', fontWeight: 700, color: day.isToday ? 'var(--accent)' : 'var(--muted)' }}>
+                              {day.label}
+                            </span>
+                            <div style={{
+                              width: '26px',
+                              height: '26px',
+                              borderRadius: '50%',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              background: day.isCompleted
+                                ? 'linear-gradient(135deg, #ff6b00, #ff4d00)'
+                                : 'rgba(0,0,0,0.05)',
+                              color: day.isCompleted ? 'white' : 'var(--muted)',
+                              border: day.isToday ? '2px solid var(--accent)' : 'none',
+                              fontSize: '0.75rem',
+                              fontWeight: 700
+                            }}>
+                              {day.isCompleted ? '✓' : ''}
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
-
-                    {/* Past 7 days grid */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '6px', textAlign: 'center' }}>
-                      {getPastSevenDaysStatus().map((day, idx) => (
-                        <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                          <span style={{ fontSize: '0.7rem', fontWeight: 700, color: day.isToday ? 'var(--accent)' : 'var(--muted)' }}>
-                            {day.label}
-                          </span>
-                          <div style={{
-                            width: '26px',
-                            height: '26px',
-                            borderRadius: '50%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            background: day.isCompleted
-                              ? 'linear-gradient(135deg, #ff6b00, #ff4d00)'
-                              : 'rgba(0,0,0,0.05)',
-                            color: day.isCompleted ? 'white' : 'var(--muted)',
-                            border: day.isToday ? '2px solid var(--accent)' : 'none',
-                            fontSize: '0.75rem',
-                            fontWeight: 700
-                          }}>
-                            {day.isCompleted ? '✓' : ''}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                  )}
+                </div>
+                <div className="indicator-pill xp"><StarIcon style={{ color: '#f59e0b' }} /> {userXp} XP</div>
               </div>
-              <div className="indicator-pill xp"><StarIcon style={{ color: '#f59e0b' }} /> {userXp} XP</div>
             </div>
-            {renderThemeToggle()}
-            {renderLanguageDropdown(true)}
+
+            <div className="sidebar-pill">
+              <div className="sidebar-logo">LISA</div>
+              <div className="sidebar-menu">
+                <button
+                  type="button"
+                  className={`sidebar-item ${dashboardTab === "dashboard" ? "active" : ""}`}
+                  onClick={() => setDashboardTab("dashboard")}
+                >
+                  <DashboardIcon style={{ marginRight: 0, width: 18, height: 18 }} /> {t("sidebarDashboard")}
+                  <span className="sidebar-notification-badge">3</span>
+                </button>
+                <span className="sidebar-separator" aria-hidden="true" />
+                <button
+                  type="button"
+                  className={`sidebar-item ${dashboardTab === "learn" ? "active" : ""}`}
+                  onClick={() => setDashboardTab("learn")}
+                >
+                  <LearnIcon style={{ marginRight: 0, width: 18, height: 18 }} /> {t("sidebarLearn")}
+                </button>
+                <span className="sidebar-separator" aria-hidden="true" />
+                <button
+                  type="button"
+                  className={`sidebar-item ${dashboardTab === "practice" ? "active" : ""}`}
+                  onClick={() => setDashboardTab("practice")}
+                >
+                  <PracticeIcon style={{ marginRight: 0, width: 18, height: 18 }} /> {t("sidebarPractice")}
+                </button>
+                <span className="sidebar-separator" aria-hidden="true" />
+                <button
+                  type="button"
+                  className={`sidebar-item ${dashboardTab === "profile" ? "active" : ""}`}
+                  onClick={() => setDashboardTab("profile")}
+                  style={{ display: 'inline-flex', alignItems: 'center' }}
+                >
+                  {profileAvatar && profileAvatar.startsWith("http") ? (
+                    <img
+                      src={profileAvatar}
+                      alt="Profile"
+                      style={{
+                        width: "22px",
+                        height: "22px",
+                        borderRadius: "50%",
+                        objectFit: "cover",
+                        marginRight: "6px"
+                      }}
+                    />
+                  ) : (
+                    <ProfileIcon style={{ marginRight: 0, width: 18, height: 18 }} />
+                  )}
+                  {t("sidebarProfile")}
+                </button>
+              </div>
+              <div className="sidebar-footer">
+                <button
+                  type="button"
+                  className="sidebar-signout-pill"
+                  onClick={() => handleSignOut()}
+                >
+                  <LogoutIcon style={{ marginRight: 0, width: 16, height: 16 }} /> {t("logout")}
+                </button>
+              </div>
+            </div>
+
+            <div className="topbar-right">
+              {renderThemeToggle()}
+              {renderLanguageDropdown(true)}
+            </div>
           </div>
 
           {/* Main View Area */}
