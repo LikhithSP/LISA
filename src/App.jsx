@@ -1472,6 +1472,8 @@ function App() {
   const [selectedAnswers, setSelectedAnswers] = useState({}); // { index: optionIndex }
   const [writingAnswers, setWritingAnswers] = useState({}); // { index: "user text" }
   const [readingAttempts, setReadingAttempts] = useState({}); // { index: { matchedCount, totalWords, transcript, scores } }
+  const [translatingQ, setTranslatingQ] = useState(false);
+  const [translatedQ, setTranslatedQ] = useState(null);
 
   // Voice speech states
   const [isListening, setIsListening] = useState(false);
@@ -1479,6 +1481,75 @@ function App() {
   const [micError, setMicError] = useState("");
   const [manualTextFallback, setManualTextFallback] = useState("");
   const recognitionRef = useRef(null);
+
+  // Fetch translation dynamically when selected language is not English and the question changes
+  useEffect(() => {
+    if (assessmentState !== "answering" || !assessmentQuestionsList || assessmentQuestionsList.length === 0) {
+      return;
+    }
+    const q = assessmentQuestionsList[currentStep];
+    if (!q) return;
+
+    const lang = selectedLanguage || "English";
+    if (lang === "English") {
+      setTranslatedQ(q.rawQuestion);
+      setTranslatingQ(false);
+      return;
+    }
+
+    let active = true;
+    const fetchTranslation = async () => {
+      setTranslatingQ(true);
+      try {
+        if (q.type === "comprehension") {
+          const res = await translateMCQContent(
+            q.rawQuestion.question,
+            q.rawQuestion.options,
+            lang
+          );
+          if (active) {
+            setTranslatedQ({
+              ...q.rawQuestion,
+              question: res.question,
+              options: res.options
+            });
+          }
+        } else if (q.type === "reading") {
+          const translatedReading = await translateTextContent(q.rawQuestion.reading, lang);
+          const translatedWriting = await translateTextContent(q.rawQuestion.writing, lang);
+          if (active) {
+            setTranslatedQ({
+              ...q.rawQuestion,
+              reading: translatedReading,
+              writing: translatedWriting
+            });
+          }
+        } else if (q.type === "writing") {
+          const translatedWriting = await translateTextContent(q.rawQuestion.writing, lang);
+          if (active) {
+            setTranslatedQ({
+              ...q.rawQuestion,
+              writing: translatedWriting
+            });
+          }
+        }
+      } catch (err) {
+        console.error("Error translating assessment question:", err);
+        if (active) {
+          setTranslatedQ(q.rawQuestion);
+        }
+      } finally {
+        if (active) {
+          setTranslatingQ(false);
+        }
+      }
+    };
+
+    fetchTranslation();
+    return () => {
+      active = false;
+    };
+  }, [currentStep, selectedLanguage, assessmentQuestionsList, assessmentState]);
 
   // History and analytics
   const [historyAttempts, setHistoryAttempts] = useState(() => {
@@ -1519,20 +1590,237 @@ function App() {
     setEditEdLevel(profile.education_level || "No formal education");
   }, [profile]);
 
+    const localUiTranslations = {
+    English: {
+      sidebarDashboard: "Dashboard",
+      sidebarLearn: "Learn",
+      sidebarPractice: "Practice",
+      sidebarProfile: "Profile",
+      dashboardHello: "Hello, {name} 👋🏻",
+      dashboardWelcomeBack: "Welcome back! Pick up right where you left off.",
+      dashboardContinueLearning: "Continue learning",
+      dashboardStartLearning: "Start Learning",
+      dashboardSection: "Section",
+      dashboardUnit: "Unit",
+      dashboardResume: "Resume",
+      dashboardWordOfDay: "Word of the Day",
+      dashboardCurrentLevel: "Current Level",
+      dashboardStreakSociety: "Streak Society",
+      dashboardDayStreak: "day streak",
+      dashboardDailyQuests: "Daily Quests",
+      dashboardAchievements: "Achievements",
+      dashboardViewAll: "VIEW ALL",
+      practiceTodaysReview: "Today's Review",
+      practicePerfectPronunciation: "Perfect Pronunciation",
+      practicePerfectPronunciationDesc: "Finish this session to build confidence with speaking!",
+      practiceStart: "START",
+      practiceConversation: "Conversation",
+      practiceSpeak: "Speak",
+      practiceSpeakDesc: "Improve your speaking skills with these phrases",
+      practiceListen: "Listen",
+      practiceListenDesc: "Boost your listening skills with an audio-only session",
+      practiceYourCollections: "Your collections",
+      practiceMistakes: "Mistakes",
+      practiceWords: "Words",
+      practiceStories: "Stories",
+      practiceMistakesDesc: "Start a personalized lesson to practice your mistakes",
+      practiceWordsDesc: "Review your vocabulary at any time",
+      practiceStoriesDesc: "Reread a story to review words in context",
+      profileUpdateSettings: "Update Profile Settings",
+      profileEducationStatus: "Current Education Status",
+      profileSaveChanges: "Save Changes",
+      profileSaving: "Saving...",
+      profileResetLessons: "Reset Completed Lessons (Dev)",
+      profileAllAchievements: "All Achievements"
+    },
+    Hindi: {
+      sidebarDashboard: "डैशबोर्ड",
+      sidebarLearn: "सीखें",
+      sidebarPractice: "अभ्यास",
+      sidebarProfile: "प्रोफ़ाइल",
+      dashboardHello: "नमस्ते, {name} 👋🏻",
+      dashboardWelcomeBack: "वापस स्वागत है! वहीं से शुरू करें जहां आपने छोड़ा था।",
+      dashboardContinueLearning: "सीखना जारी रखें",
+      dashboardStartLearning: "सीखना शुरू करें",
+      dashboardSection: "अनुभाग",
+      dashboardUnit: "इकाई",
+      dashboardResume: "जारी रखें",
+      dashboardWordOfDay: "आज का शब्द",
+      dashboardCurrentLevel: "वर्तमान स्तर",
+      dashboardStreakSociety: "सक्रियता समाज",
+      dashboardDayStreak: "दिनों की सक्रियता",
+      dashboardDailyQuests: "दैनिक कार्य",
+      dashboardAchievements: "उपलब्धियां",
+      dashboardViewAll: "सभी देखें",
+      practiceTodaysReview: "आज की समीक्षा",
+      practicePerfectPronunciation: "उत्कृष्ट उच्चारण",
+      practicePerfectPronunciationDesc: "बोलने में आत्मविश्वास बढ़ाने के लिए यह सत्र पूरा करें!",
+      practiceStart: "शुरू करें",
+      practiceConversation: "बातचीत",
+      practiceSpeak: "बोलें",
+      practiceSpeakDesc: "इन वाक्यांशों के साथ अपने बोलने के कौशल में सुधार करें",
+      practiceListen: "सुनें",
+      practiceListenDesc: "केवल सुनने वाले सत्र के साथ अपने सुनने के कौशल को बढ़ाएं",
+      practiceYourCollections: "आपके संग्रह",
+      practiceMistakes: "गलतियाँ",
+      practiceWords: "शब्द",
+      practiceStories: "कहानियाँ",
+      practiceMistakesDesc: "अपनी गलतियों का अभ्यास करने के लिए एक व्यक्तिगत पाठ शुरू करें",
+      practiceWordsDesc: "किसी भी समय अपनी शब्दावली की समीक्षा करें",
+      practiceStoriesDesc: "संदर्भ में शब्दों की समीक्षा करने के लिए कहानी को दोबारा पढ़ें",
+      profileUpdateSettings: "प्रोफ़ाइल सेटिंग्स अपडेट करें",
+      profileEducationStatus: "वर्तमान शिक्षा स्थिति",
+      profileSaveChanges: "बदलाव सहेजें",
+      profileSaving: "सहेजा जा रहा है...",
+      profileResetLessons: "पूरे किए गए पाठ रीसेट करें (Dev)",
+      profileAllAchievements: "सभी उपलब्धियां"
+    },
+    Kannada: {
+      sidebarDashboard: "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
+      sidebarLearn: "ಕಲಿ",
+      sidebarPractice: "ಅಭ್ಯಾಸ",
+      sidebarProfile: "ಪ್ರೊಫೈಲ್",
+      dashboardHello: "ನಮಸ್ಕಾರ, {name} 👋🏻",
+      dashboardWelcomeBack: "ಮರಳಿ ಸುಸ್ವಾಗತ! ನೀವು ಎಲ್ಲಿ ನಿಲ್ಲಿಸಿದ್ದೀರೋ ಅಲ್ಲಿಂದ ಮುಂದುವರಿಸಿ.",
+      dashboardContinueLearning: "ಕಲಿಕೆಯನ್ನು ಮುಂದುವರಿಸಿ",
+      dashboardStartLearning: "ಕಲಿಕೆ ಪ್ರಾರಂಭಿಸಿ",
+      dashboardSection: "ವಿಭಾಗ",
+      dashboardUnit: "ಘಟಕ",
+      dashboardResume: "ಪುನರಾರಂಭಿಸಿ",
+      dashboardWordOfDay: "ದಿನದ ಪದ",
+      dashboardCurrentLevel: "ಪ್ರಸ್ತುತ ಹಂತ",
+      dashboardStreakSociety: "ನಿರಂತರ ಕಲಿಕಾ ಸಂಘ",
+      dashboardDayStreak: "ದಿನಗಳ ನಿರಂತರತೆ",
+      dashboardDailyQuests: "ದಿನನಿತ್ಯದ ಗುರಿಗಳು",
+      dashboardAchievements: "ಸಾಧನೆಗಳು",
+      dashboardViewAll: "ಎಲ್ಲವನ್ನೂ ವೀಕ್ಷಿಸಿ",
+      practiceTodaysReview: "ಇಂದಿನ ವಿಮರ್ಶೆ",
+      practicePerfectPronunciation: "ಪರಿಪೂರ್ಣ ಉಚ್ಚಾರಣೆ",
+      practicePerfectPronunciationDesc: "ಮಾತನಾಡುವಲ್ಲಿ ಆತ್ಮವಿಶ್ವಾಸ ಬೆಳೆಸಿಕೊಳ್ಳಲು ಈ ಸೆಷನ್ ಪೂರ್ಣಗೊಳಿಸಿ!",
+      practiceStart: "ಪ್ರಾರಂಭಿಸಿ",
+      practiceConversation: "ಸಂಭಾಷಣೆ",
+      practiceSpeak: "ಮಾತನಾಡು",
+      practiceSpeakDesc: "ಈ ನುಡಿಗಟ್ಟುಗಳೊಂದಿಗೆ ನಿಮ್ಮ ಮಾತನಾಡುವ ಕೌಶಲ್ಯವನ್ನು ಸುಧಾರಿಸಿ",
+      practiceListen: "ಕೇಳು",
+      practiceListenDesc: "ಕೇವಲ ಆಲಿಸುವ ಸೆಷನ್ ಮೂಲಕ ನಿಮ್ಮ ಆಲಿಸುವ ಕೌಶಲ್ಯವನ್ನು ಹೆಚ್ಚಿಸಿ",
+      practiceYourCollections: "ನಿಮ್ಮ ಸಂಗ್ರಹಗಳು",
+      practiceMistakes: "ತಪ್ಪುಗಳು",
+      practiceWords: "ಪದಗಳು",
+      practiceStories: "ಕಥೆಗಳು",
+      practiceMistakesDesc: "ನಿಮ್ಮ ತಪ್ಪುಗಳನ್ನು ಅಭ್ಯಾಸ ಮಾಡಲು ವೈಯಕ್ತికಗೊಳಿಸಿದ ಪಾಠವನ್ನು ಪ್ರಾರಂಭಿಸಿ",
+      practiceWordsDesc: "ಯಾವಾಗಲಾದರೂ ನಿಮ್ಮ ಶಬ್ದಕೋಶವನ್ನು ಮರುಪರಿಶೀಲಿಸಿ",
+      practiceStoriesDesc: "ಸಂದರ್ಭಕ್ಕೆ ಅನುಗುಣವಾಗಿ ಪದಗಳನ್ನು ಪರಿಶೀಲಿಸಲು ಕಥೆಯನ್ನು ಮತ್ತೊಮ್ಮೆ ಓದಿ",
+      profileUpdateSettings: "ಪ್ರೊಫೈಲ್ ಸೆಟ್ಟಿಂಗ್‌ಗಳನ್ನು ನವೀಕರಿಸಿ",
+      profileEducationStatus: "ಪ್ರಸ್ತುತ ಶಿಕ್ಷಣದ ಸ್ಥಿತಿ",
+      profileSaveChanges: "ಬದಲಾವಣೆಗಳನ್ನು ಉಳಿಸಿ",
+      profileSaving: "ಉಳಿಸಲಾಗುತ್ತಿದೆ...",
+      profileResetLessons: "ಪೂರ್ಣಗೊಂಡ ಪಾಠಗಳನ್ನು ಮರುಹೊಂದಿಸಿ (Dev)",
+      profileAllAchievements: "ಎಲ್ಲಾ ಸಾಧನೆಗಳು"
+    },
+    Telugu: {
+      sidebarDashboard: "డ్యాష్‌బోర్డ్",
+      sidebarLearn: "నేర్చుకోండి",
+      sidebarPractice: "అభ్యాసం",
+      sidebarProfile: "ప్రొఫైల్",
+      dashboardHello: "నమస్కారం, {name} 👋🏻",
+      dashboardWelcomeBack: "మరలా సుస్వాగతం! మీరు ఎక్కడ ఆపివేసారో అక్కడి నుండి ప్రారంభించండి.",
+      dashboardContinueLearning: "నేర్చుకోవడం కొనసాగించండి",
+      dashboardStartLearning: "నేర్చుకోవడం ప్రారంభించండి",
+      dashboardSection: "విభాగం",
+      dashboardUnit: "యూనిట్",
+      dashboardResume: "కొనసాగించు",
+      dashboardWordOfDay: "ఈనాటి పదం",
+      dashboardCurrentLevel: "ప్రస్తుత స్థాయి",
+      dashboardStreakSociety: "నిరంతర అభ్యాసక సంఘం",
+      dashboardDayStreak: "రోజుల నిరంతరత",
+      dashboardDailyQuests: "రోజువారీ లక్ష్యాలు",
+      dashboardAchievements: "సాధనలు",
+      dashboardViewAll: "అన్నీ చూడండి",
+      practiceTodaysReview: "ఈ రోజు సమీక్ష",
+      practicePerfectPronunciation: "ఖచ్చితమైన ఉచ్చారణ",
+      practicePerfectPronunciationDesc: "మాట్లాడటంలో ఆత్మవిశ్వాసం పెంచుకోవడానికి ఈ సెషన్‌ను పూర్తి చేయండి!",
+      practiceStart: "ప్రారంభించు",
+      practiceConversation: "సంభాషణ",
+      practiceSpeak: "మాట్లాడండి",
+      practiceSpeakDesc: "ఈ పదబంధాలతో మీ మాట్లాడే నైపుణ్యాలను మెరుగుపరచుకోండి",
+      practiceListen: "వినండి",
+      practiceListenDesc: "ఆడియో మాత్రమే ఉండే సెషన్‌తో మీ వినికిడి నైపుణ్యాలను పెంచుకోండి",
+      practiceYourCollections: "మీ సేకరణలు",
+      practiceMistakes: "తప్పులు",
+      practiceWords: "పదాలు",
+      practiceStories: "కథలు",
+      practiceMistakesDesc: "మీ తప్పులను సరిదిద్దుకోవడానికి వ్యక్తిగతీకరించిన పాఠాన్ని ప్రారంభించండి",
+      practiceWordsDesc: "ఏ సమయంలోనైనా మీ పదజాలాన్ని సమీక్షించుకోండి",
+      practiceStoriesDesc: "సందర్భంలో పదాలను సమీక్షించడానికి కథను మళ్లీ చదవండి",
+      profileUpdateSettings: "ప్రొఫైల్ సెట్టంగ్లను నవీకరించండి",
+      profileEducationStatus: "ప్రస్తుత విద్యా స్థితి",
+      profileSaveChanges: "మార్పులను సేవ్ చేయి",
+      profileSaving: "సేవ్ అవుతోంది...",
+      profileResetLessons: "పూర్తయిన పాఠాలను రీసెట్ చేయి (Dev)",
+      profileAllAchievements: "అన్ని సాధనలు"
+    },
+    Tamil: {
+      sidebarDashboard: "டாஷ்போர்டு",
+      sidebarLearn: "கற்றுக்கொள்",
+      sidebarPractice: "பயிற்சி",
+      sidebarProfile: "சுயவிவரம்",
+      dashboardHello: "வணக்கம், {name} 👋🏻",
+      dashboardWelcomeBack: "நல்வரவு! நீங்கள் விட்ட இடத்திலிருந்து தொடங்குங்கள்.",
+      dashboardContinueLearning: "கற்றலைத் தொடரவும்",
+      dashboardStartLearning: "கற்றலைத் தொடங்குங்கள்",
+      dashboardSection: "பிரிவு",
+      dashboardUnit: "அலகு",
+      dashboardResume: "தொடரவும்",
+      dashboardWordOfDay: "இன்றைய வார்த்தை",
+      dashboardCurrentLevel: "தற்போதைய நிலை",
+      dashboardStreakSociety: "தொடர் கற்றல் சங்கம்",
+      dashboardDayStreak: "நாட்கள் தொடர்ச்சி",
+      dashboardDailyQuests: "தினசரி இலக்குகள்",
+      dashboardAchievements: "சாதனைகள்",
+      dashboardViewAll: "அனைத்தையும் காட்டு",
+      practiceTodaysReview: "இன்றைய ஆய்வு",
+      practicePerfectPronunciation: "சரியான உச்சரிப்பு",
+      practicePerfectPronunciationDesc: "பேசுவதில் நம்பிக்கையை வளர்க்க இந்த அமர்வை முடிக்கவும்!",
+      practiceStart: "தொடங்கு",
+      practiceConversation: "உரையாடல்",
+      practiceSpeak: "பேசு",
+      practiceSpeakDesc: "இந்த சொற்றொடர்களைக் கொண்டு உங்கள் பேசும் திறனை மேம்படுத்துங்கள்",
+      practiceListen: "கேள்",
+      practiceListenDesc: "ஆடியோ மூலம் உங்கள் கேட்கும் திறனை அதிகரிக்கவும்",
+      practiceYourCollections: "உங்கள் சேகரிப்புகள்",
+      practiceMistakes: "தவறுகள்",
+      practiceWords: "வார்த்தைகள்",
+      practiceStories: "கதைகள்",
+      practiceMistakesDesc: "உங்கள் தவறுகளைப் பயிற்சி செய்ய தனிப்பயனாக்கப்பட்ட பாடத்தைத் தொடங்குங்கள்",
+      practiceWordsDesc: "எந்த நேரத்திலும் உங்கள் சொற்களஞ்சியத்தை மதிப்பாய்வு செய்யவும்",
+      practiceStoriesDesc: "சூழலில் வார்த்தைகளை மதிப்பாய்வு செய்ய கதையை மீண்டும் படிக்கவும்",
+      profileUpdateSettings: "சுயவிவர அமைப்புகளைப் புதுப்பிக்கவும்",
+      profileEducationStatus: "தற்போதைய கல்வி நிலை",
+      profileSaveChanges: "மாற்றங்களைச் சேமிக்கவும்",
+      profileSaving: "சேமிக்கப்படுகிறது...",
+      profileResetLessons: "முடிந்த பாடங்களை மீட்டமை (Dev)",
+      profileAllAchievements: "அனைத்து சாதனைகள்"
+    }
+  };
+
   const t = (key) => {
     const lang = selectedLanguage || "English";
+    const localDict = localUiTranslations[lang] || localUiTranslations["English"];
+    if (localDict && localDict[key]) {
+      return localDict[key];
+    }
     const dict = translations[lang] || translations["English"];
     if (key === "successForgotPasswordLink") {
       return lang === "Hindi" ? "पासवर्ड रीसेट लिंक भेजा गया! कृपया अपना ईमेल जांचें।" :
         lang === "Kannada" ? "ಪಾಸ್‌ವರ್ಡ್ ಮರುಹೊಂದಿಸುವ ಲಿಂಕ್ ಕಳುಹಿಸಲಾಗಿದೆ! ಇಮೇಲ್ ಪರಿಶೀಲಿಸಿ." :
-          lang === "Telugu" ? "పాస్‌వర్డ్ రీసెట్ లింక్ పంపబడింది! దయచేసి ఇమెయిల్ తనిఖీ చేయండి." :
+          lang === "Telugu" ? "పాసవర్డ్ రీసెట్ లింక్ పంపబడింది! దయచేసి ఇమెయిల్ తనిఖీ చేయండి." :
             lang === "Tamil" ? "கடவுச்சொல் மீட்பு இணைப்பு அனுப்பப்பட்டது! மின்னஞ்சலைச் சரிபார்க்கவும்." :
               "Password reset link sent! Please check your email.";
     }
     if (key === "successResetPassword") {
       return lang === "Hindi" ? "पासवर्ड रीसेट सफल रहा! अब आप लॉगिन कर सकते हैं।" :
         lang === "Kannada" ? "ಪಾಸ್‌ವರ್ಡ್ ಮರುಹೊಂದಿಕೆ ಯಶಸ್ವಿಯಾಗಿದೆ! ನೀವು ಈಗ ಲಾಗಿನ್ ಮಾಡಬಹುದು." :
-          lang === "Telugu" ? "పాస్‌వర్డ్ రీసెట్ విజయవంతమైంది! మీరు ఇప్పుడు లాగిన్ చేయవచ్చు." :
+          lang === "Telugu" ? "పాస్వర్డ్ రీసెట్ విజయవంతమైంది! మీరు ఇప్పుడు లాగిన్ చేయవచ్చు." :
             lang === "Tamil" ? "கடவுச்சொல் மீட்டமைக்கப்பட்டது! நீங்கள் இப்போது உள்நுழையலாம்." :
               "Password reset successfully! You can now log in.";
     }
@@ -2499,14 +2787,14 @@ function App() {
         {profileDropdownOpen && (
           <div className="profile-dropdown-menu profile-dropdown-card" style={{ right: 0, padding: '20px' }}>
             <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: '0 0 16px 0', color: 'var(--text)' }}>
-              Update Profile Settings
+              {t("profileUpdateSettings")}
             </h3>
             <form onSubmit={(e) => {
               handleSaveProfileEdit(e);
               setProfileDropdownOpen(false);
             }} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <label className="profile-dropdown-label">
-                Full Name
+                {t("fullName")}
                 <input
                   type="text"
                   required
@@ -2517,7 +2805,7 @@ function App() {
               </label>
               
               <label className="profile-dropdown-label">
-                Age
+                {t("age")}
                 <input
                   type="number"
                   min="5"
@@ -2544,7 +2832,7 @@ function App() {
               </label>
 
               <label className="profile-dropdown-label">
-                Current Education Status
+                {t("profileEducationStatus")}
                 <select
                   required
                   value={editEdLevel}
@@ -2563,7 +2851,7 @@ function App() {
                 style={{ width: '100%', padding: '10px', borderRadius: '12px', background: 'var(--accent)', color: '#fff', border: 'none', fontWeight: '700', cursor: 'pointer', marginTop: '4px' }}
                 disabled={submitting}
               >
-                {submitting ? "Saving..." : "Save Changes"}
+                {submitting ? t("profileSaving") : t("profileSaveChanges")}
               </button>
             </form>
             
@@ -3225,21 +3513,21 @@ function App() {
               className={`sidebar-item ${dashboardTab === "dashboard" ? "active" : ""}`}
               onClick={() => setDashboardTab("dashboard")}
             >
-              <DashboardIcon /> Dashboard
+              <DashboardIcon /> {t("sidebarDashboard")}
             </button>
             <button
               type="button"
               className={`sidebar-item ${dashboardTab === "learn" ? "active" : ""}`}
               onClick={() => setDashboardTab("learn")}
             >
-              <LearnIcon /> Learn
+              <LearnIcon /> {t("sidebarLearn")}
             </button>
             <button
               type="button"
               className={`sidebar-item ${dashboardTab === "practice" ? "active" : ""}`}
               onClick={() => setDashboardTab("practice")}
             >
-              <PracticeIcon /> Practice
+              <PracticeIcon /> {t("sidebarPractice")}
             </button>
             <button
               type="button"
@@ -3262,7 +3550,7 @@ function App() {
               ) : (
                 <ProfileIcon />
               )}
-              Profile
+              {t("sidebarProfile")}
             </button>
           </div>
           <div className="sidebar-footer">
@@ -3363,24 +3651,24 @@ function App() {
               <div className="dashboard-overview">
                 <div className="dashboard-col dashboard-col-left">
                   <div className="dashboard-greeting">
-                    <h1>Hello, {profile?.full_name || "Learner"} 👋🏻</h1>
-                    <p>Welcome back! Pick up right where you left off.</p>
+                    <h1>{t("dashboardHello").replace("{name}", profile?.full_name || "Learner")}</h1>
+                    <p>{t("dashboardWelcomeBack")}</p>
                   </div>
 
                    <div className="resume-card">
                      <div className="resume-card-info">
-                       <span className="resume-card-label">Continue learning</span>
-                       <h3 className="resume-card-title">{currentUnit?.title || "Start Learning"}</h3>
+                       <span className="resume-card-label">{t("dashboardContinueLearning")}</span>
+                       <h3 className="resume-card-title">{currentUnit?.title || t("dashboardStartLearning")}</h3>
                        <div className="resume-card-sub" style={{ display: 'flex', flexDirection: 'column' }}>
                          <span style={{ fontSize: '0.85rem' }}>
-                           Section: {sections[currentUnitPos.sectionIdx]?.title || `Section ${currentUnitPos.sectionIdx + 1}`}
+                           {t("dashboardSection")}: {sections[currentUnitPos.sectionIdx]?.title || `${t("dashboardSection")} ${currentUnitPos.sectionIdx + 1}`}
                          </span>
                          <span style={{ 
                            fontSize: '0.78rem', 
                            marginTop: '10px', 
                            whiteSpace: 'nowrap'
                          }}>
-                           Unit: {sections[currentUnitPos.sectionIdx]?.units[currentUnitPos.unitIdx]?.title || `Unit ${currentUnitPos.unitIdx + 1}`}
+                           {t("dashboardUnit")}: {sections[currentUnitPos.sectionIdx]?.units[currentUnitPos.unitIdx]?.title || `${t("dashboardUnit")} ${currentUnitPos.unitIdx + 1}`}
                          </span>
                        </div>
                      </div>
@@ -3391,13 +3679,13 @@ function App() {
                          setDashboardTab("learn");
                        }}
                      >
-                       ▶ Resume
+                       ▶ {t("dashboardResume")}
                      </button>
                    </div>
 
                   <div className="word-of-day-card">
                     <div className="word-of-day-head">
-                      <span className="word-of-day-label">Word of the Day</span>
+                      <span className="word-of-day-label">{t("dashboardWordOfDay")}</span>
                       <button
                         type="button"
                         className="word-of-day-speak"
@@ -3435,12 +3723,12 @@ function App() {
                       pointerEvents: 'none'
                     }} />
                     <div className="current-level-header">
-                      <h3 className="current-level-title" style={{ color: '#ffffff', textShadow: '0 2px 4px rgba(0,0,0,0.15)' }}>Current Level</h3>
+                      <h3 className="current-level-title" style={{ color: '#ffffff', textShadow: '0 2px 4px rgba(0,0,0,0.15)' }}>{t("dashboardCurrentLevel")}</h3>
                     </div>
                     <div className="current-level-body">
                       <div className="current-level-badge" style={{ background: 'rgba(255, 255, 255, 0.25)', border: '2px solid rgba(255, 255, 255, 0.4)' }}>
                         <span className="current-level-badge-icon">{levelBadgeIcon(currentLevelNum)}</span>
-                        <span className="current-level-badge-level" style={{ color: '#ffffff', fontWeight: '900' }}>LEVEL {currentLevelNum}</span>
+                        <span className="current-level-badge-level" style={{ color: '#ffffff', fontWeight: '900' }}>{t("overallLevel").toUpperCase()} {currentLevelNum}</span>
                       </div>
                       <div className="current-level-info">
                         <p className="current-level-name" style={{ color: '#ffffff', textShadow: '0 2px 4px rgba(0,0,0,0.15)' }}>{getLevelCategoryAndDescription(currentLevelNum, selectedLanguage).category}</p>
@@ -3452,16 +3740,16 @@ function App() {
                   <div className="dashboard-overview-row">
                     <div className="streak-widget-card streak-society-card" style={{ margin: 0 }}>
                       <div className="streak-society-header">
-                        <span className="streak-society-badge">STREAK SOCIETY</span>
+                        <span className="streak-society-badge">{t("dashboardStreakSociety").toUpperCase()}</span>
                         <div className="streak-society-icon"><FlameIcon style={{ width: "36px", height: "36px", color: '#ff4d00', marginRight: 0 }} /></div>
                       </div>
-                      <h4 className="streak-society-title">{streakCount} day streak</h4>
+                      <h4 className="streak-society-title">{streakCount} {t("dashboardDayStreak")}</h4>
                       <p className="streak-society-message">{getStreakMessage(streakCount)}</p>
                     </div>
 
                     <div className="daily-quests-card" style={{ margin: 0 }}>
                       <div className="daily-quests-header">
-                        <h3>Daily Quests</h3>
+                        <h3>{t("dashboardDailyQuests")}</h3>
                         {activeQuests.length > 0 && activeQuests.every(q => getQuestProgress(q).completed) ? (
                           <span className="daily-quests-timer" style={{ background: '#d1fae5', color: '#10b981' }}>✓ ALL COMPLETED</span>
                         ) : (
@@ -3534,8 +3822,8 @@ function App() {
 
                   <div className="achievements-card" style={{ margin: 0 }}>
                     <div className="achievements-card-header">
-                      <h4>Achievements</h4>
-                      <button className="achievements-view-all" onClick={() => setShowAllAchievementsModal(true)}>VIEW ALL</button>
+                      <h4>{t("badgesEarned")}</h4>
+                      <button className="achievements-view-all" onClick={() => setShowAllAchievementsModal(true)}>{t("dashboardViewAll")}</button>
                     </div>
                     <div className="achievements-list">
                       {(() => {
@@ -3788,12 +4076,12 @@ function App() {
 
                   {/* Today's Review Section */}
                   <div className="practice-section">
-                    <h2 className="practice-section-title">Today's Review</h2>
+                    <h2 className="practice-section-title">{t("practiceTodaysReview")}</h2>
                     <div className="perfect-pronunciation-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_read_practice`, title: "Perfect Pronunciation", desc: "Speak out sentences aloud" })}>
                       <div className="perfect-pronunciation-info">
-                        <h3 className="perfect-pronunciation-title">Perfect Pronunciation</h3>
-                        <p className="perfect-pronunciation-desc">Finish this session to build confidence with speaking!</p>
-                        <button type="button" className="perfect-pronunciation-btn">START</button>
+                        <h3 className="perfect-pronunciation-title">{t("practicePerfectPronunciation")}</h3>
+                        <p className="perfect-pronunciation-desc">{t("practicePerfectPronunciationDesc")}</p>
+                        <button type="button" className="perfect-pronunciation-btn">{t("practiceStart")}</button>
                       </div>
                       <img src="/as4.png" alt="Mascot" className="perfect-pronunciation-mascot" />
                     </div>
@@ -3801,19 +4089,19 @@ function App() {
 
                   {/* Conversation Section */}
                   <div className="practice-section">
-                    <h2 className="practice-section-title">Conversation</h2>
+                    <h2 className="practice-section-title">{t("practiceConversation")}</h2>
                     <div className="practice-row-cards">
                       <div className="practice-row-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_read_practice`, title: "Speak Practice", desc: "Improve your speaking skills with these phrases" })}>
                         <div className="practice-row-card-content">
                           <h3 className="practice-row-card-title">Speak</h3>
-                          <p className="practice-row-card-desc">Improve your speaking skills with these phrases</p>
+                          <p className="practice-row-card-desc">{t("practiceSpeakDesc")}</p>
                         </div>
                         <div className="practice-row-card-icon speak-icon">🎙️</div>
                       </div>
                       <div className="practice-row-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_write_practice`, title: "Listen Practice", desc: "Boost your listening skills with an audio-only session" })}>
                         <div className="practice-row-card-content">
                           <h3 className="practice-row-card-title">Listen</h3>
-                          <p className="practice-row-card-desc">Boost your listening skills with an audio-only session</p>
+                          <p className="practice-row-card-desc">{t("practiceListenDesc")}</p>
                         </div>
                         <div className="practice-row-card-icon listen-icon">🎧</div>
                       </div>
@@ -3822,15 +4110,15 @@ function App() {
 
                   {/* Your collections Section */}
                   <div className="practice-section">
-                    <h2 className="practice-section-title">Your collections</h2>
+                    <h2 className="practice-section-title">{t("practiceYourCollections")}</h2>
                     <div className="practice-row-cards">
                       <div className="practice-row-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_write_practice`, title: "Mistakes Practice", desc: "Start a personalized lesson to practice your mistakes" })}>
                         <div className="practice-row-card-content">
                           <h3 className="practice-row-card-title">
-                            Mistakes
+                            {t("practiceMistakes")}
                             <span className="practice-badge">7</span>
                           </h3>
-                          <p className="practice-row-card-desc">Start a personalized lesson to practice your mistakes</p>
+                          <p className="practice-row-card-desc">{t("practiceMistakesDesc")}</p>
                         </div>
                         <div className="practice-row-card-icon mistakes-icon">🔄</div>
                       </div>
@@ -3838,10 +4126,10 @@ function App() {
                       <div className="practice-row-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_write_practice`, title: "Words Practice", desc: "Review your vocabulary at any time" })}>
                         <div className="practice-row-card-content">
                           <h3 className="practice-row-card-title">
-                            Words
+                            {t("practiceWords")}
                             <span className="practice-badge">30+</span>
                           </h3>
-                          <p className="practice-row-card-desc">Review your {selectedLanguage || "English"} vocabulary at any time</p>
+                          <p className="practice-row-card-desc">{t("practiceWordsDesc")}</p>
                         </div>
                         <div className="practice-row-card-icon words-icon">✨</div>
                       </div>
@@ -3849,7 +4137,7 @@ function App() {
                       <div className="practice-row-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_comp_practice`, title: "Stories Practice", desc: "Reread a story to review words in context" })}>
                         <div className="practice-row-card-content">
                           <h3 className="practice-row-card-title">Stories</h3>
-                          <p className="practice-row-card-desc">Reread a story to review words in context</p>
+                          <p className="practice-row-card-desc">{t("practiceStoriesDesc")}</p>
                         </div>
                         <div className="practice-row-card-icon stories-icon">📖</div>
                       </div>
@@ -4004,7 +4292,7 @@ function App() {
                         style={{ borderColor: "#e67e22", color: "#e67e22", width: "100%" }}
                         onClick={() => handleResetLessons()}
                       >
-                        Reset Completed Lessons (Dev)
+                        {t("profileResetLessons")}
                       </button>
                     </div>
                   </div>
@@ -5903,7 +6191,7 @@ function App() {
                 cursor: 'pointer'
               }}
             >✕</button>
-            <h3 style={{ margin: '0 0 20px', fontSize: '1.6rem', fontWeight: '800' }}>All Achievements</h3>
+            <h3 style={{ margin: '0 0 20px', fontSize: '1.6rem', fontWeight: '800' }}>{t("profileAllAchievements")}</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {[
                 { id: 1, title: "First Steps", desc: "Complete your first assessment", icon: "⭐", earned: true, color: "#f59e0b", progress: 100 },

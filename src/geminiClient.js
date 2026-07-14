@@ -597,7 +597,7 @@ Input:
         "Authorization": `Bearer ${OPENROUTER_API_KEY}`
       },
       body: JSON.stringify({
-        model: MODEL_NAME,
+        model: "cohere/north-mini-code:free",
         messages: [{ role: "user", content: prompt }],
         temperature: 0.3,
         max_tokens: 1024,
@@ -665,7 +665,7 @@ Options: ${JSON.stringify(optionsArray)}`;
         "Authorization": `Bearer ${OPENROUTER_API_KEY}`
       },
       body: JSON.stringify({
-        model: MODEL_NAME,
+        model: "cohere/north-mini-code:free",
         messages: [{ role: "user", content: prompt }],
         temperature: 0.3,
         max_tokens: 2048,
