@@ -196,11 +196,32 @@ const getLiteracyLevel = (userProfile) => {
 };
 
 const calculateProgressiveLevel = (userProfile, completedLessonsList) => {
-  const baseLevel = getLiteracyLevel(userProfile) || 1;
-  const completedCount = completedLessonsList?.filter(id => typeof id === 'string' && !id.startsWith("ach_")).length || 0;
-  // Every 2 completed lessons increases the level by 1, up to level 12!
-  const levelBonus = Math.floor(completedCount / 2);
-  return Math.min(12, baseLevel + levelBonus);
+  const allLessonsList = [];
+  CURRICULUM_SECTIONS.forEach((sec) => {
+    sec.units.forEach((uni) => {
+      uni.lessons.forEach((les) => {
+        allLessonsList.push({ lessonId: les.id, sectionNum: sec.num });
+      });
+    });
+  });
+
+  const level = userProfile?.literacy_level || 1;
+  const startingLessonId = (() => {
+    if (level === 2) return "s2u1l1";
+    if (level === 3) return "s3u1l1";
+    if (level === 4) return "s5u1l1";
+    if (level === 5) return "s7u1l1";
+    return "s1u1l1";
+  })();
+
+  const startingIndex = allLessonsList.findIndex(item => item.lessonId === startingLessonId);
+  const validStartingIndex = startingIndex !== -1 ? startingIndex : 0;
+  const activeItem = allLessonsList.slice(validStartingIndex).find(item => !completedLessonsList?.includes(item.lessonId));
+
+  if (!activeItem) {
+    return 12;
+  }
+  return Math.min(12, Math.max(1, activeItem.sectionNum));
 };
 
 const hasCompletedAssessment = (userProfile) => {
