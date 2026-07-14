@@ -1030,7 +1030,7 @@ function App() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => speakText(audioText, 0.5)}
+                      onClick={() => speakText(audioText, 0.2)}
                       style={{
                         width: '70px',
                         height: '70px',
@@ -2624,8 +2624,9 @@ function App() {
     return "en-US";
   };
 
-  const speakText = (text) => {
+  const speakText = (text, rate) => {
     const lang = selectedLanguage || "English";
+    const r = typeof rate === "number" ? rate : 0.9;
 
     if (window.responsiveVoice) {
       let voiceName = "US English Female";
@@ -2637,23 +2638,24 @@ function App() {
       console.log(`Speaking using ResponsiveVoice: "${text}" with voice "${voiceName}"`);
       window.responsiveVoice.speak(text, voiceName, {
         pitch: 1,
-        rate: 0.9,
+        rate: r,
         onerror: (e) => {
           console.error("ResponsiveVoice error, trying fallback:", e);
-          fallbackSpeechSynthesis(text, getLocale(lang));
+          fallbackSpeechSynthesis(text, getLocale(lang), r);
         }
       });
     } else {
       console.warn("ResponsiveVoice not loaded yet, falling back to native SpeechSynthesis.");
-      fallbackSpeechSynthesis(text, getLocale(lang));
+      fallbackSpeechSynthesis(text, getLocale(lang), r);
     }
   };
 
-  const fallbackSpeechSynthesis = (text, locale) => {
+  const fallbackSpeechSynthesis = (text, locale, rate) => {
     if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = locale;
+      if (typeof rate === "number") utterance.rate = rate;
 
       const voices = window.speechSynthesis.getVoices();
       const matchingVoice = voices.find(v =>
@@ -6360,7 +6362,7 @@ function App() {
 
                             <button
                               type="button"
-                              onClick={() => speakText(lt.audioText, 0.5)}
+                              onClick={() => speakText(lt.audioText, 0.2)}
                               style={{
                                 width: '60px',
                                 height: '60px',
