@@ -1946,6 +1946,7 @@ function App() {
       dashboardStartLearning: "Start Learning",
       dashboardSection: "Section",
       dashboardUnit: "Unit",
+      dashboardLesson: "Lesson",
       dashboardResume: "Resume",
       dashboardWordOfDay: "Word of the Day",
       dashboardCurrentLevel: "Current Level",
@@ -1977,7 +1978,57 @@ function App() {
       profileSaveChanges: "Save Changes",
       profileSaving: "Saving...",
       profileResetLessons: "Reset Completed Lessons (Dev)",
-      profileAllAchievements: "All Achievements"
+      profileAllAchievements: "All Achievements",
+      learnSectionOf: "Section {current} of {total}",
+      learnUnit: "Unit",
+      learnUnitExam: "Unit Exam",
+      learnLesson: "Lesson {num}",
+      learnUnitExamDesc: "A comprehensive unit exam testing skills from the first 4 lessons.",
+      learnLessonDesc: "Personalized AI lesson targeting your curriculum goals.",
+      learnReviewExam: "Review Exam",
+      learnStartExam: "Start Exam",
+      learnReviewLesson: "Review Lesson",
+      learnStartLesson: "Start Lesson",
+      learnReady: "Ready",
+      learnLocked: "Locked",
+      learnDone: "Done",
+      learnRecommended: "Recommended",
+      s1_title: "Letter & Sound Recognition",
+      s1u1_title: "Alphabet Basics",
+      s1u2_title: "Basic Sound Matches",
+      s2_title: "Phonics & Syllables",
+      s2u1_title: "Phonetics",
+      s2u2_title: "Syllable Counting",
+      s3_title: "Word Recognition",
+      s3u1_title: "Sight Words",
+      s3u2_title: "Word Blends",
+      s4_title: "Basic Vocabulary",
+      s4u1_title: "Nouns & Objects",
+      s4u2_title: "Action Verbs",
+      s5_title: "Sentence Reading",
+      s5u1_title: "Simple Sentences",
+      s5u2_title: "Compound Sentences",
+      s6_title: "Sentence Writing",
+      s6u1_title: "Basic Structure",
+      s6u2_title: "Punctuation Rules",
+      s7_title: "Daily Communication",
+      s7u1_title: "Greetings & Polite Words",
+      s7u2_title: "Asking Directions",
+      s8_title: "Reading Comprehension",
+      s8u1_title: "Main Idea",
+      s8u2_title: "Details Extraction",
+      s9_title: "Expressive Writing",
+      s9u1_title: "Personal Notes",
+      s9u2_title: "Short Paragraphs",
+      s10_title: "Conversational Fluency",
+      s10u1_title: "Social Interaction",
+      s10u2_title: "Expression & Tone",
+      s11_title: "Real-World Literacy",
+      s11u1_title: "Forms & Bills",
+      s11u2_title: "Public Signboards",
+      s12_title: "Digital Literacy",
+      s12u1_title: "Keyboard & Typing",
+      s12u2_title: "Mobile & Messaging"
     },
     Hindi: {
       sidebarDashboard: "डैशबोर्ड",
@@ -1990,6 +2041,7 @@ function App() {
       dashboardStartLearning: "सीखना शुरू करें",
       dashboardSection: "अनुभाग",
       dashboardUnit: "इकाई",
+      dashboardLesson: "पाठ",
       dashboardResume: "जारी रखें",
       dashboardWordOfDay: "आज का शब्द",
       dashboardCurrentLevel: "वर्तमान स्तर",
@@ -2021,7 +2073,57 @@ function App() {
       profileSaveChanges: "बदलाव सहेजें",
       profileSaving: "सहेजा जा रहा है...",
       profileResetLessons: "पूरे किए गए पाठ रीसेट करें (Dev)",
-      profileAllAchievements: "सभी उपलब्धियां"
+      profileAllAchievements: "सभी उपलब्धियां",
+      learnSectionOf: "अनुभाग {total} में से {current}",
+      learnUnit: "इकाई",
+      learnUnitExam: "इकाई परीक्षा",
+      learnLesson: "पाठ {num}",
+      learnUnitExamDesc: "पहले 4 पाठों के कौशल का परीक्षण करने वाली एक व्यापक इकाई परीक्षा।",
+      learnLessonDesc: "आपके पाठ्यक्रम के लक्ष्यों को लक्षित करने वाला व्यक्तिगत एआई पाठ।",
+      learnReviewExam: "परीक्षा की समीक्षा करें",
+      learnStartExam: "परीक्षा शुरू करें",
+      learnReviewLesson: "पाठ की समीक्षा करें",
+      learnStartLesson: "पाठ शुरू करें",
+      learnReady: "तैयार",
+      learnLocked: "अवरुद्ध",
+      learnDone: "पूर्ण",
+      learnRecommended: "अनुशंसित",
+      s1_title: "अक्षर और ध्वनि पहचान",
+      s1u1_title: "वर्णमाला की बुनियादी बातें",
+      s1u2_title: "बुनियादी ध्वनि मिलान",
+      s2_title: "ध्वन्यात्मकता और शब्दांश",
+      s2u1_title: "स्वर विज्ञान",
+      s2u2_title: "शब्दांश गणना",
+      s3_title: "शब्द पहचान",
+      s3u1_title: "दृष्टि शब्द",
+      s3u2_title: "शब्द मिश्रण",
+      s4_title: "बुनियादी शब्दावली",
+      s4u1_title: "संज्ञा और वस्तुएं",
+      s4u2_title: "क्रिया शब्द",
+      s5_title: "वाक्य पढ़ना",
+      s5u1_title: "सरल वाक्य",
+      s5u2_title: "संयुक्त वाक्य",
+      s6_title: "वाक्य लेखन",
+      s6u1_title: "बुनियादी संरचना",
+      s6u2_title: "विराम चिन्ह के नियम",
+      s7_title: "दैनिक संचार",
+      s7u1_title: "अभिवादन और विनम्र शब्द",
+      s7u2_title: "दिशा पूछना",
+      s8_title: "पठन बोध",
+      s8u1_title: "मुख्य विचार",
+      s8u2_title: "विवरण निकालना",
+      s9_title: "अभिव्यंजक लेखन",
+      s9u1_title: "व्यक्तिगत नोट्स",
+      s9u2_title: "छोटे अनुच्छेद",
+      s10_title: "संवादात्मक प्रवाह",
+      s10u1_title: "सामाजिक मेलजोल",
+      s10u2_title: "अभिव्यक्ति और स्वर",
+      s11_title: "वास्तविक दुनिया की साक्षरता",
+      s11u1_title: "फॉर्म और बिल",
+      s11u2_title: "सार्वजनिक साइनबोर्ड",
+      s12_title: "डिजिटल साक्षरता",
+      s12u1_title: "कीबोर्ड और टाइपिंग",
+      s12u2_title: "मोबाइल और संदेश सेवा"
     },
     Kannada: {
       sidebarDashboard: "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
@@ -2034,6 +2136,7 @@ function App() {
       dashboardStartLearning: "ಕಲಿಕೆ ಪ್ರಾರಂಭಿಸಿ",
       dashboardSection: "ವಿಭಾಗ",
       dashboardUnit: "ಘಟಕ",
+      dashboardLesson: "ಪಾಠ",
       dashboardResume: "ಪುನರಾರಂಭಿಸಿ",
       dashboardWordOfDay: "ದಿನದ ಪದ",
       dashboardCurrentLevel: "ಪ್ರಸ್ತುತ ಹಂತ",
@@ -2065,7 +2168,57 @@ function App() {
       profileSaveChanges: "ಬದಲಾವಣೆಗಳನ್ನು ಉಳಿಸಿ",
       profileSaving: "ಉಳಿಸಲಾಗುತ್ತಿದೆ...",
       profileResetLessons: "ಪೂರ್ಣಗೊಂಡ ಪಾಠಗಳನ್ನು ಮರುಹೊಂದಿಸಿ (Dev)",
-      profileAllAchievements: "ಎಲ್ಲಾ ಸಾಧನೆಗಳು"
+      profileAllAchievements: "ಎಲ್ಲಾ ಸಾಧನೆಗಳು",
+      learnSectionOf: "ವಿಭಾಗ {total} ರಲ್ಲಿ {current}",
+      learnUnit: "ಘಟಕ",
+      learnUnitExam: "ಘಟಕ ಪರೀಕ್ಷೆ",
+      learnLesson: "ಪಾಠ {num}",
+      learnUnitExamDesc: "ಮೊದಲ 4 ಪಾಠಗಳಿಂದ ಕೌಶಲ್ಯಗಳನ್ನು ಪರೀಕ್ಷಿಸುವ ಸಮಗ್ರ ಘಟಕ ಪರೀಕ್ಷೆ.",
+      learnLessonDesc: "ನಿಮ್ಮ ಪಠ್ಯಕ್ರಮದ ಗುರಿಗಳನ್ನು ಗುರಿಯಾಗಿಸಿಕೊಂಡು ವೈಯಕ್ತಿಕಗೊಳಿಸಿದ AI ಪಾಠ.",
+      learnReviewExam: "ಪರೀಕ್ಷೆ ವಿಮರ್ಶಿಸಿ",
+      learnStartExam: "ಪರೀಕ್ಷೆ ಪ್ರಾರಂಭಿಸಿ",
+      learnReviewLesson: "ಪಾಠ ವಿಮರ್ಶಿಸಿ",
+      learnStartLesson: "ಪಾಠ ಪ್ರಾರಂಭಿಸಿ",
+      learnReady: "ಸಿದ್ಧವಾಗಿದೆ",
+      learnLocked: "ಲಾಕ್ ಆಗಿದೆ",
+      learnDone: "ಪೂರ್ಣಗೊಂಡಿದೆ",
+      learnRecommended: "ಶಿಫாரಸು ಮಾಡಲಾಗಿದೆ",
+      s1_title: "ಅಕ್ಷರ ಮತ್ತು ಧ್ವನಿ ಗುರುತಿಸುವಿಕೆ",
+      s1u1_title: "ವರ್ಣಮಾಲೆಯ ಮೂಲಗಳು",
+      s1u2_title: "ಮೂಲ ಧ್ವನಿ ಹೊಂದಾಣಿಕೆಗಳು",
+      s2_title: "ಫೋನಿಕ್ಸ್ ಮತ್ತು ಸಿಲಬಸ್",
+      s2u1_title: "ಫೋನೆಟಿಕ್ಸ್",
+      s2u2_title: "ಸಿಲಬಲ್ ಎಣಿಕೆ",
+      s3_title: "ಪದ ಗುರುತಿಸುವಿಕೆ",
+      s3u1_title: "ದೃಷ್ಟಿ ಪದಗಳು",
+      s3u2_title: "ಪದಗಳ ಮಿಶ್ರಣ",
+      s4_title: "ಮೂಲ ಶಬ್ದಕೋಶ",
+      s4u1_title: "ನಾಮಪದಗಳು ಮತ್ತು ವಸ್ತುಗಳು",
+      s4u2_title: "ಕ್ರಿಯಾ ಪದಗಳು",
+      s5_title: "ವಾಕ್ಯ ಓದುವಿಕೆ",
+      s5u1_title: "ಸರಳ ವಾಕ್ಯಗಳು",
+      s5u2_title: "ಸಂಯುಕ್ತ ವಾಕ್ಯಗಳು",
+      s6_title: "ವಾಕ್ಯ ಬರವಣಿಗೆ",
+      s6u1_title: "ಮೂಲ ರಚನೆ",
+      s6u2_title: "ವಿರಾಮಚಿಹ್ನೆಯ ನಿಯಮಗಳು",
+      s7_title: "ದೈನಂದಿನ ಸಂವಹನ",
+      s7u1_title: "ಶುಭಾशಯಗಳು ಮತ್ತು ವಿನಮ್ರ ಪದಗಳು",
+      s7u2_title: "ದಾರಿ ಕೇಳುವುದು",
+      s8_title: "ಓದುವ ಗ್ರಹಿಕೆ",
+      s8u1_title: "ಮುಖ್ಯ ಆಲೋಚನೆ",
+      s8u2_title: "ವಿವರಗಳ ಹೊರತೆಗೆಯುವಿಕೆ",
+      s9_title: "ಅಭಿವ್ಯಕ್ತಿಶೀಲ ಬರವಣಿಗೆ",
+      s9u1_title: "ವೈಯಕ್ತಿಕ ಟಿಪ್ಪಣಿಗಳು",
+      s9u2_title: "ಸಣ್ಣ ಪ್ಯಾರಾಗಳು",
+      s10_title: "ಸಂಭಾಷಣೆಯ ನಿರರ್ಗಳತೆ",
+      s10u1_title: "ಸಾಮಾಜಿಕ ಸಂವಹನ",
+      s10u2_title: "ಅಭಿವ್ಯಕ್ತಿ ಮತ್ತು ಧ್ವನಿ",
+      s11_title: "ನೈಜ-ಪ್ರಪಂಚದ ಸಾಕ್ಷರತೆ",
+      s11u1_title: "ಫಾರ್ಮ್‌ಗಳು ಮತ್ತು ಬಿಲ್‌ಗಳು",
+      s11u2_title: "ಸಾರ್ವಜನಿಕ ನಾಮಫಲಕಗಳು",
+      s12_title: "ಡಿಜಿಟಲ್ ಸಾಕ್ಷರತೆ",
+      s12u1_title: "ಕೀಬೋರ್ಡ್ ಮತ್ತು ಟೈಪಿಂಗ್",
+      s12u2_title: "ಮೊಬೈಲ್ ಮತ್ತು ಸಂದೇಶ ಕಳುಹಿಸುವಿಕೆ"
     },
     Telugu: {
       sidebarDashboard: "డ్యాష్‌బోర్డ్",
@@ -2078,6 +2231,7 @@ function App() {
       dashboardStartLearning: "నేర్చుకోవడం ప్రారంభించండి",
       dashboardSection: "విభాగం",
       dashboardUnit: "యూనిట్",
+      dashboardLesson: "పాఠం",
       dashboardResume: "కొనసాగించు",
       dashboardWordOfDay: "ఈనాటి పదం",
       dashboardCurrentLevel: "ప్రస్తుత స్థాయి",
@@ -2109,7 +2263,57 @@ function App() {
       profileSaveChanges: "మార్పులను సేవ్ చేయి",
       profileSaving: "సేవ్ అవుతోంది...",
       profileResetLessons: "పూర్తయిన పాఠాలను రీసెట్ చేయి (Dev)",
-      profileAllAchievements: "అన్ని సాధనలు"
+      profileAllAchievements: "అన్ని సాధనలు",
+      learnSectionOf: "విభాగం {total} లో {current}",
+      learnUnit: "యూనిట్",
+      learnUnitExam: "యూనిట్ పరీక్ష",
+      learnLesson: "పాఠం {num}",
+      learnUnitExamDesc: "మొదటి 4 పాఠాల నుండి నైపుణ్యాలను పరీక్షించే సమగ్ర యూనిట్ పరీక్ష.",
+      learnLessonDesc: "మీ పాఠ్యప్రణాళిక లక్ష్యాలను లక్ష్యంగా చేసుకుని వ్యక్తిగతీకరించిన AI పాఠం.",
+      learnReviewExam: "పరీక్షను సమీక్షించండి",
+      learnStartExam: "పరీక్ష ప్రారంభించండి",
+      learnReviewLesson: "పాఠం సమీక్షించండి",
+      learnStartLesson: "పాఠం ప్రారంభించండి",
+      learnReady: "సిద్ధంగా ఉంది",
+      learnLocked: "లాక్ చేయబడింది",
+      learnDone: "పూర్తయింది",
+      learnRecommended: "సిఫార్సు చేయబడింది",
+      s1_title: "అక్షరం మరియు ధ్వని గుర్తింపు",
+      s1u1_title: "వర్ణమాల ప్రాథమికాలు",
+      s1u2_title: "ప్రాథమిక ధ్వని సరిపోలికలు",
+      s2_title: "ఫోనిక్స్ మరియు సిలబుల్స్",
+      s2u1_title: "ధ్వనిశాస్త్రం",
+      s2u2_title: "సిలబుల్ లెక్కింపు",
+      s3_title: "పద గుర్తింపు",
+      s3u1_title: "దృష్టి పదాలు",
+      s3u2_title: "పదాల మిశ్రమాలు",
+      s4_title: "ప్రాథమిక పదజాలం",
+      s4u1_title: "నామవాచకాలు మరియు వస్తువులు",
+      s4u2_title: "క్రియా పదాలు",
+      s5_title: "వాక్యం చదవడం",
+      s5u1_title: "సరళమైన వాక్యాలు",
+      s5u2_title: "సంయుక్త వాక్యాలు",
+      s6_title: "వాక్యం రాయడం",
+      s6u1_title: "ప్రాథమిక నిర్మాణం",
+      s6u2_title: "విరామ చిహ్న నియమాలు",
+      s7_title: "రోజువారీ కమ్యూనికేషన్",
+      s7u1_title: "అభినందనలు & మర్యాదపూర్వక పదాలు",
+      s7u2_title: "దిశలను అడగడం",
+      s8_title: "పఠన గ్రహణశక్తి",
+      s8u1_title: "ప్రధాన ఆలోచన",
+      s8u2_title: "వివరాల వెలికితీత",
+      s9_title: "వ్యక్తీకరణ రచన",
+      s9u1_title: "వ్యక్తిగత గమనికలు",
+      s9u2_title: "చిన్న పేరాలు",
+      s10_title: "సంభాషణ నిష్ణాతులు",
+      s10u1_title: "సామాజిక పరస్పర చర్య",
+      s10u2_title: "వ్యక్తీకరణ & టోన్",
+      s11_title: "నిజ-ప్రపంచ అక్షరాస్యత",
+      s11u1_title: "ఫారమ్‌లు & బిల్లులు",
+      s11u2_title: "పబ్లిక్ సైన్‌బోర్డ్‌లు",
+      s12_title: "డిజిటల్ అక్షరాస్యత",
+      s12u1_title: "కీబోర్డ్ & టైపింగ్",
+      s12u2_title: "మొబైల్ & మెసేజింగ్"
     },
     Tamil: {
       sidebarDashboard: "டாஷ்போர்டு",
@@ -2122,6 +2326,7 @@ function App() {
       dashboardStartLearning: "கற்றலைத் தொடங்குங்கள்",
       dashboardSection: "பிரிவு",
       dashboardUnit: "அலகு",
+      dashboardLesson: "பாடம்",
       dashboardResume: "தொடரவும்",
       dashboardWordOfDay: "இன்றைய வார்த்தை",
       dashboardCurrentLevel: "தற்போதைய நிலை",
@@ -2153,7 +2358,57 @@ function App() {
       profileSaveChanges: "மாற்றங்களைச் சேமிக்கவும்",
       profileSaving: "சேமிக்கப்படுகிறது...",
       profileResetLessons: "முடிந்த பாடங்களை மீட்டமை (Dev)",
-      profileAllAchievements: "அனைத்து சாதனைகள்"
+      profileAllAchievements: "அனைத்து சாதனைகள்",
+      learnSectionOf: "பிரிவு {total}-இல் {current}",
+      learnUnit: "அலகு",
+      learnUnitExam: "அலகு தேர்வு",
+      learnLesson: "பாடம் {num}",
+      learnUnitExamDesc: "முதல் 4 பாடங்களின் திறன்களைச் சோதிக்கும் ஒரு விரிவான அலகுத் தேர்வு.",
+      learnLessonDesc: "உங்கள் பாடத்திட்ட இலக்குகளை மையமாகக் கொண்ட தனிப்பயனாக்கப்பட்ட AI பாடம்.",
+      learnReviewExam: "தேர்வை மதிப்பாய்வு செய்",
+      learnStartExam: "தேர்வைத் தொடங்கு",
+      learnReviewLesson: "பாடத்தை மதிப்பாய்வு செய்",
+      learnStartLesson: "பாடத்தைத் தொடங்கு",
+      learnReady: "தயாராக உள்ளது",
+      learnLocked: "பூட்டப்பட்டது",
+      learnDone: "முடிந்தது",
+      learnRecommended: "பரிந்துரைக்கப்படுகிறது",
+      s1_title: "எழுத்து மற்றும் ஒலி அங்கீகாரம்",
+      s1u1_title: "நெடுங்கணக்கு அடிப்படைகள்",
+      s1u2_title: "அடிப்படை ஒலி பொருத்தங்கள்",
+      s2_title: "ஒலியியல் மற்றும் எழுத்துக்கள்",
+      s2u1_title: "ஒலியியல்",
+      s2u2_title: "அசை எண்ணுதல்",
+      s3_title: "சொல் அங்கீகாரம்",
+      s3u1_title: "பார்வைச் சொற்கள்",
+      s3u2_title: "சொல் கலவைகள்",
+      s4_title: "அடிப்படை சொற்களஞ்சியம்",
+      s4u1_title: "பெயர்ச்சொற்கள் மற்றும் பொருள்கள்",
+      s4u2_title: "செயல் வினைகள்",
+      s5_title: "வாக்கிய வாசிப்பு",
+      s5u1_title: "எளிய வாக்கியங்கள்",
+      s5u2_title: "கூட்டு வாக்கியங்கள்",
+      s6_title: "வாக்கிய எழுதுதல்",
+      s6u1_title: "அடிப்படை அமைப்பு",
+      s6u2_title: "நிறுத்தற்குறி விதிகள்",
+      s7_title: "தினசரி தொடர்பு",
+      s7u1_title: "வாழ்த்துகள் மற்றும் மரியாதையான சொற்கள்",
+      s7u2_title: "திசைகளைக் கேட்டல்",
+      s8_title: "வாசிப்புப் புரிதல்",
+      s8u1_title: "முதன்மை கருத்து",
+      s8u2_title: "விவரங்களைப் பிரித்தெடுத்தல்",
+      s9_title: "வெளிப்பாட்டு எழுத்து",
+      s9u1_title: "தனிப்பட்ட குறிப்புகள்",
+      s9u2_title: "குறுகிய பத்திகள்",
+      s10_title: "உரையாடல் சரளம்",
+      s10u1_title: "சமூக தொடர்பு",
+      s10u2_title: "வெளிப்பாடு மற்றும் தொனி",
+      s11_title: "நிஜ உலக எழுத்தறிவு",
+      s11u1_title: "படிவங்கள் மற்றும் பில்கள்",
+      s11u2_title: "பொது தகவல் பலகைகள்",
+      s12_title: "டிஜிட்டல் எழுத்தறிவு",
+      s12u1_title: "விசைப்பலகை மற்றும் தட்டச்சு",
+      s12u2_title: "மொபைல் மற்றும் செய்தி அனுப்புதல்"
     }
   };
 
@@ -4014,18 +4269,18 @@ function App() {
                   <div className="resume-card">
                     <div className="resume-card-info">
                       <span className="resume-card-label">{t("dashboardContinueLearning")}</span>
-                      <h3 className="resume-card-title">{currentUnit?.title || t("dashboardStartLearning")}</h3>
-                      <div className="resume-card-sub" style={{ display: 'flex', flexDirection: 'column' }}>
-                        <span style={{ fontSize: '0.85rem' }}>
-                          {t("dashboardSection")}: {sections[currentUnitPos.sectionIdx]?.title || `${t("dashboardSection")} ${currentUnitPos.sectionIdx + 1}`}
-                        </span>
-                        <span style={{
-                          fontSize: '0.78rem',
-                          marginTop: '10px',
-                          whiteSpace: 'nowrap'
-                        }}>
-                          {t("dashboardUnit")}: {sections[currentUnitPos.sectionIdx]?.units[currentUnitPos.unitIdx]?.title || `${t("dashboardUnit")} ${currentUnitPos.unitIdx + 1}`}
-                        </span>
+                        <h3 className="resume-card-title">{t(`${sections[currentUnitPos.sectionIdx]?.units[currentUnitPos.unitIdx]?.id}_title`) || sections[currentUnitPos.sectionIdx]?.units[currentUnitPos.unitIdx]?.title || t("dashboardStartLearning")}</h3>
+                        <div className="resume-card-sub" style={{ display: 'flex', flexDirection: 'column' }}>
+                          <span style={{ fontSize: '0.85rem' }}>
+                            {t("dashboardSection")}: {t(`${sections[currentUnitPos.sectionIdx]?.id}_title`) || sections[currentUnitPos.sectionIdx]?.title || `${t("dashboardSection")} ${currentUnitPos.sectionIdx + 1}`}
+                          </span>
+                          <span style={{
+                            fontSize: '0.78rem',
+                            marginTop: '10px',
+                            whiteSpace: 'nowrap'
+                          }}>
+                            {t("dashboardLesson")}: {currentUnit?.title || `${t("dashboardLesson")} ${currentUnitPos.lessonIdx + 1}`}
+                          </span>
                       </div>
                     </div>
                     <button
@@ -4303,11 +4558,11 @@ function App() {
                         <div className="duo-section-banner" style={{ background: `linear-gradient(135deg, ${section.color} 0%, ${section.color}cc 100%)`, boxShadow: `0 8px 24px ${section.color}33` }}>
                           <span className="duo-section-banner-icon">{section.icon}</span>
                           <div className="duo-section-banner-text">
-                            <span className="duo-section-banner-meta">Section {section.num} of {orderedSections.length}</span>
-                            <h2 className="duo-section-banner-title">{section.title}</h2>
+                            <span className="duo-section-banner-meta">{t("learnSectionOf").replace("{current}", section.num).replace("{total}", orderedSections.length)}</span>
+                            <h2 className="duo-section-banner-title">{t(`${section.id}_title`) || section.title}</h2>
                           </div>
                           {isSectionRecommended && (
-                            <span className="duo-section-badge">⭐ Recommended</span>
+                            <span className="duo-section-badge">⭐ {t("learnRecommended") || "Recommended"}</span>
                           )}
                         </div>
 
@@ -4321,9 +4576,9 @@ function App() {
                           return (
                             <div key={unit.id} className="duo-unit-block">
                               <div className="duo-unit-header">
-                                <h3 className="duo-unit-title">Unit {unit.num}</h3>
-                                <span className="duo-unit-topic">{unit.title}</span>
-                                <span className="duo-unit-progress">{completedInUnit}/{unitLessons.length} Done</span>
+                                <h3 className="duo-unit-title">{t("learnUnit")} {unit.num}</h3>
+                                <span className="duo-unit-topic">{t(`${unit.id}_title`) || unit.title}</span>
+                                <span className="duo-unit-progress">{completedInUnit}/{unitLessons.length} {t("learnDone") || "Done"}</span>
                               </div>
 
                               {/* Centered Snaking Lesson Path */}
@@ -4392,15 +4647,15 @@ function App() {
                                               background: isCompleted ? 'rgba(16, 185, 129, 0.15)' : isUnlocked ? `${section.color}22` : 'rgba(120, 120, 120, 0.15)',
                                               color: isCompleted ? '#0f9d6b' : isUnlocked ? section.color : '#8a8f98'
                                             }}>
-                                              {status === "completed" ? "✓ Done" : status === "unlocked" ? "Ready" : "🔒 Locked"}
+                                              {status === "completed" ? `✓ ${t("learnDone") || "Done"}` : status === "unlocked" ? (t("learnReady") || "Ready") : `🔒 ${t("learnLocked") || "Locked"}`}
                                             </span>
                                             <span className="duo-popover-xp">+{lessonXp} XP</span>
                                           </div>
-                                          <h4 className="duo-popover-title">{unit.title} — {lIdx === 4 ? "Unit Exam" : `Lesson ${lIdx + 1}`}</h4>
+                                          <h4 className="duo-popover-title">{(t(`${unit.id}_title`) || unit.title)} — {lIdx === 4 ? (t("learnUnitExam") || "Unit Exam") : (t("learnLesson").replace("{num}", lIdx + 1))}</h4>
                                           <p className="duo-popover-desc">
                                             {lIdx === 4
-                                              ? "A comprehensive unit exam testing skills from the first 4 lessons."
-                                              : "Personalized AI lesson targeting your curriculum goals."}
+                                              ? (t("learnUnitExamDesc") || "A comprehensive unit exam testing skills from the first 4 lessons.")
+                                              : (t("learnLessonDesc") || "Personalized AI lesson targeting your curriculum goals.")}
                                           </p>
 
                                           <button
@@ -4417,8 +4672,8 @@ function App() {
                                             }}
                                           >
                                             {lIdx === 4
-                                              ? (status === "completed" ? "Review Exam" : "Start Exam")
-                                              : (status === "completed" ? "Review Lesson" : "Start Lesson")}
+                                              ? (status === "completed" ? (t("learnReviewExam") || "Review Exam") : (t("learnStartExam") || "Start Exam"))
+                                              : (status === "completed" ? (t("learnReviewLesson") || "Review Lesson") : (t("learnStartLesson") || "Start Lesson"))}
                                           </button>
                                         </div>
                                       )}
