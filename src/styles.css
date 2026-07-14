@@ -3415,6 +3415,15 @@ select:focus {
   flex-shrink: 0;
 }
 
+.achievements-modal-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.achievements-modal-scroll::-webkit-scrollbar {
+  display: none;
+}
+
 .achievement-desc {
   margin: 0;
   font-size: 0.8rem;
@@ -4851,10 +4860,45 @@ select:focus {
 }
 
 .word-of-day-word {
-  margin: 0 0 8px;
+  margin: 0 0 14px;
   font-size: 1.6rem;
   font-weight: 800;
   color: var(--text);
+}
+
+.word-of-day-block {
+  margin-bottom: 16px;
+}
+
+.word-of-day-block:last-child {
+  margin-bottom: 0;
+}
+
+.word-of-day-heading {
+  display: block;
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--accent-dark);
+  margin-bottom: 4px;
+}
+
+.word-of-day-meaning {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.45;
+}
+
+.word-of-day-speak-inline {
+  width: 28px;
+  height: 28px;
+  font-size: 0.85rem;
+  margin-left: 8px;
+  vertical-align: middle;
+  display: inline-grid;
 }
 
 .word-of-day-example {
@@ -5764,14 +5808,14 @@ select:focus {
 }
 
 .duo-node-circle {
-  width: 72px;
-  height: 72px;
+  width: 70px;
+  height: 64px;
   border-radius: 50%;
   border: none;
   display: grid;
   place-items: center;
   cursor: pointer;
-  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.15), 0 8px 16px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 10px 0 rgba(0, 0, 0, 0.15), 0 12px 16px rgba(0, 0, 0, 0.08);
   transition: all 0.2s ease;
   position: relative;
   outline: none;
@@ -5779,29 +5823,29 @@ select:focus {
 
 .duo-node-circle:active {
   transform: translateY(4px);
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.15), 0 4px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.15), 0 6px 8px rgba(0, 0, 0, 0.06);
 }
 
 .duo-node-circle.completed {
   background: #10b981 !important;
-  box-shadow: 0 6px 0 #0d9668, 0 8px 16px rgba(16, 185, 129, 0.2);
+  box-shadow: 0 10px 0 #0d9668, 0 12px 16px rgba(16, 185, 129, 0.2);
 }
 .duo-node-circle.completed:active {
   transform: translateY(4px);
-  box-shadow: 0 2px 0 #0d9668;
+  box-shadow: 0 4px 0 #0d9668;
 }
 
 .duo-node-circle.unlocked {
-  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.2), 0 8px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 10px 0 rgba(0, 0, 0, 0.2), 0 12px 20px rgba(0, 0, 0, 0.15);
 }
 .duo-node-circle.unlocked:active {
   transform: translateY(4px);
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
 }
 
 .duo-node-circle.locked {
   background: #e5e7eb !important;
-  box-shadow: 0 6px 0 #d1d5db, 0 4px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 10px 0 #d1d5db, 0 12px 8px rgba(0, 0, 0, 0.05);
   cursor: not-allowed;
 }
 .duo-node-circle.locked .duo-node-icon {
@@ -5810,7 +5854,7 @@ select:focus {
 
 [data-theme="dark"] .duo-node-circle.locked {
   background: #374151 !important;
-  box-shadow: 0 6px 0 #1f2937;
+  box-shadow: 0 10px 0 #1f2937;
 }
 
 .duo-node-icon {
