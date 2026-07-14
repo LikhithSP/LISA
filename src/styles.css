@@ -4066,9 +4066,10 @@ select:focus {
    LISA DUOLINGO REDESIGNED DASHBOARD STYLES
    ========================================== */
 
-/* Left Sidebar Layout */
+/* Pill navigation now lives inside the topbar */
 .dashboard-container-new {
   display: flex;
+  flex-direction: column;
   min-height: 100vh;
   width: 100%;
   background: var(--bg);
@@ -4077,84 +4078,149 @@ select:focus {
 }
 
 .dashboard-sidebar {
-  width: 256px;
-  background: var(--panel);
-  border-right: 2px solid var(--line);
-  padding: 24px 16px;
-  display: flex;
-  flex-direction: column;
-  position: sticky;
-  top: 0;
-  height: 100vh;
-  box-sizing: border-box;
-  flex-shrink: 0;
+  display: none;
+}
+
+.sidebar-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 8px;
+  background: #e8e8ec;
+  border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 0 1px rgba(0, 0, 0, 0.04);
+  list-style: none;
+  margin: 0;
+}
+
+[data-theme="dark"] .sidebar-pill {
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), 0 0 1px rgba(255, 255, 255, 0.06);
 }
 
 .sidebar-logo {
-  font-size: 1.8rem;
+  font-size: 1.4rem;
   font-weight: 800;
-  color: var(--accent);
-  margin-bottom: 32px;
+  color: var(--text);
+  margin-bottom: 0;
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 0 12px;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.3px;
 }
 
 .sidebar-logo-icon {
-  font-size: 2rem;
+  font-size: 1.8rem;
 }
 
 .sidebar-menu {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  flex-direction: row;
+  align-items: center;
+  gap: 2px;
   flex-grow: 1;
 }
 
 .sidebar-item {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 16px;
-  padding: 14px 20px;
-  border-radius: 16px;
-  font-weight: 700;
-  font-size: 1.05rem;
-  color: var(--text);
-  background: none;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #3c3c43;
+  background: transparent;
   border: none;
   cursor: pointer;
-  text-align: left;
-  transition: all 0.2s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  width: 100%;
+  text-align: center;
+  transition: all 180ms ease;
+  white-space: nowrap;
+  position: relative;
+}
+
+[data-theme="dark"] .sidebar-item {
+  color: rgba(255, 255, 255, 0.72);
 }
 
 .sidebar-item:hover {
-  background: rgba(0, 0, 0, 0.04);
-}
-
-.sidebar-item.active {
-  background: rgba(198, 95, 45, 0.08);
-  color: var(--accent);
-  border: 2px solid var(--accent);
-  padding: 12px 18px;
-  /* Offset border width */
+  background: rgba(0, 0, 0, 0.05);
+  color: #1a1a1f;
 }
 
 [data-theme="dark"] .sidebar-item:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.sidebar-item.active {
+  background: #ffffff;
+  color: #1a1a1f;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04);
+  font-weight: 700;
 }
 
 [data-theme="dark"] .sidebar-item.active {
-  background: rgba(198, 95, 45, 0.15);
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+.sidebar-separator {
+  width: 1px;
+  height: 18px;
+  background: rgba(0, 0, 0, 0.12);
+  margin: 0 4px;
+  flex-shrink: 0;
+  border-radius: 1px;
+}
+
+[data-theme="dark"] .sidebar-separator {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.sidebar-notification-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  line-height: 1;
+  margin-left: 2px;
+  box-shadow: 0 1px 3px rgba(239, 68, 68, 0.35);
 }
 
 .sidebar-footer {
-  padding-top: 16px;
-  border-top: 2px solid var(--line);
+  padding-top: 0;
+  border-top: none;
+  display: flex;
+  align-items: center;
+}
+
+.sidebar-signout-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #ef4444;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 180ms ease;
+}
+
+.sidebar-signout-pill:hover {
+  background: rgba(239, 68, 68, 0.08);
 }
 
 /* Main Dashboard layout */
@@ -4162,20 +4228,49 @@ select:focus {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  min-height: 100vh;
   overflow-y: auto;
 }
 
 /* Top bar indicators */
 .dashboard-topbar {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
   gap: 24px;
   padding: 16px 48px;
   background: var(--panel);
   border-bottom: 2px solid var(--line);
   box-sizing: border-box;
+}
+
+.topbar-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.topbar-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.sidebar-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 8px;
+  background: #e8e8ec;
+  border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 0 1px rgba(0, 0, 0, 0.04);
+  list-style: none;
+  margin: 0 auto;
+}
+
+[data-theme="dark"] .sidebar-pill {
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), 0 0 1px rgba(255, 255, 255, 0.06);
 }
 
 .topbar-indicators {
