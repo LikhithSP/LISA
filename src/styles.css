@@ -3169,7 +3169,7 @@ select:focus {
   background: linear-gradient(180deg, #d97706 0%, #b45309 100%);
   border: none;
   border-radius: 24px;
-  padding: 20px;
+  padding: 24px;
   box-shadow: 0 8px 24px rgba(217, 119, 6, 0.25);
   color: white;
   text-align: left;
@@ -3179,7 +3179,7 @@ select:focus {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .streak-society-badge {
@@ -3200,7 +3200,7 @@ select:focus {
 }
 
 .streak-society-title {
-  margin: 0 0 8px 0;
+  margin: 0 0 10px 0;
   font-size: 1.35rem;
   font-weight: 800;
   color: white;
@@ -3208,7 +3208,7 @@ select:focus {
 
 .streak-society-message {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   line-height: 1.5;
   color: rgba(255, 255, 255, 0.9);
   max-width: 95%;
@@ -4223,15 +4223,6 @@ select:focus {
   background: rgba(239, 68, 68, 0.08);
 }
 
-/* Main Dashboard layout */
-.dashboard-main-content {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  overflow-y: auto;
-}
-
 /* Top bar indicators */
 .dashboard-topbar {
   display: flex;
@@ -4242,6 +4233,9 @@ select:focus {
   background: var(--panel);
   border-bottom: 2px solid var(--line);
   box-sizing: border-box;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
 .topbar-left {
@@ -4300,6 +4294,8 @@ select:focus {
 
 .indicator-pill.streak {
   color: #f59e0b;
+  gap: 8px;
+  padding: 8px 14px;
 }
 
 /* Learn Area Split Columns */
