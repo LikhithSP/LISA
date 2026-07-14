@@ -1,8 +1,25 @@
 // LISA — Gemini AI Lesson Generator
 // Uses Gemini 2.0 Flash REST API to generate personalized lesson content
 
-const GEMINI_API_KEY = "AIzaSyAb8RN6JLYhDaJ2JY6qIeJ9tnkgeTxByd9d56msTZh_QfXYQOhQ";
-const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
+const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
+const MODEL_NAME = import.meta.env.VITE_OPENROUTER_MODEL || "google/gemma-4-31b-it:free";
+
+const extractJSON = (text) => {
+  if (!text) throw new Error("Empty text input for JSON parsing");
+  const startIdx = text.indexOf("{");
+  const endIdx = text.lastIndexOf("}");
+  if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
+    const jsonStr = text.substring(startIdx, endIdx + 1);
+    try {
+      return JSON.parse(jsonStr);
+    } catch (e) {
+      console.warn("Extracted substring is not valid JSON, trying raw cleaning:", e);
+    }
+  }
+  const cleaned = text.replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/\s*```$/i, "").trim();
+  return JSON.parse(cleaned);
+};
 
 // Age group label for context adaptation
 const getAgeContext = (age) => {
@@ -113,31 +130,31 @@ export const generateLessonContent = async (params) => {
   const prompt = buildPrompt(params);
 
   try {
-    const response = await fetch(GEMINI_API_URL, {
+    const response = await fetch(OPENROUTER_API_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${OPENROUTER_API_KEY}`
+      },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 2048,
-          responseMimeType: "application/json"
-        }
+        model: MODEL_NAME,
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.7,
+        max_tokens: 4096,
+        response_format: { type: "json_object" }
       })
     });
 
     if (!response.ok) {
       const err = await response.text();
-      console.error("Gemini API error:", err);
+      console.error("OpenRouter API error:", err);
       return getFallbackLesson(params);
     }
 
     const data = await response.json();
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    const text = data?.choices?.[0]?.message?.content || "";
 
-    // Parse JSON (strip markdown fences if present)
-    const cleaned = text.replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/\s*```$/i, "").trim();
-    const lesson = JSON.parse(cleaned);
+    const lesson = extractJSON(text);
 
     lessonCache.set(cacheKey, lesson);
     return lesson;
@@ -211,6 +228,17 @@ export const clearLessonCache = () => lessonCache.clear();
 
 export const fetchWordOfDay = async (language = "English") => {
   try {
+    const todayStr = new Date().toLocaleDateString("en-CA");
+    const cacheKey = `lisa_word_of_day_${language}_${todayStr}`;
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      try {
+        return JSON.parse(cached);
+      } catch (e) {
+        // Ignore cache parsing errors and proceed to fetch
+      }
+    }
+
     const prompt = `You are a helpful literacy assistant. Suggest a unique, helpful "Word of the Day" in ${language} that is practical for learning. Also generate a simple, clear, age-appropriate example sentence showing how to use it.
     
     Return ONLY valid JSON with this exact structure (no markdown, no backticks):
@@ -219,29 +247,38 @@ export const fetchWordOfDay = async (language = "English") => {
       "example": "string"
     }`;
 
-    const response = await fetch(GEMINI_API_URL, {
+    const response = await fetch(OPENROUTER_API_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${OPENROUTER_API_KEY}`
+      },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: {
-          temperature: 0.8,
-          maxOutputTokens: 256,
-          responseMimeType: "application/json"
-        }
+        model: MODEL_NAME,
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.8,
+        max_tokens: 256,
+        response_format: { type: "json_object" }
       })
     });
 
     if (!response.ok) {
-      throw new Error("Failed to fetch from Gemini");
+      throw new Error("Failed to fetch from OpenRouter");
     }
 
     const data = await response.json();
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || "";
-    const cleaned = text.replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/\s*```$/i, "").trim();
-    return JSON.parse(cleaned);
+    const text = data?.choices?.[0]?.message?.content || "";
+    const parsed = extractJSON(text);
+
+    try {
+      localStorage.setItem(cacheKey, JSON.stringify(parsed));
+    } catch (e) {
+      console.warn("Could not save word of the day to localStorage:", e);
+    }
+
+    return parsed;
   } catch (err) {
-    console.error("Failed to fetch word of the day from Gemini, using fallback:", err);
+    console.error("Failed to fetch word of the day from OpenRouter, using fallback:", err);
     return {
       word: language === "Hindi" ? "परिश्रमी" : "Diligent",
       example: language === "Hindi" 
