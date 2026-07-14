@@ -2661,45 +2661,48 @@ function App() {
     const currentLevelNum = calculateProgressiveLevel(profile, completedLessons);
     const currentLang = selectedLanguage || "English";
 
-    const currentLevelSections = lessonsData[currentLevelNum] || [];
-    const currentLevelLessons = currentLevelSections.flatMap((s) => s.units.flatMap((u) => u.lessons));
+    // Build flat list of all lessons with their section/unit info
+    const flatLessonsWithLocation = [];
+    const sections = CURRICULUM_SECTIONS;
+    sections.forEach((sec, secIdx) => {
+      sec.units.forEach((uni, uniIdx) => {
+        uni.lessons.forEach((les, lesIdx) => {
+          flatLessonsWithLocation.push({
+            lesson: les,
+            section: sec,
+            unit: uni,
+            secIdx,
+            uniIdx,
+            lesIdx
+          });
+        });
+      });
+    });
+
+    // Determine starting lesson ID based on diagnosed literacy level (consistent with Learn tab)
+    const diagnosedLevel = profile?.literacy_level || 1;
     const startingLessonId = (() => {
-      const level = currentLevelNum;
-      if (level === 2) return "s2u1l1";
-      if (level === 3) return "s3u1l1";
-      if (level === 4) return "s5u1l1";
-      if (level === 5) return "s7u1l1";
+      if (diagnosedLevel === 2) return "s2u1l1";
+      if (diagnosedLevel === 3) return "s3u1l1";
+      if (diagnosedLevel === 4) return "s5u1l1";
+      if (diagnosedLevel === 5) return "s7u1l1";
       return "s1u1l1";
     })();
-    const startingLessonIndex = currentLevelLessons.findIndex(l => l.id === startingLessonId);
 
-    const currentUnitIdx = (() => {
-      const startSearchIdx = startingLessonIndex !== -1 ? startingLessonIndex : 0;
-      const firstIncomplete = currentLevelLessons.slice(startSearchIdx).findIndex((l) => !completedLessons.includes(l.id));
-      if (firstIncomplete === -1) {
-        return Math.max(currentLevelLessons.length - 1, 0);
-      }
-      return startSearchIdx + firstIncomplete;
-    })();
-    const currentUnit = currentLevelLessons[currentUnitIdx];
+    const startingIndex = flatLessonsWithLocation.findIndex(item => item.lesson.id === startingLessonId);
+    const startIndexToUse = startingIndex !== -1 ? startingIndex : 0;
 
-    const currentUnitPos = (() => {
-      let remaining = currentUnitIdx;
-      for (let s = 0; s < currentLevelSections.length; s++) {
-        const units = currentLevelSections[s].units;
-        const sectionLessonCount = units.reduce((a, u) => a + u.lessons.length, 0);
-        if (remaining < sectionLessonCount) {
-          let r2 = remaining;
-          for (let u = 0; u < units.length; u++) {
-            const len = units[u].lessons.length;
-            if (r2 < len) return { sectionIdx: s, unitIdx: u, lessonIdx: r2 };
-            r2 -= len;
-          }
-        }
-        remaining -= sectionLessonCount;
-      }
-      return { sectionIdx: 0, unitIdx: 0, lessonIdx: 0 };
-    })();
+    // Find the active resumed lesson item (first incomplete starting from startingIndex)
+    const activeItem = flatLessonsWithLocation.slice(startIndexToUse).find(item => !completedLessons.includes(item.lesson.id))
+      || flatLessonsWithLocation[startIndexToUse]
+      || flatLessonsWithLocation[0];
+
+    const currentUnit = activeItem?.lesson;
+    const currentUnitPos = {
+      sectionIdx: activeItem?.secIdx ?? 0,
+      unitIdx: activeItem?.uniIdx ?? 0,
+      lessonIdx: activeItem?.lesIdx ?? 0
+    };
 
 
 
@@ -3423,17 +3426,17 @@ function App() {
                    <div className="resume-card">
                      <div className="resume-card-info">
                        <span className="resume-card-label">Continue learning</span>
-                       <h3 className="resume-card-title">{currentUnit?.title || (currentLevelLessons[0]?.title || "Start Learning")}</h3>
+                       <h3 className="resume-card-title">{currentUnit?.title || "Start Learning"}</h3>
                        <div className="resume-card-sub" style={{ display: 'flex', flexDirection: 'column' }}>
                          <span style={{ fontSize: '0.85rem' }}>
-                           Section: {currentLevelSections[currentUnitPos.sectionIdx]?.title || `Section ${currentUnitPos.sectionIdx + 1}`}
+                           Section: {sections[currentUnitPos.sectionIdx]?.title || `Section ${currentUnitPos.sectionIdx + 1}`}
                          </span>
                          <span style={{ 
                            fontSize: '0.78rem', 
                            marginTop: '10px', 
                            whiteSpace: 'nowrap'
                          }}>
-                           Unit: {currentLevelSections[currentUnitPos.sectionIdx]?.units[currentUnitPos.unitIdx]?.title || `Unit ${currentUnitPos.unitIdx + 1}`}
+                           Unit: {sections[currentUnitPos.sectionIdx]?.units[currentUnitPos.unitIdx]?.title || `Unit ${currentUnitPos.unitIdx + 1}`}
                          </span>
                        </div>
                      </div>
