@@ -14,6 +14,7 @@ alter table public.profiles add column if not exists literacy_level integer;
 alter table public.profiles add column if not exists assessment_completed boolean not null default false;
 alter table public.profiles add column if not exists streak integer not null default 0;
 alter table public.profiles add column if not exists last_active_date date;
+alter table public.profiles add column if not exists streak_dates jsonb;
 
 -- Set up Row Level Security
 alter table public.profiles enable row level security;

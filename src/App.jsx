@@ -338,7 +338,7 @@ function App() {
   const [completedLessons, setCompletedLessons] = useState([]);
   const [lessonSession, setLessonSession] = useState(null);
   const [streakCount, setStreakCount] = useState(0);
-  const [wordOfDay, setWordOfDay] = useState({ word: "Diligent", example: "A diligent student practices reading a little every day." });
+  const [wordOfDay, setWordOfDay] = useState({ word: "Diligent", meaning: "Hardworking and showing care", example: "A diligent student practices reading a little every day." });
 
   const [dailyXp, setDailyXp] = useState(0);
   const [dailyTimeSpent, setDailyTimeSpent] = useState(0); // in seconds
@@ -372,7 +372,7 @@ function App() {
         target: quest.target,
         completed: dailyLessons >= quest.target,
         percent: Math.min((dailyLessons / quest.target) * 100, 100),
-        displayProgress: `${dailyLessons}/${quest.target} ${quest.target === 1 ? 'lesson' : 'lessons'}`
+        displayProgress: `${Math.min(dailyLessons, quest.target)}/${quest.target} ${quest.target === 1 ? 'lesson' : 'lessons'}`
       };
     }
     return { current: 0, target: 1, completed: false, percent: 0, displayProgress: '0/1' };
@@ -513,14 +513,19 @@ function App() {
   useEffect(() => {
     let active = true;
     const loadWordOfDay = async () => {
-      const res = await fetchWordOfDay(selectedLanguage || "English");
+      const levelCtx = calculateProgressiveLevel(profile, completedLessons);
+      const res = await fetchWordOfDay(selectedLanguage || "English", {
+        level: levelCtx,
+        age: profile?.age ?? null,
+        education: profile?.education_level ?? null
+      });
       if (active && res) {
         setWordOfDay(res);
       }
     };
     loadWordOfDay();
     return () => { active = false; };
-  }, [selectedLanguage]);
+  }, [selectedLanguage, profile, completedLessons]);
 
   useEffect(() => {
     if (profile?.avatar_url) {
@@ -573,17 +578,22 @@ function App() {
         localStorage.setItem(`lisa_active_dates_${userId}`, JSON.stringify(activeDates));
       }
 
+      // Merge with any dates already stored in Supabase (cross-device)
+      const dbDates = Array.isArray(currentProfile?.streak_dates) ? currentProfile.streak_dates : [];
+      const mergedDates = Array.from(new Set([...dbDates, ...activeDates]));
+
       setStreakCount(newStreak);
 
       await supabase
         .from("profiles")
         .update({
           streak: newStreak,
-          last_active_date: today
+          last_active_date: today,
+          streak_dates: mergedDates
         })
         .eq("id", userId);
 
-      setProfile(prev => prev ? { ...prev, streak: newStreak, last_active_date: today } : null);
+      setProfile(prev => prev ? { ...prev, streak: newStreak, last_active_date: today, streak_dates: mergedDates } : null);
     } catch (err) {
       console.warn("Could not sync streak with DB, utilizing local storage:", err);
     }
@@ -600,6 +610,10 @@ function App() {
       activeDates = [];
     }
 
+    // Include dates persisted in Supabase so the streak calendar is cross-device
+    const dbDates = Array.isArray(profile?.streak_dates) ? profile.streak_dates : [];
+    activeDates = Array.from(new Set([...dbDates, ...activeDates]));
+
     const todayStr = new Date().toLocaleDateString("en-CA");
     const lastActiveLocal = localStorage.getItem(`lisa_last_active_date_${userId}`);
     if (lastActiveLocal === todayStr && !activeDates.includes(todayStr)) {
@@ -607,6 +621,19 @@ function App() {
       try {
         localStorage.setItem(`lisa_active_dates_${userId}`, JSON.stringify(activeDates));
       } catch {}
+    }
+
+    // Derive completed days from the actual streak count so the calendar always
+    // reflects the streak (e.g. a 2-day streak lights up today + yesterday)
+    const completedSet = new Set(activeDates);
+    const anchorStr = profile?.last_active_date || lastActiveLocal || todayStr;
+    const anchor = new Date(`${anchorStr}T00:00:00`);
+    if (!isNaN(anchor.getTime())) {
+      for (let j = 0; j < streakCount; j++) {
+        const d = new Date(anchor);
+        d.setDate(d.getDate() - j);
+        completedSet.add(d.toLocaleDateString("en-CA"));
+      }
     }
 
     const days = [];
@@ -620,7 +647,7 @@ function App() {
       days.push({
         label: dayLabel,
         date: dateStr,
-        isCompleted: activeDates.includes(dateStr),
+        isCompleted: completedSet.has(dateStr),
         isToday: i === 0
       });
     }
@@ -3630,7 +3657,7 @@ function App() {
                             fontSize: '0.75rem',
                             fontWeight: 700
                           }}>
-                            {day.isCompleted ? '🔥' : ''}
+                            {day.isCompleted ? '✓' : ''}
                           </div>
                         </div>
                       ))}
@@ -3696,7 +3723,34 @@ function App() {
                       </button>
                     </div>
                     <h3 className="word-of-day-word">{wordOfDay.word}</h3>
-                    <p className="word-of-day-example">"{wordOfDay.example}"</p>
+                    <div className="word-of-day-block">
+                      <span className="word-of-day-heading">Meaning</span>
+                      <p className="word-of-day-meaning">
+                        {wordOfDay.meaning}
+                        <button
+                          type="button"
+                          className="word-of-day-speak word-of-day-speak-inline"
+                          onClick={() => speakText(wordOfDay.meaning || "")}
+                          aria-label="Listen to meaning"
+                        >
+                          🔊
+                        </button>
+                      </p>
+                    </div>
+                    <div className="word-of-day-block">
+                      <span className="word-of-day-heading">Example</span>
+                      <p className="word-of-day-example">
+                        "{wordOfDay.example}"
+                        <button
+                          type="button"
+                          className="word-of-day-speak word-of-day-speak-inline"
+                          onClick={() => speakText(wordOfDay.example || "")}
+                          aria-label="Listen to example"
+                        >
+                          🔊
+                        </button>
+                      </p>
+                    </div>
                   </div>
                 </div>
 
@@ -3728,7 +3782,7 @@ function App() {
                     <div className="current-level-body">
                       <div className="current-level-badge" style={{ background: 'rgba(255, 255, 255, 0.25)', border: '2px solid rgba(255, 255, 255, 0.4)' }}>
                         <span className="current-level-badge-icon">{levelBadgeIcon(currentLevelNum)}</span>
-                        <span className="current-level-badge-level" style={{ color: '#ffffff', fontWeight: '900' }}>{t("overallLevel").toUpperCase()} {currentLevelNum}</span>
+                        <span className="current-level-badge-level" style={{ color: '#ffffff', fontWeight: '900' }}>{t("level").toUpperCase()} {currentLevelNum}</span>
                       </div>
                       <div className="current-level-info">
                         <p className="current-level-name" style={{ color: '#ffffff', textShadow: '0 2px 4px rgba(0,0,0,0.15)' }}>{getLevelCategoryAndDescription(currentLevelNum, selectedLanguage).category}</p>
@@ -3865,7 +3919,7 @@ function App() {
                               </div>
                               <p className="achievement-desc">{a.desc}</p>
                               <div className="achievement-progress-track">
-                                <div className="achievement-progress-fill" style={{ width: `${a.progress}%`, background: a.earned ? a.color : 'var(--muted)' }}></div>
+                                <div className="achievement-progress-fill" style={{ width: `${a.progress}%`, background: '#facc15' }}></div>
                               </div>
                             </div>
                           </div>
@@ -6166,18 +6220,18 @@ function App() {
           zIndex: 10000,
           padding: '20px'
         }}>
-          <div style={{
+          <div className="achievements-modal-scroll" style={{
             background: 'var(--panel)',
             border: '2px solid var(--line)',
             borderRadius: '24px',
             width: '100%',
-            maxWidth: '550px',
-            maxHeight: '85vh',
-            overflowY: 'auto',
-            padding: '30px',
-            boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
-            position: 'relative'
-          }}>
+              maxWidth: '550px',
+              maxHeight: '92vh',
+              overflowY: 'auto',
+              padding: '30px',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
+              position: 'relative'
+            }}>
             <button 
               onClick={() => setShowAllAchievementsModal(false)}
               style={{
@@ -6204,15 +6258,15 @@ function App() {
                 { id: 8, title: "Elite Scholar", desc: "Reach Progressive Level 8", icon: "🎓", earned: currentLevelNum >= 8, color: "#8b5cf6", progress: Math.min(100, Math.round((currentLevelNum / 8) * 100)) },
                 { id: 9, title: "Grandmaster", desc: "Reach Progressive Level 12", icon: "👑", earned: currentLevelNum >= 12, color: "#ef4444", progress: Math.min(100, Math.round((currentLevelNum / 12) * 100)) },
               ].map((a) => (
-                <div key={a.id} className={`achievement-row ${a.earned ? "earned" : ""}`} style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '12px', border: '2px solid var(--line)', borderRadius: '16px', background: 'var(--panel-strong)' }}>
-                  <div className="achievement-badge-box" style={{ background: a.earned ? a.color : 'var(--line)', width: '50px', height: '50px', borderRadius: '12px', display: 'grid', placeItems: 'center', fontSize: '1.5rem', flexShrink: 0 }}>
+                <div key={a.id} className={`achievement-row ${a.earned ? "earned" : ""}`} style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '12px', border: '2px solid var(--line)', borderRadius: '16px', background: 'var(--panel-strong)', opacity: a.earned ? 1 : 0.55 }}>
+                  <div className="achievement-badge-box" style={{ background: a.earned ? a.color : '#d1d5db', width: '50px', height: '50px', borderRadius: '12px', display: 'grid', placeItems: 'center', fontSize: '1.5rem', flexShrink: 0, filter: a.earned ? 'none' : 'grayscale(1)' }}>
                     <span className="achievement-badge-icon">{a.earned ? a.icon : '🔒'}</span>
                   </div>
                   <div style={{ flexGrow: 1 }}>
-                    <div style={{ fontWeight: '800', color: 'var(--text)' }}>{a.title}</div>
+                    <div style={{ fontWeight: '800', color: a.earned ? 'var(--text)' : 'var(--muted)' }}>{a.title}</div>
                     <p style={{ margin: '4px 0 0', fontSize: '0.9rem', color: 'var(--text-muted)' }}>{a.desc}</p>
                     <div className="achievement-progress-track" style={{ height: '8px', background: 'var(--line)', borderRadius: '4px', overflow: 'hidden', marginTop: '8px' }}>
-                      <div className="achievement-progress-fill" style={{ width: `${a.progress}%`, height: '100%', background: a.earned ? a.color : 'var(--muted)' }}></div>
+                      <div className="achievement-progress-fill" style={{ width: `${a.progress}%`, height: '100%', background: '#facc15' }}></div>
                     </div>
                   </div>
                 </div>

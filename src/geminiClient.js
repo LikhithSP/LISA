@@ -226,24 +226,31 @@ const getFallbackLesson = (params) => {
 
 export const clearLessonCache = () => lessonCache.clear();
 
-export const fetchWordOfDay = async (language = "English") => {
+export const fetchWordOfDay = async (language = "English", context = {}) => {
   try {
+    const { level = null, age = null, education = null } = context;
     const todayStr = new Date().toLocaleDateString("en-CA");
-    const cacheKey = `lisa_word_of_day_${language}_${todayStr}`;
+    const contextKey = `l${level ?? "na"}_a${age ?? "na"}_e${(education || "na").toString().replace(/[^a-z0-9]/gi, "").slice(0, 20)}`;
+    const cacheKey = `lisa_word_of_day_${language}_${contextKey}_${todayStr}`;
     const cached = localStorage.getItem(cacheKey);
     if (cached) {
       try {
-        return JSON.parse(cached);
+        const parsedCached = JSON.parse(cached);
+        if (parsedCached && parsedCached.word && parsedCached.meaning && parsedCached.example) {
+          return parsedCached;
+        }
       } catch (e) {
         // Ignore cache parsing errors and proceed to fetch
       }
     }
 
-    const prompt = `You are a helpful literacy assistant. Suggest a unique, helpful "Word of the Day" in ${language} that is practical for learning. Also generate a simple, clear, age-appropriate example sentence showing how to use it.
+    const learnerContext = `The learner is at literacy level ${level != null ? level : "unknown"} (scale 1 to 12), age ${age != null ? age : "unknown"}, with education background "${education || "unknown"}".`;
+    const prompt = `You are a helpful literacy assistant. ${learnerContext} Suggest a unique, helpful "Word of the Day" in ${language} that is practical for learning and well-suited to this specific learner's literacy level, age, and education (not too easy, not too difficult). Also provide a simple, clear meaning (definition) of the word, and a simple, clear, age-appropriate example sentence showing how to use it.
     
     Return ONLY valid JSON with this exact structure (no markdown, no backticks):
     {
       "word": "string",
+      "meaning": "string",
       "example": "string"
     }`;
 
@@ -270,6 +277,10 @@ export const fetchWordOfDay = async (language = "English") => {
     const text = data?.choices?.[0]?.message?.content || "";
     const parsed = extractJSON(text);
 
+    if (!parsed || !parsed.word || !parsed.meaning || !parsed.example) {
+      throw new Error("Word of the day response missing required fields");
+    }
+
     try {
       localStorage.setItem(cacheKey, JSON.stringify(parsed));
     } catch (e) {
@@ -281,6 +292,7 @@ export const fetchWordOfDay = async (language = "English") => {
     console.error("Failed to fetch word of the day from OpenRouter, using fallback:", err);
     return {
       word: language === "Hindi" ? "परिश्रमी" : "Diligent",
+      meaning: language === "Hindi" ? "मेहनती और लगनशील" : "Hardworking and showing care",
       example: language === "Hindi" 
         ? "एक परिश्रमी छात्र हर दिन थोड़ा पढ़ता है।" 
         : "A diligent student practices reading a little every day."
