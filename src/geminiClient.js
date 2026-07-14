@@ -58,8 +58,11 @@ LESSON DETAILS:
 IMPORTANT RULES:
 1. ALL lesson content (explanation, examples, exercises) must be in ${language}.
 2. Adapt ALL context examples to be age-appropriate. Example for this learner's age: "${ageCtx.contextExample}"
-3. Keep language simple and encouraging. Do not use jargon.
-4. The lesson must directly target the weak skill: ${weakList}.
+  3. Keep language simple and encouraging. Do not use jargon.
+  4. The lesson must directly target the weak skill: ${weakList}.
+  5. For "unscramble": "tiles" must be the individual letters of "answer" shuffled into a random order, written in the ${language} script.
+  6. For "imageChoice": provide exactly 3 emoji options where "correctIndex" points to the emoji that matches "word".
+  7. For "tracing": provide a letter/word to practice writing, a short "info" fact, and the "sound" text (spoken aloud to the learner).
 
 Return ONLY valid JSON with this exact structure (no markdown, no backticks):
 {
@@ -112,6 +115,18 @@ Return ONLY valid JSON with this exact structure (no markdown, no backticks):
     "audioText": "string (a simple sentence or phrase in ${language} for the user to listen to)",
     "tiles": ["array of 6-8 words in ${language} containing all words from audioText plus 2-3 distractor words"]
   },
+  "unscramble": [
+    {"hint": "string (a clue in ${language}, e.g. 'Where we study')", "emoji": "string (a single emoji hint, e.g. 🏫)", "answer": "SCHOOL", "tiles": ["L","S","O","C","H","O"]},
+    {"hint": "string (another clue in ${language})", "emoji": "string (an emoji hint)", "answer": "APPLE", "tiles": ["P","L","A","P","E"]}
+  ],
+  "imageChoice": [
+    {"word": "string (the target word in ${language})", "prompt": "string (instruction in ${language}, e.g. 'Tap the picture that means school')", "options": ["🏫","🍎","🚗"], "correctIndex": 0},
+    {"word": "string (another target word in ${language})", "prompt": "string (instruction in ${language})", "options": ["🍎","🏫","🌞"], "correctIndex": 0}
+  ],
+  "tracing": [
+    {"letter": "A", "word": "Apple", "info": "string (a short fact/info in ${language}, e.g. 'A is for Apple')", "sound": "Apple"},
+    {"letter": "S", "word": "Sun", "info": "string (a short fact/info in ${language})", "sound": "Sun"}
+  ],
   "aiFeedbackPositive": "string (encouraging message for correct answers in ${language})",
   "aiFeedbackNegative": "string (gentle corrective message in ${language})"
 }`;
@@ -219,6 +234,21 @@ const getFallbackLesson = (params) => {
       audioText: language === "Hindi" ? "वह जाता है" : language === "Kannada" ? "ಅವನು ಹೋಗುತ್ತಾನೆ" : "He goes",
       tiles: language === "Hindi" ? ["वह", "जाता", "है", "तुम", "हम"] : language === "Kannada" ? ["ಅವನು", "ಹೋಗುತ್ತಾನೆ", "ಬರುತ್ತಾನೆ", "ನಾವು"] : ["He", "goes", "comes", "we"]
     },
+    unscramble: [
+      { hint: "Where we study", emoji: "🏫", answer: "SCHOOL", tiles: ["L", "O", "C", "S", "H", "O"] },
+      { hint: "A red fruit", emoji: "🍎", answer: "APPLE", tiles: ["P", "L", "A", "P", "E"] },
+      { hint: "The bright star of the day", emoji: "🌞", answer: "SUN", tiles: ["N", "U", "S"] }
+    ],
+    imageChoice: [
+      { word: "school", prompt: "Tap the picture that means school", options: ["🏫", "🍎", "🚗"], correctIndex: 0 },
+      { word: "water", prompt: "Tap the picture that means water", options: ["🔥", "💧", "🌞"], correctIndex: 1 },
+      { word: "apple", prompt: "Tap the picture that means apple", options: ["🍎", "🏫", "🌞"], correctIndex: 0 }
+    ],
+    tracing: [
+      { letter: "A", word: "Apple", info: "A is for Apple", sound: "Apple" },
+      { letter: "S", word: "Sun", info: "S is for Sun", sound: "Sun" },
+      { letter: "B", word: "Ball", info: "B is for Ball", sound: "Ball" }
+    ],
     aiFeedbackPositive: "Excellent work! You are making great progress.",
     aiFeedbackNegative: "Good try! Review the lesson and attempt again. You can do it!"
   };
