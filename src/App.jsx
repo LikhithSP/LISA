@@ -15,6 +15,25 @@ import taJson from "./locales/ta.json";
 const languages = ["English", "Hindi", "Kannada", "Telugu", "Tamil"];
 const educationLevels = ["No formal education", "Primary", "Secondary", "Higher secondary", "Graduate"];
 
+// Draws a faint guide letter/word on the tracing canvas
+const drawTracingGuide = (canvas, item) => {
+  if (!canvas || !item) return;
+  const ctx = canvas.getContext("2d");
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const text = (item.letter || item.word || "A").toString();
+  ctx.save();
+  ctx.globalAlpha = 0.18;
+  ctx.fillStyle = "#0284c7";
+  ctx.font = `bold ${Math.floor(canvas.width * 0.5)}px sans-serif`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+  ctx.restore();
+  ctx.strokeStyle = "rgba(2,132,199,0.25)";
+  ctx.lineWidth = 2;
+  ctx.strokeRect(1, 1, canvas.width - 2, canvas.height - 2);
+};
+
 const DashboardIcon = ({ className, style }) => (
   <svg className={className} style={{ marginRight: "10px", verticalAlign: "middle", ...style }} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <rect x="3" y="3" width="7" height="9" rx="1" />
@@ -708,6 +727,26 @@ function App() {
   const [lessonSpeakError, setLessonSpeakError] = useState("");
   const [lessonSpeakIsListening, setLessonSpeakIsListening] = useState(false);
   const [lessonSpeakTranscript, setLessonSpeakTranscript] = useState("");
+
+  // New lesson activities: Unscramble, Image choice, Tracing
+  const [lessonUnscrambleIndex, setLessonUnscrambleIndex] = useState(0);
+  const [lessonUnscrambleSelected, setLessonUnscrambleSelected] = useState([]);
+  const [lessonUnscrambleFeedback, setLessonUnscrambleFeedback] = useState(null);
+  const [lessonImageChoiceIndex, setLessonImageChoiceIndex] = useState(0);
+  const [lessonImageChoiceSel, setLessonImageChoiceSel] = useState(null);
+  const [lessonImageChoiceFeedback, setLessonImageChoiceFeedback] = useState(null);
+  const [lessonTracingIndex, setLessonTracingIndex] = useState(0);
+  const [lessonTracingDone, setLessonTracingDone] = useState(false);
+  const tracingCanvasRef = useRef(null);
+
+  // Redraw the tracing guide whenever the tracing step or item changes
+  useEffect(() => {
+    if (lessonStep === 12 && tracingCanvasRef.current && lessonAiContent?.tracing?.length) {
+      const item = lessonAiContent.tracing[lessonTracingIndex] || lessonAiContent.tracing[0];
+      drawTracingGuide(tracingCanvasRef.current, item);
+      setLessonTracingDone(false);
+    }
+  }, [lessonStep, lessonTracingIndex, lessonAiContent]);
 
   const renderPracticeSession = (ai) => {
     const currentQuestion = ai.questions?.[lessonStep] || {};
@@ -6185,7 +6224,10 @@ function App() {
                                   onClick={() => {
                                     setLessonListeningFeedback(null);
                                     setLessonListeningSelected([]);
-                                    advanceLessonStep();
+                                    setLessonUnscrambleIndex(0);
+                                    setLessonUnscrambleSelected([]);
+                                    setLessonUnscrambleFeedback(null);
+                                    setLessonStep(10);
                                   }}
                                 >
                                   Continue
@@ -6193,6 +6235,268 @@ function App() {
                               </div>
                             </div>
                           )}
+                        </div>
+                      );
+                    })()}
+
+                    {/* Step 10: Unscramble / Rearrange letters */}
+                    {lessonStep === 10 && (() => {
+                      const list = ai.unscramble && ai.unscramble.length ? ai.unscramble : [{ hint: "Where we study", emoji: "🏫", answer: "SCHOOL", tiles: ["L","O","C","S","H","O"] }];
+                      const item = list[lessonUnscrambleIndex] || list[0];
+                      const isChecked = lessonUnscrambleFeedback !== null;
+                      const built = lessonUnscrambleSelected.map(i => item.tiles[i]).join("");
+
+                      const handleTile = (tIdx) => {
+                        if (isChecked || lessonUnscrambleSelected.includes(tIdx)) return;
+                        setLessonUnscrambleSelected(prev => [...prev, tIdx]);
+                      };
+                      const handleRemove = (pos) => {
+                        if (isChecked) return;
+                        setLessonUnscrambleSelected(prev => prev.filter((_, i) => i !== pos));
+                      };
+
+                      return (
+                        <div className="ai-lesson-step" style={{ paddingBottom: '120px' }}>
+                          <div className="ai-lesson-step-header" style={{ marginBottom: '16px' }}>
+                            <span className="ai-step-badge">🔤 Unscramble (Question {lessonUnscrambleIndex + 1} of {list.length})</span>
+                          </div>
+
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '20px', margin: '20px 0' }}>
+                            <img src="/as1.png" alt="LISA Mascot" style={{ width: '80px', height: '80px', objectFit: 'contain' }} />
+                            <div style={{ flexGrow: 1, background: 'var(--panel)', border: '2px solid var(--line)', borderRadius: '20px', padding: '16px 24px', position: 'relative' }}>
+                              <div style={{ position: 'absolute', left: '-9px', top: '32px', width: '14px', height: '14px', background: 'var(--panel)', borderLeft: '2px solid var(--line)', borderBottom: '2px solid var(--line)', transform: 'rotate(45deg)' }}></div>
+                              <p style={{ margin: 0, fontSize: '1.1rem', fontWeight: '700' }}>{item.emoji} {item.hint}</p>
+                            </div>
+                          </div>
+
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'center', margin: '24px 0', minHeight: '56px' }}>
+                            {lessonUnscrambleSelected.length === 0 && <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Tap the letters below to build the word</span>}
+                            {lessonUnscrambleSelected.map((tIdx, pos) => (
+                              <button key={pos} type="button" onClick={() => handleRemove(pos)} disabled={isChecked}
+                                style={{ background: 'var(--accent)', color: 'white', border: 'none', borderRadius: '10px', padding: '10px 16px', fontSize: '1.3rem', fontWeight: '800', cursor: isChecked ? 'default' : 'pointer' }}>
+                                {item.tiles[tIdx]}
+                              </button>
+                            ))}
+                          </div>
+
+                          {!isChecked && (
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'center', margin: '20px 0 30px' }}>
+                              {item.tiles.map((letter, tIdx) => {
+                                const used = lessonUnscrambleSelected.includes(tIdx);
+                                return (
+                                  <button key={tIdx} type="button" onClick={() => handleTile(tIdx)} disabled={used}
+                                    style={{ background: used ? 'var(--line)' : 'var(--panel)', color: used ? 'transparent' : 'var(--text)', border: '2px solid var(--line)', borderRadius: '10px', padding: '10px 16px', fontSize: '1.3rem', fontWeight: '800', cursor: used ? 'default' : 'pointer' }}>
+                                    {letter}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          )}
+
+                          {!isChecked && (
+                            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
+                              <button type="button" className="primary-btn" style={{ padding: '12px 40px', borderRadius: '12px' }}
+                                onClick={() => {
+                                  const correct = built.trim().toUpperCase() === item.answer.trim().toUpperCase();
+                                  setLessonUnscrambleFeedback({ isCorrect: correct, correctAnswer: item.answer });
+                                }}
+                                disabled={lessonUnscrambleSelected.length === 0}>
+                                Check Answer
+                              </button>
+                            </div>
+                          )}
+
+                          {lessonUnscrambleFeedback && (
+                            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: lessonUnscrambleFeedback.isCorrect ? '#d1fae5' : '#fee2e2', borderTop: `2px solid ${lessonUnscrambleFeedback.isCorrect ? '#10b981' : '#ef4444'}`, padding: '20px 40px', zIndex: 100 }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', maxWidth: '1000px', margin: '0 auto' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                  <span style={{ fontSize: '2rem' }}>{lessonUnscrambleFeedback.isCorrect ? "🎉" : "❌"}</span>
+                                  <div>
+                                    <h4 style={{ margin: 0, color: lessonUnscrambleFeedback.isCorrect ? '#065f46' : '#991b1b', fontWeight: '800', fontSize: '1.2rem' }}>{lessonUnscrambleFeedback.isCorrect ? "Excellent!" : "Incorrect"}</h4>
+                                    <p style={{ margin: '4px 0 0', color: lessonUnscrambleFeedback.isCorrect ? '#047857' : '#b91c1c', fontSize: '0.95rem' }}>{lessonUnscrambleFeedback.isCorrect ? "You unscrambled it!" : `Correct word: "${lessonUnscrambleFeedback.correctAnswer}"`}</p>
+                                  </div>
+                                </div>
+                                <button type="button" className="primary-btn" style={{ background: lessonUnscrambleFeedback.isCorrect ? '#10b981' : '#ef4444', color: 'white', border: 'none', padding: '12px 30px', borderRadius: '12px', fontWeight: '800', cursor: 'pointer' }}
+                                  onClick={() => {
+                                    setLessonUnscrambleFeedback(null);
+                                    setLessonUnscrambleSelected([]);
+                                    if (lessonUnscrambleIndex < list.length - 1) {
+                                      setLessonUnscrambleIndex(lessonUnscrambleIndex + 1);
+                                    } else {
+                                      setLessonImageChoiceIndex(0);
+                                      setLessonImageChoiceSel(null);
+                                      setLessonImageChoiceFeedback(null);
+                                      setLessonStep(11);
+                                    }
+                                  }}>Continue</button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
+
+                    {/* Step 11: Choose the correct picture */}
+                    {lessonStep === 11 && (() => {
+                      const list = ai.imageChoice && ai.imageChoice.length ? ai.imageChoice : [{ word: "school", prompt: "Tap the picture that means school", options: ["🏫","🍎","🚗"], correctIndex: 0 }];
+                      const item = list[lessonImageChoiceIndex] || list[0];
+                      const isChecked = lessonImageChoiceFeedback !== null;
+
+                      return (
+                        <div className="ai-lesson-step" style={{ paddingBottom: '120px' }}>
+                          <div className="ai-lesson-step-header" style={{ marginBottom: '16px' }}>
+                            <span className="ai-step-badge">🖼️ Choose the correct picture (Question {lessonImageChoiceIndex + 1} of {list.length})</span>
+                          </div>
+
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '20px', margin: '20px 0' }}>
+                            <img src="/as1.png" alt="LISA Mascot" style={{ width: '80px', height: '80px', objectFit: 'contain' }} />
+                            <div style={{ flexGrow: 1, background: 'var(--panel)', border: '2px solid var(--line)', borderRadius: '20px', padding: '16px 24px', position: 'relative' }}>
+                              <div style={{ position: 'absolute', left: '-9px', top: '32px', width: '14px', height: '14px', background: 'var(--panel)', borderLeft: '2px solid var(--line)', borderBottom: '2px solid var(--line)', transform: 'rotate(45deg)' }}></div>
+                              <p style={{ margin: 0, fontSize: '1.1rem', fontWeight: '700' }}>{item.prompt}</p>
+                              <p style={{ margin: '6px 0 0', fontSize: '1.4rem', fontWeight: '800', color: 'var(--accent)' }}>{item.word}</p>
+                            </div>
+                          </div>
+
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', margin: '30px 0' }}>
+                            {item.options.map((opt, oIdx) => {
+                              const selected = lessonImageChoiceSel === oIdx;
+                              let border = '2px solid var(--line)';
+                              let bg = 'var(--panel)';
+                              if (isChecked) {
+                                if (oIdx === item.correctIndex) { border = '2px solid #10b981'; bg = '#d1fae5'; }
+                                else if (selected) { border = '2px solid #ef4444'; bg = '#fee2e2'; }
+                              } else if (selected) { border = '2px solid var(--accent)'; bg = 'rgba(var(--accent-rgb),0.05)'; }
+                              return (
+                                <button key={oIdx} type="button" onClick={() => { if (!isChecked) setLessonImageChoiceSel(oIdx); }} disabled={isChecked}
+                                  style={{ border, background: bg, borderRadius: '20px', padding: '24px 10px', fontSize: '3.5rem', cursor: isChecked ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                  {opt}
+                                </button>
+                              );
+                            })}
+                          </div>
+
+                          {!isChecked && (
+                            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
+                              <button type="button" className="primary-btn" style={{ padding: '12px 40px', borderRadius: '12px' }}
+                                onClick={() => {
+                                  const correct = lessonImageChoiceSel === item.correctIndex;
+                                  setLessonImageChoiceFeedback({ isCorrect: correct });
+                                }}
+                                disabled={lessonImageChoiceSel === null}>Check Answer</button>
+                            </div>
+                          )}
+
+                          {lessonImageChoiceFeedback && (
+                            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: lessonImageChoiceFeedback.isCorrect ? '#d1fae5' : '#fee2e2', borderTop: `2px solid ${lessonImageChoiceFeedback.isCorrect ? '#10b981' : '#ef4444'}`, padding: '20px 40px', zIndex: 100 }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', maxWidth: '1000px', margin: '0 auto' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                  <span style={{ fontSize: '2rem' }}>{lessonImageChoiceFeedback.isCorrect ? "🎉" : "❌"}</span>
+                                  <div>
+                                    <h4 style={{ margin: 0, color: lessonImageChoiceFeedback.isCorrect ? '#065f46' : '#991b1b', fontWeight: '800', fontSize: '1.2rem' }}>{lessonImageChoiceFeedback.isCorrect ? "Excellent!" : "Incorrect"}</h4>
+                                    <p style={{ margin: '4px 0 0', color: lessonImageChoiceFeedback.isCorrect ? '#047857' : '#b91c1c', fontSize: '0.95rem' }}>{lessonImageChoiceFeedback.isCorrect ? "You picked the right picture!" : `Correct picture: ${item.options[item.correctIndex]}`}</p>
+                                  </div>
+                                </div>
+                                <button type="button" className="primary-btn" style={{ background: lessonImageChoiceFeedback.isCorrect ? '#10b981' : '#ef4444', color: 'white', border: 'none', padding: '12px 30px', borderRadius: '12px', fontWeight: '800', cursor: 'pointer' }}
+                                  onClick={() => {
+                                    setLessonImageChoiceFeedback(null);
+                                    setLessonImageChoiceSel(null);
+                                    if (lessonImageChoiceIndex < list.length - 1) {
+                                      setLessonImageChoiceIndex(lessonImageChoiceIndex + 1);
+                                    } else {
+                                      setLessonTracingIndex(0);
+                                      setLessonTracingDone(false);
+                                      setLessonStep(12);
+                                    }
+                                  }}>Continue</button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
+
+                    {/* Step 12: Tracing on canvas */}
+                    {lessonStep === 12 && (() => {
+                      const list = ai.tracing && ai.tracing.length ? ai.tracing : [{ letter: "A", word: "Apple", info: "A is for Apple", sound: "Apple" }];
+                      const item = list[lessonTracingIndex] || list[0];
+
+                      const getPos = (e) => {
+                        const canvas = tracingCanvasRef.current;
+                        const rect = canvas.getBoundingClientRect();
+                        return { x: (e.clientX - rect.left) * (canvas.width / rect.width), y: (e.clientY - rect.top) * (canvas.height / rect.height) };
+                      };
+                      const startDraw = (e) => {
+                        const canvas = tracingCanvasRef.current;
+                        const ctx = canvas.getContext("2d");
+                        canvas.isDrawing = true;
+                        const p = getPos(e);
+                        ctx.beginPath();
+                        ctx.moveTo(p.x, p.y);
+                        setLessonTracingDone(true);
+                      };
+                      const moveDraw = (e) => {
+                        const canvas = tracingCanvasRef.current;
+                        if (!canvas.isDrawing) return;
+                        const ctx = canvas.getContext("2d");
+                        const p = getPos(e);
+                        ctx.lineTo(p.x, p.y);
+                        ctx.strokeStyle = "#0284c7";
+                        ctx.lineWidth = 8;
+                        ctx.lineCap = "round";
+                        ctx.lineJoin = "round";
+                        ctx.stroke();
+                      };
+                      const endDraw = () => { if (tracingCanvasRef.current) tracingCanvasRef.current.isDrawing = false; };
+                      const clearCanvas = () => {
+                        if (tracingCanvasRef.current) {
+                          drawTracingGuide(tracingCanvasRef.current, item);
+                          setLessonTracingDone(false);
+                        }
+                      };
+
+                      return (
+                        <div className="ai-lesson-step" style={{ paddingBottom: '120px' }}>
+                          <div className="ai-lesson-step-header" style={{ marginBottom: '16px' }}>
+                            <span className="ai-step-badge">✍️ Trace the letter (Step {lessonTracingIndex + 1} of {list.length})</span>
+                          </div>
+
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '20px', margin: '16px 0' }}>
+                            <img src="/as1.png" alt="LISA Mascot" style={{ width: '80px', height: '80px', objectFit: 'contain' }} />
+                            <div style={{ flexGrow: 1, background: 'var(--panel)', border: '2px solid var(--line)', borderRadius: '20px', padding: '16px 24px', position: 'relative' }}>
+                              <div style={{ position: 'absolute', left: '-9px', top: '32px', width: '14px', height: '14px', background: 'var(--panel)', borderLeft: '2px solid var(--line)', borderBottom: '2px solid var(--line)', transform: 'rotate(45deg)' }}></div>
+                              <p style={{ margin: 0, fontSize: '1.1rem', fontWeight: '700' }}>{item.info}</p>
+                            </div>
+                          </div>
+
+                          <div style={{ display: 'flex', justifyContent: 'center', margin: '16px 0' }}>
+                            <canvas
+                              ref={tracingCanvasRef}
+                              width={300}
+                              height={300}
+                              onPointerDown={startDraw}
+                              onPointerMove={moveDraw}
+                              onPointerUp={endDraw}
+                              onPointerLeave={endDraw}
+                              style={{ border: '2px solid var(--line)', borderRadius: '16px', background: 'var(--panel)', touchAction: 'none', maxWidth: '100%' }}
+                            />
+                          </div>
+
+                          <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', margin: '16px 0' }}>
+                            <button type="button" onClick={() => speakText(item.sound)} style={{ background: '#38bdf8', border: 'none', color: 'white', borderRadius: '12px', padding: '12px 20px', fontWeight: '800', cursor: 'pointer', fontSize: '1rem' }}>🔊 Play sound</button>
+                            <button type="button" onClick={clearCanvas} style={{ background: 'var(--panel-strong)', border: '2px solid var(--line)', borderRadius: '12px', padding: '12px 20px', fontWeight: '800', cursor: 'pointer', fontSize: '1rem' }}>↺ Clear</button>
+                          </div>
+
+                          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
+                            <button type="button" className="primary-btn" style={{ padding: '12px 40px', borderRadius: '12px' }}
+                              onClick={() => {
+                                if (lessonTracingIndex < list.length - 1) {
+                                  setLessonTracingIndex(lessonTracingIndex + 1);
+                                } else {
+                                  advanceLessonStep();
+                                }
+                              }}
+                              disabled={!lessonTracingDone}>Continue</button>
+                          </div>
                         </div>
                       );
                     })()}
