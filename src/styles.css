@@ -4230,7 +4230,7 @@ select:focus {
   align-items: center;
   gap: 24px;
   padding: 16px 48px;
-  background: var(--panel);
+  background: var(--panel-strong);
   border-bottom: 2px solid var(--line);
   box-sizing: border-box;
   position: sticky;
