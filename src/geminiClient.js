@@ -428,6 +428,7 @@ Return ONLY valid JSON with this exact structure:
 
   if (practiceType === "Stories Practice") {
     return `You are LISA, an expert AI literacy tutor. Generate a short, interesting, age-appropriate story (about 50-80 words, 3-5 sentences) in ${language} suitable for a learner at Literacy Level ${literacyLevel} (${literacyLevelName}).
+Make sure it is an engaging, structured story with characters or a narrative (e.g. beginning, middle, and end, or a simple fable/moral story) rather than just a simple informational paragraph.
 Then generate exactly 10 reading comprehension/vocabulary questions about this story.
 
 Return ONLY valid JSON with this exact structure:
@@ -443,6 +444,48 @@ Return ONLY valid JSON with this exact structure:
     }
   ]
 } (Make sure there are exactly 10 questions in the array)`;
+  }
+
+  if (practiceType === "Write Practice") {
+    return `You are LISA, an expert AI literacy tutor. Generate exactly 10 writing practice questions in ${language} suitable for a learner at Literacy Level ${literacyLevel} (${literacyLevelName}).
+The questions must be a mix of the following writing activity types:
+1. "fillBlank": A sentence in ${language} with a blank (___) for the learner to type the correct word.
+2. "unscramble": Shuffled letter tiles in ${language} that the learner rearranges to form a word.
+3. "writingActivity": A short writing prompt in ${language} for the learner to write a short response.
+4. "tracing": A letter or simple word in ${language} to trace.
+
+Return ONLY valid JSON with this exact structure:
+{
+  "questions": [
+    {
+      "id": 1,
+      "type": "fillBlank",
+      "sentence": "A sentence in ${language} with ___",
+      "answer": "correct word",
+      "hint": "helpful hint"
+    },
+    {
+      "id": 2,
+      "type": "unscramble",
+      "hint": "clue for the word",
+      "emoji": "emoji related to the word",
+      "answer": "WORD",
+      "tiles": ["D", "R", "O", "W"]
+    },
+    {
+      "id": 3,
+      "type": "writingActivity",
+      "prompt": "The writing prompt/instruction in ${language}"
+    },
+    {
+      "id": 4,
+      "type": "tracing",
+      "letter": "A letter or word to trace",
+      "info": "Instruction, e.g., 'Trace the letter A'",
+      "sound": "Pronunciation/sound of the letter/word"
+    }
+  ]
+} (Make sure there are exactly 10 items in the array, using a mix of these types)`;
   }
 
   return "";
@@ -543,6 +586,84 @@ const getFallbackPractice = (params) => {
         answer: "or",
         hint: "The entrance barrier"
       }))
+    };
+  }
+
+  if (practiceType === "Write Practice") {
+    return {
+      questions: [
+        {
+          id: 1,
+          type: "fillBlank",
+          sentence: language === "Hindi" ? "सूरज पूर्व से ___ है।" : language === "Kannada" ? "ಸೂರ್ಯನು ಪೂರ್ವದಲ್ಲಿ ___." : "The sun rises in the ___.",
+          answer: language === "Hindi" ? "उगता" : language === "Kannada" ? "ಉದಯಿಸುತ್ತಾನೆ" : "east",
+          hint: language === "Hindi" ? "दिशा" : language === "Kannada" ? "ದಿಕ್ಕು" : "A cardinal direction"
+        },
+        {
+          id: 2,
+          type: "unscramble",
+          hint: language === "Hindi" ? "अध्ययन का स्थान" : language === "Kannada" ? "ಕಲಿಯುವ ಸ್ಥಳ" : "Where we study",
+          emoji: "🏫",
+          answer: language === "Hindi" ? "स्कूल" : language === "Kannada" ? "ಶಾಲೆ" : "SCHOOL",
+          tiles: language === "Hindi" ? ["कू", "स", "ल"] : language === "Kannada" ? ["ಲೆ", "ಶಾ"] : ["L","O","C","S","H","O"]
+        },
+        {
+          id: 3,
+          type: "writingActivity",
+          prompt: language === "Hindi" ? "अपने पसंदीदा भोजन के बारे में 2 पंक्तियाँ लिखें।" : language === "Kannada" ? "ನಿಮ್ಮ ನೆಚ್ಚಿನ ಆಹಾರದ ಬಗ್ಗೆ 2 ಸಾಲುಗಳನ್ನು ಬರೆಯಿರಿ." : "Write 2 sentences about your favorite food."
+        },
+        {
+          id: 4,
+          type: "tracing",
+          letter: "B",
+          word: "Ball",
+          info: "Trace the letter B",
+          sound: "Ball"
+        },
+        {
+          id: 5,
+          type: "fillBlank",
+          sentence: language === "Hindi" ? "हमें हर दिन ___ पीना चाहिए।" : language === "Kannada" ? "ನಾವು ಪ್ರತಿದಿನ ___ ಕುಡಿಯಬೇಕು." : "We should drink clean ___ every day.",
+          answer: language === "Hindi" ? "पानी" : language === "Kannada" ? "ನೀರು" : "water",
+          hint: language === "Hindi" ? "पेय" : language === "Kannada" ? "ಪಾನೀಯ" : "Essential liquid"
+        },
+        {
+          id: 6,
+          type: "unscramble",
+          hint: language === "Hindi" ? "एक फल" : language === "Kannada" ? "ಒಂದು ಹಣ್ಣು" : "A sweet red fruit",
+          emoji: "🍎",
+          answer: language === "Hindi" ? "सेब" : language === "Kannada" ? "ಸೇಬು" : "APPLE",
+          tiles: language === "Hindi" ? ["ब", "से"] : language === "Kannada" ? ["ಬು", "ಸೇ"] : ["P","L","A","P","E"]
+        },
+        {
+          id: 7,
+          type: "writingActivity",
+          prompt: language === "Hindi" ? "आप सप्ताहांत में क्या करते हैं?" : language === "Kannada" ? "ನೀವು ವಾರಾಂತ್ಯದಲ್ಲಿ ಏನು ಮಾಡುತ್ತೀರಿ?" : "What do you do on weekends?"
+        },
+        {
+          id: 8,
+          type: "tracing",
+          letter: "C",
+          word: "Cat",
+          info: "Trace the letter C",
+          sound: "Cat"
+        },
+        {
+          id: 9,
+          type: "fillBlank",
+          sentence: language === "Hindi" ? "चिड़िया आकाश में ___ है।" : language === "Kannada" ? "ಹಕ್ಕಿ ಆಕಾಶದಲ್ಲಿ ___." : "Birds fly in the ___.",
+          answer: language === "Hindi" ? "उड़ती" : language === "Kannada" ? "ಹಾರುತ್ತದೆ" : "sky",
+          hint: language === "Hindi" ? "नीला" : language === "Kannada" ? "ನೀಲಿ" : "Up above"
+        },
+        {
+          id: 10,
+          type: "unscramble",
+          hint: language === "Hindi" ? "दिन का तारा" : language === "Kannada" ? "ದಿನದ ನಕ್ಷತ್ರ" : "The bright star of the day",
+          emoji: "🌞",
+          answer: language === "Hindi" ? "सूरज" : language === "Kannada" ? "ಸೂರ್ಯ" : "SUN",
+          tiles: language === "Hindi" ? ["ज", "सूर"] : language === "Kannada" ? ["ರ್ಯ", "ಸೂ"] : ["N","U","S"]
+        }
+      ]
     };
   }
 
