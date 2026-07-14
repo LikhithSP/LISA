@@ -558,3 +558,143 @@ export const generatePracticeContent = async (params) => {
     return getFallbackPractice(params);
   }
 };
+
+const getHash = (str) => {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return Math.abs(hash).toString(36);
+};
+
+export const translateTextContent = async (text, targetLanguage) => {
+  if (!targetLanguage || targetLanguage === "English") return text;
+  
+  const cacheKey = `lisa_trans_${targetLanguage}_${getHash(text)}`;
+  try {
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) return cached;
+  } catch (e) {
+    console.warn("Could not read translation cache:", e);
+  }
+
+  try {
+    const prompt = `You are a translation assistant. Translate the following text from English to ${targetLanguage}.
+Return ONLY a JSON object with this exact structure:
+{
+  "translatedText": "translated text"
+}
+
+Input:
+"${text}"`;
+
+    const response = await fetch(OPENROUTER_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${OPENROUTER_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: MODEL_NAME,
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.3,
+        max_tokens: 1024,
+        response_format: { type: "json_object" }
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error("Translation request failed");
+    }
+
+    const data = await response.json();
+    const resultText = data?.choices?.[0]?.message?.content || "";
+    const parsed = extractJSON(resultText);
+    const translated = parsed?.translatedText || text;
+
+    try {
+      localStorage.setItem(cacheKey, translated);
+    } catch (e) {
+      console.warn("Could not save to translation cache:", e);
+    }
+
+    return translated;
+  } catch (err) {
+    console.error("Translation error for text:", text, err);
+    return text;
+  }
+};
+
+export const translateMCQContent = async (questionText, optionsArray, targetLanguage) => {
+  if (!targetLanguage || targetLanguage === "English") {
+    return { question: questionText, options: optionsArray };
+  }
+
+  const payloadStr = JSON.stringify({ questionText, optionsArray });
+  const cacheKey = `lisa_trans_${targetLanguage}_${getHash(payloadStr)}`;
+  try {
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) return JSON.parse(cached);
+  } catch (e) {
+    console.warn("Could not read translation cache:", e);
+  }
+
+  try {
+    const prompt = `You are a translation assistant. Translate the following assessment question and its options from English to ${targetLanguage}.
+Return ONLY a valid JSON object with the following structure:
+{
+  "question": "translated question text",
+  "options": [
+    "translated option 1",
+    "translated option 2",
+    "translated option 3",
+    "translated option 4"
+  ]
+}
+
+Input:
+Question: "${questionText}"
+Options: ${JSON.stringify(optionsArray)}`;
+
+    const response = await fetch(OPENROUTER_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${OPENROUTER_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: MODEL_NAME,
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.3,
+        max_tokens: 2048,
+        response_format: { type: "json_object" }
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error("Translation request failed");
+    }
+
+    const data = await response.json();
+    const resultText = data?.choices?.[0]?.message?.content || "";
+    const parsed = extractJSON(resultText);
+    
+    const result = {
+      question: parsed?.question || questionText,
+      options: parsed?.options || optionsArray
+    };
+
+    try {
+      localStorage.setItem(cacheKey, JSON.stringify(result));
+    } catch (e) {
+      console.warn("Could not save to translation cache:", e);
+    }
+
+    return result;
+  } catch (err) {
+    console.error("Translation error for MCQ:", questionText, err);
+    return { question: questionText, options: optionsArray };
+  }
+};
