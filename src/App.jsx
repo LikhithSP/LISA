@@ -131,7 +131,7 @@ const selectQuestsForToday = (userId, todayStr) => {
   for (let i = 0; i < seedStr.length; i++) {
     hash = seedStr.charCodeAt(i) + ((hash << 5) - hash);
   }
-  
+
   const pool = [
     { id: 'earn_20_xp', type: 'xp', title: 'Earn 20 XP today', target: 20, unit: 'XP' },
     { id: 'practice_5_min', type: 'time', title: 'Practice for 5 mins', target: 300, unit: 'min' },
@@ -140,12 +140,12 @@ const selectQuestsForToday = (userId, todayStr) => {
     { id: 'earn_30_xp', type: 'xp', title: 'Earn 30 XP today', target: 30, unit: 'XP' },
     { id: 'complete_2_lessons', type: 'lessons', title: 'Complete 2 Lessons', target: 2, unit: 'lessons' }
   ];
-  
+
   const nextRandom = (seed) => {
     const x = Math.sin(seed++) * 10000;
     return x - Math.floor(x);
   };
-  
+
   const shuffled = [...pool];
   for (let i = shuffled.length - 1; i > 0; i--) {
     const r = Math.floor(nextRandom(hash + i) * (i + 1));
@@ -153,10 +153,10 @@ const selectQuestsForToday = (userId, todayStr) => {
     shuffled[i] = shuffled[r];
     shuffled[r] = temp;
   }
-  
+
   const selected = [];
   selected.push(shuffled[0]);
-  
+
   // Find a second quest with a different type
   for (let i = 1; i < shuffled.length; i++) {
     if (shuffled[i].type !== selected[0].type) {
@@ -164,12 +164,12 @@ const selectQuestsForToday = (userId, todayStr) => {
       break;
     }
   }
-  
+
   // Fallback
   if (selected.length < 2) {
     selected.push(shuffled[1]);
   }
-  
+
   return selected;
 };
 
@@ -418,7 +418,7 @@ function App() {
             dbDailyLessons = data.daily_lessons || 0;
           }
         }
-      } catch {}
+      } catch { }
 
       const finalXp = storedDailyXp !== null ? parseInt(storedDailyXp, 10) : dbDailyXp;
       const finalTime = storedDailyTime !== null ? parseInt(storedDailyTime, 10) : dbDailyTime;
@@ -475,7 +475,7 @@ function App() {
   useEffect(() => {
     if (!session?.user?.id) return;
     const userId = session.user.id;
-    
+
     const timer = setInterval(() => {
       const today = new Date().toLocaleDateString("en-CA");
       setDailyTimeSpent(prev => {
@@ -484,7 +484,7 @@ function App() {
         return next;
       });
     }, 1000);
-    
+
     return () => clearInterval(timer);
   }, [session?.user?.id]);
 
@@ -494,11 +494,11 @@ function App() {
       const midnight = new Date();
       midnight.setHours(24, 0, 0, 0); // Next midnight
       const diffMs = midnight - now;
-      
+
       const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
       const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
       const diffSecs = Math.floor((diffMs % (1000 * 60)) / 1000);
-      
+
       setTimeLeftStr(`${diffHrs}h ${diffMins}m ${diffSecs}s`);
     };
 
@@ -586,12 +586,12 @@ function App() {
 
       localStorage.setItem(`lisa_streak_${userId}`, newStreak);
       localStorage.setItem(`lisa_last_active_date_${userId}`, today);
-      
+
       let activeDates = [];
       try {
         const stored = localStorage.getItem(`lisa_active_dates_${userId}`);
         activeDates = stored ? JSON.parse(stored) : [];
-      } catch {}
+      } catch { }
       if (!activeDates.includes(today)) {
         activeDates.push(today);
         localStorage.setItem(`lisa_active_dates_${userId}`, JSON.stringify(activeDates));
@@ -620,7 +620,7 @@ function App() {
   const getPastSevenDaysStatus = () => {
     if (!session?.user?.id) return [];
     const userId = session.user.id;
-    
+
     let activeDates = [];
     try {
       const stored = localStorage.getItem(`lisa_active_dates_${userId}`);
@@ -639,7 +639,7 @@ function App() {
       activeDates.push(todayStr);
       try {
         localStorage.setItem(`lisa_active_dates_${userId}`, JSON.stringify(activeDates));
-      } catch {}
+      } catch { }
     }
 
     // Derive completed days from the actual streak count so the calendar always
@@ -745,20 +745,34 @@ function App() {
       const item = lessonAiContent.tracing[lessonTracingIndex] || lessonAiContent.tracing[0];
       drawTracingGuide(tracingCanvasRef.current, item);
       setLessonTracingDone(false);
+    } else if (lessonSession?.isPractice && lessonAiContent?.questions?.[lessonStep]?.type === "tracing" && tracingCanvasRef.current) {
+      const item = lessonAiContent.questions[lessonStep];
+      setTimeout(() => {
+        if (tracingCanvasRef.current) {
+          drawTracingGuide(tracingCanvasRef.current, item);
+        }
+      }, 50);
+      setLessonTracingDone(false);
     }
-  }, [lessonStep, lessonTracingIndex, lessonAiContent]);
+  }, [lessonStep, lessonTracingIndex, lessonAiContent, lessonSession]);
 
   const renderPracticeSession = (ai) => {
     const currentQuestion = ai.questions?.[lessonStep] || {};
     const practiceType = lessonSession.practiceType;
-    const isChecked = 
-      practiceType.includes("Speak") || practiceType.includes("Pronunciation") 
-        ? lessonSpeakFeedback !== null 
-        : practiceType.includes("Listen") 
-        ? lessonListeningFeedback !== null 
-        : currentQuestion.type === "mcq" || currentQuestion.type === "meaning"
-        ? lessonMeaningFeedback !== null || lessonMcqFeedback !== null
-        : lessonFillFeedback !== null;
+    const isChecked =
+      practiceType.includes("Speak") || practiceType.includes("Pronunciation")
+        ? lessonSpeakFeedback !== null
+        : practiceType.includes("Listen")
+          ? lessonListeningFeedback !== null
+          : currentQuestion.type === "mcq" || currentQuestion.type === "meaning"
+            ? lessonMeaningFeedback !== null || lessonMcqFeedback !== null
+            : currentQuestion.type === "unscramble"
+              ? lessonUnscrambleFeedback !== null
+              : currentQuestion.type === "tracing"
+                ? lessonTracingDone
+                : currentQuestion.type === "writingActivity"
+                  ? lessonWritingText.trim().length > 0
+                  : lessonFillFeedback !== null;
 
     const handleNext = () => {
       // Clear current step state
@@ -771,6 +785,10 @@ function App() {
       setLessonMcqFeedback(null);
       setLessonFillFeedback(null);
       setLessonFillAnswers({});
+      setLessonUnscrambleFeedback(null);
+      setLessonUnscrambleSelected([]);
+      setLessonTracingDone(false);
+      setLessonWritingText("");
       advanceLessonStep();
     };
 
@@ -815,9 +833,9 @@ function App() {
                   rec.continuous = false;
                   rec.interimResults = false;
                   rec.lang = selectedLanguage === "Kannada" ? "kn-IN" :
-                             selectedLanguage === "Hindi" ? "hi-IN" :
-                             selectedLanguage === "Telugu" ? "te-IN" :
-                             selectedLanguage === "Tamil" ? "ta-IN" : "en-US";
+                    selectedLanguage === "Hindi" ? "hi-IN" :
+                      selectedLanguage === "Telugu" ? "te-IN" :
+                        selectedLanguage === "Tamil" ? "ta-IN" : "en-US";
                   rec.onstart = () => {
                     setLessonSpeakIsListening(true);
                     setLessonSpeakTranscript("");
@@ -946,7 +964,7 @@ function App() {
               return (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px' }}>
                   <h3 style={{ margin: '0 0 10px', textAlign: 'center' }}>Listen to the sentence and reconstruct it:</h3>
-                  
+
                   <div style={{ display: 'flex', gap: '16px', margin: '10px 0 20px' }}>
                     <button
                       type="button"
@@ -1351,6 +1369,206 @@ function App() {
               );
             }
 
+            // 4. Writing Activity
+            if (currentQuestion.type === "writingActivity") {
+              const prompt = currentQuestion.prompt || "";
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '20px', margin: '20px 0' }}>
+                    <img src="/as1.png" alt="LISA Mascot" style={{ width: '80px', height: '80px', objectFit: 'contain' }} />
+                    <div style={{ flexGrow: 1, background: 'var(--panel)', border: '2px solid var(--line)', borderRadius: '20px', padding: '16px 24px', position: 'relative' }}>
+                      <div style={{ position: 'absolute', left: '-9px', top: '32px', width: '14px', height: '14px', background: 'var(--panel)', borderLeft: '2px solid var(--line)', borderBottom: '2px solid var(--line)', transform: 'rotate(45deg)' }}></div>
+                      <p style={{ fontSize: '1.2rem', fontWeight: '800', margin: 0 }}>{prompt}</p>
+                    </div>
+                  </div>
+                  <textarea
+                    className="writing-textarea"
+                    rows={6}
+                    placeholder="Type your response here..."
+                    value={lessonWritingText}
+                    onChange={(e) => setLessonWritingText(e.target.value)}
+                    style={{ width: '100%', padding: '16px', borderRadius: '16px', border: '2px solid var(--line)', fontSize: '1rem', fontFamily: 'inherit', background: 'var(--panel)' }}
+                  />
+                  <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
+                    <button type="button" className="primary-btn" style={{ padding: '12px 40px', borderRadius: '12px' }}
+                      onClick={handleNext}
+                      disabled={!lessonWritingText.trim()}>Continue</button>
+                  </div>
+                </div>
+              );
+            }
+
+            // 5. Unscramble
+            if (currentQuestion.type === "unscramble") {
+              const hint = currentQuestion.hint || "";
+              const emoji = currentQuestion.emoji || "🔤";
+              const answer = currentQuestion.answer || "";
+              const tiles = currentQuestion.tiles || [];
+              const isChecked = lessonUnscrambleFeedback !== null;
+              const currentBuiltWord = lessonUnscrambleSelected.map(idx => tiles[idx]).join("");
+
+              const handleTileClick = (idx) => {
+                if (isChecked) return;
+                if (lessonUnscrambleSelected.includes(idx)) return;
+                setLessonUnscrambleSelected(prev => [...prev, idx]);
+              };
+
+              const handleRemoveClick = (sIdx) => {
+                if (isChecked) return;
+                setLessonUnscrambleSelected(prev => prev.filter((_, idx) => idx !== sIdx));
+              };
+
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '20px', margin: '20px 0' }}>
+                    <img src="/as1.png" alt="LISA Mascot" style={{ width: '80px', height: '80px', objectFit: 'contain' }} />
+                    <div style={{ flexGrow: 1, background: 'var(--panel)', border: '2px solid var(--line)', borderRadius: '20px', padding: '16px 24px', position: 'relative' }}>
+                      <div style={{ position: 'absolute', left: '-9px', top: '32px', width: '14px', height: '14px', background: 'var(--panel)', borderLeft: '2px solid var(--line)', borderBottom: '2px solid var(--line)', transform: 'rotate(45deg)' }}></div>
+                      <p style={{ margin: 0, fontSize: '1.1rem', fontWeight: '700' }}>{emoji} {hint}</p>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'center', margin: '24px 0', minHeight: '56px' }}>
+                    {lessonUnscrambleSelected.length === 0 && (
+                      <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Tap the letters below to build the word</span>
+                    )}
+                    {lessonUnscrambleSelected.map((idx, sIdx) => (
+                      <button key={sIdx} type="button" onClick={() => handleRemoveClick(sIdx)} disabled={isChecked} style={{ background: 'var(--accent)', color: 'white', border: 'none', borderRadius: '10px', padding: '10px 16px', fontSize: '1.3rem', fontWeight: '800', cursor: isChecked ? 'default' : 'pointer' }}>{tiles[idx]}</button>
+                    ))}
+                  </div>
+
+                  {!isChecked && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'center', margin: '20px 0 30px' }}>
+                      {tiles.map((tile, idx) => {
+                        const isSelected = lessonUnscrambleSelected.includes(idx);
+                        return (
+                          <button key={idx} type="button" onClick={() => handleTileClick(idx)} disabled={isSelected} style={{ background: isSelected ? 'var(--line)' : 'var(--panel)', color: isSelected ? 'transparent' : 'var(--text)', border: '2px solid var(--line)', borderRadius: '10px', padding: '10px 16px', fontSize: '1.3rem', fontWeight: '800', cursor: isSelected ? 'default' : 'pointer' }}>{tile}</button>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {!isChecked && (
+                    <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
+                      <button type="button" className="primary-btn" style={{ padding: '12px 40px', borderRadius: '12px' }}
+                        onClick={() => {
+                          const correct = currentBuiltWord.trim().toUpperCase() === answer.trim().toUpperCase();
+                          if (!correct) {
+                            recordUserMistake({
+                              type: "unscramble",
+                              hint: hint,
+                              emoji: emoji,
+                              answer: answer,
+                              tiles: tiles
+                            });
+                          }
+                          setLessonUnscrambleFeedback({
+                            isCorrect: correct,
+                            correctAnswer: answer
+                          });
+                        }}
+                        disabled={lessonUnscrambleSelected.length === 0}>Check Answer</button>
+                    </div>
+                  )}
+
+                  {lessonUnscrambleFeedback && (
+                    <div style={{
+                      position: 'absolute',
+                      bottom: 0, left: 0, right: 0,
+                      background: lessonUnscrambleFeedback.isCorrect ? '#d1fae5' : '#fee2e2',
+                      borderTop: `2px solid ${lessonUnscrambleFeedback.isCorrect ? '#10b981' : '#ef4444'}`,
+                      padding: '20px 40px',
+                      zIndex: 100,
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                    }}>
+                      <div>
+                        <h4 style={{ margin: 0, color: lessonUnscrambleFeedback.isCorrect ? '#065f46' : '#991b1b', fontWeight: '800', fontSize: '1.2rem' }}>{lessonUnscrambleFeedback.isCorrect ? 'Excellent!' : 'Incorrect'}</h4>
+                        <p style={{ margin: '4px 0 0', color: lessonUnscrambleFeedback.isCorrect ? '#047857' : '#b91c1c', fontSize: '0.95rem' }}>{lessonUnscrambleFeedback.isCorrect ? 'You unscrambled it!' : `Correct word: "${lessonUnscrambleFeedback.correctAnswer}"`}</p>
+                      </div>
+                      <button type="button" className="primary-btn" onClick={handleNext}>Continue</button>
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
+            // 6. Tracing
+            if (currentQuestion.type === "tracing") {
+              const getPos = (e) => {
+                const canvas = tracingCanvasRef.current;
+                if (!canvas) return { x: 0, y: 0 };
+                const rect = canvas.getBoundingClientRect();
+                return { x: (e.clientX - rect.left) * (canvas.width / rect.width), y: (e.clientY - rect.top) * (canvas.height / rect.height) };
+              };
+              const startDraw = (e) => {
+                const canvas = tracingCanvasRef.current;
+                if (!canvas) return;
+                const ctx = canvas.getContext("2d");
+                canvas.isDrawing = true;
+                const p = getPos(e);
+                ctx.beginPath();
+                ctx.moveTo(p.x, p.y);
+                setLessonTracingDone(true);
+              };
+              const moveDraw = (e) => {
+                const canvas = tracingCanvasRef.current;
+                if (!canvas || !canvas.isDrawing) return;
+                const ctx = canvas.getContext("2d");
+                const p = getPos(e);
+                ctx.lineTo(p.x, p.y);
+                ctx.strokeStyle = "#0284c7";
+                ctx.lineWidth = 8;
+                ctx.lineCap = "round";
+                ctx.lineJoin = "round";
+                ctx.stroke();
+              };
+              const endDraw = () => { if (tracingCanvasRef.current) tracingCanvasRef.current.isDrawing = false; };
+              const clearCanvas = () => {
+                if (tracingCanvasRef.current) {
+                  drawTracingGuide(tracingCanvasRef.current, currentQuestion);
+                  setLessonTracingDone(false);
+                }
+              };
+
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '20px', margin: '16px 0' }}>
+                    <img src="/as1.png" alt="LISA Mascot" style={{ width: '80px', height: '80px', objectFit: 'contain' }} />
+                    <div style={{ flexGrow: 1, background: 'var(--panel)', border: '2px solid var(--line)', borderRadius: '20px', padding: '16px 24px', position: 'relative' }}>
+                      <div style={{ position: 'absolute', left: '-9px', top: '32px', width: '14px', height: '14px', background: 'var(--panel)', borderLeft: '2px solid var(--line)', borderBottom: '2px solid var(--line)', transform: 'rotate(45deg)' }}></div>
+                      <p style={{ margin: 0, fontSize: '1.1rem', fontWeight: '700' }}>{currentQuestion.info || `Trace the letter ${currentQuestion.letter}`}</p>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'center', margin: '16px 0' }}>
+                    <canvas
+                      ref={tracingCanvasRef}
+                      width={300}
+                      height={300}
+                      onPointerDown={startDraw}
+                      onPointerMove={moveDraw}
+                      onPointerUp={endDraw}
+                      onPointerLeave={endDraw}
+                      style={{ border: '2px solid var(--line)', borderRadius: '16px', background: 'var(--panel)', touchAction: 'none', maxWidth: '100%' }}
+                    />
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', margin: '16px 0' }}>
+                    <button type="button" onClick={() => speakText(currentQuestion.sound || currentQuestion.word)} style={{ background: '#38bdf8', border: 'none', color: 'white', borderRadius: '12px', padding: '12px 20px', fontWeight: '800', cursor: 'pointer', fontSize: '1rem' }}>🔊 Play sound</button>
+                    <button type="button" onClick={clearCanvas} style={{ background: 'var(--panel-strong)', border: '2px solid var(--line)', borderRadius: '12px', padding: '12px 20px', fontWeight: '800', cursor: 'pointer', fontSize: '1rem' }}>↺ Clear</button>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
+                    <button type="button" className="primary-btn" style={{ padding: '12px 40px', borderRadius: '12px' }}
+                      onClick={handleNext}
+                      disabled={!lessonTracingDone}>Continue</button>
+                  </div>
+                </div>
+              );
+            }
+
             return null;
           })()}
         </div>
@@ -1395,7 +1613,7 @@ function App() {
     try {
       const stored = localStorage.getItem(`lisa_active_dates_${userId}`);
       activeDates = stored ? JSON.parse(stored) : [];
-    } catch {}
+    } catch { }
     if (!activeDates.includes(today)) {
       activeDates.push(today);
       localStorage.setItem(`lisa_active_dates_${userId}`, JSON.stringify(activeDates));
@@ -1447,6 +1665,8 @@ function App() {
     setLessonReadingStep(1);
     setLessonReadingFeedback(null);
     setLessonReadingAnswer("");
+    const isPractice = lesson.id.includes("_practice") || lesson.title.includes("Practice") || lesson.title.includes("Pronunciation");
+
     setLessonSession({
       lessonId: lesson.id,
       title: lesson.title,
@@ -1456,7 +1676,9 @@ function App() {
       unitTitle: unitInfo?.title || "",
       lessonNum: lesson.num || 1,
       status: "loading",
-      feedback: null
+      feedback: null,
+      isPractice: isPractice,
+      practiceType: lesson.title
     });
 
     const storedSkillScores = (() => {
@@ -1469,21 +1691,32 @@ function App() {
     const currentLevelNum = calculateProgressiveLevel(profile, completedLessons);
     const profInfo = getProficiencyName(currentLevelNum, "English");
 
-    const aiContent = await generateLessonContent({
-      age: profile?.age || 25,
-      educationLevel: profile?.education_level || "No formal education",
-      language: selectedLanguage || "English",
-      literacyLevel: currentLevelNum,
-      literacyLevelName: profInfo?.name || "Beginner",
-      weakAreas,
-      sectionNum: sectionInfo?.num || 1,
-      sectionTitle: sectionInfo?.title || "",
-      unitNum: unitInfo?.num || 1,
-      unitTitle: unitInfo?.title || "",
-      lessonNum: lesson.num || 1,
-      lessonTitle: lesson.title || "",
-      difficulty: currentLevelNum <= 2 ? "beginner" : currentLevelNum <= 4 ? "intermediate" : "advanced"
-    });
+    let aiContent;
+    if (isPractice) {
+      aiContent = await generatePracticeContent({
+        practiceType: lesson.title,
+        language: selectedLanguage || "English",
+        literacyLevel: currentLevelNum,
+        literacyLevelName: profInfo?.name || "Beginner",
+        mistakesList: []
+      });
+    } else {
+      aiContent = await generateLessonContent({
+        age: profile?.age || 25,
+        educationLevel: profile?.education_level || "No formal education",
+        language: selectedLanguage || "English",
+        literacyLevel: currentLevelNum,
+        literacyLevelName: profInfo?.name || "Beginner",
+        weakAreas,
+        sectionNum: sectionInfo?.num || 1,
+        sectionTitle: sectionInfo?.title || "",
+        unitNum: unitInfo?.num || 1,
+        unitTitle: unitInfo?.title || "",
+        lessonNum: lesson.num || 1,
+        lessonTitle: lesson.title || "",
+        difficulty: currentLevelNum <= 2 ? "beginner" : currentLevelNum <= 4 ? "intermediate" : "advanced"
+      });
+    }
 
     setLessonAiContent(aiContent);
     setLessonSession(prev => prev ? ({ ...prev, status: "active" }) : null);
@@ -1493,7 +1726,8 @@ function App() {
 
   // AI Lesson step handlers
   const advanceLessonStep = () => {
-    const totalSteps = 5; // 0=explanation, 1=MCQs, 2=fillBlanks, 3=reading+writing, 4=complete
+    const isPractice = lessonSession?.isPractice;
+    const totalSteps = isPractice ? 10 : 5;
     if (lessonStep < totalSteps - 1) {
       setLessonStep(prev => prev + 1);
     } else {
@@ -1656,7 +1890,7 @@ function App() {
     setEditEdLevel(profile.education_level || "No formal education");
   }, [profile]);
 
-    const localUiTranslations = {
+  const localUiTranslations = {
     English: {
       sidebarDashboard: "Dashboard",
       sidebarLearn: "Learn",
@@ -1685,6 +1919,8 @@ function App() {
       practiceSpeakDesc: "Improve your speaking skills with these phrases",
       practiceListen: "Listen",
       practiceListenDesc: "Boost your listening skills with an audio-only session",
+      practiceWrite: "Write",
+      practiceWriteDesc: "Enhance your writing skills with interactive exercises",
       practiceYourCollections: "Your collections",
       practiceMistakes: "Mistakes",
       practiceWords: "Words",
@@ -1727,6 +1963,8 @@ function App() {
       practiceSpeakDesc: "इन वाक्यांशों के साथ अपने बोलने के कौशल में सुधार करें",
       practiceListen: "सुनें",
       practiceListenDesc: "केवल सुनने वाले सत्र के साथ अपने सुनने के कौशल को बढ़ाएं",
+      practiceWrite: "लिखें",
+      practiceWriteDesc: "इंटरैक्टिव अभ्यासों के साथ अपने लेखन कौशल को बढ़ाएं",
       practiceYourCollections: "आपके संग्रह",
       practiceMistakes: "गलतियाँ",
       practiceWords: "शब्द",
@@ -1769,6 +2007,8 @@ function App() {
       practiceSpeakDesc: "ಈ ನುಡಿಗಟ್ಟುಗಳೊಂದಿಗೆ ನಿಮ್ಮ ಮಾತನಾಡುವ ಕೌಶಲ್ಯವನ್ನು ಸುಧಾರಿಸಿ",
       practiceListen: "ಕೇಳು",
       practiceListenDesc: "ಕೇವಲ ಆಲಿಸುವ ಸೆಷನ್ ಮೂಲಕ ನಿಮ್ಮ ಆಲಿಸುವ ಕೌಶಲ್ಯವನ್ನು ಹೆಚ್ಚಿಸಿ",
+      practiceWrite: "ಬರೆಯಿರಿ",
+      practiceWriteDesc: "ಸಂವಾದಾತ್ಮಕ ಅಭ್ಯಾಸಗಳೊಂದಿಗೆ ನಿಮ್ಮ ಬರವಣಿಗೆಯ ಕೌಶಲ್ಯಗಳನ್ನು ಹೆಚ್ಚಿಸಿ",
       practiceYourCollections: "ನಿಮ್ಮ ಸಂಗ್ರಹಗಳು",
       practiceMistakes: "ತಪ್ಪುಗಳು",
       practiceWords: "ಪದಗಳು",
@@ -1811,6 +2051,8 @@ function App() {
       practiceSpeakDesc: "ఈ పదబంధాలతో మీ మాట్లాడే నైపుణ్యాలను మెరుగుపరచుకోండి",
       practiceListen: "వినండి",
       practiceListenDesc: "ఆడియో మాత్రమే ఉండే సెషన్‌తో మీ వినికిడి నైపుణ్యాలను పెంచుకోండి",
+      practiceWrite: "రాయండి",
+      practiceWriteDesc: "ఇంటరాక్టివ్ వ్యాయామాలతో మీ రాయడం నైపుణ్యాలను మెరుగుపరచుకోండి",
       practiceYourCollections: "మీ సేకరణలు",
       practiceMistakes: "తప్పులు",
       practiceWords: "పదాలు",
@@ -1853,6 +2095,8 @@ function App() {
       practiceSpeakDesc: "இந்த சொற்றொடர்களைக் கொண்டு உங்கள் பேசும் திறனை மேம்படுத்துங்கள்",
       practiceListen: "கேள்",
       practiceListenDesc: "ஆடியோ மூலம் உங்கள் கேட்கும் திறனை அதிகரிக்கவும்",
+      practiceWrite: "எழுதுங்கள்",
+      practiceWriteDesc: "ஊடாடும் பயிற்சிகள் மூலம் உங்கள் எழுத்துத் திறனை மேம்படுத்துங்கள்",
       practiceYourCollections: "உங்கள் சேகரிப்புகள்",
       practiceMistakes: "தவறுகள்",
       practiceWords: "வார்த்தைகள்",
@@ -1898,7 +2142,7 @@ function App() {
       if (!session?.user?.id || !profile) return;
       const userId = session.user.id;
       const currentLevel = calculateProgressiveLevel(profile, completedLessons);
-      
+
       const achievementsDefinitions = [
         { id: 1, condition: true },
         { id: 2, condition: calculateSkillProficiency("reading") >= 75 },
@@ -2869,7 +3113,7 @@ function App() {
                   style={{ width: "100%", boxSizing: "border-box" }}
                 />
               </label>
-              
+
               <label className="profile-dropdown-label">
                 {t("age")}
                 <input
@@ -2920,7 +3164,7 @@ function App() {
                 {submitting ? t("profileSaving") : t("profileSaveChanges")}
               </button>
             </form>
-            
+
             <hr style={{ border: '0', borderTop: '1px solid var(--line)', margin: '16px 0 12px 0' }} />
 
             <button
@@ -3195,164 +3439,164 @@ function App() {
                       ) : (
                         <>
                           {/* READING VOICE TO TEXT WITH MONKEYTYPE UI */}
-                      {isVoiceReading && (
-                        <div className="reading-q-container">
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-                            <p className="helper-text" style={{ margin: 0 }}>{t("monkeyTypeTip")}</p>
-                            <button
-                              type="button"
-                              className="tts-btn"
-                              onClick={() => speakText(readingTargetText)}
-                              title="Listen to pronunciation"
-                            >
-                              🔊 {t("listenBtn") || "Listen"}
-                            </button>
-                          </div>
-
-                          <div className="monkeytype-text-block">
-                            {readingTargetText.split(/\s+/).map((word, idx) => {
-                              const cleaned = cleanWord(word);
-                              const attempt = readingAttempts[currentStep];
-                              let wordClass = "unspoken";
-                              if (attempt && attempt.scores) {
-                                const targetWordsCleaned = readingTargetText.split(/\s+/).map(cleanWord);
-                                const cleanIdx = targetWordsCleaned.indexOf(cleaned);
-                                if (cleanIdx !== -1 && attempt.scores[cleanIdx]) {
-                                  wordClass = "correct";
-                                } else if (!isListening) {
-                                  wordClass = "incorrect";
-                                }
-                              }
-                              return (
-                                <span key={idx} className={`mt-word ${wordClass}`}>
-                                  {word}{" "}
-                                </span>
-                              );
-                            })}
-                          </div>
-
-                          <div className="voice-mic-controls">
-                            {!isListening ? (
-                              <div className="mic-outer-container">
+                          {isVoiceReading && (
+                            <div className="reading-q-container">
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                                <p className="helper-text" style={{ margin: 0 }}>{t("monkeyTypeTip")}</p>
                                 <button
                                   type="button"
-                                  className="mic-btn"
-                                  onClick={() => startListening(readingTargetText)}
+                                  className="tts-btn"
+                                  onClick={() => speakText(readingTargetText)}
+                                  title="Listen to pronunciation"
                                 >
-                                  <svg className="mic-icon" width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                                    <path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3z" />
-                                    <path d="M17 11a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z" />
-                                  </svg>
-                                  <span className="mic-btn-text">CLICK TO SPEAK</span>
+                                  🔊 {t("listenBtn") || "Listen"}
                                 </button>
                               </div>
-                            ) : (
-                              <div className="mic-outer-container">
-                                <button
-                                  type="button"
-                                  className="mic-btn"
-                                  onClick={stopListening}
-                                >
-                                  <span className="voice-wave" aria-hidden="true">
-                                    <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
-                                  </span>
-                                </button>
-                              </div>
-                            )}
-                          </div>
 
-                          {spokenTranscript && (
-                            <div className="voice-transcript-log">
-                              <strong>Spoken:</strong> "{spokenTranscript}"
+                              <div className="monkeytype-text-block">
+                                {readingTargetText.split(/\s+/).map((word, idx) => {
+                                  const cleaned = cleanWord(word);
+                                  const attempt = readingAttempts[currentStep];
+                                  let wordClass = "unspoken";
+                                  if (attempt && attempt.scores) {
+                                    const targetWordsCleaned = readingTargetText.split(/\s+/).map(cleanWord);
+                                    const cleanIdx = targetWordsCleaned.indexOf(cleaned);
+                                    if (cleanIdx !== -1 && attempt.scores[cleanIdx]) {
+                                      wordClass = "correct";
+                                    } else if (!isListening) {
+                                      wordClass = "incorrect";
+                                    }
+                                  }
+                                  return (
+                                    <span key={idx} className={`mt-word ${wordClass}`}>
+                                      {word}{" "}
+                                    </span>
+                                  );
+                                })}
+                              </div>
+
+                              <div className="voice-mic-controls">
+                                {!isListening ? (
+                                  <div className="mic-outer-container">
+                                    <button
+                                      type="button"
+                                      className="mic-btn"
+                                      onClick={() => startListening(readingTargetText)}
+                                    >
+                                      <svg className="mic-icon" width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                        <path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3z" />
+                                        <path d="M17 11a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z" />
+                                      </svg>
+                                      <span className="mic-btn-text">CLICK TO SPEAK</span>
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <div className="mic-outer-container">
+                                    <button
+                                      type="button"
+                                      className="mic-btn"
+                                      onClick={stopListening}
+                                    >
+                                      <span className="voice-wave" aria-hidden="true">
+                                        <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+                                      </span>
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+
+                              {spokenTranscript && (
+                                <div className="voice-transcript-log">
+                                  <strong>Spoken:</strong> "{spokenTranscript}"
+                                </div>
+                              )}
+
+                              {micError && <p className="mic-error-text">{micError}</p>}
+
+                              {/* Manual fallback input */}
+                              <div className="voice-fallback-area">
+                                <label className="fallback-label">{t("skipVoicePrompt")}</label>
+                                <div className="fallback-input-row">
+                                  <input
+                                    type="text"
+                                    placeholder="Type sentence here if mic fails..."
+                                    value={manualTextFallback}
+                                    onChange={(e) => setManualTextFallback(e.target.value)}
+                                  />
+                                  <button
+                                    type="button"
+                                    className="secondary-btn"
+                                    onClick={() => handleManualTextSubmit(readingTargetText)}
+                                  >
+                                    {t("skipVoiceBtn")}
+                                  </button>
+                                </div>
+                              </div>
                             </div>
                           )}
 
-                          {micError && <p className="mic-error-text">{micError}</p>}
-
-                          {/* Manual fallback input */}
-                          <div className="voice-fallback-area">
-                            <label className="fallback-label">{t("skipVoicePrompt")}</label>
-                            <div className="fallback-input-row">
-                              <input
-                                type="text"
-                                placeholder="Type sentence here if mic fails..."
-                                value={manualTextFallback}
-                                onChange={(e) => setManualTextFallback(e.target.value)}
-                              />
-                              <button
-                                type="button"
-                                className="secondary-btn"
-                                onClick={() => handleManualTextSubmit(readingTargetText)}
-                              >
-                                {t("skipVoiceBtn")}
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* COMPREHENSION SHUFFLED MCQS */}
-                      {isCompMCQ && (
-                        <div className="comprehension-q-container">
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
-                            <p className="comprehension-question" style={{ margin: 0, flex: 1, fontWeight: 700, fontSize: "1.2rem" }}>{compQuestionText}</p>
-                            <button
-                              type="button"
-                              className="tts-btn"
-                              onClick={() => speakText(compQuestionText)}
-                              title="Listen to question"
-                            >
-                              🔊 {t("listenBtn") || "Listen"}
-                            </button>
-                          </div>
-                          <div className="options-grid">
-                            {compOptions.map((opt, idx) => {
-                              const isSelected = selectedAnswers[currentStep] === idx;
-                              return (
+                          {/* COMPREHENSION SHUFFLED MCQS */}
+                          {isCompMCQ && (
+                            <div className="comprehension-q-container">
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
+                                <p className="comprehension-question" style={{ margin: 0, flex: 1, fontWeight: 700, fontSize: "1.2rem" }}>{compQuestionText}</p>
                                 <button
-                                  key={idx}
                                   type="button"
-                                  className={`option-btn ${isSelected ? "selected" : ""}`}
-                                  onClick={() => setSelectedAnswers({ ...selectedAnswers, [currentStep]: idx })}
+                                  className="tts-btn"
+                                  onClick={() => speakText(compQuestionText)}
+                                  title="Listen to question"
                                 >
-                                  <span className="option-indicator">{String.fromCharCode(65 + idx)}</span>
-                                  <span className="option-label">{opt}</span>
+                                  🔊 {t("listenBtn") || "Listen"}
                                 </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* WRITING DICTATION SECTION */}
-                      {isWriting && (
-                        <div className="writing-q-container">
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px', justifyContent: 'space-between', width: '100%' }}>
-                            <div style={{ flex: 1 }}>
-                              <p className="writing-prompt" style={{ margin: 0, fontWeight: 700, fontSize: "1.2rem" }}>{writingPromptText}</p>
-                              <p className="helper-text" style={{ margin: '8px 0 0' }}>{t("dictationTip") || "Press play and write the sentence you hear."}</p>
+                              </div>
+                              <div className="options-grid">
+                                {compOptions.map((opt, idx) => {
+                                  const isSelected = selectedAnswers[currentStep] === idx;
+                                  return (
+                                    <button
+                                      key={idx}
+                                      type="button"
+                                      className={`option-btn ${isSelected ? "selected" : ""}`}
+                                      onClick={() => setSelectedAnswers({ ...selectedAnswers, [currentStep]: idx })}
+                                    >
+                                      <span className="option-indicator">{String.fromCharCode(65 + idx)}</span>
+                                      <span className="option-label">{opt}</span>
+                                    </button>
+                                  );
+                                })}
+                              </div>
                             </div>
-                            <button
-                              type="button"
-                              className="tts-btn dictation-play"
-                              onClick={() => speakText(dictationText)}
-                              title="Listen to the sentence"
-                            >
-                              🔊 {t("listenBtn") || "Listen"}
-                            </button>
-                          </div>
-                          <textarea
-                            className="writing-textarea"
-                            placeholder="Write the sentence you heard here..."
-                            rows={6}
-                            value={writingAnswers[currentStep] || ""}
-                            onChange={(e) => setWritingAnswers({ ...writingAnswers, [currentStep]: e.target.value })}
-                          />
-                          <div className="text-counter">
-                            Characters: {(writingAnswers[currentStep] || "").length} | Words: {(writingAnswers[currentStep] || "").split(/\s+/).filter(Boolean).length}
-                          </div>
-                        </div>
-                      )}
+                          )}
+
+                          {/* WRITING DICTATION SECTION */}
+                          {isWriting && (
+                            <div className="writing-q-container">
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px', justifyContent: 'space-between', width: '100%' }}>
+                                <div style={{ flex: 1 }}>
+                                  <p className="writing-prompt" style={{ margin: 0, fontWeight: 700, fontSize: "1.2rem" }}>{writingPromptText}</p>
+                                  <p className="helper-text" style={{ margin: '8px 0 0' }}>{t("dictationTip") || "Press play and write the sentence you hear."}</p>
+                                </div>
+                                <button
+                                  type="button"
+                                  className="tts-btn dictation-play"
+                                  onClick={() => speakText(dictationText)}
+                                  title="Listen to the sentence"
+                                >
+                                  🔊 {t("listenBtn") || "Listen"}
+                                </button>
+                              </div>
+                              <textarea
+                                className="writing-textarea"
+                                placeholder="Write the sentence you heard here..."
+                                rows={6}
+                                value={writingAnswers[currentStep] || ""}
+                                onChange={(e) => setWritingAnswers({ ...writingAnswers, [currentStep]: e.target.value })}
+                              />
+                              <div className="text-counter">
+                                Characters: {(writingAnswers[currentStep] || "").length} | Words: {(writingAnswers[currentStep] || "").split(/\s+/).filter(Boolean).length}
+                              </div>
+                            </div>
+                          )}
                         </>
                       )}</div>
 
@@ -3427,11 +3671,11 @@ function App() {
 
                 const skillOrder = [
                   { key: "letter_recognition", label: "Letter Recognition", color: "#f59e0b", icon: "🔤" },
-                  { key: "word_recognition",   label: "Word Recognition",   color: "#3b82f6", icon: "📝" },
-                  { key: "sentence_reading",   label: "Sentence Reading",   color: "#10b981", icon: "📖" },
-                  { key: "comprehension",       label: "Comprehension",       color: "#8b5cf6", icon: "🧠" },
-                  { key: "writing",             label: "Writing",             color: "#ef4444", icon: "✍️" },
-                  { key: "pronunciation",       label: "Pronunciation",       color: "#06b6d4", icon: "🎤" },
+                  { key: "word_recognition", label: "Word Recognition", color: "#3b82f6", icon: "📝" },
+                  { key: "sentence_reading", label: "Sentence Reading", color: "#10b981", icon: "📖" },
+                  { key: "comprehension", label: "Comprehension", color: "#8b5cf6", icon: "🧠" },
+                  { key: "writing", label: "Writing", color: "#ef4444", icon: "✍️" },
+                  { key: "pronunciation", label: "Pronunciation", color: "#06b6d4", icon: "🎤" },
                 ];
 
 
@@ -3602,16 +3846,16 @@ function App() {
               style={{ display: 'flex', alignItems: 'center' }}
             >
               {profileAvatar && profileAvatar.startsWith("http") ? (
-                <img 
-                  src={profileAvatar} 
-                  alt="Profile" 
-                  style={{ 
-                    width: "28px", 
-                    height: "28px", 
-                    borderRadius: "50%", 
-                    objectFit: "cover", 
-                    marginRight: "10px" 
-                  }} 
+                <img
+                  src={profileAvatar}
+                  alt="Profile"
+                  style={{
+                    width: "28px",
+                    height: "28px",
+                    borderRadius: "50%",
+                    objectFit: "cover",
+                    marginRight: "10px"
+                  }}
                 />
               ) : (
                 <ProfileIcon />
@@ -3636,8 +3880,8 @@ function App() {
           {/* Topbar */}
           <div className="dashboard-topbar">
             <div className="topbar-indicators" style={{ position: 'relative' }}>
-              <div 
-                className="indicator-pill streak" 
+              <div
+                className="indicator-pill streak"
                 onClick={() => setStreakPopupOpen(!streakPopupOpen)}
                 style={{ cursor: 'pointer', position: 'relative' }}
                 ref={streakPopupRef}
@@ -3646,8 +3890,8 @@ function App() {
 
                 {/* Streak Popup */}
                 {streakPopupOpen && (
-                  <div 
-                    className="streak-popup-overlay" 
+                  <div
+                    className="streak-popup-overlay"
                     style={{
                       position: 'absolute',
                       top: '100%',
@@ -3688,8 +3932,8 @@ function App() {
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            background: day.isCompleted 
-                              ? 'linear-gradient(135deg, #ff6b00, #ff4d00)' 
+                            background: day.isCompleted
+                              ? 'linear-gradient(135deg, #ff6b00, #ff4d00)'
                               : 'rgba(0,0,0,0.05)',
                             color: day.isCompleted ? 'white' : 'var(--muted)',
                             border: day.isToday ? '2px solid var(--accent)' : 'none',
@@ -3721,33 +3965,33 @@ function App() {
                     <p>{t("dashboardWelcomeBack")}</p>
                   </div>
 
-                   <div className="resume-card">
-                     <div className="resume-card-info">
-                       <span className="resume-card-label">{t("dashboardContinueLearning")}</span>
-                       <h3 className="resume-card-title">{currentUnit?.title || t("dashboardStartLearning")}</h3>
-                       <div className="resume-card-sub" style={{ display: 'flex', flexDirection: 'column' }}>
-                         <span style={{ fontSize: '0.85rem' }}>
-                           {t("dashboardSection")}: {sections[currentUnitPos.sectionIdx]?.title || `${t("dashboardSection")} ${currentUnitPos.sectionIdx + 1}`}
-                         </span>
-                         <span style={{ 
-                           fontSize: '0.78rem', 
-                           marginTop: '10px', 
-                           whiteSpace: 'nowrap'
-                         }}>
-                           {t("dashboardUnit")}: {sections[currentUnitPos.sectionIdx]?.units[currentUnitPos.unitIdx]?.title || `${t("dashboardUnit")} ${currentUnitPos.unitIdx + 1}`}
-                         </span>
-                       </div>
-                     </div>
-                     <button
-                       type="button"
-                       className="resume-btn"
-                       onClick={() => {
-                         setDashboardTab("learn");
-                       }}
-                     >
-                       ▶ {t("dashboardResume")}
-                     </button>
-                   </div>
+                  <div className="resume-card">
+                    <div className="resume-card-info">
+                      <span className="resume-card-label">{t("dashboardContinueLearning")}</span>
+                      <h3 className="resume-card-title">{currentUnit?.title || t("dashboardStartLearning")}</h3>
+                      <div className="resume-card-sub" style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontSize: '0.85rem' }}>
+                          {t("dashboardSection")}: {sections[currentUnitPos.sectionIdx]?.title || `${t("dashboardSection")} ${currentUnitPos.sectionIdx + 1}`}
+                        </span>
+                        <span style={{
+                          fontSize: '0.78rem',
+                          marginTop: '10px',
+                          whiteSpace: 'nowrap'
+                        }}>
+                          {t("dashboardUnit")}: {sections[currentUnitPos.sectionIdx]?.units[currentUnitPos.unitIdx]?.title || `${t("dashboardUnit")} ${currentUnitPos.unitIdx + 1}`}
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      className="resume-btn"
+                      onClick={() => {
+                        setDashboardTab("learn");
+                      }}
+                    >
+                      ▶ {t("dashboardResume")}
+                    </button>
+                  </div>
 
                   <div className="word-of-day-card">
                     <div className="word-of-day-head">
@@ -3794,7 +4038,7 @@ function App() {
                 </div>
 
                 <div className="dashboard-col dashboard-col-right">
-                  <div className="current-level-card" style={{ 
+                  <div className="current-level-card" style={{
                     margin: 0,
                     background: `linear-gradient(135deg, ${levelBadgeColor(currentLevelNum)} 0%, ${darkenHex(levelBadgeColor(currentLevelNum), 0.88)} 100%)`,
                     border: `2px solid ${levelBadgeColor(currentLevelNum)}88`,
@@ -3853,8 +4097,8 @@ function App() {
                         {activeQuests.map((quest) => {
                           const prog = getQuestProgress(quest);
                           return (
-                            <div key={quest.id} className="quest-item" style={{ 
-                              gap: '10px', 
+                            <div key={quest.id} className="quest-item" style={{
+                              gap: '10px',
                               padding: '12px',
                               opacity: prog.completed ? 0.65 : 1,
                               background: prog.completed ? 'var(--line)' : '#fafafa',
@@ -3863,7 +4107,7 @@ function App() {
                               <div className="quest-icon" style={{ width: '32px', height: '32px', borderRadius: '8px' }}>
                                 {quest.type === 'xp' && (
                                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: 'middle' }}>
-                                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
                                   </svg>
                                 )}
                                 {quest.type === 'time' && (
@@ -3883,7 +4127,7 @@ function App() {
                                   </span>
                                 </div>
                                 <div className="quest-progress-bg">
-                                  <div className="quest-progress-fill" style={{ 
+                                  <div className="quest-progress-fill" style={{
                                     width: `${prog.percent}%`,
                                     background: prog.completed ? '#9ca3af' : '#f59e0b'
                                   }}></div>
@@ -3943,8 +4187,8 @@ function App() {
                           .filter(Boolean);
 
                         // Display only the last 2 recently earned badges, or the first two items in general if none earned yet
-                        const displayedList = earnedList.length > 0 
-                          ? earnedList.slice(-2) 
+                        const displayedList = earnedList.length > 0
+                          ? earnedList.slice(-2)
                           : achievementsList.slice(0, 2);
 
                         return displayedList.map((a) => (
@@ -3976,7 +4220,7 @@ function App() {
               const weakSkillLabels = getWeakSkills(storedSkills);
 
               // Render all sections sequentially in standard order (1 to 7) per spec
-              const orderedSections = CURRICULUM_SECTIONS; 
+              const orderedSections = CURRICULUM_SECTIONS;
 
               // Build a flat ordered list of all lessons in the curriculum for chain unlocking
               const allLessonsList = [];
@@ -4039,16 +4283,16 @@ function App() {
                               {/* Centered Snaking Lesson Path */}
                               <div className="duo-lessons-path" style={{ position: 'relative' }}>
                                 <div className="duo-path-line"></div>
-                                
+
                                 {/* Mascot on alternating sides per unit */}
                                 <div className={`duo-path-mascot ${sideClass}`}>
-                                  <img 
-                                    src={`/as${mascotNum}.png`} 
-                                    alt="LISA Mascot" 
-                                    style={{ width: '130px', height: '130px', objectFit: 'contain' }} 
+                                  <img
+                                    src={`/as${mascotNum}.png`}
+                                    alt="LISA Mascot"
+                                    style={{ width: '130px', height: '130px', objectFit: 'contain' }}
                                   />
                                 </div>
-                                
+
                                 {unitLessons.map((lesson, lIdx) => {
                                   const isCompleted = completedLessons.includes(lesson.id);
                                   const lessonIndexInCurriculum = allLessonsList.indexOf(lesson.id);
@@ -4068,8 +4312,8 @@ function App() {
                                   const isActiveNode = lesson.id === currentActiveLessonId;
 
                                   return (
-                                    <div 
-                                      key={lesson.id} 
+                                    <div
+                                      key={lesson.id}
                                       className={`duo-node-container ${snakeClass} ${status}`}
                                       style={{ zIndex: isPopupOpen ? 1100 : 2 }}
                                       ref={isActiveNode ? activeNodeRef : null}
@@ -4078,7 +4322,7 @@ function App() {
                                       <button
                                         type="button"
                                         className={`duo-node-circle ${status}`}
-                                        style={{ 
+                                        style={{
                                           background: isCompleted ? '#10b981' : isUnlocked ? section.color : undefined
                                         }}
                                         onClick={() => {
@@ -4098,7 +4342,7 @@ function App() {
                                       {isPopupOpen && (
                                         <div className="duo-popover-card">
                                           <div className="duo-popover-header">
-                                            <span className="duo-popover-badge" style={{ 
+                                            <span className="duo-popover-badge" style={{
                                               background: isCompleted ? 'rgba(16, 185, 129, 0.15)' : isUnlocked ? `${section.color}22` : 'rgba(120, 120, 120, 0.15)',
                                               color: isCompleted ? '#0f9d6b' : isUnlocked ? section.color : '#8a8f98'
                                             }}>
@@ -4108,11 +4352,11 @@ function App() {
                                           </div>
                                           <h4 className="duo-popover-title">{unit.title} — {lIdx === 4 ? "Unit Exam" : `Lesson ${lIdx + 1}`}</h4>
                                           <p className="duo-popover-desc">
-                                            {lIdx === 4 
-                                              ? "A comprehensive unit exam testing skills from the first 4 lessons." 
+                                            {lIdx === 4
+                                              ? "A comprehensive unit exam testing skills from the first 4 lessons."
                                               : "Personalized AI lesson targeting your curriculum goals."}
                                           </p>
-                                          
+
                                           <button
                                             type="button"
                                             className="duo-popover-btn"
@@ -4121,13 +4365,13 @@ function App() {
                                               setActiveLessonPopup(null);
                                               startLessonSession(lesson, section, unit);
                                             }}
-                                            style={{ 
+                                            style={{
                                               background: isCompleted ? '#10b981' : isUnlocked ? section.color : '#6b7280',
                                               boxShadow: isCompleted ? '0 4px 12px rgba(16, 185, 129, 0.3)' : isUnlocked ? `0 4px 12px ${section.color}55` : 'none'
                                             }}
                                           >
-                                            {lIdx === 4 
-                                              ? (status === "completed" ? "Review Exam" : "Start Exam") 
+                                            {lIdx === 4
+                                              ? (status === "completed" ? "Review Exam" : "Start Exam")
                                               : (status === "completed" ? "Review Lesson" : "Start Lesson")}
                                           </button>
                                         </div>
@@ -4144,8 +4388,8 @@ function App() {
                   })}
 
                   {/* Floating Scroll to Top button */}
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     className="scroll-top-btn"
                     onClick={() => {
                       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -4186,17 +4430,24 @@ function App() {
                     <div className="practice-row-cards">
                       <div className="practice-row-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_read_practice`, title: "Speak Practice", desc: "Improve your speaking skills with these phrases" })}>
                         <div className="practice-row-card-content">
-                          <h3 className="practice-row-card-title">Speak</h3>
+                          <h3 className="practice-row-card-title">{t("practiceSpeak") || "Speak"}</h3>
                           <p className="practice-row-card-desc">{t("practiceSpeakDesc")}</p>
                         </div>
                         <div className="practice-row-card-icon speak-icon">🎙️</div>
                       </div>
                       <div className="practice-row-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_write_practice`, title: "Listen Practice", desc: "Boost your listening skills with an audio-only session" })}>
                         <div className="practice-row-card-content">
-                          <h3 className="practice-row-card-title">Listen</h3>
+                          <h3 className="practice-row-card-title">{t("practiceListen") || "Listen"}</h3>
                           <p className="practice-row-card-desc">{t("practiceListenDesc")}</p>
                         </div>
                         <div className="practice-row-card-icon listen-icon">🎧</div>
+                      </div>
+                      <div className="practice-row-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_write_practice`, title: "Write Practice", desc: "Enhance your writing skills with interactive exercises" })}>
+                        <div className="practice-row-card-content">
+                          <h3 className="practice-row-card-title">{t("practiceWrite") || "Write"}</h3>
+                          <p className="practice-row-card-desc">{t("practiceWriteDesc") || "Enhance your writing skills with interactive exercises"}</p>
+                        </div>
+                        <div className="practice-row-card-icon write-icon">✍️</div>
                       </div>
                     </div>
                   </div>
@@ -4245,12 +4496,12 @@ function App() {
             {dashboardTab === "profile" && (
               <div className="profile-view-container">
                 <div className="profile-card-large">
-                  <div 
-                    className="profile-avatar-large" 
-                    style={{ 
-                      display: "flex", 
-                      alignItems: "center", 
-                      justifyContent: "center", 
+                  <div
+                    className="profile-avatar-large"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
                       overflow: "hidden",
                       position: "relative",
                       border: "4px solid var(--accent)",
@@ -4272,10 +4523,10 @@ function App() {
                       style={{ display: "none" }}
                       id="direct-avatar-upload-file"
                     />
-                    
+
                     {/* Pencil Edit Badge overlay at bottom right */}
-                    <label 
-                      htmlFor="direct-avatar-upload-file" 
+                    <label
+                      htmlFor="direct-avatar-upload-file"
                       style={{
                         position: "absolute",
                         bottom: "4px",
@@ -4368,7 +4619,7 @@ function App() {
                   </div>
 
                   <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-                     <div className="current-level-card" style={{ margin: 0, padding: "24px", background: '#5e4a87' }}>
+                    <div className="current-level-card" style={{ margin: 0, padding: "24px", background: '#5e4a87' }}>
                       <h3 className="current-level-title">Diagnostic & Dev Control</h3>
                       <p style={{ fontSize: "0.85rem", color: "#ffffff", marginBottom: "16px" }}>Manage diagnostic state or clear developer progress milestones.</p>
                       <button
@@ -4402,7 +4653,7 @@ function App() {
               <div className="lesson-overlay-header-content">
                 <button className="lesson-overlay-close" onClick={() => { setLessonSession(null); setLessonAiContent(null); setLessonLoading(false); setLessonStep(0); }}>✕</button>
                 <div className="lesson-progress-container">
-                  <div className="lesson-progress-bar" style={{ width: lessonSession?.status === "completed" ? "100%" : `${(lessonStep / 4) * 100}%` }}></div>
+                  <div className="lesson-progress-bar" style={{ width: lessonSession?.status === "completed" ? "100%" : `${(lessonStep / (lessonSession?.isPractice ? 9 : 4)) * 100}%` }}></div>
                 </div>
                 <div className="lesson-overlay-controls">
                   <div style={{ fontWeight: 800, whiteSpace: "nowrap" }}>XP +15</div>
@@ -4425,10 +4676,17 @@ function App() {
               {!lessonLoading && lessonSession?.status === "completed" && (
                 <div style={{ textAlign: "center", maxWidth: "480px", padding: "32px" }}>
                   <div style={{ fontSize: "4rem", marginBottom: "16px" }}>🎉</div>
-                  <h2 style={{ fontSize: "2rem", fontWeight: 800, color: "#10b981", marginBottom: "12px" }}>Lesson Complete!</h2>
+                  <div style={{ display: "flex", justifyContent: "center", marginBottom: "16px" }}>
+                    <img src="/as1.png" alt="LISA Mascot" style={{ width: '190px', height: '240px', objectFit: 'contain' }} />
+                  </div>
+                  <h2 style={{ fontSize: "2rem", fontWeight: 800, color: "#10b981", marginBottom: "12px" }}>
+                    {lessonSession?.isPractice ? "Practice Complete!" : "Lesson Complete!"}
+                  </h2>
                   <p style={{ fontSize: "1.1rem", color: "var(--muted)", marginBottom: "8px" }}>{lessonAiContent?.aiFeedbackPositive || "Great job! You earned 15 XP!"}</p>
-                  <p style={{ fontSize: "0.9rem", color: "var(--muted)", marginBottom: "28px" }}>Section: {lessonSession.sectionTitle} · Unit: {lessonSession.unitTitle}</p>
-                  <button className="primary-btn" style={{ width: "100%", padding: "14px", marginBottom: "12px" }} onClick={() => { setLessonSession(null); setLessonAiContent(null); setLessonStep(0); }}>
+                  {!lessonSession?.isPractice && (
+                    <p style={{ fontSize: "0.9rem", color: "var(--muted)", marginBottom: "28px" }}>Section: {lessonSession.sectionTitle} · Unit: {lessonSession.unitTitle}</p>
+                  )}
+                  <button className="primary-btn" style={{ width: "100%", padding: "14px", marginBottom: "20px" }} onClick={() => { setLessonSession(null); setLessonAiContent(null); setLessonStep(0); }}>
                     ✓ Continue Learning
                   </button>
                 </div>
@@ -4461,9 +4719,9 @@ function App() {
                         }}>
                           {/* Mascot */}
                           <div style={{ flexShrink: 0 }}>
-                            <img 
-                              src="/as1.png" 
-                              alt="LISA Mascot" 
+                            <img
+                              src="/as1.png"
+                              alt="LISA Mascot"
                               style={{ width: '120px', height: '120px', objectFit: 'contain' }}
                             />
                           </div>
@@ -4488,7 +4746,7 @@ function App() {
                               borderBottom: '2px solid var(--line)',
                               transform: 'rotate(45deg)'
                             }}></div>
-                            
+
                             <div className="ai-lesson-explanation" style={{ fontSize: '1.05rem', lineHeight: '1.6', margin: 0 }}>
                               {ai.explanation?.split("\n").map((para, i) => para.trim() && <p key={i} style={{ margin: '0 0 10px 0' }}>{para}</p>)}
                             </div>
@@ -4505,8 +4763,8 @@ function App() {
                               gap: '16px'
                             }}>
                               {ai.examples.map((ex, i) => (
-                                <div 
-                                  key={i} 
+                                <div
+                                  key={i}
                                   className="ai-example-card"
                                   style={{
                                     border: '2px solid var(--line)',
@@ -4530,9 +4788,9 @@ function App() {
                                     e.currentTarget.style.transform = 'translateY(0)';
                                   }}
                                 >
-                                  <button 
-                                    type="button" 
-                                    className="tts-btn" 
+                                  <button
+                                    type="button"
+                                    className="tts-btn"
                                     style={{
                                       background: 'var(--accent)',
                                       color: 'white',
@@ -4576,7 +4834,7 @@ function App() {
                           }}>
                             <span style={{ fontSize: '1.5rem' }}>💡</span>
                             <div style={{ color: '#b45309', fontSize: '0.95rem' }}>
-                              <strong style={{ display: 'block', marginBottom: '2px', fontWeight: '800' }}>Guided Tip:</strong> 
+                              <strong style={{ display: 'block', marginBottom: '2px', fontWeight: '800' }}>Guided Tip:</strong>
                               {ai.guidedPractice}
                             </div>
                           </div>
@@ -4615,7 +4873,7 @@ function App() {
                           <div className="ai-lesson-step-header" style={{ marginBottom: '16px' }}>
                             <span className="ai-step-badge">🎯 Multiple Choice (Question {lessonMcqIndex + 1} of {ai.mcqs.length})</span>
                           </div>
-                          
+
                           {/* Mascot & Speech bubble */}
                           <div style={{
                             display: 'flex',
@@ -4625,9 +4883,9 @@ function App() {
                           }}>
                             {/* Mascot */}
                             <div style={{ flexShrink: 0 }}>
-                              <img 
-                                src="/as1.png" 
-                                alt="LISA Mascot" 
+                              <img
+                                src="/as1.png"
+                                alt="LISA Mascot"
                                 style={{ width: '80px', height: '80px', objectFit: 'contain' }}
                               />
                             </div>
@@ -4654,7 +4912,7 @@ function App() {
                               <h3 style={{ fontSize: '1.4rem', fontWeight: '800', margin: 0 }}>{q.question}</h3>
                             </div>
                           </div>
-                          
+
                           <div style={{
                             display: 'grid',
                             gridTemplateColumns: 'repeat(2, 1fr)',
@@ -4810,11 +5068,11 @@ function App() {
                       const fb = ai.fillBlanks[lessonFillIndex];
                       const userAnswer = lessonFillAnswers[lessonFillIndex] || "";
                       const isChecked = lessonFillFeedback !== null;
-                      
+
                       // Build a list of tiles for word bank
                       const otherBlanks = ai.fillBlanks.map(x => x.answer).filter(x => x !== fb.answer);
                       const allChoices = Array.from(new Set([fb.answer, ...otherBlanks])).slice(0, 4);
-                      
+
                       return (
                         <div className="ai-lesson-step" style={{ paddingBottom: '120px' }}>
                           <div className="ai-lesson-step-header" style={{ marginBottom: '16px' }}>
@@ -4829,9 +5087,9 @@ function App() {
                           }}>
                             {/* Mascot */}
                             <div style={{ flexShrink: 0 }}>
-                              <img 
-                                src="/as1.png" 
-                                alt="LISA Mascot" 
+                              <img
+                                src="/as1.png"
+                                alt="LISA Mascot"
                                 style={{ width: '80px', height: '80px', objectFit: 'contain' }}
                               />
                             </div>
@@ -4858,7 +5116,7 @@ function App() {
                                 borderBottom: '2px solid var(--line)',
                                 transform: 'rotate(45deg)'
                               }}></div>
-                              
+
                               {/* Render sentence with blank highlighted */}
                               <div>
                                 {fb.sentence.split("___").map((part, index, arr) => (
@@ -4884,9 +5142,9 @@ function App() {
 
                               {/* Hint placed inside speech bubble */}
                               {fb.hint && (
-                                <div style={{ 
-                                  fontSize: '0.9rem', 
-                                  color: 'var(--muted)', 
+                                <div style={{
+                                  fontSize: '0.9rem',
+                                  color: 'var(--muted)',
                                   marginTop: '16px',
                                   fontWeight: '600',
                                   fontStyle: 'italic',
@@ -5073,9 +5331,9 @@ function App() {
                           }}>
                             {/* Mascot */}
                             <div style={{ flexShrink: 0 }}>
-                              <img 
-                                src="/as1.png" 
-                                alt="LISA Mascot" 
+                              <img
+                                src="/as1.png"
+                                alt="LISA Mascot"
                                 style={{ width: '80px', height: '80px', objectFit: 'contain' }}
                               />
                             </div>
@@ -5128,12 +5386,12 @@ function App() {
                                 type="button"
                                 className="primary-btn"
                                 style={{ padding: '12px 40px', borderRadius: '12px' }}
-                                  onClick={() => {
-                                    setLessonReadingFeedback({
-                                      userAnswer: lessonReadingAnswer,
-                                      suggestedAnswer: ai.readingAnswer
-                                    });
-                                  }}
+                                onClick={() => {
+                                  setLessonReadingFeedback({
+                                    userAnswer: lessonReadingAnswer,
+                                    suggestedAnswer: ai.readingAnswer
+                                  });
+                                }}
                                 disabled={!lessonReadingAnswer.trim()}
                               >
                                 Check Answer
@@ -5203,9 +5461,9 @@ function App() {
                         }}>
                           {/* Mascot */}
                           <div style={{ flexShrink: 0 }}>
-                            <img 
-                              src="/as1.png" 
-                              alt="LISA Mascot" 
+                            <img
+                              src="/as1.png"
+                              alt="LISA Mascot"
                               style={{ width: '80px', height: '80px', objectFit: 'contain' }}
                             />
                           </div>
@@ -5271,76 +5529,76 @@ function App() {
                     {lessonStep === 5 && (() => {
                       const sentence = ai.speakSentence || "Hello, welcome to LISA.";
                       const isChecked = lessonSpeakFeedback !== null;
-                      
+
                       const startSpeaking = () => {
                         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
                         if (!SpeechRecognition) {
                           setLessonSpeakError("Speech recognition is not supported in this browser. Please use Chrome/Edge.");
                           return;
                         }
-                        
+
                         try {
                           const rec = new SpeechRecognition();
                           rec.continuous = false;
                           rec.interimResults = false;
                           rec.lang = selectedLanguage === "Kannada" ? "kn-IN" :
-                                     selectedLanguage === "Hindi" ? "hi-IN" :
-                                     selectedLanguage === "Telugu" ? "te-IN" :
-                                     selectedLanguage === "Tamil" ? "ta-IN" : "en-US";
-                                     
+                            selectedLanguage === "Hindi" ? "hi-IN" :
+                              selectedLanguage === "Telugu" ? "te-IN" :
+                                selectedLanguage === "Tamil" ? "ta-IN" : "en-US";
+
                           rec.onstart = () => {
                             setLessonSpeakIsListening(true);
                             setLessonSpeakTranscript("");
                             setLessonSpeakError("");
                           };
-                          
+
                           rec.onerror = (e) => {
                             setLessonSpeakError("Mic error, please check connection.");
                             setLessonSpeakIsListening(false);
                           };
-                          
+
                           rec.onend = () => {
                             setLessonSpeakIsListening(false);
                           };
-                          
+
                           rec.onresult = (event) => {
                             const transcript = event.results[0][0].transcript;
                             setLessonSpeakTranscript(transcript);
-                            
+
                             const clean = (w) => w.replace(/[.,\/#!$%\^&\*;:{}=\-_\u0060()?]/g, "").toLowerCase().trim();
                             const targetWords = sentence.split(/\s+/).filter(Boolean).map(clean);
                             const spokenWords = transcript.split(/\s+/).filter(Boolean).map(clean);
-                            
+
                             let matched = 0;
                             targetWords.forEach(w => {
                               if (spokenWords.includes(w)) matched++;
                             });
-                            
+
                             const percent = targetWords.length > 0 ? (matched / targetWords.length) * 100 : 100;
                             const isCorrect = percent >= 50;
-                            
-                              setLessonSpeakFeedback({
-                                isCorrect,
-                                matchedCount: matched,
-                                totalWords: targetWords.length,
-                                percent: Math.round(percent)
-                              });
-                              
-                            };
-                          
+
+                            setLessonSpeakFeedback({
+                              isCorrect,
+                              matchedCount: matched,
+                              totalWords: targetWords.length,
+                              percent: Math.round(percent)
+                            });
+
+                          };
+
                           rec.start();
                         } catch (err) {
                           setLessonSpeakError("Could not start speech recognition.");
                           setLessonSpeakIsListening(false);
                         }
                       };
-                      
+
                       return (
                         <div className="ai-lesson-step" style={{ paddingBottom: '120px' }}>
                           <div className="ai-lesson-step-header" style={{ marginBottom: '16px' }}>
                             <span className="ai-step-badge">🎤 Speak this sentence</span>
                           </div>
-                          
+
                           <div style={{ display: 'flex', alignItems: 'center', gap: '20px', margin: '20px 0' }}>
                             <img src="/as1.png" alt="LISA Mascot" style={{ width: '80px', height: '80px', objectFit: 'contain' }} />
                             <div style={{
@@ -5369,14 +5627,14 @@ function App() {
                                 borderBottom: '2px solid var(--line)',
                                 transform: 'rotate(45deg)'
                               }}></div>
-                              
+
                               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                 <button type="button" className="tts-btn" style={{ borderRadius: '50%', width: '40px', height: '40px', padding: 0 }} onClick={() => speakText(sentence)}>🔊</button>
                                 <span style={{ color: 'var(--text)' }}>{sentence}</span>
                               </div>
                             </div>
                           </div>
-                          
+
                           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', margin: '30px 0' }}>
                             <button
                               type="button"
@@ -5399,18 +5657,18 @@ function App() {
                             >
                               <span>{lessonSpeakIsListening ? "🛑 RECORDING..." : "🎙️ CLICK TO SPEAK"}</span>
                             </button>
-                            
+
                             {lessonSpeakTranscript && (
                               <p style={{ fontStyle: 'italic', color: 'var(--text)', fontSize: '1.1rem' }}>
                                 You said: "<strong>{lessonSpeakTranscript}</strong>"
                               </p>
                             )}
-                            
+
                             {lessonSpeakError && (
                               <p style={{ color: '#ef4444', fontWeight: 600 }}>{lessonSpeakError}</p>
                             )}
                           </div>
-                          
+
                           {isChecked && (
                             <div style={{
                               position: 'absolute',
@@ -5472,13 +5730,13 @@ function App() {
                     {lessonStep === 6 && (() => {
                       const mq = ai.meaningQuestion || { phrase: "Thank you", options: ["Dhanyavadagalu", "Namaskara", "Hogi baruttene"], correctIndex: 0 };
                       const isChecked = lessonMeaningFeedback !== null;
-                      
+
                       return (
                         <div className="ai-lesson-step" style={{ paddingBottom: '120px' }}>
                           <div className="ai-lesson-step-header" style={{ marginBottom: '16px' }}>
                             <span className="ai-step-badge">🧠 Select the correct meaning</span>
                           </div>
-                          
+
                           <div style={{ display: 'flex', alignItems: 'center', gap: '20px', margin: '20px 0' }}>
                             <img src="/as1.png" alt="LISA Mascot" style={{ width: '80px', height: '80px', objectFit: 'contain' }} />
                             <div style={{
@@ -5503,7 +5761,7 @@ function App() {
                               <p style={{ fontSize: '1.25rem', fontWeight: '800', margin: 0 }}>"{mq.phrase}" means:</p>
                             </div>
                           </div>
-                          
+
                           <div className="mcq-options-container" style={{ display: 'flex', flexDirection: 'column', gap: '12px', margin: '20px 0' }}>
                             {mq.options.map((opt, oIdx) => {
                               const isSelected = lessonMeaningAnswer === oIdx;
@@ -5513,7 +5771,7 @@ function App() {
                                 btnBorder = '2px solid var(--accent)';
                                 btnBg = 'rgba(var(--accent-rgb), 0.05)';
                               }
-                              
+
                               return (
                                 <button
                                   key={oIdx}
@@ -5555,7 +5813,7 @@ function App() {
                               );
                             })}
                           </div>
-                          
+
                           {!isChecked && (
                             <div style={{ display: 'flex', ['justify' + 'Content']: 'center', marginTop: '20px' }}>
                               <button
@@ -5575,7 +5833,7 @@ function App() {
                               </button>
                             </div>
                           )}
-                          
+
                           {isChecked && (
                             <div style={{
                               position: 'absolute',
@@ -5637,13 +5895,13 @@ function App() {
                     {lessonStep === 7 && (() => {
                       const tt = ai.translationTask || { sentence: "Namaskara", englishTranslation: "Hello", tiles: ["Hello", "Bye", "Thank", "You"] };
                       const isChecked = lessonTranslationFeedback !== null;
-                      
+
                       return (
                         <div className="ai-lesson-step" style={{ paddingBottom: '120px' }}>
                           <div className="ai-lesson-step-header" style={{ marginBottom: '16px' }}>
                             <span className="ai-step-badge">✍️ Write this in English</span>
                           </div>
-                          
+
                           <div style={{ display: 'flex', alignItems: 'center', gap: '20px', margin: '20px 0' }}>
                             <img src="/as1.png" alt="LISA Mascot" style={{ width: '80px', height: '80px', objectFit: 'contain' }} />
                             <div style={{
@@ -5668,7 +5926,7 @@ function App() {
                               <p style={{ fontSize: '1.25rem', fontWeight: '800', margin: 0 }}>"{tt.sentence}"</p>
                             </div>
                           </div>
-                          
+
                           <div style={{
                             borderBottom: '2px solid var(--line)',
                             minHeight: '80px',
@@ -5708,7 +5966,7 @@ function App() {
                               <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Tap words below to translate...</span>
                             )}
                           </div>
-                          
+
                           <div style={{
                             display: 'flex',
                             flexWrap: 'wrap',
@@ -5746,7 +6004,7 @@ function App() {
                               );
                             })}
                           </div>
-                          
+
                           {!isChecked && (
                             <div style={{ display: 'flex', ['justify' + 'Content']: 'center' }}>
                               <button
@@ -5757,7 +6015,7 @@ function App() {
                                   const userSentence = lessonTranslationSelected.join(" ").trim().toLowerCase();
                                   const clean = (s) => s.replace(/[.,\/#!$%\^&\*;:{}=\-_\u0060()?]/g, "").toLowerCase().trim();
                                   const correct = clean(userSentence) === clean(tt.englishTranslation);
-                                  
+
                                   setLessonTranslationFeedback({
                                     isCorrect: correct,
                                     correctAnswer: tt.englishTranslation
@@ -5769,7 +6027,7 @@ function App() {
                               </button>
                             </div>
                           )}
-                          
+
                           {isChecked && (
                             <div style={{
                               position: 'absolute',
@@ -5835,7 +6093,7 @@ function App() {
                         { left: "Huduga", right: "Boy" },
                         { left: "Neeru", right: "Water" }
                       ];
-                      
+
                       const leftItems = pairs.map(p => p.left);
                       const rightItems = [...pairs].map(p => p.right).sort();
 
@@ -5860,7 +6118,7 @@ function App() {
                       const handleRightClick = (item) => {
                         const pair = pairs.find(p => p.right === item);
                         if (pair && lessonMatchCompleted.includes(pair.left)) return;
-                        
+
                         setLessonMatchSelectedRight(item);
                         if (lessonMatchSelectedLeft) {
                           const pObj = pairs.find(p => p.left === lessonMatchSelectedLeft && p.right === item);
@@ -5891,7 +6149,7 @@ function App() {
                               {leftItems.map((item, idx) => {
                                 const isCompleted = lessonMatchCompleted.includes(item);
                                 const isSelected = lessonMatchSelectedLeft === item;
-                                
+
                                 return (
                                   <button
                                     key={idx}
@@ -6241,7 +6499,7 @@ function App() {
 
                     {/* Step 10: Unscramble / Rearrange letters */}
                     {lessonStep === 10 && (() => {
-                      const list = ai.unscramble && ai.unscramble.length ? ai.unscramble : [{ hint: "Where we study", emoji: "🏫", answer: "SCHOOL", tiles: ["L","O","C","S","H","O"] }];
+                      const list = ai.unscramble && ai.unscramble.length ? ai.unscramble : [{ hint: "Where we study", emoji: "🏫", answer: "SCHOOL", tiles: ["L", "O", "C", "S", "H", "O"] }];
                       const item = list[lessonUnscrambleIndex] || list[0];
                       const isChecked = lessonUnscrambleFeedback !== null;
                       const built = lessonUnscrambleSelected.map(i => item.tiles[i]).join("");
@@ -6338,7 +6596,7 @@ function App() {
 
                     {/* Step 11: Choose the correct picture */}
                     {lessonStep === 11 && (() => {
-                      const list = ai.imageChoice && ai.imageChoice.length ? ai.imageChoice : [{ word: "school", prompt: "Tap the picture that means school", options: ["🏫","🍎","🚗"], correctIndex: 0 }];
+                      const list = ai.imageChoice && ai.imageChoice.length ? ai.imageChoice : [{ word: "school", prompt: "Tap the picture that means school", options: ["🏫", "🍎", "🚗"], correctIndex: 0 }];
                       const item = list[lessonImageChoiceIndex] || list[0];
                       const isChecked = lessonImageChoiceFeedback !== null;
 
@@ -6509,26 +6767,26 @@ function App() {
         )}
 
 
-      {showAllAchievementsModal && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0,0,0,0.6)',
-          backdropFilter: 'blur(8px)',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          zIndex: 10000,
-          padding: '20px'
-        }}>
-          <div className="achievements-modal-scroll" style={{
-            background: 'var(--panel)',
-            border: '2px solid var(--line)',
-            borderRadius: '24px',
-            width: '100%',
+        {showAllAchievementsModal && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0,0,0,0.6)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 10000,
+            padding: '20px'
+          }}>
+            <div className="achievements-modal-scroll" style={{
+              background: 'var(--panel)',
+              border: '2px solid var(--line)',
+              borderRadius: '24px',
+              width: '100%',
               maxWidth: '550px',
               maxHeight: '92vh',
               overflowY: 'auto',
@@ -6536,49 +6794,49 @@ function App() {
               boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
               position: 'relative'
             }}>
-            <button 
-              onClick={() => setShowAllAchievementsModal(false)}
-              style={{
-                position: 'absolute',
-                top: '20px',
-                right: '20px',
-                background: 'none',
-                border: 'none',
-                fontSize: '1.5rem',
-                color: 'var(--text)',
-                cursor: 'pointer'
-              }}
-            >✕</button>
-            <h3 style={{ margin: '0 0 20px', fontSize: '1.6rem', fontWeight: '800' }}>{t("profileAllAchievements")}</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {[
-                { id: 1, title: "First Steps", desc: "Complete your first assessment", icon: "⭐", earned: true, color: "#f59e0b", progress: 100 },
-                { id: 2, title: "Reading Star", desc: "Score 75% or higher in reading", icon: "📚", earned: calculateSkillProficiency("reading") >= 75, color: "#3b82f6", progress: Math.min(100, Math.round(calculateSkillProficiency("reading"))) },
-                { id: 3, title: "Comprehension Pro", desc: "Score 75% or higher in comprehension", icon: "🧠", earned: calculateSkillProficiency("comprehension") >= 75, color: "#10b981", progress: Math.min(100, Math.round(calculateSkillProficiency("comprehension"))) },
-                { id: 4, title: "Wordsmith", desc: "Score 75% or higher in writing", icon: "✍️", earned: calculateSkillProficiency("writing") >= 75, color: "#a855f7", progress: Math.min(100, Math.round(calculateSkillProficiency("writing"))) },
-                { id: 5, title: "XP Collector", desc: "Earn 100 XP or more", icon: "💎", earned: userXp >= 100, color: "#e11d48", progress: Math.min(100, Math.round((userXp / 100) * 100)) },
-                { id: 6, title: "Dedicated Learner", desc: "Complete 3 lessons or more", icon: "🔥", earned: completedLessons.filter(id => !id.startsWith("ach_")).length >= 3, color: "#f97316", progress: Math.min(100, Math.round((completedLessons.filter(id => !id.startsWith("ach_")).length / 3) * 100)) },
-                { id: 7, title: "Speech Maestro", desc: "Score 75% or higher in pronunciation", icon: "🗣️", earned: calculateSkillProficiency("pronunciation") >= 75, color: "#06b6d4", progress: Math.min(100, Math.round(calculateSkillProficiency("pronunciation"))) },
-                { id: 8, title: "Elite Scholar", desc: "Reach Progressive Level 8", icon: "🎓", earned: currentLevelNum >= 8, color: "#8b5cf6", progress: Math.min(100, Math.round((currentLevelNum / 8) * 100)) },
-                { id: 9, title: "Grandmaster", desc: "Reach Progressive Level 12", icon: "👑", earned: currentLevelNum >= 12, color: "#ef4444", progress: Math.min(100, Math.round((currentLevelNum / 12) * 100)) },
-              ].map((a) => (
-                <div key={a.id} className={`achievement-row ${a.earned ? "earned" : ""}`} style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '12px', border: '2px solid var(--line)', borderRadius: '16px', background: 'var(--panel-strong)', opacity: a.earned ? 1 : 0.55 }}>
-                  <div className="achievement-badge-box" style={{ background: a.earned ? a.color : '#d1d5db', width: '50px', height: '50px', borderRadius: '12px', display: 'grid', placeItems: 'center', fontSize: '1.5rem', flexShrink: 0, filter: a.earned ? 'none' : 'grayscale(1)' }}>
-                    <span className="achievement-badge-icon">{a.earned ? a.icon : '🔒'}</span>
-                  </div>
-                  <div style={{ flexGrow: 1 }}>
-                    <div style={{ fontWeight: '800', color: a.earned ? 'var(--text)' : 'var(--muted)' }}>{a.title}</div>
-                    <p style={{ margin: '4px 0 0', fontSize: '0.9rem', color: 'var(--text-muted)' }}>{a.desc}</p>
-                    <div className="achievement-progress-track" style={{ height: '8px', background: 'var(--line)', borderRadius: '4px', overflow: 'hidden', marginTop: '8px' }}>
-                      <div className="achievement-progress-fill" style={{ width: `${a.progress}%`, height: '100%', background: '#facc15' }}></div>
+              <button
+                onClick={() => setShowAllAchievementsModal(false)}
+                style={{
+                  position: 'absolute',
+                  top: '20px',
+                  right: '20px',
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '1.5rem',
+                  color: 'var(--text)',
+                  cursor: 'pointer'
+                }}
+              >✕</button>
+              <h3 style={{ margin: '0 0 20px', fontSize: '1.6rem', fontWeight: '800' }}>{t("profileAllAchievements")}</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {[
+                  { id: 1, title: "First Steps", desc: "Complete your first assessment", icon: "⭐", earned: true, color: "#f59e0b", progress: 100 },
+                  { id: 2, title: "Reading Star", desc: "Score 75% or higher in reading", icon: "📚", earned: calculateSkillProficiency("reading") >= 75, color: "#3b82f6", progress: Math.min(100, Math.round(calculateSkillProficiency("reading"))) },
+                  { id: 3, title: "Comprehension Pro", desc: "Score 75% or higher in comprehension", icon: "🧠", earned: calculateSkillProficiency("comprehension") >= 75, color: "#10b981", progress: Math.min(100, Math.round(calculateSkillProficiency("comprehension"))) },
+                  { id: 4, title: "Wordsmith", desc: "Score 75% or higher in writing", icon: "✍️", earned: calculateSkillProficiency("writing") >= 75, color: "#a855f7", progress: Math.min(100, Math.round(calculateSkillProficiency("writing"))) },
+                  { id: 5, title: "XP Collector", desc: "Earn 100 XP or more", icon: "💎", earned: userXp >= 100, color: "#e11d48", progress: Math.min(100, Math.round((userXp / 100) * 100)) },
+                  { id: 6, title: "Dedicated Learner", desc: "Complete 3 lessons or more", icon: "🔥", earned: completedLessons.filter(id => !id.startsWith("ach_")).length >= 3, color: "#f97316", progress: Math.min(100, Math.round((completedLessons.filter(id => !id.startsWith("ach_")).length / 3) * 100)) },
+                  { id: 7, title: "Speech Maestro", desc: "Score 75% or higher in pronunciation", icon: "🗣️", earned: calculateSkillProficiency("pronunciation") >= 75, color: "#06b6d4", progress: Math.min(100, Math.round(calculateSkillProficiency("pronunciation"))) },
+                  { id: 8, title: "Elite Scholar", desc: "Reach Progressive Level 8", icon: "🎓", earned: currentLevelNum >= 8, color: "#8b5cf6", progress: Math.min(100, Math.round((currentLevelNum / 8) * 100)) },
+                  { id: 9, title: "Grandmaster", desc: "Reach Progressive Level 12", icon: "👑", earned: currentLevelNum >= 12, color: "#ef4444", progress: Math.min(100, Math.round((currentLevelNum / 12) * 100)) },
+                ].map((a) => (
+                  <div key={a.id} className={`achievement-row ${a.earned ? "earned" : ""}`} style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '12px', border: '2px solid var(--line)', borderRadius: '16px', background: 'var(--panel-strong)', opacity: a.earned ? 1 : 0.55 }}>
+                    <div className="achievement-badge-box" style={{ background: a.earned ? a.color : '#d1d5db', width: '50px', height: '50px', borderRadius: '12px', display: 'grid', placeItems: 'center', fontSize: '1.5rem', flexShrink: 0, filter: a.earned ? 'none' : 'grayscale(1)' }}>
+                      <span className="achievement-badge-icon">{a.earned ? a.icon : '🔒'}</span>
+                    </div>
+                    <div style={{ flexGrow: 1 }}>
+                      <div style={{ fontWeight: '800', color: a.earned ? 'var(--text)' : 'var(--muted)' }}>{a.title}</div>
+                      <p style={{ margin: '4px 0 0', fontSize: '0.9rem', color: 'var(--text-muted)' }}>{a.desc}</p>
+                      <div className="achievement-progress-track" style={{ height: '8px', background: 'var(--line)', borderRadius: '4px', overflow: 'hidden', marginTop: '8px' }}>
+                        <div className="achievement-progress-fill" style={{ width: `${a.progress}%`, height: '100%', background: '#facc15' }}></div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
       </div>
     );
   }
