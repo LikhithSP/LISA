@@ -2126,6 +2126,28 @@ function App() {
   const [manualTextFallback, setManualTextFallback] = useState("");
   const recognitionRef = useRef(null);
 
+  // Restore English quoted words (e.g. 'Sports', 'Game') into a translated
+  // question so learners can see the source vocabulary word in regional languages.
+  // The translated sentence is searched for the word's native form and replaced
+  // with the original English word.
+  const keepEnglishQuotedWords = async (enQuestion, trQuestion, lang) => {
+    if (!trQuestion || !enQuestion) return trQuestion;
+    const words = [...enQuestion.matchAll(/'([^']+)'/g)].map(m => m[1]);
+    let out = trQuestion;
+    for (const w of words) {
+      if (!/[a-zA-Z]/.test(w) || w.includes("_")) continue; // skip puzzle patterns / non-latin
+      try {
+        const native = (assessmentTranslations[lang] && assessmentTranslations[lang][w]) || (await translateTextContent(w, lang));
+        if (native && out.includes(native)) {
+          out = out.split(native).join(w);
+        }
+      } catch {
+        // keep the translated form if the lookup fails
+      }
+    }
+    return out;
+  };
+
   // Fetch translation dynamically when selected language is not English and the question changes
   useEffect(() => {
     if (assessmentState !== "answering" || !assessmentQuestionsList || assessmentQuestionsList.length === 0) {
@@ -2148,9 +2170,12 @@ function App() {
         const dict = assessmentTranslations && assessmentTranslations[lang];
         if (q.type === "comprehension") {
           if (dict && dict[q.rawQuestion.question]) {
-            const trQuestion = dict[q.rawQuestion.question];
+            const trQuestion = await keepEnglishQuotedWords(q.rawQuestion.question, dict[q.rawQuestion.question], lang);
             const trOptions = Array.isArray(q.rawQuestion.options)
-              ? q.rawQuestion.options.map(opt => dict[opt] || opt)
+              ? q.rawQuestion.options.map(opt => {
+                  const t = dict[opt];
+                  return t && t !== opt ? `${opt} (${t})` : opt;
+                })
               : [];
             if (active) {
               setTranslatedQ({
@@ -2171,8 +2196,11 @@ function App() {
           if (active) {
             setTranslatedQ({
               ...q.rawQuestion,
-              question: res.question,
-              options: res.options
+              question: await keepEnglishQuotedWords(q.rawQuestion.question, res.question, lang),
+              options: q.rawQuestion.options.map((opt, i) => {
+                const t = res.options && res.options[i];
+                return t && t !== opt ? `${opt} (${t})` : opt;
+              })
             });
           }
         } else if (q.type === "reading") {
