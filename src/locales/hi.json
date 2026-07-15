@@ -55,10 +55,7 @@
   "KannadaOption": "कन्नड़",
   "TeluguOption": "तेलुगु",
   "TamilOption": "तमिल",
-  "No formal educationOption": "कोई औपचारिक शिक्षा नहीं",
-  "PrimaryOption": "प्राथमिक शिक्षा",
-  "SecondaryOption": "माध्यमिक शिक्षा",
-  "Higher secondaryOption": "उच्चतर माध्यमिक शिक्षा",
+  "PrimaryOption": "प्राथमिक (कक्षा 1-5)",
   "confirmPassword": "पासवर्ड की पुष्टि करें",
   "confirmPasswordPlaceholder": "पासवर्ड की पुष्टि करें",
   "passwordsDoNotMatch": "पासवर्ड मेल नहीं खाते हैं।",
@@ -120,5 +117,8 @@
   "daily10min": "10 मिनट/दिन",
   "daily15min": "15 मिनट/दिन",
   "daily25min": "25 मिनट/दिन",
-  "viewLearningPath": "सीखने का मार्ग देखें"
+  "viewLearningPath": "सीखने का मार्ग देखें",
+  "No Formal EducationOption": "कोई औपचारिक शिक्षा नहीं (कभी स्कूल नहीं गए)",
+  "Middle SchoolOption": "मध्यम स्कूल (कक्षा 6-8)",
+  "Secondary & AboveOption": "माध्यमिक और उससे ऊपर (कक्षा 9 और उससे उच्च)"
 }

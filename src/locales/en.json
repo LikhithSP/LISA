@@ -55,10 +55,7 @@
   "KannadaOption": "Kannada (ಕನ್ನಡ)",
   "TeluguOption": "Telugu (తెలుగు)",
   "TamilOption": "Tamil (தமிழ்)",
-  "No formal educationOption": "No formal education",
-  "PrimaryOption": "Primary education",
-  "SecondaryOption": "Secondary education",
-  "Higher secondaryOption": "Higher secondary education",
+  "PrimaryOption": "Primary (Classes 1–5)",
   "confirmPassword": "Confirm Password",
   "confirmPasswordPlaceholder": "Confirm your password",
   "passwordsDoNotMatch": "Passwords do not match.",
@@ -120,5 +117,8 @@
   "daily10min": "10 Minutes/Day",
   "daily15min": "15 Minutes/Day",
   "daily25min": "25 Minutes/Day",
-  "viewLearningPath": "View Learning Path"
+  "viewLearningPath": "View Learning Path",
+  "No Formal EducationOption": "No Formal Education (Never attended school)",
+  "Middle SchoolOption": "Middle School (Classes 6–8)",
+  "Secondary & AboveOption": "Secondary & Above (Class 9 and higher)"
 }
