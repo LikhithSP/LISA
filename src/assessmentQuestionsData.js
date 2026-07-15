@@ -746,14 +746,14 @@ export const assessmentQuestions = {
       },
       {
         "id": "teen_l2_5",
-        "question": "Identify the missing vowel: 'Fr_nd'.",
+        "question": "Identify the missing vowel: 'Fri_nd'.",
         "options": [
           "u",
           "i",
           "o",
-          "a"
+          "e"
         ],
-        "correctIndex": 1
+        "correctIndex": 3
       },
       {
         "id": "teen_l2_6",
