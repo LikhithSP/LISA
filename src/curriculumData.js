@@ -355,24 +355,20 @@ export const getStrongSkills = (skillScores, threshold = 50) => {
 
 // Determine age group for question selection
 const getAgeGroup = (ageNum) => {
-  if (ageNum < 13) return "child";
-  if (ageNum < 18) return "teen";
-  if (ageNum < 60) return "adult";
+  if (ageNum <= 12) return "child";
+  if (ageNum <= 18) return "teen";
+  if (ageNum <= 59) return "adult";
   return "senior";
 };
 
 // Map education level → approximate literacy level (1–5)
 const getLevel = (educationLevel, ageNum) => {
   const eduStr = (educationLevel || "").toLowerCase();
-  if (eduStr.includes("graduate") || eduStr.includes("higher secondary")) return 5;
+  if (eduStr.includes("no formal")) return 1;
+  if (eduStr.includes("primary")) return 2;
+  if (eduStr.includes("middle")) return 3;
   if (eduStr.includes("secondary")) return 4;
-  if (eduStr.includes("primary")) return 3;
-  if (eduStr.includes("no formal")) {
-    if (ageNum < 10) return 1;
-    if (ageNum < 20) return 2;
-    return 3;
-  }
-  return 3;
+  return 2; // Default fallback to Beginner questions
 };
 
 // Map question ID prefix to skill category
@@ -416,7 +412,7 @@ export const getRandomAssessment = (age, educationLevel, language = "English") =
   }
 
   const comprehensionQuestions = sampled.map((q, idx) => {
-    const rawOptionsEnglish = (q.options && q.options["English"]) || [];
+    const rawOptionsEnglish = Array.isArray(q.options) ? q.options : ((q.options && q.options["English"]) || []);
     const correctIdx = typeof q.correctIndex === "number" ? q.correctIndex : 0;
     const indices = rawOptionsEnglish.map((_, i) => i);
     const shuffledIndices = [...indices].sort(() => 0.5 - Math.random());

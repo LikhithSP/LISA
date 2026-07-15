@@ -25,7 +25,7 @@ const extractJSON = (text) => {
 const getAgeContext = (age) => {
   const a = parseInt(age, 10) || 25;
   if (a <= 12) return { group: "child", contextName: "a child", contextExample: "Tom has a red ball." };
-  if (a <= 17) return { group: "teen", contextName: "a teenager", contextExample: "Sara reads her school textbook." };
+  if (a <= 18) return { group: "teen", contextName: "a teenager", contextExample: "Sara reads her school textbook." };
   if (a <= 59) return { group: "adult", contextName: "an adult", contextExample: "Ravi needs to submit a bank form." };
   return { group: "senior", contextName: "a senior citizen", contextExample: "Lakshmi visits the hospital for a check-up." };
 };

@@ -11,9 +11,10 @@ import hiJson from "./locales/hi.json";
 import knJson from "./locales/kn.json";
 import teJson from "./locales/te.json";
 import taJson from "./locales/ta.json";
+import { assessmentTranslations } from "./assessmentTranslations";
 
 const languages = ["English", "Hindi", "Kannada", "Telugu", "Tamil"];
-const educationLevels = ["No formal education", "Primary", "Secondary", "Higher secondary", "Graduate"];
+const educationLevels = ["No Formal Education", "Primary", "Middle School", "Secondary & Above"];
 
 // Draws a faint guide letter/word on the tracing canvas
 const drawTracingGuide = (canvas, item) => {
@@ -2046,7 +2047,7 @@ function App() {
     } else {
       aiContent = await generateLessonContent({
         age: profile?.age || 25,
-        educationLevel: profile?.education_level || "No formal education",
+        educationLevel: profile?.education_level || "No Formal Education",
         language: selectedLanguage || "English",
         literacyLevel: currentLevelNum,
         literacyLevelName: profInfo?.name || "Beginner",
@@ -2144,7 +2145,24 @@ function App() {
     const fetchTranslation = async () => {
       setTranslatingQ(true);
       try {
+        const dict = assessmentTranslations && assessmentTranslations[lang];
         if (q.type === "comprehension") {
+          if (dict && dict[q.rawQuestion.question]) {
+            const trQuestion = dict[q.rawQuestion.question];
+            const trOptions = Array.isArray(q.rawQuestion.options)
+              ? q.rawQuestion.options.map(opt => dict[opt] || opt)
+              : [];
+            if (active) {
+              setTranslatedQ({
+                ...q.rawQuestion,
+                question: trQuestion,
+                options: trOptions
+              });
+            }
+            setTranslatingQ(false);
+            return;
+          }
+
           const res = await translateMCQContent(
             q.rawQuestion.question,
             q.rawQuestion.options,
@@ -2158,6 +2176,18 @@ function App() {
             });
           }
         } else if (q.type === "reading") {
+          if (dict && dict[q.rawQuestion.reading]) {
+            if (active) {
+              setTranslatedQ({
+                ...q.rawQuestion,
+                reading: dict[q.rawQuestion.reading],
+                writing: dict[q.rawQuestion.writing] || q.rawQuestion.writing
+              });
+            }
+            setTranslatingQ(false);
+            return;
+          }
+
           const translatedReading = await translateTextContent(q.rawQuestion.reading, lang);
           const translatedWriting = await translateTextContent(q.rawQuestion.writing, lang);
           if (active) {
@@ -2168,6 +2198,17 @@ function App() {
             });
           }
         } else if (q.type === "writing") {
+          if (dict && dict[q.rawQuestion.writing]) {
+            if (active) {
+              setTranslatedQ({
+                ...q.rawQuestion,
+                writing: dict[q.rawQuestion.writing]
+              });
+            }
+            setTranslatingQ(false);
+            return;
+          }
+
           const translatedWriting = await translateTextContent(q.rawQuestion.writing, lang);
           if (active) {
             setTranslatedQ({
@@ -2230,7 +2271,7 @@ function App() {
     setEditFullName(profile.full_name || "");
     setEditAge(profile.age || "");
     setEditPreferredLang(profile.preferred_language || selectedLanguage || "English");
-    setEditEdLevel(profile.education_level || "No formal education");
+    setEditEdLevel(profile.education_level || "No Formal Education");
   }, [profile]);
 
   const localUiTranslations = {
@@ -2955,7 +2996,7 @@ function App() {
           full_name: session?.user?.user_metadata?.full_name || session?.user?.email || "Learner",
           age: session?.user?.user_metadata?.age || 20,
           preferred_language: session?.user?.user_metadata?.preferred_language || selectedLanguage || "English",
-          education_level: session?.user?.user_metadata?.education_level || "No formal education",
+          education_level: session?.user?.user_metadata?.education_level || "No Formal Education",
           literacy_level: storedAssessment?.literacy_level ?? null,
           assessment_completed: storedAssessment?.assessment_completed ?? false,
           xp: 0,
@@ -3175,7 +3216,7 @@ function App() {
     // and MCQ options are shuffled as well.
     const assessment = getRandomAssessment(
       profile?.age || 20,
-      profile?.education_level || "No formal education",
+      profile?.education_level || "No Formal Education",
       selectedLanguage || "English"
     );
     setAssessmentQuestionsList(assessment.questions);
@@ -3552,7 +3593,7 @@ function App() {
     setEditFullName(profile?.full_name || "");
     setEditAge(profile?.age || "");
     setEditPreferredLang(profile?.preferred_language || selectedLanguage || "English");
-    setEditEdLevel(profile?.education_level || "No formal education");
+    setEditEdLevel(profile?.education_level || "No Formal Education");
     setEditingProfile(true);
   };
 
@@ -3561,7 +3602,7 @@ function App() {
       const primaryUpdate = await supabase
         .from("profiles")
         .update({
-          education_level: "No formal education",
+          education_level: "No Formal Education",
           literacy_level: null,
           assessment_completed: false,
           attempts_history: []
@@ -3574,7 +3615,7 @@ function App() {
         console.warn("Primary reset failed, retrying with guaranteed schema fields:", error.message);
         const retry = await supabase
           .from("profiles")
-          .update({ education_level: "No formal education" })
+          .update({ education_level: "No Formal Education" })
           .eq("id", session.user.id);
         error = retry.error;
       }
@@ -3583,7 +3624,7 @@ function App() {
 
       setProfile(prev => prev ? {
         ...prev,
-        education_level: "No formal education",
+        education_level: "No Formal Education",
         literacy_level: null,
         assessment_completed: false,
         attempts_history: []
@@ -3715,7 +3756,7 @@ function App() {
         setEditFullName(profile?.full_name || "");
         setEditAge(profile?.age || "");
         setEditPreferredLang(profile?.preferred_language || selectedLanguage || "English");
-        setEditEdLevel(profile?.education_level || "No formal education");
+        setEditEdLevel(profile?.education_level || "No Formal Education");
       }
       setProfileDropdownOpen(!profileDropdownOpen);
     };
@@ -4036,8 +4077,11 @@ function App() {
                   ? (translatedQ?.question || "")
                   : "";
 
-                const compOptions = isCompMCQ && translatedQ?.options
-                  ? q.shuffledIndices.map((originalIdx) => translatedQ.options[originalIdx] || "")
+                const resolvedOptions = translatedQ?.options 
+                  ? (Array.isArray(translatedQ.options) ? translatedQ.options : (translatedQ.options[lang] || translatedQ.options["English"] || []))
+                  : [];
+                const compOptions = isCompMCQ && resolvedOptions.length > 0
+                  ? q.shuffledIndices.map((originalIdx) => resolvedOptions[originalIdx] || "")
                   : [];
 
                 // 3. Resolve writing prompt + dictation sentence
