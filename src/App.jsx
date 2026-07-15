@@ -2279,6 +2279,11 @@ function App() {
   const [editPreferredLang, setEditPreferredLang] = useState("");
   const [editEdLevel, setEditEdLevel] = useState("");
 
+  // Delete Account States
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [deleteError, setDeleteError] = useState("");
+
   // Reset scroll position on view / tab switch
   useEffect(() => {
     const resetScroll = () => {
@@ -2406,6 +2411,17 @@ function App() {
       profileDevControl: "Diagnostic & Dev Control",
       profileDevControlDesc: "Manage diagnostic state or clear developer progress milestones.",
       profileResetAssessment: "Reset Assessment Status",
+      profileDangerZone: "Danger Zone",
+      profileDeleteAccount: "Delete Account",
+      profileDeleteAccountDesc: "Permanently delete your account and all associated data. This action cannot be undone.",
+      profileDeleteAccountConfirm: "I understand, delete my account",
+      profileDeleteModalTitle: "Delete Account",
+      profileDeleteModalDesc: "This will permanently delete your account for {email} and erase all associated learning data. This action cannot be undone.",
+      profileDeleteModalTypePrompt: 'To confirm, type "DELETE" in the box below:',
+      profileDeleteModalCancel: "Cancel",
+      profileDeleteModalConfirm: "Delete My Account",
+      profileDeleteSuccess: "Your account has been deleted successfully.",
+      profileDeleteError: "Failed to delete account. Please try again or contact support.",
       practiceMode: "Practice Mode",
       stepOf: "Step {current} of {total}",
       naText: "N/A"
@@ -2513,6 +2529,17 @@ function App() {
       profileDevControl: "डायग्नोस्टिक और देव नियंत्रण",
       profileDevControlDesc: "डायग्नोस्टिक स्थिति प्रबंधित करें या डेवलपर प्रगति मील के पत्थर साफ़ करें।",
       profileResetAssessment: "मूल्यांकन स्थिति रीसेट करें",
+      profileDangerZone: "खतरा क्षेत्र",
+      profileDeleteAccount: "खाता हटाएं",
+      profileDeleteAccountDesc: "अपना खाता और संबंधित सभी डेटा स्थायी रूप से हटा दें। यह क्रिया पूर्ववत नहीं की जा सकती।",
+      profileDeleteAccountConfirm: "मैं समझता हूँ, मेरा खाता हटा दें",
+      profileDeleteModalTitle: "खाता हटाएं",
+      profileDeleteModalDesc: "यह {email} के लिए आपके खाते को स्थायी रूप से हटा देगा और संबंधित सभी लर्निंग डेटा मिटा देगा। यह क्रिया पूर्ववत नहीं की जा सकती।",
+      profileDeleteModalTypePrompt: 'पुष्टि करने के लिए, नीचे दिए गए बॉक्स में "DELETE" टाइप करें:',
+      profileDeleteModalCancel: "रद्द करें",
+      profileDeleteModalConfirm: "मेरा खाता हटाएं",
+      profileDeleteSuccess: "आपका खाता सफलतापूर्वक हटा दिया गया है।",
+      profileDeleteError: "खाता हटाने में विफल। कृपया पुनः प्रयास करें या सहायता से संपर्क करें।",
       practiceMode: "अभ्यास मोड",
       stepOf: "चरण {current} का {total}",
       naText: "लागू नहीं"
@@ -2620,6 +2647,17 @@ function App() {
       profileDevControl: "ಡಯಾಗ್ನೋಸ್ಟಿಕ್ ಮತ್ತು ಡೆವ್ ನಿಯಂತ್ರಣ",
       profileDevControlDesc: "ಡಯಾಗ್ನೋಸ್ಟಿಕ್ ಸ್ಥಿತಿಯನ್ನು ನಿರ್ವಹಿಸಿ ಅಥವಾ ಡೆವಲಪರ್ ಪ್ರಗತಿಯ ಮೈಲಿಗಲ್ಲುಗಳನ್ನು ತೆರವುಗೊಳಿಸಿ.",
       profileResetAssessment: "ಮೌಲ್ಯಮಾಪನ ಸ್ಥಿತಿಯನ್ನು ಮರುಹೊಂದಿಸಿ",
+      profileDangerZone: "ಅಪಾಯ ವಲಯ",
+      profileDeleteAccount: "ಖಾತೆಯನ್ನು ಅಳಿಸಿ",
+      profileDeleteAccountDesc: "ನಿಮ್ಮ ಖಾತೆ ಮತ್ತು ಸಂಬಂಧಿತ ಎಲ್ಲಾ ಡೇಟಾವನ್ನು ಶಾಶ್ವತವಾಗಿ ಅಳಿಸಿ. ಈ ಕ್ರಿಯೆಯನ್ನು ರದ್ದುಗೊಳಿಸಲಾಗುವುದಿಲ್ಲ.",
+      profileDeleteAccountConfirm: "ನನಗೆ ಅರ್ಥವಾಗಿದೆ, ನನ್ನ ಖಾತೆಯನ್ನು ಅಳಿಸಿ",
+      profileDeleteModalTitle: "ಖಾತೆಯನ್ನು ಅಳಿಸಿ",
+      profileDeleteModalDesc: "ಇದು {email} ಖಾತೆಯನ್ನು ಶಾಶ್ವತವಾಗಿ ಅಳಿಸುತ್ತದೆ ಮತ್ತು ಸಂಬಂಧಿತ ಎಲ್ಲಾ ಕಲಿಕೆ ಡೇಟಾವನ್ನು ಅಳಿಸುತ್ತದೆ. ಈ ಕ್ರಿಯೆಯನ್ನು ರದ್ದುಗೊಳಿಸಲಾಗುವುದಿಲ್ಲ.",
+      profileDeleteModalTypePrompt: 'ದೃಢೀಕರಿಸಲು, ಕೆಳಗಿನ ಬಾಕ್ಸ್‌ನಲ್ಲಿ "DELETE" ಎಂದು ಟೈಪ್ ಮಾಡಿ:',
+      profileDeleteModalCancel: "ರದ್ದುಮಾಡಿ",
+      profileDeleteModalConfirm: "ನನ್ನ ಖಾತೆಯನ್ನು ಅಳಿಸಿ",
+      profileDeleteSuccess: "ನಿಮ್ಮ ಖಾತೆಯನ್ನು ಯಶಸ್ವಿಯಾಗಿ ಅಳಿಸಲಾಗಿದೆ.",
+      profileDeleteError: "ಖಾತೆಯನ್ನು ಅಳಿಸಲು ವಿಫಲವಾಗಿದೆ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ ಅಥವಾ ಬೆಂಬಲವನ್ನು ಸಂಪರ್ಕಿಸಿ.",
       practiceMode: "ಅಭ್ಯಾಸ ವಿಧಾನ",
       stepOf: "ಹಂತ {current} ರಲ್ಲಿ {total}",
       naText: "ಲಭ್ಯವಿಲ್ಲ"
@@ -2727,6 +2765,17 @@ function App() {
       profileDevControl: "డయాగ్నస్టిక్ & దేవ్ కంట్రోల్",
       profileDevControlDesc: "డయాగ్నస్టిక్ స్థితిని నిర్వహించండి లేదా డెవలపర్ పురోగతి మైలురాళ్లను క్లియర్ చేయండి.",
       profileResetAssessment: "అసెస్మెంట్ స్థితిని రీసెట్ చేయండి",
+      profileDangerZone: "ప్రమాద జోన్",
+      profileDeleteAccount: "ఖాతాను తొలగించు",
+      profileDeleteAccountDesc: "మీ ఖాతా మరియు అనుబంధ డేటాను శాశ్వతంగా తొలగించండి. ఈ చర్యను రద్దు చేయలేరు.",
+      profileDeleteAccountConfirm: "నాకు అర్థమైంది, నా ఖాతాను తొలగించు",
+      profileDeleteModalTitle: "ఖాతాను తొలగించు",
+      profileDeleteModalDesc: "ఇది {email} ఖాతాను శాశ్వతంగా తొలగిస్తుంది మరియు అనుబంధ అంతర్లీన డేటాను తొలగిస్తుంది. ఈ చర్యను రద్దు చేయలేరు.",
+      profileDeleteModalTypePrompt: 'నిర్ధారించడానికి, క్రింది బాక్స్‌లో "DELETE" టైప్ చేయండి:',
+      profileDeleteModalCancel: "రద్దు చేయి",
+      profileDeleteModalConfirm: "నా ఖాతాను తొలగించు",
+      profileDeleteSuccess: "మీ ఖాతా విజయవంతంగా తొలగించబడింది.",
+      profileDeleteError: "ఖాతాను తొలగించడం విఫలమైంది. దయచేసి మళ్లీ ప్రయత్నించండి లేదా మద్దతును సంప్రదించండి.",
       practiceMode: "అభ్యాస మోడ్",
       stepOf: "దశ {current} లో {total}",
       naText: "అందుబాటులో లేదు"
@@ -2834,6 +2883,17 @@ function App() {
       profileDevControl: "கண்டறிதல் & மேம்பாட்டு கட்டுப்பாடு",
       profileDevControlDesc: "கண்டறியும் நிலையை நிர்வகிக்கவும் அல்லது டெவலப்பர் முன்னேற்ற மைல்கற்களை அழிக்கவும்.",
       profileResetAssessment: "மதிப்பீட்டு நிலையை மீட்டமைக்கவும்",
+      profileDangerZone: "ஆபத்து மண்டலம்",
+      profileDeleteAccount: "கணக்கை நீக்கு",
+      profileDeleteAccountDesc: "உங்கள் கணக்கையும் அனைத்து தொடர்புடைய தரவையும் நிரந்தரமாக நீக்கவும். இந்தச் செயலை மாற்ற முடியாது.",
+      profileDeleteAccountConfirm: "இதை நான் புரிந்துகொள்கிறேன், எனது கணக்கை நீக்கு",
+      profileDeleteModalTitle: "கணக்கை நீக்கு",
+      profileDeleteModalDesc: "இது {email} கணக்கை நிரந்தரமாக நீக்கி, தொடர்புடைய அனைத்து கற்றல் தரவையும் அழிக்கும். இந்தச் செயலை மாற்ற முடியாது.",
+      profileDeleteModalTypePrompt: 'உறுதிப்படுத்த, கீழே உள்ள பெட்டியில் "DELETE" என்று தட்டச்சு செய்யவும்:',
+      profileDeleteModalCancel: "ரத்துசெய்",
+      profileDeleteModalConfirm: "எனது கணக்கை நீக்கு",
+      profileDeleteSuccess: "உங்கள் கணக்கு வெற்றிகரமாக நீக்கப்பட்டது.",
+      profileDeleteError: "கணக்கை நீக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும் அல்லது ஆதரவைத் தொடர்பு கொள்ளவும்.",
       practiceMode: "பயிற்சி முறை",
       stepOf: "படி {current} / {total}",
       naText: "பொருந்தாது"
@@ -3229,6 +3289,52 @@ function App() {
     setMessage(t("successSignOut"));
     setTimeout(() => setMessage(""), 3000);
     setSubmitting(false);
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!session?.user) return;
+    setSubmitting(true);
+    setDeleteError("");
+    const userId = session.user.id;
+    try {
+      // Remove the user's profile row (cascades to the auth user via FK)
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .delete()
+        .eq("id", userId);
+      if (profileError) throw profileError;
+
+      // Clean up local app data tied to this user
+      const today = new Date().toLocaleDateString("en-CA");
+      Object.keys(localStorage).forEach((key) => {
+        if (key.startsWith(`lisa_`) && key.includes(userId)) {
+          localStorage.removeItem(key);
+        }
+      });
+      localStorage.removeItem(`lisa_user_xp_${userId}`);
+      localStorage.removeItem(`lisa_daily_xp_${userId}_${today}`);
+      localStorage.removeItem(`lisa_daily_time_${userId}_${today}`);
+      localStorage.removeItem(`lisa_daily_lessons_${userId}_${today}`);
+      localStorage.removeItem(`lisa_profile_bg_${userId}`);
+      localStorage.removeItem(`lisa_profile_avatar_${userId}`);
+      clearStoredAssessmentState(userId);
+
+      // Sign the user out so the auth session is terminated
+      await supabase.auth.signOut();
+
+      setDeleteModalOpen(false);
+      setDeleteConfirmText("");
+      setProfile(null);
+      setSession(null);
+      setActiveTab("login");
+      setDashboardTab("login");
+      setMessage(t("profileDeleteSuccess"));
+    } catch (err) {
+      console.error("Delete account error:", err);
+      setDeleteError(t("profileDeleteError"));
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   // Dynamic Assessment Shuffled Initialization (Taken Once)
@@ -5404,6 +5510,19 @@ function App() {
                         onClick={() => handleResetLessons()}
                       >
                         {t("profileResetLessons")}
+                      </button>
+                    </div>
+
+                    <div className="current-level-card" style={{ margin: 0, padding: "24px", background: '#7a1f1f', border: '1px solid #ff4d4d' }}>
+                      <h3 className="current-level-title" style={{ color: '#ff8a8a' }}>{t("profileDangerZone")}</h3>
+                      <p style={{ fontSize: "0.85rem", color: "#ffd9d9", marginBottom: "16px" }}>{t("profileDeleteAccountDesc")}</p>
+                      <button
+                        type="button"
+                        className="primary-btn"
+                        style={{ background: "#ff1a1a", borderColor: "#ff1a1a", color: "#ffffff", width: "100%" }}
+                        onClick={() => { setDeleteConfirmText(""); setDeleteError(""); setDeleteModalOpen(true); }}
+                      >
+                        {t("profileDeleteAccount")}
                       </button>
                     </div>
                   </div>
@@ -7606,10 +7725,89 @@ function App() {
             </div>
           </div>
         )}
+
+        {deleteModalOpen && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0,0,0,0.6)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 10000,
+            padding: '20px'
+          }}>
+            <div style={{
+              background: 'var(--panel)',
+              border: '2px solid #ff4d4d',
+              borderRadius: '24px',
+              width: '100%',
+              maxWidth: '480px',
+              padding: '30px',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
+              position: 'relative'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                <AlertTriangleIcon style={{ color: '#ff1a1a', width: 28, height: 28 }} />
+                <h3 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800, color: '#ff1a1a' }}>{t("profileDeleteModalTitle")}</h3>
+              </div>
+              <p style={{ fontSize: '0.95rem', color: 'var(--text)', margin: '0 0 16px', lineHeight: 1.6 }}>
+                {t("profileDeleteModalDesc").replace("{email}", session?.user?.email || "")}
+              </p>
+              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--muted)', marginBottom: '8px' }}>
+                {t("profileDeleteModalTypePrompt")}
+              </label>
+              <input
+                type="text"
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                placeholder='DELETE'
+                autoFocus
+                style={{
+                  width: '100%',
+                  boxSizing: 'border-box',
+                  padding: '12px 14px',
+                  borderRadius: '12px',
+                  border: '2px solid var(--line)',
+                  background: 'var(--panel-strong)',
+                  color: 'var(--text)',
+                  fontSize: '1rem',
+                  marginBottom: '8px'
+                }}
+              />
+              {deleteError && (
+                <p style={{ color: '#ff1a1a', fontSize: '0.85rem', margin: '0 0 12px' }}>{deleteError}</p>
+              )}
+              <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
+                <button
+                  type="button"
+                  className="secondary-btn"
+                  style={{ flex: 1 }}
+                  onClick={() => { setDeleteModalOpen(false); setDeleteConfirmText(""); setDeleteError(""); }}
+                  disabled={submitting}
+                >
+                  {t("profileDeleteModalCancel")}
+                </button>
+                <button
+                  type="button"
+                  className="primary-btn"
+                  style={{ flex: 1, background: '#ff1a1a', borderColor: '#ff1a1a', color: '#ffffff', opacity: deleteConfirmText === 'DELETE' ? 1 : 0.5 }}
+                  onClick={handleDeleteAccount}
+                  disabled={submitting || deleteConfirmText !== 'DELETE'}
+                >
+                  {submitting ? t("signingOut") : t("profileDeleteModalConfirm")}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
-
   // LOGIN / REGISTER SCREENS (Not Logged In)
   return (
     <main className="shell">

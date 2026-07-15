@@ -28,6 +28,10 @@ drop policy if exists "Users can update their own profile." on public.profiles;
 create policy "Users can update their own profile." on public.profiles
   for update using (auth.uid() = id);
 
+drop policy if exists "Users can delete their own profile." on public.profiles;
+create policy "Users can delete their own profile." on public.profiles
+  for delete using (auth.uid() = id);
+
 -- Trigger function to automatically create a profile for new users
 create or replace function public.handle_new_user()
 returns trigger as $$
