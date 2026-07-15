@@ -5099,23 +5099,31 @@ select:focus {
   filter: drop-shadow(0 0 4px rgb(236, 236, 236)) drop-shadow(0 8px 12px rgba(0, 0, 0, 0.25));
 }
 
-/* Practice Row Cards */
+/* Practice Row Cards - 3-block tab design */
 .practice-row-cards {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 16px;
+}
+
+@media (max-width: 768px) {
+  .practice-row-cards {
+    grid-template-columns: 1fr;
+  }
 }
 
 .practice-row-card {
   background: var(--panel);
   border: 2px solid var(--line);
   border-radius: 20px;
-  padding: 20px 24px;
+  padding: 22px 20px;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
   cursor: pointer;
   transition: all 0.2s ease;
+  text-align: left;
 }
 
 .practice-row-card:hover {
@@ -5171,6 +5179,7 @@ select:focus {
   height: 56px;
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.05);
+  order: -1;
 }
 
 /* Specific icon styles */
