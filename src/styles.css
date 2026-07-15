@@ -5216,11 +5216,23 @@ select:focus {
   background: var(--panel);
   border: 2px solid var(--line);
   border-radius: 24px;
-  padding: 32px;
   margin-bottom: 32px;
+  overflow: hidden;
+  padding: 0;
+}
+
+.profile-cover {
+  height: 160px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.profile-card-body {
   display: flex;
-  gap: 32px;
+  gap: 24px;
   align-items: center;
+  padding: 20px 24px 24px;
 }
 
 .profile-avatar-large {
