@@ -277,13 +277,13 @@ export const fetchWordOfDay = async (language = "English", context = {}) => {
     }
 
     const learnerContext = `The learner is at literacy level ${level != null ? level : "unknown"} (scale 1 to 12), age ${age != null ? age : "unknown"}, with education background "${education || "unknown"}".`;
-    const prompt = `You are a helpful literacy assistant. ${learnerContext} Suggest a unique, helpful "Word of the Day" in ${language} that is practical for learning and well-suited to this specific learner's literacy level, age, and education (not too easy, not too difficult). Also provide a simple, clear meaning (definition) of the word, and a simple, clear, age-appropriate example sentence showing how to use it.
+    const prompt = `You are a helpful literacy assistant. ${learnerContext} Suggest a unique, helpful English "Word of the Day" that is practical for learning and well-suited to this specific learner's literacy level, age, and education (not too easy, not too difficult). The word itself MUST be a common English word. The example sentence MUST be written in English showing how to use the word. The meaning (definition) MUST be translated into and written in ${language} so the learner can understand it in their own language.
     
     Return ONLY valid JSON with this exact structure (no markdown, no backticks):
     {
-      "word": "string",
-      "meaning": "string",
-      "example": "string"
+      "word": "English word",
+      "meaning": "meaning written in ${language}",
+      "example": "example sentence written in English"
     }`;
 
     const response = await fetch(OPENROUTER_API_URL, {
@@ -322,13 +322,37 @@ export const fetchWordOfDay = async (language = "English", context = {}) => {
     return parsed;
   } catch (err) {
     console.error("Failed to fetch word of the day from OpenRouter, using fallback:", err);
-    return {
-      word: language === "Hindi" ? "परिश्रमी" : "Diligent",
-      meaning: language === "Hindi" ? "मेहनती और लगनशील" : "Hardworking and showing care",
-      example: language === "Hindi" 
-        ? "एक परिश्रमी छात्र हर दिन थोड़ा पढ़ता है।" 
-        : "A diligent student practices reading a little every day."
-    };
+    if (language === "Hindi") {
+      return {
+        word: "Diligent",
+        meaning: "मेहनती और लगनशील",
+        example: "A diligent student practices reading a little every day."
+      };
+    } else if (language === "Kannada") {
+      return {
+        word: "Diligent",
+        meaning: "ಕಷ್ಟಪಟ್ಟು ಕೆಲಸ ಮಾಡುವ ಮತ್ತು ಕಾಳಜಿ ತೋರುವ",
+        example: "A diligent student practices reading a little every day."
+      };
+    } else if (language === "Telugu") {
+      return {
+        word: "Diligent",
+        meaning: "కష్టపడి పనిచేసే మరియు శ్రద్ధ చూపించే",
+        example: "A diligent student practices reading a little every day."
+      };
+    } else if (language === "Tamil") {
+      return {
+        word: "Diligent",
+        meaning: "கடின உழைப்பு மற்றும் அக்கறை காட்டுதல்",
+        example: "A diligent student practices reading a little every day."
+      };
+    } else {
+      return {
+        word: "Diligent",
+        meaning: "Hardworking and showing care",
+        example: "A diligent student practices reading a little every day."
+      };
+    }
   }
 };
 
@@ -762,7 +786,7 @@ Input:
         "Authorization": `Bearer ${OPENROUTER_API_KEY}`
       },
       body: JSON.stringify({
-        model: "cohere/north-mini-code:free",
+        model: MODEL_NAME,
         messages: [{ role: "user", content: prompt }],
         temperature: 0.3,
         max_tokens: 1024,
@@ -830,7 +854,7 @@ Options: ${JSON.stringify(optionsArray)}`;
         "Authorization": `Bearer ${OPENROUTER_API_KEY}`
       },
       body: JSON.stringify({
-        model: "cohere/north-mini-code:free",
+        model: MODEL_NAME,
         messages: [{ role: "user", content: prompt }],
         temperature: 0.3,
         max_tokens: 2048,

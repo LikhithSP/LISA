@@ -173,6 +173,19 @@ const selectQuestsForToday = (userId, todayStr) => {
   return selected;
 };
 
+// Static achievement definitions (translatable title/desc). Earned/progress are computed at render time.
+const ACHIEVEMENT_DEFS = [
+  { id: 1, title: "First Steps", desc: "Complete your first assessment", icon: "⭐", color: "#f59e0b" },
+  { id: 2, title: "Reading Star", desc: "Score 75% or higher in reading", icon: "📚", color: "#3b82f6" },
+  { id: 3, title: "Comprehension Pro", desc: "Score 75% or higher in comprehension", icon: "🧠", color: "#10b981" },
+  { id: 4, title: "Wordsmith", desc: "Score 75% or higher in writing", icon: "✍️", color: "#a855f7" },
+  { id: 5, title: "XP Collector", desc: "Earn 100 XP or more", icon: "💎", color: "#e11d48" },
+  { id: 6, title: "Dedicated Learner", desc: "Complete 3 lessons or more", icon: "🔥", color: "#f97316" },
+  { id: 7, title: "Speech Maestro", desc: "Score 75% or higher in pronunciation", icon: "🗣️", color: "#06b6d4" },
+  { id: 8, title: "Elite Scholar", desc: "Reach Progressive Level 8", icon: "🎓", color: "#8b5cf6" },
+  { id: 9, title: "Grandmaster", desc: "Reach Progressive Level 12", icon: "👑", color: "#ef4444" },
+];
+
 // Translation dictionary for regional languages
 const translations = {
   English: enJson,
@@ -316,6 +329,189 @@ const getStreakMessage = (streak) => {
   return `You're on fire! An epic ${streak} day streak. Keep the momentum going!`;
 };
 
+const localDashboardTranslations = {
+  Hindi: {
+    levels: {
+      1: "आप अपने पहले कदम उठा रहे हैं! आप पर गर्व है।",
+      2: "शानदार शुरुआत! आप शब्दों को पहचान रहे हैं और कौशल का निर्माण कर रहे हैं।",
+      3: "अद्भुत! आप सरल वाक्यों को आसानी से पढ़ रहे हैं।",
+      4: "इसे जारी रखें! आपका पढ़ने का प्रवाह बढ़ रहा है।",
+      5: "शानदार प्रगति! आप अधिक जटिल पाठों को समझ रहे हैं।",
+      6: "सनसनीखेज! आप पैराग्राफ से महत्वपूर्ण अंतर्दृष्टि प्राप्त कर रहे हैं।",
+      7: "बेहतरीन! आपका संचार अत्यधिक परिष्कृत हो रहा है।",
+      8: "उत्कृष्ट! आप कार्यात्मक दैनिक साक्षरता में महारत हासिल कर रहे हैं।",
+      9: "शानदार! वर्तनी और व्याकरण आपकी आदत बन रहे हैं।",
+      10: "असाधारण! आप पूर्ण आत्मविश्वास के साथ संवाद करते हैं।",
+      11: "अद्भुत! आप एक पेशेवर स्तर पर पढ़ते और लिखते हैं।",
+      12: "साक्षरता चैंपियन! आपने पूर्ण महारत हासिल कर ली है।"
+    },
+    streaks: {
+      0: "अपनी स्ट्रीक बनाने के लिए आज ही सीखना शुरू करें!",
+      1: "शानदार शुरुआत! इसे जारी रखने के लिए कल वापस आएं।"
+    },
+    streakTemplate: (streak) => {
+      if (streak >= 2 && streak <= 4) return `लगातार ${streak} दिन! आप एक बेहतरीन आदत बना रहे हैं।`;
+      if (streak >= 5 && streak <= 9) return `अद्भुत! ${streak} दिनों की स्ट्रीक। आप अजेय हैं!`;
+      if (streak >= 10 && streak <= 20) return `अविश्वसनीय! निरंतर सीखने की ${streak} दिनों की स्ट्रीक। इसे जारी रखें!`;
+      return `आप कमाल कर रहे हैं! एक शानदार ${streak} दिनों की स्ट्रीक। गति बनाए रखें!`;
+    },
+    quests: {
+      earn_20_xp: "आज 20 XP अर्जित करें",
+      practice_5_min: "5 मिनट अभ्यास करें",
+      complete_1_lesson: "1 पाठ पूरा करें",
+      practice_10_min: "10 मिनट अभ्यास करें",
+      earn_30_xp: "आज 30 XP अर्जित करें",
+      complete_2_lessons: "2 पाठ पूरे करें"
+    },
+    achievements: {
+      1: { title: "पहला कदम", desc: "अपना पहला मूल्यांकन पूरा करें" },
+      2: { title: "रीडिंग स्टार", desc: "पढ़ने में 75% या उससे अधिक अंक प्राप्त करें" },
+      3: { title: "कॉम्प्रिहेंशन प्रो", desc: "समझ (कॉम्प्रिहेंशन) में 75% या उससे अधिक अंक प्राप्त करें" },
+      4: { title: "वर्डस्मिथ", desc: "लेखन में 75% या उससे अधिक अंक प्राप्त करें" },
+      5: { title: "XP कलेक्टर", desc: "100 XP या अधिक अर्जित करें" },
+      6: { title: "समर्पित शिक्षार्थी", desc: "3 या अधिक पाठ पूरे करें" },
+      7: { title: "स्पीच मेस्ट्रो", desc: "उच्चारण में 75% या उससे अधिक अंक प्राप्त करें" },
+      8: { title: "कुलीन विद्वान", desc: "प्रगतिशील स्तर 8 पर पहुंचें" },
+      9: { title: "ग्रैंडमास्टर", desc: "प्रगतिशील स्तर 12 पर पहुंचें" }
+    }
+  },
+  Kannada: {
+    levels: {
+      1: "ನೀವು ನಿಮ್ಮ ಮೊದಲ ಹೆಜ್ಜೆಗಳನ್ನು ಇಡುತ್ತಿದ್ದೀರಿ! ನಿಮ್ಮ ಬಗ್ಗೆ ಹೆಮ್ಮೆ ಇದೆ.",
+      2: "ಉತ್ತಮ ಆರಂಭ! ನೀವು ಪದಗಳನ್ನು ಗುರುತಿಸುತ್ತಿದ್ದೀರಿ ಮತ್ತು ಕೌಶಲ್ಯಗಳನ್ನು ಬೆಳೆಸಿಕೊಳ್ಳುತ್ತಿದ್ದೀರಿ.",
+      3: "ಅದ್ಭುತ! ನೀವು ಸರಳ ವಾಕ್ಯಗಳನ್ನು ಸುಲಭವಾಗಿ ಓದುತ್ತಿದ್ದೀರಿ.",
+      4: "ಹೀಗೆಯೇ ಮುಂದುವರಿಸಿ! ನಿಮ್ಮ ಓದುವ ಸರಾಗತೆ ಹೆಚ್ಚುತ್ತಿದೆ.",
+      5: "ಅದ್ಭುತ ಪ್ರಗತಿ! ನೀವು ಹೆಚ್ಚು ಸಂಕೀರ್ಣವಾದ ಪಠ್ಯಗಳನ್ನು ಅರ್ಥಮಾಡಿಕೊಳ್ಳುತ್ತಿದ್ದೀರಿ.",
+      6: "ಅಸಾಧಾರಣ! ನೀವು ಪ್ಯಾರಾಗಳಿಂದ ಪ್ರಮುಖ ಒಳನೋಟಗಳನ್ನು ಗ್ರಹಿಸುತ್ತಿದ್ದೀರಿ.",
+      7: "ಅತ್ಯುತ್ತಮ! ನಿಮ್ಮ ಸಂವಹನವು ಹೆಚ್ಚು ಸುಧಾರಿಸುತ್ತಿದೆ.",
+      8: "ಅತ್ಯುತ್ತಮ! ನೀವು ದೈನಂದิน ಸಾಕ್ಷರತೆಯನ್ನು ಕರಗತ ಮಾಡಿಕೊಳ್ಳುತ್ತಿದ್ದೀರಿ.",
+      9: "ಅದ್ಭುತ! ಕಾಗುಣಿತ ಮತ್ತು ವ್ಯಾಕರಣವು ನಿಮಗೆ ಸಹಜವಾಗುತ್ತಿದೆ.",
+      10: "ಅಸಾಧಾರಣ! ನೀವು ಸಂಪೂರ್ಣ ಆತ್ಮವಿಶ್ವಾಸದಿಂದ ಸಂವಹನ ನಡೆಸುತ್ತೀರಿ.",
+      11: "ಅದ್ಭುತ! ನೀವು ವೃತ್ತಿಪರ ಮಟ್ಟದಲ್ಲಿ ಓದುತ್ತೀರಿ ಮತ್ತು ಬರೆಯುತ್ತೀರಿ.",
+      12: "ಸಾಕ್ಷರತಾ ಚಾಂಪಿಯನ್! ನೀವು ಸಂಪೂರ್ಣ ಪಾಂಡಿತ್ಯವನ್ನು ಸಾಧಿಸಿದ್ದೀರಿ."
+    },
+    streaks: {
+      0: "ನಿಮ್ಮ ಸ್ಟ್ರೀಕ್ ನಿರ್ಮಿಸಲು ಇಂದೇ ಕಲಿಯಲು ಪ್ರಾರಂಭಿಸಿ!",
+      1: "ಉತ್ತಮ ಆರಂಭ! ಇದನ್ನು ಮುಂದುವರಿಸಲು ನಾಳೆ ಮತ್ತೆ ಬನ್ನಿ."
+    },
+    streakTemplate: (streak) => {
+      if (streak >= 2 && streak <= 4) return `ಸತತ ${streak} ದಿನಗಳು! ನೀವು ಉತ್ತಮ ಅಭ್ಯಾಸವನ್ನು ಬೆಳೆಸಿಕೊಳ್ಳುತ್ತಿದ್ದೀರಿ.`;
+      if (streak >= 5 && streak <= 9) return `ಅದ್ಭುತ! ${streak} ದಿನಗಳ ಸ್ಟ್ರೀಕ್. ನಿಮ್ಮನ್ನು ತಡೆಯಲು ಸಾಧ್ಯವಿಲ್ಲ!`;
+      if (streak >= 10 && streak <= 20) return `ನಂಬಲಾಗದ! ನಿರಂತರ ಕಲಿಕೆಯ ${streak} ದಿನಗಳ ಸ್ಟ್ರೀಕ್. ಹೀಗೆಯೇ ಮುಂದುವರಿಸಿ!`;
+      return `ನೀವು ಧೂಳೆಬ್ಬಿಸುತ್ತಿದ್ದೀರಿ! ಭರ್ಜರಿ ${streak} ದಿನಗಳ ಸ್ಟ್ರೀಕ್. ವೇಗವನ್ನು ಕಾಪಾಡಿಕೊಳ್ಳಿ!`;
+    },
+    quests: {
+      earn_20_xp: "ಇಂದು 20 XP ಗಳಿಸಿ",
+      practice_5_min: "5 ನಿಮಿಷಗಳ ಕಾಲ ಅಭ್ಯಾಸ ಮಾಡಿ",
+      complete_1_lesson: "1 ಪಾಠವನ್ನು ಪೂರ್ಣಗೊಳಿಸಿ",
+      practice_10_min: "10 ನಿಮಿಷಗಳ ಕಾಲ ಅಭ್ಯಾಸ ಮಾಡಿ",
+      earn_30_xp: "ಇಂದು 30 XP ಗಳಿಸಿ",
+      complete_2_lessons: "2 ಪಾಠಗಳನ್ನು ಪೂರ್ಣಗೊಳಿಸಿ"
+    },
+    achievements: {
+      1: { title: "ಮೊದಲ ಹೆಜ್ಜೆಗಳು", desc: "ನಿಮ್ಮ ಮೊದಲ ಮೌಲ್ಯಮಾಪನವನ್ನು ಪೂರ್ಣಗೊಳಿಸಿ" },
+      2: { title: "ರೀಡಿಂಗ್ ಸ್ಟಾರ್", desc: "ಓದುವಿಕೆಯಲ್ಲಿ 75% ಅಥವಾ ಹೆಚ್ಚಿನ ಅಂಕಗಳನ್ನು ಗಳಿಸಿ" },
+      3: { title: "ಕಾಂಪ್ರಿಹೆನ್ಷನ್ ಪ್ರೊ", desc: "ಗ್ರಹಿಕೆಯಲ್ಲಿ 75% ಅಥವಾ ಹೆಚ್ಚಿನ ಅಂಕಗಳನ್ನು ಗಳಿಸಿ" },
+      4: { title: "ವರ್ಡ್ಸ್‌ಮಿತ್", desc: "ಬರವಣಿಗೆಯಲ್ಲಿ 75% ಅಥವಾ ಹೆಚ್ಚಿನ ಅಂಕಗಳನ್ನು ಗಳಿಸಿ" },
+      5: { title: "XP ಕಲೆಕ್ಟರ್", desc: "100 XP ಅಥವಾ ಹೆಚ್ಚಿನದನ್ನು ಗಳಿಸಿ" },
+      6: { title: "ಸಮರ್ಪಿತ ಕಲಿಯುವವನು", desc: "3 ಅಥವಾ ಹೆಚ್ಚಿನ ಪಾಠಗಳನ್ನು ಪೂರ್ಣಗೊಳಿಸಿ" },
+      7: { title: "ಸ್ಪೀಚ್ ಮೆಸ್ಟ್ರೋ", desc: "ಉಚ್ಚಾರಣೆಯಲ್ಲಿ 75% ಅಥವಾ ಹೆಚ್ಚಿನ ಅಂಕಗಳನ್ನು ಗಳಿಸಿ" },
+      8: { title: "ಎಲೈಟ್ ಸ್ಕಾಲರ್", desc: "ಪ್ರಗತಿಶೀಲ ಮಟ್ಟ 8 ಅನ್ನು ತಲುಪಿ" },
+      9: { title: "ಗ್ರಾಂಡ್‌ಮಾಸ್ಟರ್", desc: "ಪ್ರಗತಿಶೀಲ ಮಟ್ಟ 12 ಅನ್ನು ತಲುಪಿ" }
+    }
+  },
+  Telugu: {
+    levels: {
+      1: "మీరు మీ మొదటి అడుగులు వేస్తున్నారు! మీ గురించి గర్వంగా ఉంది.",
+      2: "గొప్ప ప్రారంభం! మీరు పదాలను గుర్తిస్తున్నారు మరియు నైపుణ్యాలను పెంపొందించుకుంటున్నారు.",
+      3: "అద్భుతం! మీరు సాధారణ వాక్యాలను సులభంగా చదువుతున్నారు.",
+      4: "ఇలాగే కొనసాగించండి! మీ పఠన సరళత పెరుగుతోంది.",
+      5: "అద్భుతమైన పురోగతి! మీరు మరింత సంక్లిష్టమైన గ్రంథాలను అర్థం చేసుకుంటున్నారు.",
+      6: "అద్భుతం! మీరు పేరాల నుండి ముఖ్యమైన విషయాలను గ్రహిస్తున్నారు.",
+      7: "అత్యద్భుతం! మీ కమ్యూనికేషన్ చాలా మెరుగవుతోంది.",
+      8: "అద్భుతం! మీరు రోజువారీ అక్షరాస్యతను నేర్చుకుంటున్నారు.",
+      9: "గొప్పది! స్పెల్లింగ్ మరియు వ్యాకరణం మీకు అలవాటుగా మారుతున్నాయి.",
+      10: "అసాధారణమైనది! మీరు పూర్తి ఆత్మవిశ్వాసంతో సంభాషిస్తున్నారు.",
+      11: "అద్భుతం! మీరు వృత్తిపరమైన స్థాయిలో చదువుతున్నారు మరియు రాస్తున్నారు.",
+      12: "అక్షరాస్యత విజేత! మీరు పూర్తి నైపుణ్యాన్ని సాధించారు."
+    },
+    streaks: {
+      0: "మీ స్ట్రీక్‌ను నిర్మించడానికి ఈరోజే నేర్చుకోవడం ప్రారంభించండి!",
+      1: "గొప్ప ప్రారంభం! దీన్ని కొనసాగించడానికి రేపు మళ్లీ రండి."
+    },
+    streakTemplate: (streak) => {
+      if (streak >= 2 && streak <= 4) return `వరుసగా ${streak} రోజులు! మీరు మంచి అలవాటును పెంపొందించుకుంటున్నారు.`;
+      if (streak >= 5 && streak <= 9) return `అద్భుతం! ${streak} రోజుల స్ట్రీక్. మిమ్మల్ని ఎవరూ ఆపలేరు!`;
+      if (streak >= 10 && streak <= 20) return `నమ్మశక్యం కానిది! నిరంతర అభ్యాసం యొక్క ${streak} రోజుల స్ట్రీక్. ఇలాగే కొనసాగించండి!`;
+      return `మీరు దూసుకుపోతున్నారు! అద్భుతమైన ${streak} రోజుల స్ట్రీక్. ఇదే ఉత్సాహాన్ని కొనసాగించండి!`;
+    },
+    quests: {
+      earn_20_xp: "ఈరోజు 20 XP సంపాదించండి",
+      practice_5_min: "5 నిమిషాలు అభ్యాసం చేయండి",
+      complete_1_lesson: "1 పాఠాన్ని పూర్తి చేయండి",
+      practice_10_min: "10 నిమిషాలు అభ్యాసం చేయండి",
+      earn_30_xp: "ఈరోజు 30 XP సంపాదించండి",
+      complete_2_lessons: "2 పాఠాలను పూర్తి చేయండి"
+    },
+    achievements: {
+      1: { title: "మొదటి అడుగులు", desc: "మీ మొదటి మూల్యాంకనాన్ని పూర్తి చేయండి" },
+      2: { title: "రీడింగ్ స్టార్", desc: "పఠనంలో 75% లేదా అంతకంటే ఎక్కువ స్కోరు చేయండి" },
+      3: { title: "కాంప్రహెన్షన్ ప్రో", desc: "అవగాహనలో 75% లేదా అంతకంటే ఎక్కువ స్కోరు చేయండి" },
+      4: { title: "వర్డ్‌స్మిత్", desc: "రచనలో 75% లేదా అంతకంటే ఎక్కువ స్కోరు చేయండి" },
+      5: { title: "XP కలెక్టర్", desc: "100 XP లేదా అంతకంటే ఎక్కువ సంపాదించండి" },
+      6: { title: "సమర్పిత అభ్యాసకుడు", desc: "3 లేదా అంతకంటే ఎక్కువ పాఠాలను పూర్తి చేయండి" },
+      7: { title: "స్పీచ్ మాస్ట్రో", desc: "ఉచ్చారణలో 75% లేదా అంతకంటే ఎక్కువ స్కోరు చేయండి" },
+      8: { title: "ఎలైట్ స్కాలర్", desc: "ప్రోగ్రెసివ్ లెవల్ 8 కి చేరుకోండి" },
+      9: { title: "గ్రాండ్‌మాస్టర్", desc: "ప్రోగ్రెసివ్ లెవల్ 12 కి చేరుకోండి" }
+    }
+  },
+  Tamil: {
+    levels: {
+      1: "உங்கள் முதல் படிகளை எடுத்து வைக்கிறீர்கள்! உங்களை நினைத்து பெருமைப்படுகிறேன்.",
+      2: "சிறந்த ஆரம்பம்! நீங்கள் வார்த்தைகளை அடையாளம் கண்டு திறன்களை வளர்த்து வருகிறீர்கள்.",
+      3: "அற்புதம்! நீங்கள் எளிய வாக்கியங்களை சரளமாக படிக்கிறீர்கள்.",
+      4: "தொடர்ந்து செய்யுங்கள்! உங்கள் வாசிப்பு வேகம் அதிகரித்து வருகிறது.",
+      5: "அற்புதமான முன்னேற்றம்! நீங்கள் மிகவும் சிக்கலான உரைகளைப் புரிந்துகொள்கிறீர்கள்.",
+      6: "அசாத்தியமானது! பத்திகளில் இருந்து முக்கிய கருத்துக்களை நீங்கள் சேகரிக்கிறீர்கள்.",
+      7: "அருமை! உங்கள் தொடர்பு மிகவும் சுத்திகரிக்கப்பட்டு வருகிறது.",
+      8: "சிறப்பானது! அன்றாட செயல்பாட்டு எழுத்தறிவை நீங்கள் மாஸ்டர் செய்கிறீர்கள்.",
+      9: "அற்புதம்! எழுத்துப்பிழை மற்றும் இலக்கணம் உங்களுக்கு எளிதாகிறது.",
+      10: "சிறப்பானது! நீங்கள் முழு நம்பிக்கையுடன் தொடர்பு கொள்கிறீர்கள்.",
+      11: "பிரமாதம்! நீங்கள் ஒரு தொழில்முறை மட்டத்தில் படித்து எழுதுகிறீர்கள்.",
+      12: "எழுத்தறிவு சாம்பியன்! நீங்கள் முழுமையான தேர்ச்சியை அடைந்துவிட்டீர்கள்."
+    },
+    streaks: {
+      0: "உங்கள் தொடர்ச்சியை உருவாக்க இன்றே கற்கத் தொடங்குங்கள்!",
+      1: "சிறந்த ஆரம்பம்! அதைத் தொடர நாளை மீண்டும் வாருங்கள்."
+    },
+    streakTemplate: (streak) => {
+      if (streak >= 2 && streak <= 4) return `தொடர்ந்து ${streak} நாட்கள்! நீங்கள் ஒரு சிறந்த பழக்கத்தை உருவாக்குகிறீர்கள்.`;
+      if (streak >= 5 && streak <= 9) return `அற்புதம்! ${streak} நாட்கள் தொடர்ச்சி. உங்களைத் தடுக்க முடியாது!`;
+      if (streak >= 10 && streak <= 20) return `நம்பமுடியாதது! தொடர்ச்சியான கற்றலின் ${streak} நாட்கள் தொடர்ச்சி. தொடர்ந்து செய்யுங்கள்!`;
+      return `நீங்கள் அசத்துகிறீர்கள்! ஒரு காவிய ${streak} நாட்கள் தொடர்ச்சி. வேகத்தைத் தக்க வைத்துக் கொள்ளுங்கள்!`;
+    },
+    quests: {
+      earn_20_xp: "இன்று 20 XP பெறுங்கள்",
+      practice_5_min: "5 நிமிடங்கள் பயிற்சி செய்யுங்கள்",
+      complete_1_lesson: "1 பாடத்தை முடிக்கவும்",
+      practice_10_min: "10 நிமிடங்கள் பயிற்சி செய்யுங்கள்",
+      earn_30_xp: "இன்று 30 XP பெறுங்கள்",
+      complete_2_lessons: "2 பாடங்களை முடிக்கவும்"
+    },
+    achievements: {
+      1: { title: "முதல் படிகள்", desc: "உங்கள் முதல் மதிப்பீட்டை முடிக்கவும்" },
+      2: { title: "வாசிப்பு நட்சத்திரம்", desc: "வாசிப்பில் 75% அல்லது அதற்கு மேல் மதிப்பெண் பெறவும்" },
+      3: { title: "புரிதல் நிபுணர்", desc: "புரிதலில் 75% அல்லது அதற்கு மேல் மதிப்பெண் பெறவும்" },
+      4: { title: "வார்த்தை கலைஞர்", desc: "எழுதுவதில் 75% அல்லது அதற்கு மேல் மதிப்பெண் பெறவும்" },
+      5: { title: "XP சேகரிப்பாளர்", desc: "100 XP அல்லது அதற்கு மேல் பெறவும்" },
+      6: { title: "அர்ப்பணிப்புள்ள கற்பவர்", desc: "3 அல்லது அதற்கு மேற்பட்ட பாடங்களை முடிக்கவும்" },
+      7: { title: "பேச்சு மாஸ்டர்", desc: "உச்சரிப்பில் 75% அல்லது அதற்கு மேல் மதிப்பெண் பெறவும்" },
+      8: { title: "எலைட் அறிஞர்", desc: "முற்போக்கான நிலை 8 ஐ அடையுங்கள்" },
+      9: { title: "கிராண்ட்மாஸ்டர்", desc: "முற்போக்கான நிலை 12 ஐ அடையுங்கள்" }
+    }
+  }
+};
+
 function App() {
   const [selectedLanguage, setSelectedLanguage] = useState(
     localStorage.getItem("lisa_lang") || null
@@ -386,6 +582,12 @@ function App() {
   const [activeQuests, setActiveQuests] = useState([]);
   const [timeLeftStr, setTimeLeftStr] = useState("24h 00m 00s");
   const [questBonusClaimed, setQuestBonusClaimed] = useState(false);
+
+  // Translated dashboard strings for non-English languages (fall back to English source values)
+  const [translatedLevelMsg, setTranslatedLevelMsg] = useState("");
+  const [translatedStreakMsg, setTranslatedStreakMsg] = useState("");
+  const [translatedQuestTitles, setTranslatedQuestTitles] = useState({});
+  const [translatedAchievements, setTranslatedAchievements] = useState({});
 
   const getQuestProgress = (quest) => {
     if (quest.type === 'xp') {
@@ -566,6 +768,90 @@ function App() {
     loadWordOfDay();
     return () => { active = false; };
   }, [selectedLanguage, profile, completedLessons]);
+
+  // Translate static dashboard strings (level message, streak message, quest titles, achievement title/desc)
+  // into the selected language. Re-runs when language or the underlying values change. English shows the source text.
+  useEffect(() => {
+    let cancelled = false;
+    const lang = selectedLanguage || "English";
+    const lvl = calculateProgressiveLevel(profile, completedLessons);
+
+    const translateDashboardStrings = async () => {
+      // 1. English is direct
+      if (lang === "English") {
+        setTranslatedLevelMsg(getLevelEncouragementMessage(lvl));
+        setTranslatedStreakMsg(getStreakMessage(streakCount));
+        setTranslatedQuestTitles({});
+        setTranslatedAchievements({});
+        return;
+      }
+
+      // 2. Check local static dictionary first
+      const localDict = localDashboardTranslations[lang];
+      if (localDict) {
+        const lvlMsg = localDict.levels[lvl] || getLevelEncouragementMessage(lvl);
+        
+        let strMsg = "";
+        if (streakCount === 0) strMsg = localDict.streaks[0];
+        else if (streakCount === 1) strMsg = localDict.streaks[1];
+        else strMsg = localDict.streakTemplate(streakCount);
+
+        const questTitles = {};
+        activeQuests.forEach(q => {
+          questTitles[q.id] = localDict.quests[q.id] || q.title;
+        });
+
+        const achs = {};
+        ACHIEVEMENT_DEFS.forEach(a => {
+          achs[a.id] = {
+            title: localDict.achievements[a.id]?.title || a.title,
+            desc: localDict.achievements[a.id]?.desc || a.desc
+          };
+        });
+
+        if (!cancelled) {
+          setTranslatedLevelMsg(lvlMsg);
+          setTranslatedStreakMsg(strMsg);
+          setTranslatedQuestTitles(questTitles);
+          setTranslatedAchievements(achs);
+        }
+        return;
+      }
+
+      // 3. Fallback to API if lang is not in local dictionary
+      try {
+        const [lvlMsg, strMsg] = await Promise.all([
+          translateTextContent(getLevelEncouragementMessage(lvl), lang),
+          translateTextContent(getStreakMessage(streakCount), lang)
+        ]);
+        const questEntries = await Promise.all(
+          activeQuests.map(async (q) => [q.id, await translateTextContent(q.title, lang)])
+        );
+        const achEntries = await Promise.all(
+          ACHIEVEMENT_DEFS.map(async (a) => [a.id, {
+            title: await translateTextContent(a.title, lang),
+            desc: await translateTextContent(a.desc, lang)
+          }])
+        );
+        if (cancelled) return;
+        setTranslatedLevelMsg(lvlMsg);
+        setTranslatedStreakMsg(strMsg);
+        setTranslatedQuestTitles(Object.fromEntries(questEntries));
+        setTranslatedAchievements(Object.fromEntries(achEntries));
+      } catch (e) {
+        console.warn("Dashboard translation failed:", e);
+        if (!cancelled) {
+          setTranslatedLevelMsg(getLevelEncouragementMessage(lvl));
+          setTranslatedStreakMsg(getStreakMessage(streakCount));
+          setTranslatedQuestTitles({});
+          setTranslatedAchievements({});
+        }
+      }
+    };
+
+    translateDashboardStrings();
+    return () => { cancelled = true; };
+  }, [selectedLanguage, profile, completedLessons, streakCount, activeQuests]);
 
   useEffect(() => {
     if (profile?.avatar_url) {
@@ -2028,7 +2314,9 @@ function App() {
       s11u2_title: "Public Signboards",
       s12_title: "Digital Literacy",
       s12u1_title: "Keyboard & Typing",
-      s12u2_title: "Mobile & Messaging"
+      s12u2_title: "Mobile & Messaging",
+      meaning: "Meaning",
+      example: "Example"
     },
     Hindi: {
       sidebarDashboard: "डैशबोर्ड",
@@ -2123,7 +2411,9 @@ function App() {
       s11u2_title: "सार्वजनिक साइनबोर्ड",
       s12_title: "डिजिटल साक्षरता",
       s12u1_title: "कीबोर्ड और टाइपिंग",
-      s12u2_title: "मोबाइल और संदेश सेवा"
+      s12u2_title: "मोबाइल और संदेश सेवा",
+      meaning: "अर्थ",
+      example: "उदाहरण"
     },
     Kannada: {
       sidebarDashboard: "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
@@ -2218,7 +2508,9 @@ function App() {
       s11u2_title: "ಸಾರ್ವಜನಿಕ ನಾಮಫಲಕಗಳು",
       s12_title: "ಡಿಜಿಟಲ್ ಸಾಕ್ಷರತೆ",
       s12u1_title: "ಕೀಬೋರ್ಡ್ ಮತ್ತು ಟೈಪಿಂಗ್",
-      s12u2_title: "ಮೊಬೈಲ್ ಮತ್ತು ಸಂದೇಶ ಕಳುಹಿಸುವಿಕೆ"
+      s12u2_title: "ಮೊಬೈಲ್ ಮತ್ತು ಸಂದೇಶ ಕಳುಹಿಸುವಿಕೆ",
+      meaning: "ಅರ್ಥ",
+      example: "ಉದಾಹರಣೆ"
     },
     Telugu: {
       sidebarDashboard: "డ్యాష్‌బోర్డ్",
@@ -2313,7 +2605,9 @@ function App() {
       s11u2_title: "పబ్లిక్ సైన్‌బోర్డ్‌లు",
       s12_title: "డిజిటల్ అక్షరాస్యత",
       s12u1_title: "కీబోర్డ్ & టైపింగ్",
-      s12u2_title: "మొబైల్ & మెసేజింగ్"
+      s12u2_title: "మొబైల్ & మెసేజింగ్",
+      meaning: "అర్థం",
+      example: "ఉదాహరణ"
     },
     Tamil: {
       sidebarDashboard: "டாஷ்போர்டு",
@@ -2408,7 +2702,9 @@ function App() {
       s11u2_title: "பொது தகவல் பலகைகள்",
       s12_title: "டிஜிட்டல் எழுத்தறிவு",
       s12u1_title: "விசைப்பலகை மற்றும் தட்டச்சு",
-      s12u2_title: "மொபைல் மற்றும் செய்தி அனுப்புதல்"
+      s12u2_title: "மொபைல் மற்றும் செய்தி அனுப்புதல்",
+      meaning: "பொருள்",
+      example: "உதாரணம்"
     }
   };
 
@@ -2488,10 +2784,11 @@ function App() {
 
   useEffect(() => {
     // Load ResponsiveVoice client script on initial mount
-    if (!window.responsiveVoice) {
+    if (!window.responsiveVoice && !document.querySelector('script[data-responsivevoice]')) {
       const script = document.createElement("script");
       script.src = "https://code.responsivevoice.org/responsivevoice.js?key=8Q7W8t4L";
       script.async = true;
+      script.setAttribute("data-responsivevoice", "true");
       document.body.appendChild(script);
     }
 
@@ -4199,7 +4496,6 @@ function App() {
                 onClick={() => setDashboardTab("dashboard")}
               >
                 <DashboardIcon style={{ marginRight: 0, width: 18, height: 18 }} /> {t("sidebarDashboard")}
-                <span className="sidebar-notification-badge">3</span>
               </button>
               <span className="sidebar-separator" aria-hidden="true" />
               <button
@@ -4312,7 +4608,7 @@ function App() {
                     </div>
                     <h3 className="word-of-day-word">{wordOfDay.word}</h3>
                     <div className="word-of-day-block">
-                      <span className="word-of-day-heading">Meaning</span>
+                      <span className="word-of-day-heading">{t("meaning")}</span>
                       <p className="word-of-day-meaning">
                         {wordOfDay.meaning}
                         <button
@@ -4326,7 +4622,7 @@ function App() {
                       </p>
                     </div>
                     <div className="word-of-day-block">
-                      <span className="word-of-day-heading">Example</span>
+                      <span className="word-of-day-heading">{t("example")}</span>
                       <p className="word-of-day-example">
                         "{wordOfDay.example}"
                         <button
@@ -4374,7 +4670,7 @@ function App() {
                       </div>
                       <div className="current-level-info">
                         <p className="current-level-name" style={{ color: '#ffffff', textShadow: '0 2px 4px rgba(0,0,0,0.15)' }}>{getLevelCategoryAndDescription(currentLevelNum, selectedLanguage).category}</p>
-                        <p className="current-level-msg" style={{ color: 'rgba(255, 255, 255, 0.9)', fontWeight: '500' }}>{getLevelEncouragementMessage(currentLevelNum)}</p>
+                        <p className="current-level-msg" style={{ color: 'rgba(255, 255, 255, 0.9)', fontWeight: '500' }}>{translatedLevelMsg}</p>
                       </div>
                     </div>
                   </div>
@@ -4388,7 +4684,7 @@ function App() {
                       <h4 className="streak-society-title" style={{ fontSize: '2.4rem', fontWeight: '900', letterSpacing: '-0.5px', lineHeight: 1.1 }}>
                         {streakCount} <span style={{ fontSize: '1.2rem', fontWeight: '700', opacity: 0.9 }}>{t("dashboardDayStreak")}</span>
                       </h4>
-                      <p className="streak-society-message">{getStreakMessage(streakCount)}</p>
+                      <p className="streak-society-message">{translatedStreakMsg}</p>
                     </div>
 
                     <div className="daily-quests-card" style={{ margin: 0 }}>
@@ -4408,8 +4704,8 @@ function App() {
                               gap: '10px',
                               padding: '12px',
                               opacity: prog.completed ? 0.65 : 1,
-                              background: prog.completed ? 'var(--line)' : '#fafafa',
-                              borderColor: prog.completed ? 'transparent' : 'rgba(0, 0, 0, 0.04)'
+                              background: prog.completed ? 'var(--line)' : 'var(--bg)',
+                              borderColor: prog.completed ? 'transparent' : 'var(--line)'
                             }}>
                               <div className="quest-icon" style={{ width: '32px', height: '32px', borderRadius: '8px' }}>
                                 {quest.type === 'xp' && (
@@ -4427,7 +4723,7 @@ function App() {
                               <div className="quest-content">
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
                                   <span style={{ fontWeight: '700', fontSize: '0.85rem', color: 'var(--text)', whiteSpace: 'nowrap', textDecoration: prog.completed ? 'line-through' : 'none' }}>
-                                    {quest.title}
+                                    {translatedQuestTitles[quest.id] || quest.title}
                                   </span>
                                   <span style={{ fontWeight: '800', fontSize: '0.85rem', color: 'var(--accent)', whiteSpace: 'nowrap' }}>
                                     {prog.displayProgress}
@@ -4471,17 +4767,40 @@ function App() {
                     </div>
                     <div className="achievements-list">
                       {(() => {
-                        const achievementsList = [
-                          { id: 1, title: "First Steps", desc: "Complete your first assessment", icon: "⭐", earned: true, color: "#f59e0b", progress: 100 },
-                          { id: 2, title: "Reading Star", desc: "Score 75% or higher in reading", icon: "📚", earned: calculateSkillProficiency("reading") >= 75, color: "#3b82f6", progress: Math.min(100, Math.round(calculateSkillProficiency("reading"))) },
-                          { id: 3, title: "Comprehension Pro", desc: "Score 75% or higher in comprehension", icon: "🧠", earned: calculateSkillProficiency("comprehension") >= 75, color: "#10b981", progress: Math.min(100, Math.round(calculateSkillProficiency("comprehension"))) },
-                          { id: 4, title: "Wordsmith", desc: "Score 75% or higher in writing", icon: "✍️", earned: calculateSkillProficiency("writing") >= 75, color: "#a855f7", progress: Math.min(100, Math.round(calculateSkillProficiency("writing"))) },
-                          { id: 5, title: "XP Collector", desc: "Earn 100 XP or more", icon: "💎", earned: userXp >= 100, color: "#e11d48", progress: Math.min(100, Math.round((userXp / 100) * 100)) },
-                          { id: 6, title: "Dedicated Learner", desc: "Complete 3 lessons or more", icon: "🔥", earned: completedLessons.filter(id => !id.startsWith("ach_")).length >= 3, color: "#f97316", progress: Math.min(100, Math.round((completedLessons.filter(id => !id.startsWith("ach_")).length / 3) * 100)) },
-                          { id: 7, title: "Speech Maestro", desc: "Score 75% or higher in pronunciation", icon: "🗣️", earned: calculateSkillProficiency("pronunciation") >= 75, color: "#06b6d4", progress: Math.min(100, Math.round(calculateSkillProficiency("pronunciation"))) },
-                          { id: 8, title: "Elite Scholar", desc: "Reach Progressive Level 8", icon: "🎓", earned: currentLevelNum >= 8, color: "#8b5cf6", progress: Math.min(100, Math.round((currentLevelNum / 8) * 100)) },
-                          { id: 9, title: "Grandmaster", desc: "Reach Progressive Level 12", icon: "👑", earned: currentLevelNum >= 12, color: "#ef4444", progress: Math.min(100, Math.round((currentLevelNum / 12) * 100)) },
-                        ];
+                        const achievementsList = ACHIEVEMENT_DEFS.map((a) => {
+                          let earned = false;
+                          let progress = 0;
+                          switch (a.id) {
+                            case 1:
+                              earned = true; progress = 100; break;
+                            case 2:
+                              earned = calculateSkillProficiency("reading") >= 75;
+                              progress = Math.min(100, Math.round(calculateSkillProficiency("reading"))); break;
+                            case 3:
+                              earned = calculateSkillProficiency("comprehension") >= 75;
+                              progress = Math.min(100, Math.round(calculateSkillProficiency("comprehension"))); break;
+                            case 4:
+                              earned = calculateSkillProficiency("writing") >= 75;
+                              progress = Math.min(100, Math.round(calculateSkillProficiency("writing"))); break;
+                            case 5:
+                              earned = userXp >= 100;
+                              progress = Math.min(100, Math.round((userXp / 100) * 100)); break;
+                            case 6:
+                              earned = completedLessons.filter(id => !id.startsWith("ach_")).length >= 3;
+                              progress = Math.min(100, Math.round((completedLessons.filter(id => !id.startsWith("ach_")).length / 3) * 100)); break;
+                            case 7:
+                              earned = calculateSkillProficiency("pronunciation") >= 75;
+                              progress = Math.min(100, Math.round(calculateSkillProficiency("pronunciation"))); break;
+                            case 8:
+                              earned = currentLevelNum >= 8;
+                              progress = Math.min(100, Math.round((currentLevelNum / 8) * 100)); break;
+                            case 9:
+                              earned = currentLevelNum >= 12;
+                              progress = Math.min(100, Math.round((currentLevelNum / 12) * 100)); break;
+                            default: break;
+                          }
+                          return { ...a, earned, progress };
+                        });
 
                         // Find chronologically earned achievements from completed_lessons order
                         const earnedAchievementIds = completedLessons
@@ -4505,9 +4824,9 @@ function App() {
                             </div>
                             <div className="achievement-info">
                               <div className="achievement-info-header">
-                                <span className="achievement-title">{a.title}</span>
+                                <span className="achievement-title">{translatedAchievements[a.id]?.title || a.title}</span>
                               </div>
-                              <p className="achievement-desc">{a.desc}</p>
+                              <p className="achievement-desc">{translatedAchievements[a.id]?.desc || a.desc}</p>
                               <div className="achievement-progress-track">
                                 <div className="achievement-progress-fill" style={{ width: `${a.progress}%`, background: '#facc15' }}></div>
                               </div>
@@ -7095,24 +7414,47 @@ function App() {
               >✕</button>
               <h3 style={{ margin: '0 0 20px', fontSize: '1.6rem', fontWeight: '800' }}>{t("profileAllAchievements")}</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                {[
-                  { id: 1, title: "First Steps", desc: "Complete your first assessment", icon: "⭐", earned: true, color: "#f59e0b", progress: 100 },
-                  { id: 2, title: "Reading Star", desc: "Score 75% or higher in reading", icon: "📚", earned: calculateSkillProficiency("reading") >= 75, color: "#3b82f6", progress: Math.min(100, Math.round(calculateSkillProficiency("reading"))) },
-                  { id: 3, title: "Comprehension Pro", desc: "Score 75% or higher in comprehension", icon: "🧠", earned: calculateSkillProficiency("comprehension") >= 75, color: "#10b981", progress: Math.min(100, Math.round(calculateSkillProficiency("comprehension"))) },
-                  { id: 4, title: "Wordsmith", desc: "Score 75% or higher in writing", icon: "✍️", earned: calculateSkillProficiency("writing") >= 75, color: "#a855f7", progress: Math.min(100, Math.round(calculateSkillProficiency("writing"))) },
-                  { id: 5, title: "XP Collector", desc: "Earn 100 XP or more", icon: "💎", earned: userXp >= 100, color: "#e11d48", progress: Math.min(100, Math.round((userXp / 100) * 100)) },
-                  { id: 6, title: "Dedicated Learner", desc: "Complete 3 lessons or more", icon: "🔥", earned: completedLessons.filter(id => !id.startsWith("ach_")).length >= 3, color: "#f97316", progress: Math.min(100, Math.round((completedLessons.filter(id => !id.startsWith("ach_")).length / 3) * 100)) },
-                  { id: 7, title: "Speech Maestro", desc: "Score 75% or higher in pronunciation", icon: "🗣️", earned: calculateSkillProficiency("pronunciation") >= 75, color: "#06b6d4", progress: Math.min(100, Math.round(calculateSkillProficiency("pronunciation"))) },
-                  { id: 8, title: "Elite Scholar", desc: "Reach Progressive Level 8", icon: "🎓", earned: currentLevelNum >= 8, color: "#8b5cf6", progress: Math.min(100, Math.round((currentLevelNum / 8) * 100)) },
-                  { id: 9, title: "Grandmaster", desc: "Reach Progressive Level 12", icon: "👑", earned: currentLevelNum >= 12, color: "#ef4444", progress: Math.min(100, Math.round((currentLevelNum / 12) * 100)) },
-                ].map((a) => (
+                {ACHIEVEMENT_DEFS.map((a) => {
+                  let earned = false;
+                  let progress = 0;
+                  switch (a.id) {
+                    case 1:
+                      earned = true; progress = 100; break;
+                    case 2:
+                      earned = calculateSkillProficiency("reading") >= 75;
+                      progress = Math.min(100, Math.round(calculateSkillProficiency("reading"))); break;
+                    case 3:
+                      earned = calculateSkillProficiency("comprehension") >= 75;
+                      progress = Math.min(100, Math.round(calculateSkillProficiency("comprehension"))); break;
+                    case 4:
+                      earned = calculateSkillProficiency("writing") >= 75;
+                      progress = Math.min(100, Math.round(calculateSkillProficiency("writing"))); break;
+                    case 5:
+                      earned = userXp >= 100;
+                      progress = Math.min(100, Math.round((userXp / 100) * 100)); break;
+                    case 6:
+                      earned = completedLessons.filter(id => !id.startsWith("ach_")).length >= 3;
+                      progress = Math.min(100, Math.round((completedLessons.filter(id => !id.startsWith("ach_")).length / 3) * 100)); break;
+                    case 7:
+                      earned = calculateSkillProficiency("pronunciation") >= 75;
+                      progress = Math.min(100, Math.round(calculateSkillProficiency("pronunciation"))); break;
+                    case 8:
+                      earned = currentLevelNum >= 8;
+                      progress = Math.min(100, Math.round((currentLevelNum / 8) * 100)); break;
+                    case 9:
+                      earned = currentLevelNum >= 12;
+                      progress = Math.min(100, Math.round((currentLevelNum / 12) * 100)); break;
+                    default: break;
+                  }
+                  return { ...a, earned, progress };
+                }).map((a) => (
                   <div key={a.id} className={`achievement-row ${a.earned ? "earned" : ""}`} style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '12px', border: '2px solid var(--line)', borderRadius: '16px', background: 'var(--panel-strong)', opacity: a.earned ? 1 : 0.55 }}>
                     <div className="achievement-badge-box" style={{ background: a.earned ? a.color : '#d1d5db', width: '50px', height: '50px', borderRadius: '12px', display: 'grid', placeItems: 'center', fontSize: '1.5rem', flexShrink: 0, filter: a.earned ? 'none' : 'grayscale(1)' }}>
                       <span className="achievement-badge-icon">{a.earned ? a.icon : '🔒'}</span>
                     </div>
                     <div style={{ flexGrow: 1 }}>
-                      <div style={{ fontWeight: '800', color: a.earned ? 'var(--text)' : 'var(--muted)' }}>{a.title}</div>
-                      <p style={{ margin: '4px 0 0', fontSize: '0.9rem', color: 'var(--text-muted)' }}>{a.desc}</p>
+                      <div style={{ fontWeight: '800', color: a.earned ? 'var(--text)' : 'var(--muted)' }}>{translatedAchievements[a.id]?.title || a.title}</div>
+                      <p style={{ margin: '4px 0 0', fontSize: '0.9rem', color: 'var(--text-muted)' }}>{translatedAchievements[a.id]?.desc || a.desc}</p>
                       <div className="achievement-progress-track" style={{ height: '8px', background: 'var(--line)', borderRadius: '4px', overflow: 'hidden', marginTop: '8px' }}>
                         <div className="achievement-progress-fill" style={{ width: `${a.progress}%`, height: '100%', background: '#facc15' }}></div>
                       </div>
