@@ -580,6 +580,7 @@ function App() {
   const [dailyXp, setDailyXp] = useState(0);
   const [dailyTimeSpent, setDailyTimeSpent] = useState(0); // in seconds
   const [dailyLessons, setDailyLessons] = useState(0);
+  const isActiveLearningRef = useRef(false); // true only while taking a lesson, practice, or assessment
   const [activeQuests, setActiveQuests] = useState([]);
   const [timeLeftStr, setTimeLeftStr] = useState("24h 00m 00s");
   const [questBonusClaimed, setQuestBonusClaimed] = useState(false);
@@ -701,6 +702,7 @@ function App() {
     const userId = session.user.id;
 
     const timer = setInterval(() => {
+      if (!isActiveLearningRef.current) return;
       const today = new Date().toLocaleDateString("en-CA");
       setDailyTimeSpent(prev => {
         const next = prev + 1;
@@ -2112,6 +2114,13 @@ function App() {
   // Initial Assessment states
   const [assessmentState, setAssessmentState] = useState("not_started"); // "not_started" | "answering" | "results"
   const [assessmentQuestionsList, setAssessmentQuestionsList] = useState([]);
+
+  // Only count practice time while the learner is actively in a lesson, practice, or assessment.
+  useEffect(() => {
+    isActiveLearningRef.current =
+      (!!lessonSession && lessonSession.status !== "completed") ||
+      assessmentState === "answering";
+  }, [lessonSession, assessmentState]);
   const [currentStep, setCurrentStep] = useState(0); // 0-4
   const [selectedAnswers, setSelectedAnswers] = useState({}); // { index: optionIndex }
   const [writingAnswers, setWritingAnswers] = useState({}); // { index: "user text" }
