@@ -70,4 +70,5 @@ create trigger on_auth_user_created
 -- ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS daily_lessons integer NOT NULL DEFAULT 0;
 -- ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS daily_quests jsonb;
 -- ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS daily_quest_date date;
+-- ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS daily_correct_answers integer NOT NULL DEFAULT 0;
 

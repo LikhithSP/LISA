@@ -3059,6 +3059,89 @@ select:focus {
   text-transform: uppercase;
 }
 
+/* Stars & Right Answers Today — combined dashboard card */
+.stars-answers-card {
+  background: var(--panel-strong);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  padding: 18px 22px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
+}
+
+.stars-answers-card .sa-metric {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.stars-answers-card .sa-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  font-size: 1.35rem;
+  font-weight: 900;
+  flex-shrink: 0;
+}
+
+.stars-answers-card .sa-icon-stars {
+  background: rgba(245, 158, 11, 0.14);
+  color: #f59e0b;
+}
+
+.stars-answers-card .sa-icon-answers {
+  background: rgba(16, 185, 129, 0.14);
+  color: #10b981;
+}
+
+.stars-answers-card .sa-metric-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+  min-width: 0;
+}
+
+.stars-answers-card .sa-value {
+  font-size: 1.7rem;
+  font-weight: 950;
+  color: var(--text);
+}
+
+.stars-answers-card .sa-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--muted);
+  margin-top: 2px;
+  white-space: nowrap;
+}
+
+.stars-answers-card .sa-divider {
+  width: 1px;
+  align-self: stretch;
+  background: var(--line);
+  margin: 2px 0;
+}
+
+@media (max-width: 480px) {
+  .stars-answers-card {
+    gap: 12px;
+    padding: 16px;
+  }
+  .stars-answers-card .sa-icon {
+    width: 40px;
+    height: 40px;
+  }
+  .stars-answers-card .sa-value {
+    font-size: 1.4rem;
+  }
+}
+
 /* Daily Quests Widget */
 .daily-quests-card {
   background: white;

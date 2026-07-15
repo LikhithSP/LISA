@@ -117,6 +117,8 @@
   "daily10min": "10 நிமிடங்கள்/நாள்",
   "daily15min": "15 நிமிடங்கள்/நாள்",
   "daily25min": "25 நிமிடங்கள்/நாள்",
+  "dashboardStarsToday": "இன்று பெற்ற XP",
+  "dashboardRightAnswersToday": "இன்றைய சரியான பதில்கள்",
   "viewLearningPath": "கற்றல் பாதையைக் காண்க",
   "No Formal EducationOption": "முறையான கல்வி இல்லை (ஒருபோதும் பள்ளிக்குச் சென்றதில்லை)",
   "Middle SchoolOption": "நடுநிலைப் பள்ளி (வகுப்புகள் 6-8)",
