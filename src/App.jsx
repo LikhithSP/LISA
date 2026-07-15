@@ -580,6 +580,9 @@ function App() {
   const [dailyXp, setDailyXp] = useState(0);
   const [dailyTimeSpent, setDailyTimeSpent] = useState(0); // in seconds
   const [dailyLessons, setDailyLessons] = useState(0);
+  const [dailyCorrectAnswers, setDailyCorrectAnswers] = useState(0);
+  const STAR_XP = 10; // XP required to earn one star
+  const getStarsToday = () => Math.floor(dailyXp / STAR_XP);
   const isActiveLearningRef = useRef(false); // true only while taking a lesson, practice, or assessment
   const [activeQuests, setActiveQuests] = useState([]);
   const [timeLeftStr, setTimeLeftStr] = useState("24h 00m 00s");
@@ -622,6 +625,19 @@ function App() {
     return { current: 0, target: 1, completed: false, percent: 0, displayProgress: '0/1' };
   };
 
+  // Records correct answers made "today" into a daily counter (localStorage backed).
+  // Reads the latest value from localStorage to avoid double counting from stale state.
+  const recordDailyCorrect = (count = 1) => {
+    const userId = session?.user?.id;
+    if (!userId) return;
+    const todayStr = new Date().toLocaleDateString("en-CA");
+    const key = `lisa_daily_correct_${userId}_${todayStr}`;
+    const prev = parseInt(localStorage.getItem(key) || "0", 10) || 0;
+    const next = prev + count;
+    localStorage.setItem(key, String(next));
+    setDailyCorrectAnswers(next);
+  };
+
   useEffect(() => {
     if (!session?.user?.id) return;
     const userId = session.user.id;
@@ -630,17 +646,19 @@ function App() {
     const storedDailyXp = localStorage.getItem(`lisa_daily_xp_${userId}_${today}`);
     const storedDailyTime = localStorage.getItem(`lisa_daily_time_${userId}_${today}`);
     const storedDailyLessons = localStorage.getItem(`lisa_daily_lessons_${userId}_${today}`);
+    const storedDailyCorrect = localStorage.getItem(`lisa_daily_correct_${userId}_${today}`);
 
     const initDaily = async () => {
-      let dbDailyXp = 0, dbDailyTime = 0, dbDailyLessons = 0;
+      let dbDailyXp = 0, dbDailyTime = 0, dbDailyLessons = 0, dbDailyCorrect = 0;
       try {
-        const { data } = await supabase.from("profiles").select("daily_xp,daily_time_spent,daily_lessons,daily_quest_date").eq("id", userId).single();
+        const { data } = await supabase.from("profiles").select("daily_xp,daily_time_spent,daily_lessons,daily_correct_answers,daily_quest_date").eq("id", userId).single();
         if (data) {
           const storedDate = data.daily_quest_date;
           if (storedDate === today) {
             dbDailyXp = data.daily_xp || 0;
             dbDailyTime = data.daily_time_spent || 0;
             dbDailyLessons = data.daily_lessons || 0;
+            dbDailyCorrect = data.daily_correct_answers || 0;
           }
         }
       } catch { }
@@ -648,14 +666,17 @@ function App() {
       const finalXp = storedDailyXp !== null ? parseInt(storedDailyXp, 10) : dbDailyXp;
       const finalTime = storedDailyTime !== null ? parseInt(storedDailyTime, 10) : dbDailyTime;
       const finalLessons = storedDailyLessons !== null ? parseInt(storedDailyLessons, 10) : dbDailyLessons;
+      const finalCorrect = storedDailyCorrect !== null ? parseInt(storedDailyCorrect, 10) : dbDailyCorrect;
 
       setDailyXp(finalXp);
       setDailyTimeSpent(finalTime);
       setDailyLessons(finalLessons);
+      setDailyCorrectAnswers(finalCorrect);
 
       localStorage.setItem(`lisa_daily_xp_${userId}_${today}`, finalXp);
       localStorage.setItem(`lisa_daily_time_${userId}_${today}`, finalTime);
       localStorage.setItem(`lisa_daily_lessons_${userId}_${today}`, finalLessons);
+      localStorage.setItem(`lisa_daily_correct_${userId}_${today}`, finalCorrect);
     };
 
     initDaily();
@@ -1450,6 +1471,7 @@ function App() {
                           isCorrect: correct,
                           correctAnswer: audioText
                         });
+                        if (correct) recordDailyCorrect();
                       }}
                       disabled={lessonListeningSelected.length === 0}
                     >
@@ -1581,6 +1603,7 @@ function App() {
                             isCorrect: correct,
                             correctAnswer: options[currentQuestion.correctIndex]
                           });
+                          if (correct) recordDailyCorrect();
                         }}
                       >
                         Check Answer
@@ -1679,6 +1702,7 @@ function App() {
                             isCorrect: correct,
                             correctAnswer: answer
                           });
+                          if (correct) recordDailyCorrect();
                         }}
                       >
                         Check Answer
@@ -1812,6 +1836,7 @@ function App() {
                             isCorrect: correct,
                             correctAnswer: answer
                           });
+                          if (correct) recordDailyCorrect();
                         }}
                         disabled={lessonUnscrambleSelected.length === 0}>Check Answer</button>
                     </div>
@@ -1947,13 +1972,17 @@ function App() {
       localStorage.setItem(`lisa_completed_lessons_${userId}`, JSON.stringify(newLessons));
     }
 
+    // Update daily correct answers
+    const storedDailyCorrect = localStorage.getItem(`lisa_daily_correct_${userId}_${todayStr}`);
+    const nextDailyCorrect = (storedDailyCorrect ? parseInt(storedDailyCorrect, 10) : 0);
+    setDailyCorrectAnswers(nextDailyCorrect);
+    localStorage.setItem(`lisa_daily_correct_${userId}_${todayStr}`, nextDailyCorrect);
+
     // Update daily lessons completed
     const storedDailyLessons = localStorage.getItem(`lisa_daily_lessons_${userId}_${todayStr}`);
     const nextDailyLessons = (storedDailyLessons ? parseInt(storedDailyLessons, 10) : 0) + 1;
     setDailyLessons(nextDailyLessons);
     localStorage.setItem(`lisa_daily_lessons_${userId}_${todayStr}`, nextDailyLessons);
-
-    // Save active dates
     const today = new Date().toLocaleDateString("en-CA");
     let activeDates = [];
     try {
@@ -1988,6 +2017,7 @@ function App() {
           daily_xp: nextDailyXp,
           daily_time_spent: dailyTimeSpent,
           daily_lessons: nextDailyLessons,
+          daily_correct_answers: nextDailyCorrect,
           daily_quest_date: todayStr
         })
         .eq("id", userId);
@@ -3577,6 +3607,9 @@ function App() {
     const totalMarks = compMarks + readingMarks + writingMarks;
     const overallPercent = Math.round((totalMarks / 30) * 100);
 
+    // Count discrete right answers from the diagnostic (comprehension MCQs)
+    if (compMarks > 0) recordDailyCorrect(compMarks);
+
     try {
       // Save to history
       const attemptResult = {
@@ -4905,6 +4938,24 @@ function App() {
                     </div>
                   </div>
 
+                  <div className="stars-answers-card" style={{ margin: 0 }}>
+                    <div className="sa-metric">
+                      <div className="sa-icon sa-icon-stars">XP</div>
+                      <div className="sa-metric-text">
+                        <span className="sa-value">{dailyXp}</span>
+                        <span className="sa-label">{t("dashboardStarsToday")}</span>
+                      </div>
+                    </div>
+                    <div className="sa-divider" />
+                    <div className="sa-metric">
+                      <div className="sa-icon sa-icon-answers">✓</div>
+                      <div className="sa-metric-text">
+                        <span className="sa-value">{dailyCorrectAnswers}</span>
+                        <span className="sa-label">{t("dashboardRightAnswersToday")}</span>
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="dashboard-overview-row">
                     <div className="streak-widget-card streak-society-card" style={{ margin: 0 }}>
                       <div className="streak-society-header">
@@ -5865,6 +5916,7 @@ function App() {
                                         title: correct ? "Excellent!" : "Incorrect",
                                         explanation: q.explanation
                                       });
+                                      if (correct) recordDailyCorrect();
                                     }
                                   }}
                                   disabled={isAnswered}
@@ -6108,6 +6160,7 @@ function App() {
                                     title: correct ? "Excellent!" : "Incorrect",
                                     correctAnswer: fb.answer
                                   });
+                                  if (correct) recordDailyCorrect();
                                 }}
                                 disabled={!userAnswer.trim()}
                               >
@@ -6461,6 +6514,8 @@ function App() {
                               percent: Math.round(percent)
                             });
 
+                            if (isCorrect) recordDailyCorrect();
+
                           };
 
                           rec.start();
@@ -6703,6 +6758,7 @@ function App() {
                                     isCorrect: correct,
                                     correctAnswer: mq.options[mq.correctIndex]
                                   });
+                                  if (correct) recordDailyCorrect();
                                 }}
                                 disabled={lessonMeaningAnswer === null}
                               >
@@ -6897,6 +6953,7 @@ function App() {
                                     isCorrect: correct,
                                     correctAnswer: tt.englishTranslation
                                   });
+                                  if (correct) recordDailyCorrect();
                                 }}
                                 disabled={lessonTranslationSelected.length === 0}
                               >
@@ -6980,10 +7037,11 @@ function App() {
                         if (lessonMatchCompleted.includes(item)) return;
                         setLessonMatchSelectedLeft(item);
                         if (lessonMatchSelectedRight) {
-                          const pair = pairs.find(p => p.left === item && p.right === lessonMatchSelectedRight);
-                          if (pair) {
-                            setLessonMatchCompleted(prev => [...prev, item]);
-                          } else {
+                           const pair = pairs.find(p => p.left === item && p.right === lessonMatchSelectedRight);
+                           if (pair) {
+                             setLessonMatchCompleted(prev => [...prev, item]);
+                             recordDailyCorrect();
+                           } else {
                             setLessonMatchFeedback("Incorrect pair!");
                             setTimeout(() => setLessonMatchFeedback(null), 1000);
                           }
@@ -6998,10 +7056,11 @@ function App() {
 
                         setLessonMatchSelectedRight(item);
                         if (lessonMatchSelectedLeft) {
-                          const pObj = pairs.find(p => p.left === lessonMatchSelectedLeft && p.right === item);
-                          if (pObj) {
-                            setLessonMatchCompleted(prev => [...prev, lessonMatchSelectedLeft]);
-                          } else {
+                           const pObj = pairs.find(p => p.left === lessonMatchSelectedLeft && p.right === item);
+                           if (pObj) {
+                             setLessonMatchCompleted(prev => [...prev, lessonMatchSelectedLeft]);
+                             recordDailyCorrect();
+                           } else {
                             setLessonMatchFeedback("Incorrect pair!");
                             setTimeout(() => setLessonMatchFeedback(null), 1000);
                           }
@@ -7306,6 +7365,7 @@ function App() {
                                     isCorrect: correct,
                                     correctAnswer: lt.audioText
                                   });
+                                  if (correct) recordDailyCorrect();
                                 }}
                                 disabled={lessonListeningSelected.length === 0}
                               >
@@ -7434,6 +7494,7 @@ function App() {
                                 onClick={() => {
                                   const correct = built.trim().toUpperCase() === item.answer.trim().toUpperCase();
                                   setLessonUnscrambleFeedback({ isCorrect: correct, correctAnswer: item.answer });
+                                  if (correct) recordDailyCorrect();
                                 }}
                                 disabled={lessonUnscrambleSelected.length === 0}>
                                 Check Answer
@@ -7512,6 +7573,7 @@ function App() {
                                 onClick={() => {
                                   const correct = lessonImageChoiceSel === item.correctIndex;
                                   setLessonImageChoiceFeedback({ isCorrect: correct });
+                                  if (correct) recordDailyCorrect();
                                 }}
                                 disabled={lessonImageChoiceSel === null}>Check Answer</button>
                             </div>

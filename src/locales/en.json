@@ -117,6 +117,8 @@
   "daily10min": "10 Minutes/Day",
   "daily15min": "15 Minutes/Day",
   "daily25min": "25 Minutes/Day",
+  "dashboardStarsToday": "XP Earned Today",
+  "dashboardRightAnswersToday": "Right Answers Today",
   "viewLearningPath": "View Learning Path",
   "No Formal EducationOption": "No Formal Education (Never attended school)",
   "Middle SchoolOption": "Middle School (Classes 6–8)",
