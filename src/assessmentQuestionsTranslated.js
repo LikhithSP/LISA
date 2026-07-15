@@ -9318,7 +9318,7 @@ export const translatedAssessmentReadingWriting = {
       "dictation": "The dog runs in the park."
     },
     "teen_level_2": {
-      "reading": "The market opens at 8 AM and closes at 8 PM on all days.",
+      "reading": "The market opens at 8:00 AM and closes at 8:00 PM on all days.",
       "writing": "Listen to the sentence and write exactly what you hear (in English).",
       "dictation": "The bus leaves at eight in the morning."
     },
@@ -9410,7 +9410,7 @@ export const translatedAssessmentReadingWriting = {
       "dictation": "The dog runs in the park."
     },
     "teen_level_2": {
-      "reading": "The market opens at 8 AM and closes at 8 PM on all days.",
+      "reading": "The market opens at 8:00 AM and closes at 8:00 PM on all days.",
       "writing": "Listen to the sentence and write exactly what you hear (in English).",
       "dictation": "The bus leaves at eight in the morning."
     },
@@ -9527,7 +9527,7 @@ export const translatedAssessmentReadingWriting = {
       "dictation": "Return the book to the library on time."
     },
     "teen_level_2": {
-      "reading": "The market opens at 8 AM and closes at 8 PM on all days.",
+      "reading": "The market opens at 8:00 AM and closes at 8:00 PM on all days.",
       "writing": "Listen to the sentence and write exactly what you hear (in English).",
       "dictation": "The bus leaves at eight in the morning."
     },
@@ -9619,7 +9619,7 @@ export const translatedAssessmentReadingWriting = {
       "dictation": "The first bus departs at seven in the morning."
     },
     "teen_level_2": {
-      "reading": "The market opens at 8 AM and closes at 8 PM on all days.",
+      "reading": "The market opens at 8:00 AM and closes at 8:00 PM on all days.",
       "writing": "Listen to the sentence and write exactly what you hear (in English).",
       "dictation": "The bus leaves at eight in the morning."
     },
