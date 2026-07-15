@@ -1106,7 +1106,20 @@ function App() {
         <div className="ai-lesson-step" style={{ paddingBottom: '140px' }}>
           <div className="ai-lesson-step-header" style={{ marginBottom: '20px' }}>
             <span className="ai-step-badge">
-              ⚡ Practice Mode: {practiceType} (Step {lessonStep + 1} of 10)
+              ⚡ {t("practiceMode")}: {(() => {
+                const keyMap = {
+                  "Perfect Pronunciation": "practicePerfectPronunciation",
+                  "Conversation": "practiceConversation",
+                  "Speak": "practiceSpeak",
+                  "Listen": "practiceListen",
+                  "Write": "practiceWrite",
+                  "Mistakes Practice": "practiceMistakes",
+                  "Words Practice": "practiceWords",
+                  "Stories Practice": "practiceStories"
+                };
+                const key = keyMap[practiceType];
+                return key ? t(key) : practiceType;
+              })()} ({t("stepOf") ? t("stepOf").replace("{current}", lessonStep + 1).replace("{total}", 10) : `Step ${lessonStep + 1} of 10`})
             </span>
           </div>
 
@@ -2316,7 +2329,17 @@ function App() {
       s12u1_title: "Keyboard & Typing",
       s12u2_title: "Mobile & Messaging",
       meaning: "Meaning",
-      example: "Example"
+      example: "Example",
+      profileAge: "Age",
+      profileEducation: "Education",
+      profileFullName: "Full Name",
+      profilePreferredLang: "Preferred Language",
+      profileDevControl: "Diagnostic & Dev Control",
+      profileDevControlDesc: "Manage diagnostic state or clear developer progress milestones.",
+      profileResetAssessment: "Reset Assessment Status",
+      practiceMode: "Practice Mode",
+      stepOf: "Step {current} of {total}",
+      naText: "N/A"
     },
     Hindi: {
       sidebarDashboard: "डैशबोर्ड",
@@ -2412,8 +2435,18 @@ function App() {
       s12_title: "डिजिटल साक्षरता",
       s12u1_title: "कीबोर्ड और टाइपिंग",
       s12u2_title: "मोबाइल और संदेश सेवा",
-      meaning: "अर्थ",
-      example: "उदाहरण"
+            meaning: "अर्थ",
+      example: "उदाहरण",
+      profileAge: "आयु",
+      profileEducation: "शिक्षा",
+      profileFullName: "पूरा नाम",
+      profilePreferredLang: "पसंदीदा भाषा",
+      profileDevControl: "डायग्नोस्टिक और देव नियंत्रण",
+      profileDevControlDesc: "डायग्नोस्टिक स्थिति प्रबंधित करें या डेवलपर प्रगति मील के पत्थर साफ़ करें।",
+      profileResetAssessment: "मूल्यांकन स्थिति रीसेट करें",
+      practiceMode: "अभ्यास मोड",
+      stepOf: "चरण {current} का {total}",
+      naText: "लागू नहीं"
     },
     Kannada: {
       sidebarDashboard: "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
@@ -2509,8 +2542,18 @@ function App() {
       s12_title: "ಡಿಜಿಟಲ್ ಸಾಕ್ಷರತೆ",
       s12u1_title: "ಕೀಬೋರ್ಡ್ ಮತ್ತು ಟೈಪಿಂಗ್",
       s12u2_title: "ಮೊಬೈಲ್ ಮತ್ತು ಸಂದೇಶ ಕಳುಹಿಸುವಿಕೆ",
-      meaning: "ಅರ್ಥ",
-      example: "ಉದಾಹರಣೆ"
+            meaning: "ಅರ್ಥ",
+      example: "ಉದಾಹರಣೆ",
+      profileAge: "ವಯಸ್ಸು",
+      profileEducation: "ಶಿಕ್ಷಣ",
+      profileFullName: "ಪೂರ್ಣ ಹೆಸರು",
+      profilePreferredLang: "ಆದ್ಯತೆಯ ಭಾಷೆ",
+      profileDevControl: "ಡಯಾಗ್ನೋಸ್ಟಿಕ್ ಮತ್ತು ಡೆವ್ ನಿಯಂತ್ರಣ",
+      profileDevControlDesc: "ಡಯಾಗ್ನೋಸ್ಟಿಕ್ ಸ್ಥಿತಿಯನ್ನು ನಿರ್ವಹಿಸಿ ಅಥವಾ ಡೆವಲಪರ್ ಪ್ರಗತಿಯ ಮೈಲಿಗಲ್ಲುಗಳನ್ನು ತೆರವುಗೊಳಿಸಿ.",
+      profileResetAssessment: "ಮೌಲ್ಯಮಾಪನ ಸ್ಥಿತಿಯನ್ನು ಮರುಹೊಂದಿಸಿ",
+      practiceMode: "ಅಭ್ಯಾಸ ವಿಧಾನ",
+      stepOf: "ಹಂತ {current} ರಲ್ಲಿ {total}",
+      naText: "ಲಭ್ಯವಿಲ್ಲ"
     },
     Telugu: {
       sidebarDashboard: "డ్యాష్‌బోర్డ్",
@@ -2606,8 +2649,18 @@ function App() {
       s12_title: "డిజిటల్ అక్షరాస్యత",
       s12u1_title: "కీబోర్డ్ & టైపింగ్",
       s12u2_title: "మొబైల్ & మెసేజింగ్",
-      meaning: "అర్థం",
-      example: "ఉదాహరణ"
+            meaning: "అర్థం",
+      example: "ఉదాహరణ",
+      profileAge: "వయస్సు",
+      profileEducation: "విద్య",
+      profileFullName: "పూర్తి పేరు",
+      profilePreferredLang: "ప్రాధాన్యత భాష",
+      profileDevControl: "డయాగ్నస్టిక్ & దేవ్ కంట్రోల్",
+      profileDevControlDesc: "డయాగ్నస్టిక్ స్థితిని నిర్వహించండి లేదా డెవలపర్ పురోగతి మైలురాళ్లను క్లియర్ చేయండి.",
+      profileResetAssessment: "అసెస్మెంట్ స్థితిని రీసెట్ చేయండి",
+      practiceMode: "అభ్యాస మోడ్",
+      stepOf: "దశ {current} లో {total}",
+      naText: "అందుబాటులో లేదు"
     },
     Tamil: {
       sidebarDashboard: "டாஷ்போர்டு",
@@ -2703,8 +2756,18 @@ function App() {
       s12_title: "டிஜிட்டல் எழுத்தறிவு",
       s12u1_title: "விசைப்பலகை மற்றும் தட்டச்சு",
       s12u2_title: "மொபைல் மற்றும் செய்தி அனுப்புதல்",
-      meaning: "பொருள்",
-      example: "உதாரணம்"
+            meaning: "பொருள்",
+      example: "உதாரணம்",
+      profileAge: "வயது",
+      profileEducation: "கல்வி",
+      profileFullName: "முழு பெயர்",
+      profilePreferredLang: "விருப்பமான மொழி",
+      profileDevControl: "கண்டறிதல் & மேம்பாட்டு கட்டுப்பாடு",
+      profileDevControlDesc: "கண்டறியும் நிலையை நிர்வகிக்கவும் அல்லது டெவலப்பர் முன்னேற்ற மைல்கற்களை அழிக்கவும்.",
+      profileResetAssessment: "மதிப்பீட்டு நிலையை மீட்டமைக்கவும்",
+      practiceMode: "பயிற்சி முறை",
+      stepOf: "படி {current} / {total}",
+      naText: "பொருந்தாது"
     }
   };
 
@@ -5106,7 +5169,7 @@ function App() {
 
                       <div className="practice-row-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_comp_practice`, title: "Stories Practice", desc: "Reread a story to review words in context" })}>
                         <div className="practice-row-card-content">
-                          <h3 className="practice-row-card-title">Stories</h3>
+                          <h3 className="practice-row-card-title">{t("practiceStories")}</h3>
                           <p className="practice-row-card-desc">{t("practiceStoriesDesc")}</p>
                         </div>
                         <div className="practice-row-card-icon stories-icon">📖</div>
@@ -5121,9 +5184,16 @@ function App() {
             {/* 3.3. Profile Tab */}
             {dashboardTab === "profile" && (
               <div className="profile-view-container">
-                <div className="profile-card-large">
-                  <div
-                    className="profile-avatar-large"
+              <div className="profile-card-large">
+                <div
+                  className="profile-cover"
+                  style={{
+                    backgroundImage: "url('https://static.vecteezy.com/system/resources/previews/045/547/971/non_2x/cartoon-astronaut-sitting-on-a-moon-for-twitter-header-editor_template.jpeg')"
+                  }}
+                />
+                <div className="profile-card-body">
+                <div
+                  className="profile-avatar-large"
                     style={{
                       display: "flex",
                       alignItems: "center",
@@ -5173,25 +5243,35 @@ function App() {
                       title={submitting ? "Uploading image..." : "Upload Profile Picture"}
                       className="profile-avatar-edit-badge"
                     >
-                      {submitting ? "⏳" : "✏️"}
+                      {submitting ? (
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ animation: "spin 1s linear infinite" }}>
+                          <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                        </svg>
+                      ) : (
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                          <path d="m15 5 4 4" />
+                        </svg>
+                      )}
                     </label>
                   </div>
                   <div className="profile-info-large">
                     <h2>{profile?.full_name || "Learner"}</h2>
                     <p>{session.user.email}</p>
                     <div style={{ display: "flex", gap: "16px", marginTop: "12px" }}>
-                      <span style={{ fontWeight: 700 }}>Age: {profile?.age || "N/A"}</span>
-                      <span style={{ fontWeight: 700 }}>Education: {profile?.education_level || "N/A"}</span>
+                      <span style={{ fontWeight: 700 }}>{t("profileAge")}: {profile?.age || t("naText")}</span>
+                      <span style={{ fontWeight: 700 }}>{t("profileEducation")}: {profile?.education_level || t("naText")}</span>
                     </div>
                   </div>
+                </div>
                 </div>
 
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px" }}>
                   <div className="achievements-card" style={{ margin: 0, padding: "24px" }}>
-                    <h3 style={{ fontSize: "1.2rem", fontWeight: 800, marginBottom: "20px" }}>Update Profile Settings</h3>
+                    <h3 style={{ fontSize: "1.2rem", fontWeight: 800, marginBottom: "20px" }}>{t("profileUpdateSettings")}</h3>
                     <form onSubmit={handleSaveProfileEdit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                       <label className="profile-dropdown-label">
-                        Full Name
+                        {t("profileFullName")}
                         <input
                           type="text"
                           required
@@ -5201,7 +5281,7 @@ function App() {
                         />
                       </label>
                       <label className="profile-dropdown-label">
-                        Age
+                        {t("profileAge")}
                         <input
                           type="number"
                           min="5"
@@ -5213,7 +5293,7 @@ function App() {
                         />
                       </label>
                       <label className="profile-dropdown-label">
-                        Preferred Language
+                        {t("profilePreferredLang")}
                         <select
                           required
                           value={editPreferredLang}
@@ -5226,7 +5306,7 @@ function App() {
                         </select>
                       </label>
                       <label className="profile-dropdown-label">
-                        Current Education Status
+                        {t("profileEducationStatus")}
                         <select
                           required
                           value={editEdLevel}
@@ -5239,22 +5319,22 @@ function App() {
                         </select>
                       </label>
                       <button type="submit" className="primary-btn" disabled={submitting}>
-                        {submitting ? "Saving..." : "Save Changes"}
+                        {submitting ? t("profileSaving") : t("profileSaveChanges")}
                       </button>
                     </form>
                   </div>
 
                   <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
                     <div className="current-level-card" style={{ margin: 0, padding: "24px", background: '#5e4a87' }}>
-                      <h3 className="current-level-title">Diagnostic & Dev Control</h3>
-                      <p style={{ fontSize: "0.85rem", color: "#ffffff", marginBottom: "16px" }}>Manage diagnostic state or clear developer progress milestones.</p>
+                      <h3 className="current-level-title">{t("profileDevControl")}</h3>
+                      <p style={{ fontSize: "0.85rem", color: "#ffffff", marginBottom: "16px" }}>{t("profileDevControlDesc")}</p>
                       <button
                         type="button"
                         className="secondary-btn"
                         style={{ borderColor: "#ff1a1a", color: "#ff1a1a", width: "100%", marginBottom: "12px" }}
                         onClick={() => handleResetAssessmentStatus()}
                       >
-                        Reset Assessment Status
+                        {t("profileResetAssessment")}
                       </button>
                       <button
                         type="button"
