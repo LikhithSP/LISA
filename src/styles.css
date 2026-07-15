@@ -3794,6 +3794,11 @@ select:focus {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
 }
 
+[data-theme="dark"] .daily-quests-timer {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--accent);
+}
+
 [data-theme="dark"] .quest-progress-bg {
   background: rgba(255, 255, 255, 0.08);
 }
