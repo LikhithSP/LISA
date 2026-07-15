@@ -2204,27 +2204,18 @@ function App() {
             });
           }
         } else if (q.type === "reading") {
-          if (dict && dict[q.rawQuestion.reading]) {
-            if (active) {
-              setTranslatedQ({
-                ...q.rawQuestion,
-                reading: dict[q.rawQuestion.reading],
-                writing: dict[q.rawQuestion.writing] || q.rawQuestion.writing
-              });
-            }
-            setTranslatingQ(false);
-            return;
-          }
-
-          const translatedReading = await translateTextContent(q.rawQuestion.reading, lang);
-          const translatedWriting = await translateTextContent(q.rawQuestion.writing, lang);
+          // Display and evaluate reading sentence in English only
+          const dict = assessmentTranslations && assessmentTranslations[lang];
+          const translatedInstruction = (dict && dict[q.rawQuestion.writing]) || q.rawQuestion.writing;
           if (active) {
             setTranslatedQ({
               ...q.rawQuestion,
-              reading: translatedReading,
-              writing: translatedWriting
+              reading: q.rawQuestion.reading, // Keep original English
+              writing: translatedInstruction
             });
           }
+          setTranslatingQ(false);
+          return;
         } else if (q.type === "writing") {
           if (dict && dict[q.rawQuestion.writing]) {
             if (active) {
@@ -4095,18 +4086,20 @@ function App() {
                   { num: 3, title: t("writingSecTitle"), done: writeCompleted },
                 ];
 
+                const activeQ = translatedQ || q.rawQuestion;
+
                 // 1. Resolve reading targetText
                 const readingTargetText = isVoiceReading
-                  ? (translatedQ?.reading || "Read this text aloud.")
+                  ? (activeQ?.reading || "Read this text aloud.")
                   : "";
 
                 // 2. Resolve comprehension question & options
                 const compQuestionText = isCompMCQ
-                  ? (translatedQ?.question || "")
+                  ? (activeQ?.question || "")
                   : "";
 
-                const resolvedOptions = translatedQ?.options 
-                  ? (Array.isArray(translatedQ.options) ? translatedQ.options : (translatedQ.options[lang] || translatedQ.options["English"] || []))
+                const resolvedOptions = activeQ?.options 
+                  ? (Array.isArray(activeQ.options) ? activeQ.options : (activeQ.options[lang] || activeQ.options["English"] || []))
                   : [];
                 const compOptions = isCompMCQ && resolvedOptions.length > 0
                   ? q.shuffledIndices.map((originalIdx) => resolvedOptions[originalIdx] || "")
@@ -4114,7 +4107,7 @@ function App() {
 
                 // 3. Resolve writing prompt + dictation sentence
                 const writingPromptText = isWriting
-                  ? (translatedQ?.writing || "")
+                  ? (activeQ?.writing || "")
                   : "";
 
                 const dictationText = isWriting
@@ -4157,20 +4150,7 @@ function App() {
                     </div>
 
                     <div className="question-content-box">
-                      {translatingQ || !translatedQ ? (
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '60px 40px', width: '100%' }}>
-                          <div style={{
-                            width: '45px',
-                            height: '45px',
-                            borderRadius: '50%',
-                            border: '4px solid var(--line)',
-                            borderTopColor: 'var(--accent)',
-                            animation: 'spin 1s linear infinite'
-                          }} className="spinner"></div>
-                          <p style={{ marginTop: '18px', fontWeight: '600', color: 'var(--muted)', fontSize: '1.05rem' }}>Translating question...</p>
-                        </div>
-                      ) : (
-                        <>
+                      <>
                           {/* READING VOICE TO TEXT WITH MONKEYTYPE UI */}
                           {isVoiceReading && (
                             <div className="reading-q-container">
@@ -4331,7 +4311,7 @@ function App() {
                             </div>
                           )}
                         </>
-                      )}</div>
+                      </div>
 
                     <div className="assessment-nav-bar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', gap: '12px' }}>
                       <div>
