@@ -101,38 +101,38 @@ Return ONLY valid JSON with this exact structure (no markdown, no backticks):
   "pronunciationTip": "string (pronunciation guidance in ${language})",
   "speakSentence": "string (a full sentence in ${language} for the user to practice speaking)",
   "meaningQuestion": {
-    "phrase": "string (a sentence or phrase in ${language})",
-    "options": ["correct English translation", "incorrect translation distractor 1", "incorrect translation distractor 2"],
+    "phrase": "string (a simple common English word, e.g. 'Happy')",
+    "options": ["correct meaning as a short English sentence", "incorrect meaning sentence distractor 1", "incorrect meaning sentence distractor 2", "incorrect meaning sentence distractor 3"],
     "correctIndex": 0
   },
   "translationTask": {
     "sentence": "string (a sentence in ${language})",
-    "prompt": "string (an instruction in ${language} telling the learner to arrange the word tiles into a sentence, WITHOUT showing the exact answer, e.g. 'Arrange the words to form a sentence about a boy going to school')",
+    "prompt": "string (a short instruction telling the learner to arrange the word tiles into a sentence, e.g. 'Arrange the words to form a sentence'. DO NOT reveal the answer or the exact sentence in the prompt)",
     "englishTranslation": "string (correct English translation)",
-    "tiles": ["array of 6-8 English words containing all words from englishTranslation plus 2-3 distractor words"]
+    "tiles": ["array of 6-8 English words containing all words from englishTranslation plus 2-3 distractor words, in any shuffled (non sentence) order. The distractors must NOT be able to form another valid/grammatical English sentence with the given words, so only one correct arrangement exists."]
   },
   "matchingPairs": [
-    {"left": "word or short phrase in ${language} 1", "right": "matching English word or phrase 1"},
-    {"left": "word or short phrase in ${language} 2", "right": "matching English word or phrase 2"},
-    {"left": "word or short phrase in ${language} 3", "right": "matching English word or phrase 3"},
-    {"left": "word or short phrase in ${language} 4", "right": "matching English word or phrase 4"},
-    {"left": "word or short phrase in ${language} 5", "right": "matching English word or phrase 5"}
+    {"left": "an English word 1", "right": "its simple English meaning or definition 1"},
+    {"left": "an English word 2", "right": "its simple English meaning or definition 2"},
+    {"left": "an English word 3", "right": "its simple English meaning or definition 3"},
+    {"left": "an English word 4", "right": "its simple English meaning or definition 4"},
+    {"left": "an English word 5", "right": "its simple English meaning or definition 5"}
   ],
   "listeningTask": {
     "audioText": "string (a simple sentence or phrase in ${language} for the user to listen to)",
     "tiles": ["array of 6-8 words in ${language} containing all words from audioText plus 2-3 distractor words"]
   },
   "unscramble": [
-    {"hint": "string (a clue in ${language}, e.g. 'Where we study')", "emoji": "string (a single emoji hint, e.g. 🏫)", "answer": "SCHOOL", "tiles": ["L","S","O","C","H","O"]},
-    {"hint": "string (another clue in ${language})", "emoji": "string (an emoji hint)", "answer": "APPLE", "tiles": ["P","L","A","P","E"]}
+    {"hint": "string (a clue in ${language}, e.g. 'A place with plants and flowers')", "emoji": "string (a single emoji hint, e.g. 🌳)", "answer": "GARDEN", "tiles": ["array of letter tiles for GARDEN in any shuffled (non answer) order, e.g. ['N','G','A','O','R','D','E','B']"]},
+    {"hint": "string (another clue in ${language})", "emoji": "string (an emoji hint)", "answer": "APPLE", "tiles": ["array of shuffled letter tiles for APPLE"]}
   ],
   "imageChoice": [
     {"word": "string (the target word in ${language})", "prompt": "string (instruction in ${language}, e.g. 'Tap the picture that means school')", "options": ["🏫","🍎","🚗"], "correctIndex": 0},
     {"word": "string (another target word in ${language})", "prompt": "string (instruction in ${language})", "options": ["🍎","🏫","🌞"], "correctIndex": 0}
   ],
   "tracing": [
-    {"letter": "A", "word": "Apple", "info": "string (a short fact/info in ${language}, e.g. 'A is for Apple')", "sound": "Apple"},
-    {"letter": "S", "word": "Sun", "info": "string (a short fact/info in ${language})", "sound": "Sun"}
+    {"kind": "playground", "question": "string (a simple question in ${language}, e.g. 'Where do children play?')", "sound": "playground"},
+    {"kind": "playground", "question": "string (another simple question in ${language})", "sound": "playground"}
   ],
   "aiFeedbackPositive": "string (encouraging message for correct answers in ${language})",
   "aiFeedbackNegative": "string (gentle corrective message in ${language})"
@@ -219,37 +219,37 @@ const getFallbackLesson = (params) => {
       { sentence: "She ___ to the market every day.", answer: "goes", hint: "Verb for she/he/it" },
       { sentence: "Please ___ the door before you leave.", answer: "close", hint: "To shut" }
     ],
-    readingPassage: "Ram goes to school every day. He reads books and writes in his notebook. His teacher is very kind and helpful.",
+    readingPassage: "Ram goes to school everyday. He reads books and writes in his notebook. His teacher is very kind and helpful.",
     readingQuestion: "Where does Ram go every day?",
-    readingAnswer: "Ram goes to school every day.",
+    readingAnswer: "Ram goes to school everyday.",
     imagePrompt: "Look at the picture. A girl is painting. One boy is sitting under a tree and reading a book. A girl is playing on a swing tied to that tree. A boy is looking through a telescope above the tree. Two boys are playing football.",
     writingActivity: "Write 2-3 sentences about the picture using simple words. Describe what the children are doing.",
     pronunciationWords: ["school", "teacher", "notebook", "reading", "writing"],
     pronunciationTip: "Speak each word clearly and slowly. Break it into syllables.",
-    speakSentence: language === "Hindi" ? "राम हर दिन स्कूल जाता है।" : language === "Kannada" ? "ರಾಮ್ ಪ್ರತಿ ದಿನ ಶಾಲೆಗೆ ಹೋಗುತ್ತಾನೆ." : "Ram goes to school every day.",
+    speakSentence: language === "Hindi" ? "राम हर दिन स्कूल जाता है।" : language === "Kannada" ? "ರಾಮ್ ಪ್ರತಿ ದಿನ ಶಾಲೆಗೆ ಹೋಗುತ್ತಾನೆ." : "Ram goes to school everyday.",
     meaningQuestion: {
-      phrase: language === "Hindi" ? "नमस्ते" : language === "Kannada" ? "ನಮಸ್ಕಾರ" : "Namaskar",
-      options: ["Hello", "Goodbye", "Thank you"],
+      phrase: "Happy",
+      options: ["Feeling good and cheerful", "Feeling sad and upset", "Feeling tired and sleepy", "Feeling hungry and thirsty"],
       correctIndex: 0
     },
     translationTask: {
-      sentence: language === "Hindi" ? "लड़का स्कूल जाता है" : language === "Kannada" ? "ಹುಡುಗ ಶಾಲೆಗೆ ಹೋಗುತ್ತಾನೆ" : "The boy goes to school",
-      prompt: "Arrange the words to form a sentence: a boy goes to school",
-      englishTranslation: "The boy goes to school",
-      tiles: ["The", "boy", "goes", "to", "school", "girl", "they"]
+      sentence: language === "Hindi" ? "मेरा नाम रवि है" : language === "Kannada" ? "ನನ್ನ ಹೆಸರು ರವಿ" : "My name is Ravi",
+      prompt: "Arrange the words to form a sentence",
+      englishTranslation: "My name is Ravi",
+      tiles: ["My", "name", "is", "Ravi", "book", "red", "the"]
     },
     matchingPairs: [
-      { left: language === "Hindi" ? "स्कूल" : language === "Kannada" ? "ಶಾಲೆ" : "🏫", right: "School" },
-      { left: language === "Hindi" ? "किताब" : language === "Kannada" ? "ಪುಸ್ತಕ" : "📖", right: "Book" },
-      { left: language === "Hindi" ? "लड़का" : language === "Kannada" ? "ಹುಡುಗ" : "🧒", right: "Boy" },
-      { left: language === "Hindi" ? "पानी" : language === "Kannada" ? "ನೀರು" : "💧", right: "Water" }
+      { left: "School", right: "A place where we learn" },
+      { left: "Book", right: "We read it to gain knowledge" },
+      { left: "Boy", right: "A young male child" },
+      { left: "Water", right: "A clear liquid we drink" }
     ],
     listeningTask: {
       audioText: language === "Hindi" ? "वह जाता है" : language === "Kannada" ? "ಅವನು ಹೋಗುತ್ತಾನೆ" : "He goes",
       tiles: language === "Hindi" ? ["वह", "जाता", "है", "तुम", "हम"] : language === "Kannada" ? ["ಅವನು", "ಹೋಗುತ್ತಾನೆ", "ಬರುತ್ತಾನೆ", "ನಾವು"] : ["He", "goes", "comes", "we"]
     },
     unscramble: [
-      { hint: "Where we study", emoji: "🏫", answer: "SCHOOL", tiles: ["L", "O", "C", "S", "H", "O"] },
+      { hint: "A place with plants and flowers", emoji: "🌳", answer: "GARDEN", tiles: ["G", "A", "R", "D", "E", "N", "B", "O"] },
       { hint: "A red fruit", emoji: "🍎", answer: "APPLE", tiles: ["P", "L", "A", "P", "E"] },
       { hint: "The bright star of the day", emoji: "🌞", answer: "SUN", tiles: ["N", "U", "S"] }
     ],
@@ -259,9 +259,9 @@ const getFallbackLesson = (params) => {
       { word: "apple", prompt: "Tap the picture that means apple", options: ["🍎", "🏫", "🌞"], correctIndex: 0 }
     ],
     tracing: [
-      { letter: "A", word: "Apple", info: "A is for Apple", sound: "Apple" },
-      { letter: "S", word: "Sun", info: "S is for Sun", sound: "Sun" },
-      { letter: "B", word: "Ball", info: "B is for Ball", sound: "Ball" }
+      { kind: "playground", question: "Where do children play?", sound: "playground" },
+      { kind: "playground", question: "Where do children play?", sound: "playground" },
+      { kind: "playground", question: "Where do children play?", sound: "playground" }
     ],
     aiFeedbackPositive: "Excellent work! You are making great progress.",
     aiFeedbackNegative: "Good try! Review the lesson and attempt again. You can do it!"

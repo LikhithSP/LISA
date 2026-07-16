@@ -21,18 +21,19 @@ const drawTracingGuide = (canvas, item) => {
   if (!canvas || !item) return;
   const ctx = canvas.getContext("2d");
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  const text = (item.letter || item.word || "A").toString();
+  ctx.strokeStyle = "rgba(2,132,199,0.25)";
+  ctx.lineWidth = 2;
+  ctx.strokeRect(1, 1, canvas.width - 2, canvas.height - 2);
+
+  const text = (item.kind === "playground" ? "playground" : (item.letter || item.word || "A")).toString();
   ctx.save();
   ctx.globalAlpha = 0.18;
   ctx.fillStyle = "#0284c7";
-  ctx.font = `bold ${Math.floor(canvas.width * 0.5)}px sans-serif`;
+  ctx.font = `bold ${Math.floor(canvas.width * 0.16)}px sans-serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillText(text, canvas.width / 2, canvas.height / 2);
   ctx.restore();
-  ctx.strokeStyle = "rgba(2,132,199,0.25)";
-  ctx.lineWidth = 2;
-  ctx.strokeRect(1, 1, canvas.width - 2, canvas.height - 2);
 };
 
 const DashboardIcon = ({ className, style }) => (
@@ -1053,6 +1054,8 @@ function App() {
   const [lessonMeaningAnswer, setLessonMeaningAnswer] = useState(null);
   const [lessonTranslationFeedback, setLessonTranslationFeedback] = useState(null);
   const [lessonTranslationSelected, setLessonTranslationSelected] = useState([]);
+  const lessonTranslationShuffleRef = useRef({ key: null, tiles: [] });
+  const lessonUnscrambleShuffleRef = useRef({});
   const [lessonListeningFeedback, setLessonListeningFeedback] = useState(null);
   const [lessonListeningSelected, setLessonListeningSelected] = useState([]);
   const [lessonMatchFeedback, setLessonMatchFeedback] = useState(null);
@@ -6646,21 +6649,21 @@ function App() {
                           </div>
 
                           <div style={{ display: 'flex', alignItems: 'center', gap: '20px', margin: '20px 0' }}>
-                            <img src="/as1.png" alt="LISA Mascot" style={{ width: '80px', height: '80px', objectFit: 'contain' }} />
+                            <img src="/as1.png" alt="LISA Mascot" style={{ width: '140px', height: '140px', objectFit: 'contain' }} />
                             <div style={{
                               flexGrow: 1,
                               background: 'var(--panel)',
                               border: '2px solid var(--line)',
                               borderRadius: '20px',
-                              padding: '24px',
+                              padding: '18px 22px',
                               position: 'relative',
-                              fontSize: '1.4rem',
+                              fontSize: '1.25rem',
                               fontWeight: '700',
                               textAlign: 'center',
                               display: 'flex',
                               flexDirection: 'column',
                               alignItems: 'center',
-                              gap: '12px'
+                              gap: '10px'
                             }}>
                               <div style={{
                                 position: 'absolute',
@@ -6675,34 +6678,34 @@ function App() {
                               }}></div>
 
                               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                <button type="button" className="tts-btn" style={{ borderRadius: '50%', width: '40px', height: '40px', padding: 0 }} onClick={() => speakText(sentence)}>🔊</button>
+                                <button type="button" className="tts-btn" style={{ borderRadius: '50%', width: '44px', height: '44px', padding: 0, fontSize: '1.2rem', boxShadow: '0 2px 6px rgba(0,0,0,0.18)' }} onClick={() => speakText(sentence)} title="Listen to pronunciation">🔊</button>
                                 <span style={{ color: 'var(--text)' }}>{sentence}</span>
                               </div>
                             </div>
                           </div>
 
                           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', margin: '30px 0' }}>
-                            <button
-                              type="button"
-                              onClick={startSpeaking}
-                              disabled={lessonSpeakIsListening || isChecked}
-                              style={{
-                                background: lessonSpeakIsListening ? '#ef4444' : 'var(--accent)',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '16px',
-                                padding: '16px 32px',
-                                fontSize: '1.2rem',
-                                fontWeight: '800',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '10px',
-                                boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-                              }}
-                            >
-                              <span>{lessonSpeakIsListening ? "🛑 RECORDING..." : "🎙️ CLICK TO SPEAK"}</span>
-                            </button>
+                            <div className="mic-outer-container">
+                              <button
+                                type="button"
+                                className="mic-btn"
+                                onClick={startSpeaking}
+                                disabled={lessonSpeakIsListening || isChecked}
+                                title="Click to speak"
+                              >
+                                {lessonSpeakIsListening ? (
+                                  <span className="voice-wave" aria-hidden="true">
+                                    <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+                                  </span>
+                                ) : (
+                                  <svg className="mic-icon" width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                    <path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3z" />
+                                    <path d="M17 11a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z" />
+                                  </svg>
+                                )}
+                                <span className="mic-btn-text">{lessonSpeakIsListening ? "RECORDING..." : "CLICK TO SPEAK"}</span>
+                              </button>
+                            </div>
 
                             {lessonSpeakTranscript && (
                               <p style={{ fontStyle: 'italic', color: 'var(--text)', fontSize: '1.1rem' }}>
@@ -6774,7 +6777,7 @@ function App() {
 
                     {/* Step 6: Select the correct meaning */}
                     {lessonStep === 6 && (() => {
-                      const mq = ai.meaningQuestion || { phrase: "Thank you", options: ["Dhanyavadagalu", "Namaskara", "Hogi baruttene"], correctIndex: 0 };
+                      const mq = ai.meaningQuestion || { phrase: "Happy", options: ["Feeling good and cheerful", "Feeling sad and upset", "Feeling tired and sleepy", "Feeling hungry and thirsty"], correctIndex: 0 };
                       const isChecked = lessonMeaningFeedback !== null;
 
                       return (
@@ -6941,8 +6944,19 @@ function App() {
 
                     {/* Step 7: Write this in English (word tiles) */}
                      {lessonStep === 7 && (() => {
-                      const tt = ai.translationTask || { sentence: "Namaskara", prompt: "Arrange the words to form a sentence: say hello", englishTranslation: "Hello", tiles: ["Hello", "Bye", "Thank", "You"] };
+                      const tt = ai.translationTask || { sentence: "My name is Ravi", prompt: "Arrange the words to form a sentence", englishTranslation: "My name is Ravi", tiles: ["My", "name", "is", "Ravi", "book", "red", "the"] };
                       const isChecked = lessonTranslationFeedback !== null;
+
+                      const tilesKey = (tt.tiles || []).join("|");
+                      if (lessonTranslationShuffleRef.current.key !== tilesKey) {
+                        const arr = [...(tt.tiles || [])];
+                        for (let i = arr.length - 1; i > 0; i--) {
+                          const j = Math.floor(Math.random() * (i + 1));
+                          [arr[i], arr[j]] = [arr[j], arr[i]];
+                        }
+                        lessonTranslationShuffleRef.current = { key: tilesKey, tiles: arr };
+                      }
+                      const shuffledTiles = lessonTranslationShuffleRef.current.tiles;
 
                       return (
                         <div className="ai-lesson-step" style={{ paddingBottom: '120px' }}>
@@ -7010,9 +7024,9 @@ function App() {
                                 {word}
                               </button>
                             ))}
-                            {lessonTranslationSelected.length === 0 && (
-                              <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Tap words below to translate...</span>
-                            )}
+                              {lessonTranslationSelected.length === 0 && (
+                                <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Tap words below to arrange...</span>
+                              )}
                           </div>
 
                           <div style={{
@@ -7022,7 +7036,7 @@ function App() {
                             ['justify' + 'Content']: 'center',
                             margin: '20px 0 30px'
                           }}>
-                            {tt.tiles.map((word, wIdx) => {
+                            {shuffledTiles.map((word, wIdx) => {
                               const isUsed = lessonTranslationSelected.includes(word);
                               return (
                                 <button
@@ -7137,10 +7151,10 @@ function App() {
                     {/* Step 8: Match Sentence / Pairs */}
                     {lessonStep === 8 && (() => {
                       const pairs = ai.matchingPairs || [
-                        { left: "Shale", right: "School" },
-                        { left: "Pustaka", right: "Book" },
-                        { left: "Huduga", right: "Boy" },
-                        { left: "Neeru", right: "Water" }
+                        { left: "School", right: "A place where we learn" },
+                        { left: "Book", right: "We read it to gain knowledge" },
+                        { left: "Boy", right: "A young male child" },
+                        { left: "Water", right: "A clear liquid we drink" }
                       ];
 
                       const leftItems = pairs.map(p => p.left);
@@ -7219,7 +7233,9 @@ function App() {
                                       cursor: isCompleted ? 'default' : 'pointer',
                                       display: 'flex',
                                       alignItems: 'center',
-                                      ['justify' + 'Content']: 'space-between',
+                                      ['justify' + 'Content']: 'center',
+                                      gap: '8px',
+                                      textAlign: 'center',
                                       opacity: isCompleted ? 0.6 : 1
                                     }}
                                     disabled={isCompleted}
@@ -7254,7 +7270,9 @@ function App() {
                                       cursor: isCompleted ? 'default' : 'pointer',
                                       display: 'flex',
                                       alignItems: 'center',
-                                      ['justify' + 'Content']: 'space-between',
+                                      ['justify' + 'Content']: 'center',
+                                      gap: '8px',
+                                      textAlign: 'center',
                                       opacity: isCompleted ? 0.6 : 1
                                     }}
                                     disabled={isCompleted}
@@ -7553,10 +7571,21 @@ function App() {
 
                     {/* Step 10: Unscramble / Rearrange letters */}
                     {lessonStep === 10 && (() => {
-                      const list = ai.unscramble && ai.unscramble.length ? ai.unscramble : [{ hint: "Where we study", emoji: "🏫", answer: "SCHOOL", tiles: ["L", "O", "C", "S", "H", "O"] }];
+                      const list = ai.unscramble && ai.unscramble.length ? ai.unscramble : [{ hint: "A place with plants and flowers", emoji: "🌳", answer: "GARDEN", tiles: ["G", "A", "R", "D", "E", "N", "B", "O"] }];
                       const item = list[lessonUnscrambleIndex] || list[0];
                       const isChecked = lessonUnscrambleFeedback !== null;
-                      const built = lessonUnscrambleSelected.map(i => item.tiles[i]).join("");
+
+                      const unscrambleKey = `${item.hint}|${item.answer}`;
+                      if (!lessonUnscrambleShuffleRef.current[unscrambleKey]) {
+                        const arr = [...(item.tiles || [])];
+                        for (let i = arr.length - 1; i > 0; i--) {
+                          const j = Math.floor(Math.random() * (i + 1));
+                          [arr[i], arr[j]] = [arr[j], arr[i]];
+                        }
+                        lessonUnscrambleShuffleRef.current[unscrambleKey] = arr;
+                      }
+                      const displayTiles = lessonUnscrambleShuffleRef.current[unscrambleKey];
+                      const built = lessonUnscrambleSelected.map(i => displayTiles[i]).join("");
 
                       const handleTile = (tIdx) => {
                         if (isChecked || lessonUnscrambleSelected.includes(tIdx)) return;
@@ -7586,14 +7615,14 @@ function App() {
                             {lessonUnscrambleSelected.map((tIdx, pos) => (
                               <button key={pos} type="button" onClick={() => handleRemove(pos)} disabled={isChecked}
                                 style={{ background: 'var(--accent)', color: 'white', border: 'none', borderRadius: '10px', padding: '10px 16px', fontSize: '1.3rem', fontWeight: '800', cursor: isChecked ? 'default' : 'pointer' }}>
-                                {item.tiles[tIdx]}
+                                {displayTiles[tIdx]}
                               </button>
                             ))}
                           </div>
 
                           {!isChecked && (
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'center', margin: '20px 0 30px' }}>
-                              {item.tiles.map((letter, tIdx) => {
+                              {displayTiles.map((letter, tIdx) => {
                                 const used = lessonUnscrambleSelected.includes(tIdx);
                                 return (
                                   <button key={tIdx} type="button" onClick={() => handleTile(tIdx)} disabled={used}
@@ -7663,7 +7692,6 @@ function App() {
                             <div style={{ flexGrow: 1, background: 'var(--panel)', border: '2px solid var(--line)', borderRadius: '20px', padding: '16px 24px', position: 'relative' }}>
                               <div style={{ position: 'absolute', left: '-9px', top: '32px', width: '14px', height: '14px', background: 'var(--panel)', borderLeft: '2px solid var(--line)', borderBottom: '2px solid var(--line)', transform: 'rotate(45deg)' }}></div>
                               <p style={{ margin: 0, fontSize: '1.1rem', fontWeight: '700' }}>{item.prompt}</p>
-                              <p style={{ margin: '6px 0 0', fontSize: '1.4rem', fontWeight: '800', color: 'var(--accent)' }}>{item.word}</p>
                             </div>
                           </div>
 
@@ -7725,7 +7753,7 @@ function App() {
 
                     {/* Step 12: Tracing on canvas */}
                     {lessonStep === 12 && (() => {
-                      const list = ai.tracing && ai.tracing.length ? ai.tracing : [{ letter: "A", word: "Apple", info: "A is for Apple", sound: "Apple" }];
+                      const list = ai.tracing && ai.tracing.length ? ai.tracing : [{ kind: "playground", question: "Where do children play?", info: "Where do children play?", sound: "playground" }];
                       const item = list[lessonTracingIndex] || list[0];
 
                       const getPos = (e) => {
@@ -7765,22 +7793,22 @@ function App() {
                       return (
                         <div className="ai-lesson-step" style={{ paddingBottom: '120px' }}>
                           <div className="ai-lesson-step-header" style={{ marginBottom: '16px' }}>
-                            <span className="ai-step-badge">✍️ Trace the letter</span>
+                            <span className="ai-step-badge">✏️ Draw the picture</span>
                           </div>
 
                           <div style={{ display: 'flex', alignItems: 'center', gap: '20px', margin: '16px 0' }}>
                             <img src="/as1.png" alt="LISA Mascot" style={{ width: '80px', height: '80px', objectFit: 'contain' }} />
                             <div style={{ flexGrow: 1, background: 'var(--panel)', border: '2px solid var(--line)', borderRadius: '20px', padding: '16px 24px', position: 'relative' }}>
                               <div style={{ position: 'absolute', left: '-9px', top: '32px', width: '14px', height: '14px', background: 'var(--panel)', borderLeft: '2px solid var(--line)', borderBottom: '2px solid var(--line)', transform: 'rotate(45deg)' }}></div>
-                              <p style={{ margin: 0, fontSize: '1.1rem', fontWeight: '700' }}>{item.info}</p>
+                              <p style={{ margin: 0, fontSize: '1.1rem', fontWeight: '700' }}>{item.question}</p>
                             </div>
                           </div>
 
                           <div style={{ display: 'flex', justifyContent: 'center', margin: '16px 0' }}>
                             <canvas
                               ref={tracingCanvasRef}
-                              width={300}
-                              height={300}
+                              width={400}
+                              height={400}
                               onPointerDown={startDraw}
                               onPointerMove={moveDraw}
                               onPointerUp={endDraw}
