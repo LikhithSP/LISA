@@ -12,6 +12,7 @@ import knJson from "./locales/kn.json";
 import teJson from "./locales/te.json";
 import taJson from "./locales/ta.json";
 import { assessmentTranslations } from "./assessmentTranslations";
+import FunLearnZone from "./FunLearnZone";
 
 const languages = ["English", "Hindi", "Kannada", "Telugu", "Tamil"];
 const educationLevels = ["No Formal Education", "Primary", "Middle School", "Secondary & Above"];
@@ -5457,6 +5458,17 @@ function App() {
                       </div>
                     </div>
                   </div>
+
+                  {/* Fun & Learn Zone */}
+                  <FunLearnZone
+                    onXpEarned={(amount) => {
+                      const newXp = userXp + amount;
+                      setUserXp(newXp);
+                      if (session?.user?.id) {
+                        supabase.from("profiles").update({ xp: newXp }).eq("id", session.user.id);
+                      }
+                    }}
+                  />
 
                 </div>
               </div>
