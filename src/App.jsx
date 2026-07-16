@@ -708,10 +708,15 @@ function App() {
 
     if (activeQuests.length > 0 && activeQuests.every(q => getQuestProgress(q).completed)) {
       setQuestBonusClaimed(true);
-      const bonusXp = 20;
+      const bonusXp = 30;
       setUserXp(prev => {
         const next = prev + bonusXp;
         localStorage.setItem(`lisa_user_xp_${userId}`, next);
+        return next;
+      });
+      setDailyXp(prev => {
+        const next = prev + bonusXp;
+        localStorage.setItem(`lisa_daily_xp_${userId}_${today}`, next);
         return next;
       });
       localStorage.setItem(`lisa_quest_bonus_${userId}_${today}`, "1");
@@ -784,7 +789,7 @@ function App() {
         level: levelCtx,
         age: profile?.age ?? null,
         education: profile?.education_level ?? null
-      });
+      }, !aiEnabled);
       if (active && res) {
         setWordOfDay(res);
       }
@@ -2000,10 +2005,13 @@ function App() {
     // Bonus XP for completing all daily quests
     if (!questBonusClaimed && activeQuests.length > 0 && activeQuests.every(q => getQuestProgress(q).completed)) {
       setQuestBonusClaimed(true);
-      const bonusXp = 20;
+      const bonusXp = 30;
       const bonusNewXp = newXp + bonusXp;
       setUserXp(bonusNewXp);
       localStorage.setItem(`lisa_user_xp_${userId}`, bonusNewXp);
+      const bonusDailyXp = nextDailyXp + bonusXp;
+      setDailyXp(bonusDailyXp);
+      localStorage.setItem(`lisa_daily_xp_${userId}_${todayStr}`, bonusDailyXp);
       localStorage.setItem(`lisa_quest_bonus_${userId}_${todayStr}`, "1");
     }
 
@@ -2074,7 +2082,8 @@ function App() {
         language: selectedLanguage || "English",
         literacyLevel: currentLevelNum,
         literacyLevelName: profInfo?.name || "Beginner",
-        mistakesList: []
+        mistakesList: [],
+        useFallback: !aiEnabled
       });
     } else {
       aiContent = await generateLessonContent({
@@ -2090,7 +2099,8 @@ function App() {
         unitTitle: unitInfo?.title || "",
         lessonNum: lesson.num || 1,
         lessonTitle: lesson.title || "",
-        difficulty: currentLevelNum <= 2 ? "beginner" : currentLevelNum <= 4 ? "intermediate" : "advanced"
+        difficulty: currentLevelNum <= 2 ? "beginner" : currentLevelNum <= 4 ? "intermediate" : "advanced",
+        useFallback: !aiEnabled
       });
     }
 
@@ -2140,6 +2150,21 @@ function App() {
   }, [isDark]);
 
   const toggleTheme = () => setIsDark((prev) => !prev);
+
+  // Development mode: when AI is OFF, lessons and word of the day use the static fallback content.
+  const [aiEnabled, setAiEnabled] = useState(() => {
+    const stored = localStorage.getItem("lisa_ai_enabled");
+    if (stored !== null) return stored === "true";
+    return true;
+  });
+
+  const toggleAiMode = () => {
+    setAiEnabled((prev) => {
+      const next = !prev;
+      localStorage.setItem("lisa_ai_enabled", String(next));
+      return next;
+    });
+  };
 
   // Initial Assessment states
   const [assessmentState, setAssessmentState] = useState("not_started"); // "not_started" | "answering" | "results"
@@ -3853,6 +3878,22 @@ function App() {
     );
   }
 
+  // Development-mode AI toggle button
+  const renderAiToggle = () => (
+    <div className="ai-toggle-container" key="ai-toggle" title={aiEnabled ? "AI ON — lessons & word of day use AI" : "AI OFF — lessons & word of day use fallback"}>
+      <button
+        type="button"
+        className={`ai-toggle-btn ${aiEnabled ? "ai-on" : "ai-off"}`}
+        onClick={toggleAiMode}
+        aria-pressed={aiEnabled}
+        aria-label={aiEnabled ? "Turn AI off (development mode)" : "Turn AI on"}
+      >
+        <span className="ai-toggle-dot" />
+        <span className="ai-toggle-label">{aiEnabled ? "AI ON" : "AI OFF"}</span>
+      </button>
+    </div>
+  );
+
   // Dark Mode Toggle Button
   const renderThemeToggle = () => (
     <div className="theme-toggle-container" key="theme-toggle">
@@ -4813,6 +4854,7 @@ function App() {
           </div>
 
           <div className="topbar-right">
+            {renderAiToggle()}
             {renderThemeToggle()}
             {renderLanguageDropdown(true)}
           </div>

@@ -133,6 +133,68 @@ select,
   right: auto;
 }
 
+/* Development-mode AI toggle */
+.ai-toggle-container {
+  display: flex;
+  align-items: center;
+}
+
+.ai-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--panel-strong);
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 180ms ease;
+}
+
+.ai-toggle-btn:hover {
+  transform: translateY(-1px);
+  border-color: var(--accent);
+}
+
+.ai-toggle-btn:active {
+  transform: scale(0.96);
+}
+
+.ai-toggle-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.18);
+  transition: background 180ms ease, box-shadow 180ms ease;
+}
+
+.ai-toggle-btn.ai-on {
+  color: #10b981;
+  border-color: rgba(16, 185, 129, 0.5);
+}
+
+.ai-toggle-btn.ai-on .ai-toggle-dot {
+  background: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.22);
+}
+
+.ai-toggle-btn.ai-off {
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
+.ai-toggle-btn.ai-off .ai-toggle-dot {
+  background: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.22);
+}
+
 /* Dashboard brand uses the same logo + subline design as the login page */
 .dashboard-header .brand-logo-top.dashboard-brand {
   position: static;

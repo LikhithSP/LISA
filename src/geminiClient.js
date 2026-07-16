@@ -145,6 +145,11 @@ const lessonCache = new Map();
 export const generateLessonContent = async (params) => {
   const cacheKey = `${params.sectionNum}_${params.unitNum}_${params.lessonNum}_${params.language}_${params.literacyLevel}`;
   
+  // Development mode OFF: skip the AI call and return the static fallback content.
+  if (params.useFallback) {
+    return getFallbackLesson(params);
+  }
+
   if (lessonCache.has(cacheKey)) {
     return lessonCache.get(cacheKey);
   }
@@ -264,7 +269,46 @@ const getFallbackLesson = (params) => {
 
 export const clearLessonCache = () => lessonCache.clear();
 
-export const fetchWordOfDay = async (language = "English", context = {}) => {
+// Static Word of the Day used whenever AI is disabled (development mode OFF).
+const getFallbackWordOfDay = (language = "English") => {
+  if (language === "Hindi") {
+    return {
+      word: "Diligent",
+      meaning: "मेहनती और लगनशील",
+      example: "A diligent student practices reading a little every day."
+    };
+  } else if (language === "Kannada") {
+    return {
+      word: "Diligent",
+      meaning: "ಕಷ್ಟಪಟ್ಟು ಕೆಲಸ ಮಾಡುವ ಮತ್ತು ಕಾಳಜಿ ತೋರುವ",
+      example: "A diligent student practices reading a little every day."
+    };
+  } else if (language === "Telugu") {
+    return {
+      word: "Diligent",
+      meaning: "కష్టపడి పనిచేసే మరియు శ్రద్ధ చూపించే",
+      example: "A diligent student practices reading a little every day."
+    };
+  } else if (language === "Tamil") {
+    return {
+      word: "Diligent",
+      meaning: "கடின உழைப்பு மற்றும் அக்கறை காட்டுதல்",
+      example: "A diligent student practices reading a little every day."
+    };
+  }
+  return {
+    word: "Diligent",
+    meaning: "Hardworking and showing care",
+    example: "A diligent student practices reading a little every day."
+  };
+};
+
+export const fetchWordOfDay = async (language = "English", context = {}, useFallback = false) => {
+  // Development mode OFF: return the localized static fallback word directly.
+  if (useFallback) {
+    return getFallbackWordOfDay(language);
+  }
+
   try {
     const { level = null, age = null, education = null } = context;
     const todayStr = new Date().toLocaleDateString("en-CA");
@@ -720,6 +764,11 @@ const getFallbackPractice = (params) => {
 };
 
 export const generatePracticeContent = async (params) => {
+  // Development mode OFF: skip the AI call and return the static fallback practice content.
+  if (params.useFallback) {
+    return getFallbackPractice(params);
+  }
+
   const prompt = buildPracticePrompt(params);
   if (!prompt) return null;
 
