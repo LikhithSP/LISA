@@ -396,20 +396,25 @@ export const getRandomAssessment = (age, educationLevel, language = "English") =
   const level = getLevel(educationLevel, ageNum);
   const key = `${ageGroup}_level_${level}`;
 
-  // Comprehension MCQ Pool
-  const compPool =
-    assessmentQuestions[key] ||
-    assessmentQuestions[`${ageGroup}_level_1`] ||
-    assessmentQuestions["child_level_1"];
+  // Comprehension MCQ Pool — sample 2 random questions from EACH of the 5 levels
+  // of the user's age group to increase difficulty spread across the assessment.
+  const levelQuestions = [];
+  for (let lvl = 1; lvl <= 5; lvl++) {
+    const levelPool =
+      assessmentQuestions[`${ageGroup}_level_${lvl}`] ||
+      assessmentQuestions[key] ||
+      assessmentQuestions[`${ageGroup}_level_1`] ||
+      assessmentQuestions["child_level_1"];
 
-  const rawQuestions = compPool?.questions || [];
-
-  // Sample up to 10 questions
-  const shuffled = [...rawQuestions].sort(() => 0.5 - Math.random());
-  const sampled = [];
-  for (let i = 0; i < 10; i++) {
-    sampled.push(shuffled[i % shuffled.length]);
+    const poolQuestions = levelPool?.questions || [];
+    const shuffledLevel = [...poolQuestions].sort(() => 0.5 - Math.random());
+    for (let i = 0; i < 2 && i < shuffledLevel.length; i++) {
+      levelQuestions.push(shuffledLevel[i]);
+    }
   }
+
+  // 10 MCQs in ascending difficulty: 2 from level 1 ... 2 from level 5.
+  const sampled = levelQuestions;
 
   const comprehensionQuestions = sampled.map((q, idx) => {
     const rawOptionsEnglish = Array.isArray(q.options) ? q.options : ((q.options && q.options["English"]) || []);
