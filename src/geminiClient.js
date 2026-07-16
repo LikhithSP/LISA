@@ -1,9 +1,15 @@
 // LISA — Gemini AI Lesson Generator
 // Uses Gemini 2.0 Flash REST API to generate personalized lesson content
 
-const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
-const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
-const MODEL_NAME = import.meta.env.VITE_OPENROUTER_MODEL || "google/gemma-4-31b-it:free";
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+const API_KEY = GEMINI_API_KEY || import.meta.env.VITE_OPENROUTER_API_KEY;
+const USE_GEMINI = !!GEMINI_API_KEY;
+const API_URL = USE_GEMINI 
+  ? "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"
+  : "https://openrouter.ai/api/v1/chat/completions";
+const MODEL_NAME = USE_GEMINI
+  ? (import.meta.env.VITE_GEMINI_MODEL || "gemini-3.5-flash")
+  : (import.meta.env.VITE_OPENROUTER_MODEL || "google/gemma-4-31b-it:free");
 
 const extractJSON = (text) => {
   if (!text) throw new Error("Empty text input for JSON parsing");
@@ -146,11 +152,11 @@ export const generateLessonContent = async (params) => {
   const prompt = buildPrompt(params);
 
   try {
-    const response = await fetch(OPENROUTER_API_URL, {
+    const response = await fetch(API_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${OPENROUTER_API_KEY}`
+        "Authorization": `Bearer ${API_KEY}`
       },
       body: JSON.stringify({
         model: MODEL_NAME,
@@ -163,7 +169,7 @@ export const generateLessonContent = async (params) => {
 
     if (!response.ok) {
       const err = await response.text();
-      console.error("OpenRouter API error:", err);
+      console.error("Gemini/OpenRouter API error:", err);
       return getFallbackLesson(params);
     }
 
@@ -286,11 +292,11 @@ export const fetchWordOfDay = async (language = "English", context = {}) => {
       "example": "example sentence written in English"
     }`;
 
-    const response = await fetch(OPENROUTER_API_URL, {
+    const response = await fetch(API_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${OPENROUTER_API_KEY}`
+        "Authorization": `Bearer ${API_KEY}`
       },
       body: JSON.stringify({
         model: MODEL_NAME,
@@ -302,7 +308,7 @@ export const fetchWordOfDay = async (language = "English", context = {}) => {
     });
 
     if (!response.ok) {
-      throw new Error("Failed to fetch from OpenRouter");
+      throw new Error("Failed to fetch from Gemini/OpenRouter API");
     }
 
     const data = await response.json();
@@ -321,7 +327,7 @@ export const fetchWordOfDay = async (language = "English", context = {}) => {
 
     return parsed;
   } catch (err) {
-    console.error("Failed to fetch word of the day from OpenRouter, using fallback:", err);
+    console.error("Failed to fetch word of the day from Gemini/OpenRouter API, using fallback:", err);
     if (language === "Hindi") {
       return {
         word: "Diligent",
@@ -718,11 +724,11 @@ export const generatePracticeContent = async (params) => {
   if (!prompt) return null;
 
   try {
-    const response = await fetch(OPENROUTER_API_URL, {
+    const response = await fetch(API_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${OPENROUTER_API_KEY}`
+        "Authorization": `Bearer ${API_KEY}`
       },
       body: JSON.stringify({
         model: MODEL_NAME,
@@ -735,7 +741,7 @@ export const generatePracticeContent = async (params) => {
 
     if (!response.ok) {
       const err = await response.text();
-      console.error("OpenRouter Practice API error:", err);
+      console.error("Gemini/OpenRouter Practice API error:", err);
       return getFallbackPractice(params);
     }
 
@@ -779,11 +785,11 @@ Return ONLY a JSON object with this exact structure:
 Input:
 "${text}"`;
 
-    const response = await fetch(OPENROUTER_API_URL, {
+    const response = await fetch(API_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${OPENROUTER_API_KEY}`
+        "Authorization": `Bearer ${API_KEY}`
       },
       body: JSON.stringify({
         model: MODEL_NAME,
@@ -847,11 +853,11 @@ Input:
 Question: "${questionText}"
 Options: ${JSON.stringify(optionsArray)}`;
 
-    const response = await fetch(OPENROUTER_API_URL, {
+    const response = await fetch(API_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${OPENROUTER_API_KEY}`
+        "Authorization": `Bearer ${API_KEY}`
       },
       body: JSON.stringify({
         model: MODEL_NAME,

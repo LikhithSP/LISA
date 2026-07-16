@@ -4940,7 +4940,7 @@ function App() {
 
                   <div className="stars-answers-card" style={{ margin: 0 }}>
                     <div className="sa-metric">
-                      <div className="sa-icon sa-icon-stars">XP</div>
+                      <div className="sa-icon sa-icon-stars"><StarIcon style={{ marginRight: 0, width: "22px", height: "22px" }} /></div>
                       <div className="sa-metric-text">
                         <span className="sa-value">{dailyXp}</span>
                         <span className="sa-label">{t("dashboardStarsToday")}</span>
