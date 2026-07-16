@@ -6479,6 +6479,22 @@ function App() {
                           <span className="ai-step-badge">✍️ Writing Activity</span>
                         </div>
 
+                        {/* Picture for the writing activity */}
+                        <div style={{
+                          margin: '20px 0',
+                          background: 'var(--panel)',
+                          border: '2px solid var(--line)',
+                          borderRadius: '20px',
+                          padding: '16px',
+                          textAlign: 'center'
+                        }}>
+                          <img
+                            src="https://i.postimg.cc/c15NzsyP/211532a90170c2a360e90f8b50384c11.jpg"
+                            alt="Children playing outside"
+                            style={{ width: '100%', maxWidth: '520px', borderRadius: '14px', objectFit: 'cover' }}
+                          />
+                        </div>
+
                         {/* Mascot & Speech bubble for prompt */}
                         <div style={{
                           display: 'flex',
