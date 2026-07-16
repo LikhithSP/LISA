@@ -2235,11 +2235,10 @@ function App() {
         if (q.type === "comprehension") {
           if (dict && dict[q.rawQuestion.question]) {
             const trQuestion = await keepEnglishQuotedWords(q.rawQuestion.question, dict[q.rawQuestion.question], lang);
+            // Keep options in English only (initial assessment checks the user,
+            // so no regional-language translation is shown in the options).
             const trOptions = Array.isArray(q.rawQuestion.options)
-              ? q.rawQuestion.options.map(opt => {
-                  const t = dict[opt];
-                  return t && t !== opt ? `${opt} (${t})` : opt;
-                })
+              ? [...q.rawQuestion.options]
               : [];
             if (active) {
               setTranslatedQ({
@@ -2261,10 +2260,8 @@ function App() {
             setTranslatedQ({
               ...q.rawQuestion,
               question: await keepEnglishQuotedWords(q.rawQuestion.question, res.question, lang),
-              options: q.rawQuestion.options.map((opt, i) => {
-                const t = res.options && res.options[i];
-                return t && t !== opt ? `${opt} (${t})` : opt;
-              })
+              // Options kept in English only — no regional-language suffix.
+              options: [...q.rawQuestion.options]
             });
           }
         } else if (q.type === "reading") {
