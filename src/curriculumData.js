@@ -429,43 +429,48 @@ export const getRandomAssessment = (age, educationLevel, language = "English") =
     };
   });
 
-  // Reading + Writing from assessmentReadingWriting
+  // Reading + Writing from assessmentReadingWriting (3 of each)
   const rwPool =
     assessmentReadingWriting[key] ||
     assessmentReadingWriting[`${ageGroup}_level_1`] ||
     assessmentReadingWriting["adult_level_1"];
 
-  const readingQuestion = {
-    id: `${key}_reading`,
+  const readings = Array.isArray(rwPool?.readings) ? rwPool.readings : [];
+  const writings = Array.isArray(rwPool?.writings) ? rwPool.writings : [];
+
+  const readingQuestions = readings.slice(0, 3).map((text, i) => ({
+    id: `${key}_reading_${i + 1}`,
     type: "reading",
     skill: "pronunciation",
-    rawQuestion: rwPool,
-  };
+    rawQuestion: { reading: text },
+  }));
 
-  const writingQuestion = {
-    id: `${key}_writing`,
-    type: "writing",
-    skill: "writing",
-    rawQuestion: rwPool,
-    evaluator: (text) => {
-      const target = (rwPool?.dictation || "").trim();
-      const targetWords = target.toLowerCase().split(/\s+/).filter(Boolean);
-      const userWords = text.trim().toLowerCase().split(/\s+/).filter(Boolean);
-      if (userWords.length === 0) return { score: 0, feedback: "Please write the sentence you heard." };
-      if (targetWords.length === 0) return { score: 5, feedback: "Thanks for writing!" };
-      const userSet = new Set(userWords);
-      const matched = targetWords.filter(w => userSet.has(w)).length;
-      const ratio = matched / targetWords.length;
-      if (ratio >= 0.8) return { score: 10, feedback: "Excellent! You wrote the sentence accurately." };
-      if (ratio >= 0.5) return { score: 7, feedback: "Good, but some words are missing or incorrect." };
-      if (ratio >= 0.25) return { score: 4, feedback: "You caught some words. Listen again and try more." };
-      return { score: 2, feedback: "Try to write what you hear more carefully." };
-    },
-  };
+  const writingQuestions = writings.slice(0, 3).map((w, i) => {
+    const dictation = (w?.dictation || "").trim();
+    return {
+      id: `${key}_writing_${i + 1}`,
+      type: "writing",
+      skill: "writing",
+      rawQuestion: { writing: w?.prompt || "Listen to the sentence and write exactly what you hear (in English).", dictation },
+      evaluator: (text) => {
+        const targetWords = dictation.toLowerCase().split(/\s+/).filter(Boolean);
+        const userWords = text.trim().toLowerCase().split(/\s+/).filter(Boolean);
+        if (userWords.length === 0) return { score: 0, feedback: "Please write the sentence you heard." };
+        if (targetWords.length === 0) return { score: 5, feedback: "Thanks for writing!" };
+        const userSet = new Set(userWords);
+        const matched = targetWords.filter(word => userSet.has(word)).length;
+        const ratio = matched / targetWords.length;
+        if (ratio >= 0.8) return { score: 10, feedback: "Excellent! You wrote the sentence accurately." };
+        if (ratio >= 0.5) return { score: 7, feedback: "Good, but some words are missing or incorrect." };
+        if (ratio >= 0.25) return { score: 4, feedback: "You caught some words. Listen again and try more." };
+        return { score: 2, feedback: "Try to write what you hear more carefully." };
+      },
+    };
+  });
 
   return {
     tier: key,
-    questions: [...comprehensionQuestions, readingQuestion, writingQuestion],
+    questions: [...comprehensionQuestions, ...readingQuestions, ...writingQuestions],
   };
 };
 

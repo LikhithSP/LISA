@@ -3612,7 +3612,7 @@ function App() {
     const strongSkillKeys = getStrongSkillKeys(skillScores);
     const weakSkillKeys = getWeakSkillKeys(skillScores);
 
-    // Compute marks out of 30: 10 comprehension MCQ (1 mark each) + 10 reading + 10 writing
+    // Compute marks out of 70: 10 comprehension MCQ (1 mark each) + 3 reading (10 each) + 3 writing (10 each)
     let compMarks = 0;
     let readingMarks = 0;
     let writingMarks = 0;
@@ -3622,15 +3622,15 @@ function App() {
       } else if (q.type === "reading") {
         const attempt = readingAttempts[idx];
         const ratio = (attempt && attempt.totalWords > 0) ? attempt.matchedCount / attempt.totalWords : 0;
-        readingMarks = Math.round(ratio * 10);
+        readingMarks += Math.round(ratio * 10);
       } else if (q.type === "writing") {
         const text = writingAnswers[idx] || "";
         const res = q.evaluator ? q.evaluator(text) : { score: 0 };
-        writingMarks = res.score;
+        writingMarks += res.score;
       }
     });
     const totalMarks = compMarks + readingMarks + writingMarks;
-    const overallPercent = Math.round((totalMarks / 30) * 100);
+    const overallPercent = Math.round((totalMarks / 70) * 100);
 
     // Count discrete right answers from the diagnostic (comprehension MCQs)
     if (compMarks > 0) recordDailyCorrect(compMarks);
@@ -3641,7 +3641,7 @@ function App() {
         date: new Date().toLocaleDateString(),
         type: "Diagnostic Evaluation",
         score: totalMarks,
-        maxScore: 30,
+        maxScore: 70,
         percentage: overallPercent,
         level: diagnosedLevel,
         skills: {
@@ -4260,14 +4260,14 @@ function App() {
                   if (typeIndices[item.type]) typeIndices[item.type].push(i);
                 });
                 const compIdx = typeIndices.comprehension;
-                const readIdx = typeIndices.reading[0];
-                const writeIdx = typeIndices.writing[0];
+                const readIdxList = typeIndices.reading;
+                const writeIdxList = typeIndices.writing;
 
                 const currentSectionNum = isWriting ? 3 : isVoiceReading ? 2 : 1;
 
                 const compCompleted = compIdx.length > 0 && compIdx.every((i) => selectedAnswers[i] !== undefined);
-                const readCompleted = !!readingAttempts[readIdx];
-                const writeCompleted = !!(writingAnswers[writeIdx] || "").trim();
+                const readCompleted = readIdxList.length > 0 && readIdxList.every((i) => !!readingAttempts[i]);
+                const writeCompleted = writeIdxList.length > 0 && writeIdxList.every((i) => !!(writingAnswers[i] || "").trim());
 
                 const sectionMeta = [
                   { num: 1, title: t("compSecTitle"), done: compCompleted },
@@ -4594,7 +4594,7 @@ function App() {
 
                       <div className="results-hero-center-score">
                         <span className="hero-score-label">{t("overallScore")}</span>
-                        <span className="hero-score-val">{latestAttempt?.score || 0} / {latestAttempt?.maxScore || 30}</span>
+                        <span className="hero-score-val">{latestAttempt?.score || 0} / {latestAttempt?.maxScore || 70}</span>
                       </div>
 
                       <div className="results-hero-right">
