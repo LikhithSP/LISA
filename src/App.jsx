@@ -1064,6 +1064,15 @@ function App() {
   const [lessonSpeakIsListening, setLessonSpeakIsListening] = useState(false);
   const [lessonSpeakTranscript, setLessonSpeakTranscript] = useState("");
 
+  // Lesson accuracy tracking
+  const lessonTotalAnsweredRef = useRef(0);
+  const lessonCorrectAnsweredRef = useRef(0);
+  const recordLessonAnswer = (isCorrect) => {
+    lessonTotalAnsweredRef.current += 1;
+    if (isCorrect) lessonCorrectAnsweredRef.current += 1;
+  };
+  const [lessonAccuracy, setLessonAccuracy] = useState(null);
+
   // New lesson activities: Unscramble, Image choice, Tracing
   const [lessonUnscrambleIndex, setLessonUnscrambleIndex] = useState(0);
   const [lessonUnscrambleSelected, setLessonUnscrambleSelected] = useState([]);
@@ -1475,9 +1484,10 @@ function App() {
                         setLessonListeningFeedback({
                           isCorrect: correct,
                           correctAnswer: audioText
-                        });
-                        if (correct) recordDailyCorrect();
-                      }}
+                                   });
+                                   if (correct) recordDailyCorrect();
+                                   recordLessonAnswer(correct);
+                                 }}
                       disabled={lessonListeningSelected.length === 0}
                     >
                       Check Answer
@@ -1604,11 +1614,12 @@ function App() {
                               explanation: currentQuestion.explanation || ""
                             });
                           }
-                          setLessonMeaningFeedback({
-                            isCorrect: correct,
-                            correctAnswer: options[currentQuestion.correctIndex]
-                          });
-                          if (correct) recordDailyCorrect();
+                           setLessonMeaningFeedback({
+                             isCorrect: correct,
+                             correctAnswer: options[currentQuestion.correctIndex]
+                           });
+                           if (correct) recordDailyCorrect();
+                           recordLessonAnswer(correct);
                         }}
                       >
                         Check Answer
@@ -1703,11 +1714,12 @@ function App() {
                               hint: hint
                             });
                           }
-                          setLessonFillFeedback({
-                            isCorrect: correct,
-                            correctAnswer: answer
-                          });
-                          if (correct) recordDailyCorrect();
+                           setLessonFillFeedback({
+                             isCorrect: correct,
+                             correctAnswer: answer
+                           });
+                           if (correct) recordDailyCorrect();
+                           recordLessonAnswer(correct);
                         }}
                       >
                         Check Answer
@@ -1837,11 +1849,12 @@ function App() {
                               tiles: tiles
                             });
                           }
-                          setLessonUnscrambleFeedback({
-                            isCorrect: correct,
-                            correctAnswer: answer
-                          });
-                          if (correct) recordDailyCorrect();
+                           setLessonUnscrambleFeedback({
+                             isCorrect: correct,
+                             correctAnswer: answer
+                           });
+                           if (correct) recordDailyCorrect();
+                           recordLessonAnswer(correct);
                         }}
                         disabled={lessonUnscrambleSelected.length === 0}>Check Answer</button>
                     </div>
@@ -2049,6 +2062,9 @@ function App() {
     setLessonReadingStep(1);
     setLessonReadingFeedback(null);
     setLessonReadingAnswer("");
+    lessonTotalAnsweredRef.current = 0;
+    lessonCorrectAnsweredRef.current = 0;
+    setLessonAccuracy(null);
     const isPractice = lesson.id.includes("_practice") || lesson.title.includes("Practice") || lesson.title.includes("Pronunciation");
 
     setLessonSession({
@@ -2118,6 +2134,11 @@ function App() {
       setLessonStep(prev => prev + 1);
     } else {
       // Complete the lesson
+      const totalAnswered = lessonTotalAnsweredRef.current;
+      const correctAnswered = lessonCorrectAnsweredRef.current;
+      const accuracy = totalAnswered > 0 ? Math.round((correctAnswered / totalAnswered) * 100) : 100;
+      setLessonAccuracy(accuracy);
+
       const isExam = lessonSession?.lessonId?.endsWith("l5");
       completeLesson(lessonSession?.lessonId, isExam ? 60 : 15);
       setLessonSession(prev => prev ? { ...prev, status: "completed" } : null);
@@ -5649,21 +5670,56 @@ function App() {
 
               {/* Lesson Complete */}
               {!lessonLoading && lessonSession?.status === "completed" && (
-                <div style={{ textAlign: "center", maxWidth: "480px", padding: "32px" }}>
-                  <div style={{ fontSize: "4rem", marginBottom: "16px" }}>🎉</div>
-                  <div style={{ display: "flex", justifyContent: "center", marginBottom: "16px" }}>
-                    <img src="/as1.png" alt="LISA Mascot" style={{ width: '190px', height: '240px', objectFit: 'contain' }} />
+                <div className="lesson-complete-wrapper">
+                  <div className="lesson-complete-mascot-row">
+                    <div className="firecracker-container">
+                      <img src="/as1.png" alt="LISA Mascot" className="lesson-complete-mascot" />
+                      {Array.from({ length: 8 }).map((_, i) => {
+                        const angle = (i / 8) * Math.PI * 2;
+                        const radius = 30 + (i % 2) * 15;
+                        const fx = Math.cos(angle) * radius;
+                        const fy = Math.sin(angle) * radius;
+                        return (
+                          <span
+                            key={i}
+                            className="firecracker-particle"
+                            style={{
+                              '--fx': `${fx}px`,
+                              '--fy': `${fy}px`,
+                              background: ['#fbbf24', '#f59e0b', '#ef4444', '#10b981'][i % 4],
+                              animationDelay: `${i * 0.05}s`,
+                            }}
+                          />
+                        );
+                      })}
+                    </div>
                   </div>
-                  <h2 style={{ fontSize: "2rem", fontWeight: 800, color: "#10b981", marginBottom: "12px" }}>
+                  <h2 className="lesson-complete-title">
                     {lessonSession?.isPractice ? "Practice Complete!" : "Lesson Complete!"}
                   </h2>
-                  <p style={{ fontSize: "1.1rem", color: "var(--muted)", marginBottom: "8px" }}>{lessonAiContent?.aiFeedbackPositive || "Great job! You earned 15 XP!"}</p>
-                  {!lessonSession?.isPractice && (
-                    <p style={{ fontSize: "0.9rem", color: "var(--muted)", marginBottom: "28px" }}>Section: {lessonSession.sectionTitle} · Unit: {lessonSession.unitTitle}</p>
-                  )}
-                  <button className="primary-btn" style={{ width: "100%", padding: "14px", marginBottom: "20px" }} onClick={() => { setLessonSession(null); setLessonAiContent(null); setLessonStep(0); }}>
-                    ✓ Continue Learning
-                  </button>
+                  <div className="lesson-complete-stats">
+                    <div className="lesson-complete-stat-box xp-box">
+                      <div className="lesson-complete-stat-label">Total XP</div>
+                      <div className="lesson-complete-stat-icon">⚡</div>
+                      <div className="lesson-complete-stat-value">
+                        {lessonSession?.lessonId?.endsWith("l5") ? "60" : "15"}
+                      </div>
+                      <div className="lesson-complete-stat-sub">earned</div>
+                    </div>
+                    <div className="lesson-complete-stat-box great-box">
+                      <div className="lesson-complete-stat-label">Great!</div>
+                      <div className="lesson-complete-stat-icon">🎯</div>
+                      <div className="lesson-complete-stat-value">
+                        {lessonAccuracy !== null ? `${lessonAccuracy}%` : "100%"}
+                      </div>
+                      <div className="lesson-complete-stat-sub">accuracy</div>
+                    </div>
+                  </div>
+                  <div className="lesson-complete-continue-row">
+                    <button className="lesson-complete-continue-btn" onClick={() => { setLessonSession(null); setLessonAiContent(null); setLessonStep(0); }}>
+                      Continue
+                    </button>
+                  </div>
                 </div>
               )}
 
@@ -5955,7 +6011,8 @@ function App() {
                                         title: correct ? "Excellent!" : "Incorrect",
                                         explanation: q.explanation
                                       });
-                                      if (correct) recordDailyCorrect();
+                         if (correct) recordDailyCorrect();
+                         recordLessonAnswer(correct);
                                     }
                                   }}
                                   disabled={isAnswered}
@@ -6192,15 +6249,16 @@ function App() {
                                 type="button"
                                 className="primary-btn"
                                 style={{ padding: '12px 40px', borderRadius: '12px' }}
-                                onClick={() => {
-                                  const correct = userAnswer.trim().toLowerCase() === fb.answer.toLowerCase();
-                                  setLessonFillFeedback({
-                                    isCorrect: correct,
-                                    title: correct ? "Excellent!" : "Incorrect",
-                                    correctAnswer: fb.answer
-                                  });
-                                  if (correct) recordDailyCorrect();
-                                }}
+                                 onClick={() => {
+                                   const correct = userAnswer.trim().toLowerCase() === fb.answer.toLowerCase();
+                                   setLessonFillFeedback({
+                                     isCorrect: correct,
+                                     title: correct ? "Excellent!" : "Incorrect",
+                                     correctAnswer: fb.answer
+                                   });
+                                   if (correct) recordDailyCorrect();
+                                   recordLessonAnswer(correct);
+                                 }}
                                 disabled={!userAnswer.trim()}
                               >
                                 Check Answer
@@ -6553,7 +6611,8 @@ function App() {
                               percent: Math.round(percent)
                             });
 
-                            if (isCorrect) recordDailyCorrect();
+                             if (isCorrect) recordDailyCorrect();
+                             recordLessonAnswer(isCorrect);
 
                           };
 
@@ -6791,14 +6850,15 @@ function App() {
                                 type="button"
                                 className="primary-btn"
                                 style={{ padding: '12px 40px', borderRadius: '12px' }}
-                                onClick={() => {
-                                  const correct = lessonMeaningAnswer === mq.correctIndex;
-                                  setLessonMeaningFeedback({
-                                    isCorrect: correct,
-                                    correctAnswer: mq.options[mq.correctIndex]
-                                  });
-                                  if (correct) recordDailyCorrect();
-                                }}
+                                 onClick={() => {
+                                   const correct = lessonMeaningAnswer === mq.correctIndex;
+                                   setLessonMeaningFeedback({
+                                     isCorrect: correct,
+                                     correctAnswer: mq.options[mq.correctIndex]
+                                   });
+                                   if (correct) recordDailyCorrect();
+                                   recordLessonAnswer(correct);
+                                 }}
                                 disabled={lessonMeaningAnswer === null}
                               >
                                 Check Answer
@@ -7077,9 +7137,10 @@ function App() {
                         setLessonMatchSelectedLeft(item);
                         if (lessonMatchSelectedRight) {
                            const pair = pairs.find(p => p.left === item && p.right === lessonMatchSelectedRight);
-                           if (pair) {
-                             setLessonMatchCompleted(prev => [...prev, item]);
-                             recordDailyCorrect();
+                            if (pair) {
+                              setLessonMatchCompleted(prev => [...prev, item]);
+                              recordDailyCorrect();
+                              recordLessonAnswer(true);
                            } else {
                             setLessonMatchFeedback("Incorrect pair!");
                             setTimeout(() => setLessonMatchFeedback(null), 1000);
@@ -7400,12 +7461,13 @@ function App() {
                                   const clean = (s) => s.replace(/[.,\/#!$%\^&\*;:{}=\-_\u0060()?]/g, "").toLowerCase().trim();
                                   const correct = clean(userSentence) === clean(lt.audioText);
 
-                                  setLessonListeningFeedback({
-                                    isCorrect: correct,
-                                    correctAnswer: lt.audioText
-                                  });
-                                  if (correct) recordDailyCorrect();
-                                }}
+                                   setLessonListeningFeedback({
+                                     isCorrect: correct,
+                                     correctAnswer: lt.audioText
+                                   });
+                                   if (correct) recordDailyCorrect();
+                                   recordLessonAnswer(correct);
+                                 }}
                                 disabled={lessonListeningSelected.length === 0}
                               >
                                 Check Answer
@@ -7530,11 +7592,12 @@ function App() {
                           {!isChecked && (
                             <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
                               <button type="button" className="primary-btn" style={{ padding: '12px 40px', borderRadius: '12px' }}
-                                onClick={() => {
-                                  const correct = built.trim().toUpperCase() === item.answer.trim().toUpperCase();
-                                  setLessonUnscrambleFeedback({ isCorrect: correct, correctAnswer: item.answer });
-                                  if (correct) recordDailyCorrect();
-                                }}
+                                 onClick={() => {
+                                   const correct = built.trim().toUpperCase() === item.answer.trim().toUpperCase();
+                                   setLessonUnscrambleFeedback({ isCorrect: correct, correctAnswer: item.answer });
+                                   if (correct) recordDailyCorrect();
+                                   recordLessonAnswer(correct);
+                                 }}
                                 disabled={lessonUnscrambleSelected.length === 0}>
                                 Check Answer
                               </button>
@@ -7609,11 +7672,12 @@ function App() {
                           {!isChecked && (
                             <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
                               <button type="button" className="primary-btn" style={{ padding: '12px 40px', borderRadius: '12px' }}
-                                onClick={() => {
-                                  const correct = lessonImageChoiceSel === item.correctIndex;
-                                  setLessonImageChoiceFeedback({ isCorrect: correct });
-                                  if (correct) recordDailyCorrect();
-                                }}
+                                 onClick={() => {
+                                   const correct = lessonImageChoiceSel === item.correctIndex;
+                                   setLessonImageChoiceFeedback({ isCorrect: correct });
+                                   if (correct) recordDailyCorrect();
+                                   recordLessonAnswer(correct);
+                                 }}
                                 disabled={lessonImageChoiceSel === null}>Check Answer</button>
                             </div>
                           )}
