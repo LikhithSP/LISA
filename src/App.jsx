@@ -13,6 +13,7 @@ import teJson from "./locales/te.json";
 import taJson from "./locales/ta.json";
 import { assessmentTranslations } from "./assessmentTranslations";
 import FunLearnZone from "./FunLearnZone";
+import XPShop, { applyTheme, applyFont, SHOP_CATALOG } from "./XPShop";
 
 const languages = ["English", "Hindi", "Kannada", "Telugu", "Tamil"];
 const educationLevels = ["No Formal Education", "Primary", "Middle School", "Secondary & Above"];
@@ -549,7 +550,21 @@ function App() {
   const [profileAvatar, setProfileAvatar] = useState("/as1.png");
   const [isEditingCover, setIsEditingCover] = useState(false);
   const [activeTab, setActiveTab] = useState("login"); // "login", "register", "forgot"
-  const [dashboardTab, setDashboardTab] = useState("dashboard"); // "dashboard", "learn", "practice", "profile"
+  const [dashboardTab, setDashboardTab] = useState("dashboard"); // "dashboard", "learn", "practice", "profile", "shop"
+
+  // XP Shop state
+  const [shopOwnedItems, setShopOwnedItems] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("lisa_shop_owned") || "[]"); } catch { return []; }
+  });
+  const [shopTheme, setShopTheme] = useState(() => localStorage.getItem("lisa_shop_theme") || null);
+  const [shopFont, setShopFont] = useState(() => localStorage.getItem("lisa_shop_font") || null);
+  const [shopBanner, setShopBanner] = useState(() => localStorage.getItem("lisa_shop_banner") || null);
+  const [shopCustomAvatar, setShopCustomAvatar] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("lisa_shop_avatar") || "null"); } catch { return null; }
+  });
+  const [profileBadges, setProfileBadges] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("lisa_profile_badges") || "[]"); } catch { return []; }
+  });
   const [activeSection, setActiveSection] = useState(0); // paginated section in learn tab
   const learnJourneyRef = useRef(null);
   const activeNodeRef = useRef(null);
@@ -701,6 +716,20 @@ function App() {
 
     const questBonusKey = `lisa_quest_bonus_${userId}_${today}`;
     setQuestBonusClaimed(!!localStorage.getItem(questBonusKey));
+
+    const bg = localStorage.getItem(`lisa_profile_bg_${userId}`) || "#e86b6b";
+    const av = localStorage.getItem(`lisa_profile_avatar_${userId}`) || "/as1.png";
+    setProfileBg(bg);
+    setProfileAvatar(av);
+
+    // Apply saved shop customizations
+    const savedTheme = localStorage.getItem("lisa_shop_theme");
+    if (savedTheme) applyTheme(savedTheme);
+    const savedFont = localStorage.getItem("lisa_shop_font");
+    if (savedFont) {
+      const fontObj = SHOP_CATALOG.fonts.find(f => f.id === savedFont);
+      if (fontObj) applyFont(fontObj.family);
+    }
   }, [session?.user?.id]);
 
   useEffect(() => {
@@ -4863,6 +4892,19 @@ function App() {
                 )}
                 {t("sidebarProfile")}
               </button>
+              <span className="sidebar-separator" aria-hidden="true" />
+              <button
+                type="button"
+                className={`sidebar-item ${dashboardTab === "shop" ? "active" : ""}`}
+                onClick={() => setDashboardTab("shop")}
+              >
+                <svg style={{ marginRight: 0, width: 18, height: 18, verticalAlign: "middle" }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+                  <line x1="3" x2="21" y1="6" y2="6"/>
+                  <path d="M16 10a4 4 0 0 1-8 0"/>
+                </svg>
+                Shop
+              </button>
             </div>
             <div className="sidebar-footer">
               <button
@@ -5481,7 +5523,7 @@ function App() {
                 <div
                   className="profile-cover"
                   style={{
-                    backgroundImage: "url('https://static.vecteezy.com/system/resources/previews/045/547/971/non_2x/cartoon-astronaut-sitting-on-a-moon-for-twitter-header-editor_template.jpeg')"
+                    backgroundImage: "url('https://static.vecteezy.com/system/resources/thumbnails/006/033/288/small_2x/bookshelf-shelf-for-books-with-plants-in-pot-illustration-in-flat-cartoon-style-vector.jpg')"
                   }}
                 />
                 <div className="profile-card-body">
@@ -5652,6 +5694,55 @@ function App() {
                       </button>
                     </div>
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* 3.4. Shop Tab */}
+            {dashboardTab === "shop" && (
+              <div className="practice-grid-layout">
+                <div className="practice-content-column">
+                  <XPShop
+                    userXp={userXp}
+                    onSpendXp={(newXp) => {
+                      setUserXp(newXp);
+                      localStorage.setItem(`lisa_user_xp_${session?.user?.id}`, newXp);
+                      if (session?.user?.id) {
+                        supabase.from("profiles").update({ xp: newXp }).eq("id", session.user.id);
+                      }
+                    }}
+                    session={session}
+                    ownedItems={shopOwnedItems}
+                    onOwnedItemsChange={(items) => {
+                      setShopOwnedItems(items);
+                      localStorage.setItem("lisa_shop_owned", JSON.stringify(items));
+                    }}
+                    currentTheme={shopTheme}
+                    onThemeChange={(id) => {
+                      setShopTheme(id);
+                      localStorage.setItem("lisa_shop_theme", id || "");
+                    }}
+                    currentFont={shopFont}
+                    onFontChange={(id) => {
+                      setShopFont(id);
+                      localStorage.setItem("lisa_shop_font", id || "");
+                    }}
+                    currentBanner={shopBanner}
+                    onBannerChange={(id) => {
+                      setShopBanner(id);
+                      localStorage.setItem("lisa_shop_banner", id || "");
+                    }}
+                    currentAvatar={shopCustomAvatar}
+                    onAvatarChange={(av) => {
+                      setShopCustomAvatar(av);
+                      localStorage.setItem("lisa_shop_avatar", JSON.stringify(av));
+                    }}
+                    activeProfileBadges={profileBadges}
+                    onBadgesChange={(badges) => {
+                      setProfileBadges(badges);
+                      localStorage.setItem("lisa_profile_badges", JSON.stringify(badges));
+                    }}
+                  />
                 </div>
               </div>
             )}
