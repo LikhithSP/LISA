@@ -3404,10 +3404,15 @@ function App() {
         setProfile(mergedProfile);
         updateStreak(userId, mergedProfile);
 
-        // Load progress and preferences from the database, updating both React state and localStorage cache
-        if (mergedProfile.xp !== undefined && mergedProfile.xp !== null && Number(mergedProfile.xp) > 0) {
-          setUserXp(Number(mergedProfile.xp));
-          localStorage.setItem(`lisa_user_xp_${userId}`, mergedProfile.xp);
+        // Load progress and preferences from the database, updating both React state and localStorage cache.
+        // Merge the DB xp with the locally cached xp (taking the higher value) so that XP earned before a
+        // profile sync (e.g. the initial assessment's 30 XP) is never lost if the DB write was delayed or failed.
+        const dbXp = (mergedProfile.xp !== undefined && mergedProfile.xp !== null) ? Number(mergedProfile.xp) : 0;
+        const localXp = parseInt(localStorage.getItem(`lisa_user_xp_${userId}`) || "0", 10) || 0;
+        const syncedXp = Math.max(dbXp, localXp, userXp);
+        if (syncedXp > 0) {
+          setUserXp(syncedXp);
+          localStorage.setItem(`lisa_user_xp_${userId}`, syncedXp);
         }
         if (mergedProfile.completed_lessons && Array.isArray(mergedProfile.completed_lessons) && mergedProfile.completed_lessons.length > 0) {
           const dbLessons = mergedProfile.completed_lessons;
@@ -3979,7 +3984,23 @@ function App() {
     const overallPercent = Math.round((totalMarks / 70) * 100);
 
     // Count discrete right answers from the diagnostic (comprehension MCQs)
-    if (compMarks > 0) recordDailyCorrect(compMarks);
+    const today = new Date().toLocaleDateString("en-CA");
+    let nextDailyCorrect = dailyCorrectAnswers;
+    if (compMarks > 0) {
+      recordDailyCorrect(compMarks);
+      nextDailyCorrect = dailyCorrectAnswers + compMarks;
+    }
+
+    const assessmentXp = 30;
+    const nextUserXp = userXp + assessmentXp;
+    setUserXp(nextUserXp);
+    localStorage.setItem(`lisa_user_xp_${session.user.id}`, String(nextUserXp));
+
+    const nextDailyXp = dailyXp + assessmentXp;
+    setDailyXp(nextDailyXp);
+    localStorage.setItem(`lisa_daily_xp_${session.user.id}_${today}`, String(nextDailyXp));
+
+    recordWeeklyXp(assessmentXp);
 
     try {
       // Save to history
@@ -4015,7 +4036,11 @@ function App() {
       await supabase.from("profiles").update({
         literacy_level: diagnosedLevel,
         assessment_completed: true,
-        attempts_history: updatedHistory
+        attempts_history: updatedHistory,
+        xp: nextUserXp,
+        daily_xp: nextDailyXp,
+        daily_correct_answers: nextDailyCorrect,
+        daily_quest_date: today
       }).eq("id", session.user.id);
 
       // Update local state
@@ -5001,6 +5026,21 @@ function App() {
                           className="assessment-mascot results-mascot-medium"
                         />
                       </div>
+                    </div>
+
+                    <div className="results-xp-earned" style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      margin: '0 auto 8px',
+                      padding: '10px 20px',
+                      borderRadius: '999px',
+                      background: 'linear-gradient(135deg, #f59e0b22, #f59e0b11)',
+                      color: '#b45309',
+                      fontWeight: 800,
+                      fontSize: '1.05rem'
+                    }}>
+                      <StarIcon style={{ color: '#f59e0b' }} /> +30 XP Earned
                     </div>
 
                     <div className="results-detail-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
