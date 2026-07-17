@@ -53,6 +53,9 @@ const fallbackAvatar = (name) => ({ type: "initials", value: getInitials(name) }
 // into the { type, value } shape used by the leaderboard.
 const normalizeCurrentAvatar = (av, canUsePhoto, fallbackName = "") => {
   if (!av) return fallbackAvatar(fallbackName);
+  if (typeof av === "string" && av.startsWith("{")) {
+    try { av = JSON.parse(av); } catch (e) {}
+  }
   if (typeof av === "string") {
     if (av.startsWith("http")) {
       return canUsePhoto
@@ -77,11 +80,23 @@ const normalizeCurrentAvatar = (av, canUsePhoto, fallbackName = "") => {
 //  - an emoji avatar (avatar_emoji) if set
 //  - otherwise initials in a circle
 const resolveAvatar = (u, canUsePhoto) => {
+  let av = u.avatar_emoji;
+  if (av && typeof av === "string" && av.startsWith("{")) {
+    try { av = JSON.parse(av); } catch (e) {}
+  }
   if (canUsePhoto && u.avatar_url && u.avatar_url.startsWith("http")) {
     return { type: "photo", value: u.avatar_url };
   }
-  if (u.avatar_emoji) {
-    return { type: "emoji", value: u.avatar_emoji };
+  if (av) {
+    if (typeof av === "object") {
+      if (av.type === "builder") {
+        return { type: "builder", emoji: av.emoji, bg: av.bg, shape: av.shape };
+      }
+      if (av.type === "emoji" && av.emoji) {
+        return { type: "emoji", value: av.emoji };
+      }
+    }
+    return { type: "emoji", value: av };
   }
   return fallbackAvatar(u.full_name);
 };
@@ -89,7 +104,7 @@ const resolveAvatar = (u, canUsePhoto) => {
 export default function WeeklyLeaderboard({ session, profile, weeklyXp, canUsePhoto }) {
   const [allProfiles, setAllProfiles] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [currentUserAvatar, setCurrentUserAvatar] = useState("🌟");
+  const [currentUserAvatar, setCurrentUserAvatar] = useState(null);
 
   const currentUserId = session?.user?.id || null;
   const currentUserName = profile?.full_name || session?.user?.user_metadata?.full_name || "You";
@@ -119,7 +134,7 @@ export default function WeeklyLeaderboard({ session, profile, weeklyXp, canUsePh
   useEffect(() => {
     if (!currentUserId) return;
     const stored = localStorage.getItem(`lisa_profile_avatar_${currentUserId}`);
-    let av = "🌟";
+    let av = null;
     if (stored) {
       try {
         av = stored.startsWith("{") ? JSON.parse(stored) : stored;
@@ -136,17 +151,23 @@ export default function WeeklyLeaderboard({ session, profile, weeklyXp, canUsePh
     try {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, full_name, avatar_emoji, avatar_url, weekly_xp, weekly_start")
+        .select("id, full_name, avatar_emoji, avatar_url, xp, weekly_xp, weekly_start")
         .order("weekly_xp", { ascending: false })
         .limit(100);
 
       if (error) throw error;
 
       const weekStart = getWeekStartDate();
-      const cleaned = (data || []).map((p) => ({
-        ...p,
-        weekly_xp: p.weekly_start && p.weekly_start !== weekStart ? 0 : (p.weekly_xp || 0),
-      }));
+      const cleaned = (data || []).map((p) => {
+        let wx = p.weekly_start && p.weekly_start !== weekStart ? 0 : (p.weekly_xp || 0);
+        if (wx === 0 && p.xp) {
+          wx = p.xp;
+        }
+        return {
+          ...p,
+          weekly_xp: wx,
+        };
+      });
 
       setAllProfiles(cleaned);
     } catch (err) {
@@ -338,11 +359,7 @@ export default function WeeklyLeaderboard({ session, profile, weeklyXp, canUsePh
                   {getRankBadge(leaderboardData.currentUserRank)}
                 </div>
                 <div className="leaderboard-avatar">
-                  {canUsePhoto && currentUserAvatar.startsWith("http") ? (
-                    <img src={currentUserAvatar} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
-                  ) : (
-                    <span>{currentUserAvatar}</span>
-                  )}
+                  {renderAvatar(normalizeCurrentAvatar(currentUserAvatar, canUsePhoto, currentUserName))}
                 </div>
                 <div className="leaderboard-info">
                   <div className="leaderboard-name">
