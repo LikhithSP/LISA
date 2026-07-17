@@ -341,7 +341,10 @@ const getWeekStartDate = (d = new Date()) => {
   const diff = (day === 0 ? -6 : 1) - day; // shift back to Monday
   date.setDate(date.getDate() + diff);
   date.setHours(0, 0, 0, 0);
-  return date.toLocaleDateString("en-CA");
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const dd = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${dd}`;
 };
 
 // Reads the current user's weekly XP from localStorage, resetting it when a new week has begun.
@@ -593,19 +596,14 @@ function App() {
   const [activeTab, setActiveTab] = useState("login"); // "login", "register", "forgot"
   const [dashboardTab, setDashboardTab] = useState("dashboard"); // "dashboard", "learn", "practice", "profile", "shop"
 
-  // XP Shop state
-  const [shopOwnedItems, setShopOwnedItems] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("lisa_shop_owned") || "[]"); } catch { return []; }
-  });
-  const [shopTheme, setShopTheme] = useState(() => localStorage.getItem("lisa_shop_theme") || null);
-  const [shopFont, setShopFont] = useState(() => localStorage.getItem("lisa_shop_font") || null);
-  const [shopBanner, setShopBanner] = useState(() => localStorage.getItem("lisa_shop_banner") || null);
-  const [shopCustomAvatar, setShopCustomAvatar] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("lisa_shop_avatar") || "null"); } catch { return null; }
-  });
-  const [profileBadges, setProfileBadges] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("lisa_profile_badges") || "[]"); } catch { return []; }
-  });
+  // XP Shop state — loaded per-user from Supabase (profiles.shop_data).
+  // No global localStorage keys are used so shop unlocks stay tied to each account.
+  const [shopOwnedItems, setShopOwnedItems] = useState([]);
+  const [shopTheme, setShopTheme] = useState(null);
+  const [shopFont, setShopFont] = useState(null);
+  const [shopBanner, setShopBanner] = useState(null);
+  const [shopCustomAvatar, setShopCustomAvatar] = useState(null);
+  const [profileBadges, setProfileBadges] = useState([]);
   const [activeSection, setActiveSection] = useState(0); // paginated section in learn tab
   const learnJourneyRef = useRef(null);
   const activeNodeRef = useRef(null);
@@ -646,30 +644,31 @@ function App() {
   const [activeQuests, setActiveQuests] = useState([]);
   const [timeLeftStr, setTimeLeftStr] = useState("24h 00m 00s");
   const [questBonusClaimed, setQuestBonusClaimed] = useState(false);
+  const [dismissedNotifIds, setDismissedNotifIds] = useState([]);
+  const [readNotifIds, setReadNotifIds] = useState([]);
 
-  const [dismissedNotifIds, setDismissedNotifIds] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("lisa_dismissed_notifs") || "[]");
-    } catch {
-      return [];
-    }
-  });
-  const [readNotifIds, setReadNotifIds] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem("lisa_read_notifs") || "[]");
-    } catch {
-      return [];
-    }
-  });
-
-  const saveDismissedNotifs = (ids) => {
+  const saveDismissedNotifs = async (ids) => {
     setDismissedNotifIds(ids);
-    localStorage.setItem("lisa_dismissed_notifs", JSON.stringify(ids));
+    if (session?.user?.id) {
+      localStorage.setItem(`lisa_notif_data_${session.user.id}`, JSON.stringify({ readNotifIds, dismissedNotifIds: ids }));
+      try {
+        await supabase.from("profiles").update({ notif_data: { readNotifIds, dismissedNotifIds: ids } }).eq("id", session.user.id);
+      } catch (e) {
+        console.error("Could not save dismissed notifications:", e);
+      }
+    }
   };
 
-  const saveReadNotifs = (ids) => {
+  const saveReadNotifs = async (ids) => {
     setReadNotifIds(ids);
-    localStorage.setItem("lisa_read_notifs", JSON.stringify(ids));
+    if (session?.user?.id) {
+      localStorage.setItem(`lisa_notif_data_${session.user.id}`, JSON.stringify({ readNotifIds: ids, dismissedNotifIds }));
+      try {
+        await supabase.from("profiles").update({ notif_data: { readNotifIds: ids, dismissedNotifIds } }).eq("id", session.user.id);
+      } catch (e) {
+        console.error("Could not save read notifications:", e);
+      }
+    }
   };
 
   // Translated dashboard strings for non-English languages (fall back to English source values)
@@ -879,19 +878,28 @@ function App() {
     setQuestBonusClaimed(!!localStorage.getItem(questBonusKey));
 
     const bg = localStorage.getItem(`lisa_profile_bg_${userId}`) || "#e86b6b";
-    const av = localStorage.getItem(`lisa_profile_avatar_${userId}`) || "/as1.png";
+    let av = "/as1.png";
+    try {
+      const stored = localStorage.getItem(`lisa_profile_avatar_${userId}`);
+      if (stored) {
+        // Could be a JSON avatar object (emoji/builder) or a plain string/url.
+        av = stored.startsWith("{") ? JSON.parse(stored) : stored;
+      }
+    } catch {
+      av = localStorage.getItem(`lisa_profile_avatar_${userId}`) || "/as1.png";
+    }
     setProfileBg(bg);
     setProfileAvatar(av);
+  }, [session?.user?.id]);
 
-    // Apply saved shop customizations
-    const savedTheme = localStorage.getItem("lisa_shop_theme");
-    if (savedTheme) applyTheme(savedTheme);
-    const savedFont = localStorage.getItem("lisa_shop_font");
-    if (savedFont) {
-      const fontObj = SHOP_CATALOG.fonts.find(f => f.id === savedFont);
+  // Apply the equipped shop theme/font whenever they change (loaded from Supabase).
+  useEffect(() => {
+    if (shopTheme) applyTheme(shopTheme);
+    if (shopFont) {
+      const fontObj = SHOP_CATALOG.fonts.find(f => f.id === shopFont);
       if (fontObj) applyFont(fontObj.family);
     }
-  }, [session?.user?.id]);
+  }, [shopTheme, shopFont]);
 
   useEffect(() => {
     if (!session?.user?.id || questBonusClaimed) return;
@@ -912,6 +920,7 @@ function App() {
         return next;
       });
       localStorage.setItem(`lisa_quest_bonus_${userId}_${today}`, "1");
+      recordWeeklyXp(bonusXp);
     }
   }, [activeQuests, dailyXp, dailyTimeSpent, dailyLessons, questBonusClaimed, session?.user?.id]);
 
@@ -1075,10 +1084,14 @@ function App() {
   }, [selectedLanguage, profile, completedLessons, streakCount, activeQuests]);
 
   useEffect(() => {
-    if (profile?.avatar_url) {
+    // A custom photo (avatar_url) is only enabled once the learner reaches
+    // level 10. Before that, keep the shop/emoji/initials avatar in the navbar
+    // and profile instead of forcing the old uploaded photo to show.
+    const level = calculateProgressiveLevel(profile, completedLessons);
+    if (profile?.avatar_url && level >= 10) {
       setProfileAvatar(profile.avatar_url);
     }
-  }, [profile?.avatar_url]);
+  }, [profile?.avatar_url, profile, completedLessons]);
 
   const updateStreak = async (userId, currentProfile) => {
     try {
@@ -1214,7 +1227,11 @@ function App() {
       setStreakCount(localStreak ? parseInt(localStreak, 10) : 0);
 
       const bg = localStorage.getItem(`lisa_profile_bg_${userId}`) || "#e86b6b";
-      const av = localStorage.getItem(`lisa_profile_avatar_${userId}`) || "/as1.png";
+      // Don't apply a stored photo URL here — a custom photo is only enabled at
+      // level 10 and fetchProfile decides that later. Emoji/builder avatars are
+      // safe to apply immediately.
+      let av = localStorage.getItem(`lisa_profile_avatar_${userId}`) || "/as1.png";
+      if (typeof av === "string" && av.startsWith("http")) av = "/as1.png";
       setProfileBg(bg);
       setProfileAvatar(av);
 
@@ -3409,9 +3426,54 @@ function App() {
           setProfileBg(mergedProfile.profile_bg);
           localStorage.setItem(`lisa_profile_bg_${userId}`, mergedProfile.profile_bg);
         }
-        if (mergedProfile.avatar_url) {
+        // A custom photo is only applied once the learner reaches level 10.
+        // Before that, the shop/emoji avatar (or initials) should be shown.
+        const userLevel = calculateProgressiveLevel(mergedProfile, mergedProfile.completed_lessons);
+        if (mergedProfile.avatar_url && userLevel >= 10) {
           setProfileAvatar(mergedProfile.avatar_url);
           localStorage.setItem(`lisa_profile_avatar_${userId}`, mergedProfile.avatar_url);
+        }
+
+        // Load per-user shop state from the database (owned items, equipped
+        // theme/font/banner/avatar and active badges). Falls back to defaults
+        // when nothing has been saved yet for this account.
+        const sd = mergedProfile.shop_data;
+        if (sd && typeof sd === "object") {
+          setShopOwnedItems(Array.isArray(sd.ownedItems) ? sd.ownedItems : []);
+          setShopTheme(sd.theme ?? null);
+          setShopFont(sd.font ?? null);
+          setShopBanner(sd.banner ?? null);
+          setShopCustomAvatar(sd.avatar ?? null);
+          setProfileBadges(Array.isArray(sd.badges) ? sd.badges : []);
+          if (sd.avatar) {
+            const avStr = typeof sd.avatar === "string" ? sd.avatar : JSON.stringify(sd.avatar);
+            localStorage.setItem(`lisa_profile_avatar_${userId}`, avStr);
+            setProfileAvatar(sd.avatar);
+          }
+        }
+
+        // Load per-user notification state (read/dismissed IDs). Prefer localStorage
+        // so dismissed/read notifications survive page refreshes even if the
+        // Supabase update fails or hasn't completed yet.
+        const storedNotifData = localStorage.getItem(`lisa_notif_data_${userId}`);
+        if (storedNotifData) {
+          try {
+            const parsed = JSON.parse(storedNotifData);
+            const loadedDismissed = Array.isArray(parsed.dismissedNotifIds) ? parsed.dismissedNotifIds : [];
+            const loadedRead = Array.isArray(parsed.readNotifIds) ? parsed.readNotifIds : [];
+            setDismissedNotifIds(loadedDismissed);
+            setReadNotifIds(loadedRead);
+          } catch (e) {
+            console.error("Could not parse stored notification data:", e);
+          }
+        } else {
+          const nd = mergedProfile.notif_data;
+          if (nd && typeof nd === "object") {
+            const loadedDismissed = Array.isArray(nd.dismissedNotifIds) ? nd.dismissedNotifIds : [];
+            const loadedRead = Array.isArray(nd.readNotifIds) ? nd.readNotifIds : [];
+            setDismissedNotifIds(loadedDismissed);
+            setReadNotifIds(loadedRead);
+          }
         }
 
         // Sync locally selected language from login screen to database profile
@@ -3566,7 +3628,13 @@ function App() {
 
   const handleSignOut = async () => {
     setSubmitting(true);
+    const userId = session?.user?.id;
     await supabase.auth.signOut();
+    setDismissedNotifIds([]);
+    setReadNotifIds([]);
+    if (userId) {
+      localStorage.removeItem(`lisa_notif_data_${userId}`);
+    }
     setMessage(t("successSignOut"));
     setTimeout(() => setMessage(""), 3000);
     setSubmitting(false);
@@ -3750,6 +3818,55 @@ function App() {
       return (parts[0][0] + parts[1][0]).toUpperCase();
     }
     return parts[0].slice(0, 2).toUpperCase();
+  };
+
+  // Resolve the saved profile avatar (string url, emoji, or builder object)
+  // into a normalized shape for rendering: { type, emoji, bg, shape, isPhoto }.
+  const resolveProfileAvatar = (av) => {
+    if (av && typeof av === "string" && av.startsWith("{")) {
+      try { av = JSON.parse(av); } catch (e) {}
+    }
+    if (av && typeof av === "string" && av.startsWith("http")) {
+      return { type: "photo", value: av, isPhoto: true };
+    }
+    if (av && typeof av === "object") {
+      if (av.type === "builder") {
+        return { type: "builder", emoji: av.emoji, bg: av.bg, shape: av.shape };
+      }
+      if (av.type === "emoji" && av.emoji) {
+        return { type: "emoji", emoji: av.emoji };
+      }
+    }
+    if (av && typeof av === "string" && /\p{Extended_Pictographic}/u.test(av)) {
+      return { type: "emoji", emoji: av };
+    }
+    return null;
+  };
+
+  const AVATAR_SHAPE_STYLE = {
+    circle: { borderRadius: "50%" },
+    square: { borderRadius: "8px" },
+    rounded: { borderRadius: "24px" },
+  };
+
+  // Persist the entire shop state for the current user to Supabase so that
+  // unlocks, XP spend, equipped items, avatar and badges are tied to the
+  // account (not to the browser/localStorage).
+  const saveShopData = (partial = {}) => {
+    const userId = session?.user?.id;
+    if (!userId) return;
+    const payload = {
+      ownedItems: partial.ownedItems !== undefined ? partial.ownedItems : shopOwnedItems,
+      theme: partial.theme !== undefined ? partial.theme : shopTheme,
+      font: partial.font !== undefined ? partial.font : shopFont,
+      banner: partial.banner !== undefined ? partial.banner : shopBanner,
+      avatar: partial.avatar !== undefined ? partial.avatar : shopCustomAvatar,
+      badges: partial.badges !== undefined ? partial.badges : profileBadges,
+    };
+    supabase
+      .from("profiles")
+      .update({ shop_data: payload })
+      .eq("id", userId);
   };
 
   const stopListening = () => {
@@ -4226,9 +4343,21 @@ function App() {
             display: 'grid',
             placeItems: 'center',
             fontSize: '0.75rem',
-            fontWeight: '800'
+            fontWeight: '800',
+            overflow: 'hidden'
           }}>
-            {getUserInitials(profile?.full_name)}
+            {(() => {
+              const resolved = resolveProfileAvatar(profileAvatar);
+              if (resolved?.type === "emoji") return <span style={{ fontSize: "0.95rem" }}>{resolved.emoji}</span>;
+              if (resolved?.type === "builder") {
+                const shape = AVATAR_SHAPE_STYLE[resolved.shape] || AVATAR_SHAPE_STYLE.circle;
+                return <span style={{ width: "100%", height: "100%", display: "grid", placeItems: "center", background: resolved.bg, ...shape, fontSize: "0.95rem" }}>{resolved.emoji}</span>;
+              }
+              if (resolved?.type === "photo") {
+                return <img src={resolved.value} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />;
+              }
+              return getUserInitials(profile?.full_name);
+            })()}
           </span>
           <span className="profile-trigger-text">{t("myProfile") || "My Profile"}</span>
           <span className="dropdown-arrow" style={{ fontSize: '0.8rem', opacity: 0.7 }}>▼</span>
@@ -4464,6 +4593,28 @@ function App() {
                       <div className="tour-badge">📄 {t("compSecTitle")}</div>
                       <div className="tour-badge">🗣️ {t("readingSecTitle")}</div>
                       <div className="tour-badge">✍️ {t("writingSecTitle")}</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                     </div>
                     <button
                       type="button"
@@ -5036,18 +5187,40 @@ function App() {
               <div className="indicator-pill xp"><StarIcon style={{ color: '#f59e0b' }} /> {userXp} XP</div>
               <button
                 type="button"
-                className="indicator-pill shop-pill"
+                className={`indicator-pill shop-pill ${dashboardTab === "shop" ? "active" : ""}`}
                 onClick={() => setDashboardTab("shop")}
                 title="XP Shop"
-                style={{ background: '#f59e0b15', color: '#f59e0b' }}
+                style={{ background: '#f59e0b15', color: '#f59e0b', padding: '6px 10px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
               >
                 <svg style={{ marginRight: 0, width: 18, height: 18, verticalAlign: "middle" }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
                   <line x1="3" x2="21" y1="6" y2="6"/>
                   <path d="M16 10a4 4 0 0 1-8 0"/>
                 </svg>
-                Shop
               </button>
+              <button
+                type="button"
+                className={`indicator-pill leaderboard-pill ${dashboardTab === "leaderboard" ? "active" : ""}`}
+                onClick={() => setDashboardTab("leaderboard")}
+                title="Leaderboard"
+                style={{ background: '#f59e0b15', color: '#f59e0b', padding: '6px 10px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                <TrophyIcon style={{ marginRight: 0, width: 18, height: 18, verticalAlign: "middle" }} />
+              </button>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
             </div>
           </div>
 
@@ -5084,32 +5257,57 @@ function App() {
                 onClick={() => setDashboardTab("profile")}
                 style={{ display: 'inline-flex', alignItems: 'center' }}
               >
-                {profileAvatar && profileAvatar.startsWith("http") ? (
-                  <img
-                    src={profileAvatar}
-                    alt="Profile"
-                    style={{
-                      width: "22px",
-                      height: "22px",
-                      borderRadius: "50%",
-                      objectFit: "cover",
-                      marginRight: "6px"
-                    }}
-                  />
-                ) : (
-                  <ProfileIcon style={{ marginRight: 0, width: 18, height: 18 }} />
-                )}
+                {(() => {
+                  const resolved = resolveProfileAvatar(profileAvatar);
+                  if (resolved?.type === "photo") {
+                    return (
+                      <img
+                        src={resolved.value}
+                        alt="Profile"
+                        style={{
+                          width: "22px",
+                          height: "22px",
+                          borderRadius: "50%",
+                          objectFit: "cover",
+                          marginRight: "6px"
+                        }}
+                      />
+                    );
+                  }
+                  if (resolved?.type === "emoji") {
+                    return <span style={{ fontSize: "1.1rem", marginRight: "6px" }}>{resolved.emoji}</span>;
+                  }
+                  if (resolved?.type === "builder") {
+                    const shape = AVATAR_SHAPE_STYLE[resolved.shape] || AVATAR_SHAPE_STYLE.circle;
+                    return (
+                      <span style={{
+                        width: "22px",
+                        height: "22px",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        background: resolved.bg,
+                        ...shape,
+                        fontSize: "1.1rem",
+                        marginRight: "6px"
+                      }}>
+                        {resolved.emoji}
+                      </span>
+                    );
+                  }
+                  return <ProfileIcon style={{ marginRight: 0, width: 18, height: 18 }} />;
+                })()}
                 {t("sidebarProfile")}
               </button>
-              <span className="sidebar-separator" aria-hidden="true" />
-              <button
-                type="button"
-                className={`sidebar-item ${dashboardTab === "leaderboard" ? "active" : ""}`}
-                onClick={() => setDashboardTab("leaderboard")}
-                style={{ display: 'inline-flex', alignItems: 'center' }}
-              >
-                <TrophyIcon style={{ marginRight: 0, width: 18, height: 18 }} /> Leaderboard
-              </button>
+
+
+
+
+
+
+
+
+
             </div>
             <div className="sidebar-footer">
               <button
@@ -5148,9 +5346,9 @@ function App() {
                         <button
                           type="button"
                           className="notif-read-all-btn"
-                          onClick={() => {
+                          onClick={async () => {
                             const newRead = [...new Set([...readNotifIds, ...notifications.map(n => n.id)])];
-                            saveReadNotifs(newRead);
+                            await saveReadNotifs(newRead);
                           }}
                         >
                           Read All
@@ -5172,7 +5370,7 @@ function App() {
                           <button
                             type="button"
                             className="notif-read-btn"
-                            onClick={() => saveDismissedNotifs([...dismissedNotifIds, n.id])}
+                            onClick={async () => await saveDismissedNotifs([...dismissedNotifIds, n.id])}
                             aria-label={`Mark ${n.title} as read`}
                             title="Mark as read"
                           >
@@ -5527,6 +5725,80 @@ function App() {
 
               return (
                 <div className="duo-learn-container" ref={learnJourneyRef}>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                   {orderedSections.map((section, secIdx) => {
                     const isSectionRecommended = weakSkillLabels.some(w => w.toLowerCase().includes(section.skillTarget?.replace("_", " ") || ""));
 
@@ -5800,8 +6072,8 @@ function App() {
                   }}
                 />
                 <div className="profile-card-body">
-                <div
-                  className="profile-avatar-large"
+                  <div
+                    className="profile-avatar-large"
                     style={{
                       display: "flex",
                       alignItems: "center",
@@ -5812,11 +6084,24 @@ function App() {
                       boxShadow: "0 8px 24px rgba(0,0,0,0.12)"
                     }}
                   >
-                    {profileAvatar && currentLevelNum >= 10 && profileAvatar.startsWith("http") ? (
-                      <img src={profileAvatar} alt="Profile" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                    ) : (
-                      getUserInitials(profile?.full_name)
-                    )}
+                    {(() => {
+                      const resolved = resolveProfileAvatar(profileAvatar);
+                      if (profileAvatar && currentLevelNum >= 10 && resolved?.type === "photo") {
+                        return <img src={resolved.value} alt="Profile" style={{ width: "100%", height: "100%", objectFit: "cover" }} />;
+                      }
+                      if (resolved?.type === "emoji") {
+                        return <span style={{ fontSize: "3.2rem" }}>{resolved.emoji}</span>;
+                      }
+                      if (resolved?.type === "builder") {
+                        const shape = AVATAR_SHAPE_STYLE[resolved.shape] || AVATAR_SHAPE_STYLE.circle;
+                        return (
+                          <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: resolved.bg, ...shape }}>
+                            <span style={{ fontSize: "3.2rem" }}>{resolved.emoji}</span>
+                          </div>
+                        );
+                      }
+                      return getUserInitials(profile?.full_name);
+                    })()}
 
                     {/* Custom profile picture upload is unlocked once the learner reaches Section 10. */}
                     {/* Until then, the avatar is shown as initials (or an emoji avatar from the shop). */}
@@ -6018,59 +6303,139 @@ function App() {
               <div className="practice-grid-layout">
                 <div className="practice-content-column">
                   <XPShop
+                    onPurchaseItem={(item, newXp, newOwned) => {
+                      setUserXp(newXp);
+                      const userId = session?.user?.id;
+                      if (userId) {
+                        localStorage.setItem(`lisa_user_xp_${userId}`, newXp);
+                        setShopOwnedItems(newOwned);
+
+                        let updatedTheme = shopTheme;
+                        let updatedFont = shopFont;
+                        let updatedBanner = shopBanner;
+                        let updatedAvatar = shopCustomAvatar;
+                        let updatedBadges = profileBadges;
+
+                        if (item.id.startsWith("theme_")) {
+                          setShopTheme(item.id);
+                          updatedTheme = item.id;
+                        } else if (item.id.startsWith("font_")) {
+                          setShopFont(item.id);
+                          updatedFont = item.id;
+                        } else if (item.id.startsWith("banner_")) {
+                          setShopBanner(item.id);
+                          updatedBanner = item.id;
+                        } else if (item.id.startsWith("avatar_")) {
+                          const av = SHOP_CATALOG.avatars.find(a => a.id === item.id);
+                          if (av) {
+                            const avObj = { type: "emoji", emoji: av.emoji, id: item.id };
+                            setShopCustomAvatar(avObj);
+                            setProfileAvatar(avObj);
+                            const avStr = JSON.stringify(avObj);
+                            localStorage.setItem(`lisa_profile_avatar_${userId}`, avStr);
+                            updatedAvatar = avObj;
+                          }
+                        } else if (item.id.startsWith("badge_")) {
+                          const current = profileBadges || [];
+                          if (!current.includes(item.id) && current.length < 3) {
+                            const nextBadges = [...current, item.id];
+                            setProfileBadges(nextBadges);
+                            updatedBadges = nextBadges;
+                          }
+                        }
+
+                        const payload = {
+                          ownedItems: newOwned,
+                          theme: updatedTheme,
+                          font: updatedFont,
+                          banner: updatedBanner,
+                          avatar: updatedAvatar,
+                          badges: updatedBadges,
+                        };
+                        const avatarEmoji = updatedAvatar && typeof updatedAvatar === "object" && updatedAvatar.type === "emoji" ? updatedAvatar.emoji : null;
+                        const avatarUrl = typeof updatedAvatar === "string" && updatedAvatar.startsWith("http") ? updatedAvatar : null;
+
+                        supabase
+                          .from("profiles")
+                          .update({
+                            xp: newXp,
+                            shop_data: payload,
+                            avatar_emoji: avatarEmoji,
+                            avatar_url: avatarUrl
+                          })
+                          .eq("id", userId)
+                          .then(({ error }) => {
+                            if (error) {
+                              console.error("Failed to update profile shop data in Supabase:", error.message);
+                            } else {
+                              console.log("Profile shop data successfully saved in Supabase.");
+                            }
+                          });
+                      }
+                    }}
                     userXp={userXp}
                     onSpendXp={(newXp) => {
                       setUserXp(newXp);
-                      localStorage.setItem(`lisa_user_xp_${session?.user?.id}`, newXp);
-                      if (session?.user?.id) {
-                        supabase.from("profiles").update({ xp: newXp }).eq("id", session.user.id);
+                      const userId = session?.user?.id;
+                      if (userId) {
+                        supabase.from("profiles").update({ xp: newXp }).eq("id", userId);
                       }
                     }}
                     session={session}
                     ownedItems={shopOwnedItems}
                     onOwnedItemsChange={(items) => {
                       setShopOwnedItems(items);
-                      localStorage.setItem("lisa_shop_owned", JSON.stringify(items));
+                      saveShopData({ ownedItems: items });
                     }}
                     currentTheme={shopTheme}
                     onThemeChange={(id) => {
                       setShopTheme(id);
-                      localStorage.setItem("lisa_shop_theme", id || "");
+                      saveShopData({ theme: id });
                     }}
                     currentFont={shopFont}
                     onFontChange={(id) => {
                       setShopFont(id);
-                      localStorage.setItem("lisa_shop_font", id || "");
+                      saveShopData({ font: id });
                     }}
                     currentBanner={shopBanner}
                     onBannerChange={(id) => {
                       setShopBanner(id);
-                      localStorage.setItem("lisa_shop_banner", id || "");
+                      saveShopData({ banner: id });
                     }}
                     currentAvatar={shopCustomAvatar}
                     onAvatarChange={(av) => {
                       setShopCustomAvatar(av);
-                      localStorage.setItem("lisa_shop_avatar", JSON.stringify(av));
-                      // Persist an emoji avatar to the database for the leaderboard.
-                      // Custom photo uploads are disabled until Section 10, so emoji
-                      // avatars (from the shop) are the only ones applied for now.
-                      if (av?.type === "emoji" && av.emoji) {
-                        try {
-                          localStorage.setItem(`lisa_profile_avatar_${session?.user?.id}`, av.emoji);
-                          setProfileAvatar(av.emoji);
-                          supabase
-                            .from("profiles")
-                            .update({ avatar_emoji: av.emoji })
-                            .eq("id", session?.user?.id);
-                        } catch (e) {
-                          console.warn("Could not save emoji avatar:", e);
-                        }
+                      // Persist the chosen avatar (emoji or builder) to the database
+                      // so it shows on the profile and leaderboard for this account.
+                      try {
+                        const userId = session?.user?.id;
+                        if (!userId) throw new Error("No user id");
+                        const avStr = typeof av === "string" ? av : JSON.stringify(av);
+                        localStorage.setItem(`lisa_profile_avatar_${userId}`, avStr);
+                        setProfileAvatar(av);
+                        supabase
+                          .from("profiles")
+                          .update({
+                            avatar_emoji: av && typeof av === "object" && av.type === "emoji" ? av.emoji : null,
+                            avatar_url: typeof av === "string" && av.startsWith("http") ? av : null,
+                            shop_data: {
+                              ownedItems: shopOwnedItems,
+                              theme: shopTheme,
+                              font: shopFont,
+                              banner: shopBanner,
+                              avatar: av,
+                              badges: profileBadges,
+                            },
+                          })
+                          .eq("id", userId);
+                      } catch (e) {
+                        console.warn("Could not save avatar:", e);
                       }
                     }}
                     activeProfileBadges={profileBadges}
                     onBadgesChange={(badges) => {
                       setProfileBadges(badges);
-                      localStorage.setItem("lisa_profile_badges", JSON.stringify(badges));
+                      saveShopData({ badges: badges });
                     }}
                   />
                 </div>
