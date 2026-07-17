@@ -72,3 +72,11 @@ create trigger on_auth_user_created
 -- ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS daily_quest_date date;
 -- ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS daily_correct_answers integer NOT NULL DEFAULT 0;
 
+-- Weekly Leaderboard Tracking Columns (weekly XP resets at the start of each week):
+alter table public.profiles add column if not exists weekly_xp integer not null default 0;
+alter table public.profiles add column if not exists weekly_start date;
+alter table public.profiles add column if not exists avatar_emoji text;
+-- ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS weekly_xp integer NOT NULL DEFAULT 0;
+-- ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS weekly_start date;
+-- ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS avatar_emoji text;
+

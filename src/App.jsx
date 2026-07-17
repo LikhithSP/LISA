@@ -14,6 +14,7 @@ import taJson from "./locales/ta.json";
 import { assessmentTranslations } from "./assessmentTranslations";
 import FunLearnZone from "./FunLearnZone";
 import XPShop, { applyTheme, applyFont, SHOP_CATALOG } from "./XPShop";
+import WeeklyLeaderboard from "./WeeklyLeaderboard";
 
 const languages = ["English", "Hindi", "Kannada", "Telugu", "Tamil"];
 const educationLevels = ["No Formal Education", "Primary", "Middle School", "Secondary & Above"];
@@ -333,6 +334,40 @@ const getStreakMessage = (streak) => {
   return `You're on fire! An epic ${streak} day streak. Keep the momentum going!`;
 };
 
+// Returns the local date string (YYYY-MM-DD) for the Monday that starts the current week.
+const getWeekStartDate = (d = new Date()) => {
+  const date = new Date(d);
+  const day = date.getDay(); // 0 = Sunday, 1 = Monday, ...
+  const diff = (day === 0 ? -6 : 1) - day; // shift back to Monday
+  date.setDate(date.getDate() + diff);
+  date.setHours(0, 0, 0, 0);
+  return date.toLocaleDateString("en-CA");
+};
+
+// Reads the current user's weekly XP from localStorage, resetting it when a new week has begun.
+const readLocalWeeklyXp = (userId) => {
+  if (!userId) return 0;
+  const weekStart = getWeekStartDate();
+  const storedStart = localStorage.getItem(`lisa_weekly_start_${userId}`);
+  if (storedStart !== weekStart) {
+    // New week — reset the weekly accumulator
+    localStorage.setItem(`lisa_weekly_start_${userId}`, weekStart);
+    localStorage.setItem(`lisa_weekly_xp_${userId}`, "0");
+    return 0;
+  }
+  return parseInt(localStorage.getItem(`lisa_weekly_xp_${userId}`) || "0", 10) || 0;
+};
+
+// Adds XP to the current user's weekly total (auto-resets on a new week) and returns the new total.
+const addLocalWeeklyXp = (userId, amount) => {
+  if (!userId) return 0;
+  const current = readLocalWeeklyXp(userId);
+  const next = current + amount;
+  localStorage.setItem(`lisa_weekly_xp_${userId}`, String(next));
+  localStorage.setItem(`lisa_weekly_start_${userId}`, getWeekStartDate());
+  return next;
+};
+
 const localDashboardTranslations = {
   Hindi: {
     levels: {
@@ -604,6 +639,7 @@ function App() {
   const [dailyTimeSpent, setDailyTimeSpent] = useState(0); // in seconds
   const [dailyLessons, setDailyLessons] = useState(0);
   const [dailyCorrectAnswers, setDailyCorrectAnswers] = useState(0);
+  const [weeklyXp, setWeeklyXp] = useState(0);
   const STAR_XP = 10; // XP required to earn one star
   const getStarsToday = () => Math.floor(dailyXp / STAR_XP);
   const isActiveLearningRef = useRef(false); // true only while taking a lesson, practice, or assessment
@@ -732,6 +768,23 @@ function App() {
     setDailyCorrectAnswers(next);
   };
 
+  // Adds XP to the current user's weekly total (auto-resets weekly) and syncs it to Supabase
+  // so the weekly leaderboard reflects real users' progress this week.
+  const recordWeeklyXp = (amount) => {
+    const userId = session?.user?.id;
+    if (!userId || !amount) return;
+    const nextWeekly = addLocalWeeklyXp(userId, amount);
+    setWeeklyXp(nextWeekly);
+    try {
+      supabase
+        .from("profiles")
+        .update({ weekly_xp: nextWeekly, weekly_start: getWeekStartDate() })
+        .eq("id", userId);
+    } catch (e) {
+      console.warn("Could not sync weekly XP to Supabase:", e);
+    }
+  };
+
   useEffect(() => {
     if (!session?.user?.id) return;
     const userId = session.user.id;
@@ -744,8 +797,9 @@ function App() {
 
     const initDaily = async () => {
       let dbDailyXp = 0, dbDailyTime = 0, dbDailyLessons = 0, dbDailyCorrect = 0;
+      let dbWeeklyXp = null;
       try {
-        const { data } = await supabase.from("profiles").select("daily_xp,daily_time_spent,daily_lessons,daily_correct_answers,daily_quest_date").eq("id", userId).single();
+        const { data } = await supabase.from("profiles").select("daily_xp,daily_time_spent,daily_lessons,daily_correct_answers,daily_quest_date,weekly_xp,weekly_start").eq("id", userId).single();
         if (data) {
           const storedDate = data.daily_quest_date;
           if (storedDate === today) {
@@ -754,6 +808,8 @@ function App() {
             dbDailyLessons = data.daily_lessons || 0;
             dbDailyCorrect = data.daily_correct_answers || 0;
           }
+          // Seed the local weekly accumulator from the DB if we have no local value yet this week
+          dbWeeklyXp = data.weekly_xp || 0;
         }
       } catch { }
 
@@ -771,9 +827,37 @@ function App() {
       localStorage.setItem(`lisa_daily_time_${userId}_${today}`, finalTime);
       localStorage.setItem(`lisa_daily_lessons_${userId}_${today}`, finalLessons);
       localStorage.setItem(`lisa_daily_correct_${userId}_${today}`, finalCorrect);
+
+      // Initialize weekly XP from DB if the local store has no value for the current week yet
+      const weekStart = getWeekStartDate();
+      const localWeekStart = localStorage.getItem(`lisa_weekly_start_${userId}`);
+      if (localWeekStart !== weekStart && dbWeeklyXp !== null) {
+        localStorage.setItem(`lisa_weekly_start_${userId}`, weekStart);
+        localStorage.setItem(`lisa_weekly_xp_${userId}`, String(dbWeeklyXp));
+        setWeeklyXp(dbWeeklyXp);
+      }
     };
 
     initDaily();
+
+    const timer = setInterval(() => {
+      if (!isActiveLearningRef.current) return;
+      const today2 = new Date().toLocaleDateString("en-CA");
+      setDailyTimeSpent(prev => {
+        const next = prev + 1;
+        localStorage.setItem(`lisa_daily_time_${userId}_${today2}`, next);
+        return next;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [session?.user?.id]);
+
+  // Seed quests, bonus flag, profile visuals and saved shop customizations.
+  useEffect(() => {
+    if (!session?.user?.id) return;
+    const userId = session.user.id;
+    const today = new Date().toLocaleDateString("en-CA");
 
     const questsKey = `lisa_daily_quests_${userId}_${today}`;
     const storedQuests = localStorage.getItem(questsKey);
@@ -1133,12 +1217,16 @@ function App() {
       const av = localStorage.getItem(`lisa_profile_avatar_${userId}`) || "/as1.png";
       setProfileBg(bg);
       setProfileAvatar(av);
+
+      // Weekly XP (auto-resets when a new week starts)
+      setWeeklyXp(readLocalWeeklyXp(userId));
     } else {
       setUserXp(0);
       setCompletedLessons([]);
       setStreakCount(0);
       setProfileBg("#e86b6b");
       setProfileAvatar("/as1.png");
+      setWeeklyXp(0);
     }
   }, [session]);
 
@@ -2092,6 +2180,9 @@ function App() {
     setDailyXp(nextDailyXp);
     localStorage.setItem(`lisa_daily_xp_${userId}_${todayStr}`, nextDailyXp);
 
+    // Update weekly XP (leaderboard)
+    recordWeeklyXp(xpAwarded);
+
     // Update completed lessons
     let newLessons = completedLessons;
     if (!completedLessons.includes(lessonId)) {
@@ -2136,6 +2227,7 @@ function App() {
       setDailyXp(bonusDailyXp);
       localStorage.setItem(`lisa_daily_xp_${userId}_${todayStr}`, bonusDailyXp);
       localStorage.setItem(`lisa_quest_bonus_${userId}_${todayStr}`, "1");
+      recordWeeklyXp(bonusXp);
     }
 
     // Sync XP, completed lessons, and daily quest progress to the database
@@ -3232,6 +3324,12 @@ function App() {
             break;
           case "profile":
             document.title = "LISA | Profile Settings";
+            break;
+          case "shop":
+            document.title = "LISA | XP Shop";
+            break;
+          case "leaderboard":
+            document.title = "LISA | Weekly Leaderboard";
             break;
           default:
             document.title = "LISA | AI Literacy Companion";
@@ -4936,6 +5034,20 @@ function App() {
                 )}
               </div>
               <div className="indicator-pill xp"><StarIcon style={{ color: '#f59e0b' }} /> {userXp} XP</div>
+              <button
+                type="button"
+                className="indicator-pill shop-pill"
+                onClick={() => setDashboardTab("shop")}
+                title="XP Shop"
+                style={{ background: '#f59e0b15', color: '#f59e0b' }}
+              >
+                <svg style={{ marginRight: 0, width: 18, height: 18, verticalAlign: "middle" }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+                  <line x1="3" x2="21" y1="6" y2="6"/>
+                  <path d="M16 10a4 4 0 0 1-8 0"/>
+                </svg>
+                Shop
+              </button>
             </div>
           </div>
 
@@ -4992,15 +5104,11 @@ function App() {
               <span className="sidebar-separator" aria-hidden="true" />
               <button
                 type="button"
-                className={`sidebar-item ${dashboardTab === "shop" ? "active" : ""}`}
-                onClick={() => setDashboardTab("shop")}
+                className={`sidebar-item ${dashboardTab === "leaderboard" ? "active" : ""}`}
+                onClick={() => setDashboardTab("leaderboard")}
+                style={{ display: 'inline-flex', alignItems: 'center' }}
               >
-                <svg style={{ marginRight: 0, width: 18, height: 18, verticalAlign: "middle" }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
-                  <line x1="3" x2="21" y1="6" y2="6"/>
-                  <path d="M16 10a4 4 0 0 1-8 0"/>
-                </svg>
-                Shop
+                <TrophyIcon style={{ marginRight: 0, width: 18, height: 18 }} /> Leaderboard
               </button>
             </div>
             <div className="sidebar-footer">
@@ -5665,7 +5773,14 @@ function App() {
                       const newXp = userXp + amount;
                       setUserXp(newXp);
                       if (session?.user?.id) {
-                        supabase.from("profiles").update({ xp: newXp }).eq("id", session.user.id);
+                        const userId = session.user.id;
+                        const todayStr = new Date().toLocaleDateString("en-CA");
+                        const storedDailyXp = localStorage.getItem(`lisa_daily_xp_${userId}_${todayStr}`);
+                        const nextDailyXp = (storedDailyXp ? parseInt(storedDailyXp, 10) : 0) + amount;
+                        setDailyXp(nextDailyXp);
+                        localStorage.setItem(`lisa_daily_xp_${userId}_${todayStr}`, nextDailyXp);
+                        supabase.from("profiles").update({ xp: newXp }).eq("id", userId);
+                        recordWeeklyXp(amount);
                       }
                     }}
                   />
@@ -5697,56 +5812,85 @@ function App() {
                       boxShadow: "0 8px 24px rgba(0,0,0,0.12)"
                     }}
                   >
-                    {profileAvatar && profileAvatar.startsWith("http") ? (
+                    {profileAvatar && currentLevelNum >= 10 && profileAvatar.startsWith("http") ? (
                       <img src={profileAvatar} alt="Profile" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                     ) : (
                       getUserInitials(profile?.full_name)
                     )}
 
-                    {/* Direct Image File Uploader Input */}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleAvatarUpload}
-                      disabled={submitting}
-                      style={{ display: "none" }}
-                      id="direct-avatar-upload-file"
-                    />
+                    {/* Custom profile picture upload is unlocked once the learner reaches Section 10. */}
+                    {/* Until then, the avatar is shown as initials (or an emoji avatar from the shop). */}
+                    {currentLevelNum >= 10 && (
+                      <>
+                        {/* Direct Image File Uploader Input */}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleAvatarUpload}
+                          disabled={submitting}
+                          style={{ display: "none" }}
+                          id="direct-avatar-upload-file"
+                        />
 
-                    {/* Pencil Edit Badge overlay at bottom right */}
-                    <label
-                      htmlFor="direct-avatar-upload-file"
-                      style={{
-                        position: "absolute",
-                        bottom: "4px",
-                        right: "4px",
-                        width: "28px",
-                        height: "28px",
-                        borderRadius: "50%",
-                        background: "var(--accent)",
-                        color: "white",
-                        display: "grid",
-                        placeItems: "center",
-                        cursor: "pointer",
-                        fontSize: "0.75rem",
-                        boxShadow: "0 4px 10px rgba(0,0,0,0.25)",
-                        transition: "all 0.15s ease",
-                        border: "none"
-                      }}
-                      title={submitting ? "Uploading image..." : "Upload Profile Picture"}
-                      className="profile-avatar-edit-badge"
-                    >
-                      {submitting ? (
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ animation: "spin 1s linear infinite" }}>
-                          <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-                        </svg>
-                      ) : (
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-                          <path d="m15 5 4 4" />
-                        </svg>
-                      )}
-                    </label>
+                        {/* Pencil Edit Badge overlay at bottom right */}
+                        <label
+                          htmlFor="direct-avatar-upload-file"
+                          style={{
+                            position: "absolute",
+                            bottom: "4px",
+                            right: "4px",
+                            width: "28px",
+                            height: "28px",
+                            borderRadius: "50%",
+                            background: "var(--accent)",
+                            color: "white",
+                            display: "grid",
+                            placeItems: "center",
+                            cursor: "pointer",
+                            fontSize: "0.75rem",
+                            boxShadow: "0 4px 10px rgba(0,0,0,0.25)",
+                            transition: "all 0.15s ease",
+                            border: "none"
+                          }}
+                          title={submitting ? "Uploading image..." : "Upload Profile Picture"}
+                          className="profile-avatar-edit-badge"
+                        >
+                          {submitting ? (
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ animation: "spin 1s linear infinite" }}>
+                              <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                            </svg>
+                          ) : (
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                              <path d="m15 5 4 4" />
+                            </svg>
+                          )}
+                        </label>
+                      </>
+                    )}
+
+                    {/* Locked hint before Section 10 */}
+                    {currentLevelNum < 10 && (
+                      <div
+                        title="Unlocks at Section 10"
+                        style={{
+                          position: "absolute",
+                          bottom: "4px",
+                          right: "4px",
+                          width: "28px",
+                          height: "28px",
+                          borderRadius: "50%",
+                          background: "rgba(0,0,0,0.45)",
+                          color: "white",
+                          display: "grid",
+                          placeItems: "center",
+                          fontSize: "0.75rem",
+                          boxShadow: "0 4px 10px rgba(0,0,0,0.25)",
+                        }}
+                      >
+                        🔒
+                      </div>
+                    )}
                   </div>
                   <div className="profile-info-large">
                     <h2>{profile?.full_name || "Learner"}</h2>
@@ -5907,6 +6051,21 @@ function App() {
                     onAvatarChange={(av) => {
                       setShopCustomAvatar(av);
                       localStorage.setItem("lisa_shop_avatar", JSON.stringify(av));
+                      // Persist an emoji avatar to the database for the leaderboard.
+                      // Custom photo uploads are disabled until Section 10, so emoji
+                      // avatars (from the shop) are the only ones applied for now.
+                      if (av?.type === "emoji" && av.emoji) {
+                        try {
+                          localStorage.setItem(`lisa_profile_avatar_${session?.user?.id}`, av.emoji);
+                          setProfileAvatar(av.emoji);
+                          supabase
+                            .from("profiles")
+                            .update({ avatar_emoji: av.emoji })
+                            .eq("id", session?.user?.id);
+                        } catch (e) {
+                          console.warn("Could not save emoji avatar:", e);
+                        }
+                      }
                     }}
                     activeProfileBadges={profileBadges}
                     onBadgesChange={(badges) => {
@@ -5916,6 +6075,16 @@ function App() {
                   />
                 </div>
               </div>
+            )}
+
+            {/* 3.5. Leaderboard Tab */}
+            {dashboardTab === "leaderboard" && (
+              <WeeklyLeaderboard
+                session={session}
+                profile={profile}
+                weeklyXp={weeklyXp}
+                canUsePhoto={currentLevelNum >= 10}
+              />
             )}
           </main>
 
