@@ -329,6 +329,7 @@ export default function XPShop({
   onAvatarChange,
   activeProfileBadges,
   onBadgesChange,
+  onPurchaseItem,
 }) {
   const [activeCategory, setActiveCategory] = useState("themes");
   const [toast, setToast] = useState(null);
@@ -361,10 +362,14 @@ export default function XPShop({
   const confirmPurchase = () => {
     if (!confirmItem) return;
     const newXp = userXp - confirmItem.cost;
-    onSpendXp(newXp);
     const newOwned = [...owned, confirmItem.id];
-    onOwnedItemsChange(newOwned);
-    handleEquip(confirmItem, newOwned);
+    if (onPurchaseItem) {
+      onPurchaseItem(confirmItem, newXp, newOwned);
+    } else {
+      onSpendXp(newXp);
+      onOwnedItemsChange(newOwned);
+      handleEquip(confirmItem, newOwned);
+    }
     showToast(`🎉 "${confirmItem.name}" unlocked!`, "success");
     setConfirmItem(null);
   };

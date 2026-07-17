@@ -14,11 +14,14 @@ const getWeekDates = () => {
 
 const getWeekStartDate = (d = new Date()) => {
   const date = new Date(d);
-  const day = date.getDay(); // 0 = Sunday, 1 = Monday
+  const day = date.getDay();
   const diff = (day === 0 ? -6 : 1) - day;
   date.setDate(date.getDate() + diff);
   date.setHours(0, 0, 0, 0);
-  return date.toLocaleDateString("en-CA");
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const dd = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${dd}`;
 };
 
 const getLocalWeeklyXp = (userId) => {
@@ -33,21 +36,46 @@ const getLocalWeeklyXp = (userId) => {
   return parseInt(localStorage.getItem(`lisa_weekly_xp_${userId}`) || "0", 10) || 0;
 };
 
-const AVATARS = ["🦊", "🐼", "🐨", "🦁", "🐸", "🦄", "🐙", "🦋", "🐳", "🦉"];
+// Derive up-to-2-letter initials from a name (e.g. "Likhith SP" -> "LS").
+const getInitials = (name) => {
+  if (!name) return "U";
+  const parts = String(name).trim().split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  return parts[0].slice(0, 2).toUpperCase();
+};
 
-const fallbackAvatar = (name) => {
-  if (!name) return "🌟";
-  const trimmed = String(name).trim();
-  const letter = trimmed.charAt(0).toUpperCase();
-  // Pick a stable emoji based on the name
-  const idx = trimmed.charCodeAt(0) % AVATARS.length;
-  return `${AVATARS[idx]}`;
+// When a user has no photo and no shop/emoji avatar, fall back to initials
+// rendered in a colored circle.
+const fallbackAvatar = (name) => ({ type: "initials", value: getInitials(name) });
+
+// Normalize the current user's locally-stored avatar (which may be a photo
+// URL string, an emoji string, or a builder/emoji JSON object from the shop)
+// into the { type, value } shape used by the leaderboard.
+const normalizeCurrentAvatar = (av, canUsePhoto, fallbackName = "") => {
+  if (!av) return fallbackAvatar(fallbackName);
+  if (typeof av === "string") {
+    if (av.startsWith("http")) {
+      return canUsePhoto
+        ? { type: "photo", value: av }
+        : fallbackAvatar(fallbackName);
+    }
+    return { type: "emoji", value: av };
+  }
+  if (av && typeof av === "object") {
+    if (av.type === "builder") {
+      return { type: "builder", emoji: av.emoji, bg: av.bg, shape: av.shape };
+    }
+    if (av.type === "emoji" && av.emoji) {
+      return { type: "emoji", value: av.emoji };
+    }
+  }
+  return fallbackAvatar(fallbackName);
 };
 
 // Resolve what to show for an avatar:
 //  - a photo (avatar_url) only when the learner is allowed to use a custom picture (canUsePhoto)
 //  - an emoji avatar (avatar_emoji) if set
-//  - otherwise a deterministic emoji fallback
+//  - otherwise initials in a circle
 const resolveAvatar = (u, canUsePhoto) => {
   if (canUsePhoto && u.avatar_url && u.avatar_url.startsWith("http")) {
     return { type: "photo", value: u.avatar_url };
@@ -55,7 +83,7 @@ const resolveAvatar = (u, canUsePhoto) => {
   if (u.avatar_emoji) {
     return { type: "emoji", value: u.avatar_emoji };
   }
-  return { type: "emoji", value: fallbackAvatar(u.full_name) };
+  return fallbackAvatar(u.full_name);
 };
 
 export default function WeeklyLeaderboard({ session, profile, weeklyXp, canUsePhoto }) {
@@ -90,8 +118,16 @@ export default function WeeklyLeaderboard({ session, profile, weeklyXp, canUsePh
 
   useEffect(() => {
     if (!currentUserId) return;
-    const av = localStorage.getItem(`lisa_profile_avatar_${currentUserId}`);
-    setCurrentUserAvatar(av || "🌟");
+    const stored = localStorage.getItem(`lisa_profile_avatar_${currentUserId}`);
+    let av = "🌟";
+    if (stored) {
+      try {
+        av = stored.startsWith("{") ? JSON.parse(stored) : stored;
+      } catch {
+        av = stored;
+      }
+    }
+    setCurrentUserAvatar(av);
   }, [currentUserId, profile]);
 
   // Fetch real users from Supabase (ordered by weekly_xp) so the leaderboard
@@ -109,8 +145,7 @@ export default function WeeklyLeaderboard({ session, profile, weeklyXp, canUsePh
       const weekStart = getWeekStartDate();
       const cleaned = (data || []).map((p) => ({
         ...p,
-        // Only count weekly_xp if it belongs to the current week; otherwise 0
-        weekly_xp: p.weekly_start === weekStart ? (p.weekly_xp || 0) : 0,
+        weekly_xp: p.weekly_start && p.weekly_start !== weekStart ? 0 : (p.weekly_xp || 0),
       }));
 
       setAllProfiles(cleaned);
@@ -144,9 +179,7 @@ export default function WeeklyLeaderboard({ session, profile, weeklyXp, canUsePh
       rows.push({
         id: currentUserId || "me",
         name: currentUserName,
-        avatar: canUsePhoto && currentUserAvatar.startsWith("http")
-          ? { type: "photo", value: currentUserAvatar }
-          : { type: "emoji", value: currentUserAvatar },
+        avatar: normalizeCurrentAvatar(currentUserAvatar, canUsePhoto, currentUserName),
         weeklyXp: liveWeeklyXp,
         isCurrentUser: true,
       });
@@ -154,6 +187,7 @@ export default function WeeklyLeaderboard({ session, profile, weeklyXp, canUsePh
       // Override with the most accurate live value from localStorage.
       me.weeklyXp = liveWeeklyXp;
       me.name = currentUserName;
+      me.avatar = normalizeCurrentAvatar(currentUserAvatar, canUsePhoto, currentUserName);
     }
 
     rows.sort((a, b) => b.weeklyXp - a.weeklyXp);
@@ -183,12 +217,49 @@ export default function WeeklyLeaderboard({ session, profile, weeklyXp, canUsePh
     return "var(--muted)";
   };
 
-  const renderAvatar = (av) =>
-    av.type === "photo" ? (
-      <img src={av.value} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />
-    ) : (
-      <span>{av.value}</span>
-    );
+  const renderAvatar = (av) => {
+    if (av.type === "photo") {
+      return <img src={av.value} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "50%" }} />;
+    }
+    if (av.type === "builder") {
+      const shape = av.shape === "square" ? "8px" : av.shape === "rounded" ? "24px" : "50%";
+      return (
+        <span style={{
+          width: "100%",
+          height: "100%",
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: av.bg,
+          borderRadius: shape,
+        }}>
+          {av.emoji}
+        </span>
+      );
+    }
+    if (av.type === "initials") {
+      return (
+        <span style={{
+          width: "36px",
+          height: "36px",
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "var(--accent)",
+          color: "white",
+          fontWeight: 800,
+          borderRadius: "50%",
+          fontSize: "0.75rem",
+          flexShrink: 0,
+          overflow: "hidden",
+          lineHeight: 1,
+        }}>
+          {av.value}
+        </span>
+      );
+    }
+    return <span>{av.value}</span>;
+  };
 
   return (
     <div className="weekly-leaderboard-container">

@@ -4639,6 +4639,26 @@ select:focus {
   transform: translateY(-1px);
 }
 
+.indicator-pill.leaderboard-pill {
+  color: #f59e0b;
+  gap: 6px;
+  padding: 6px 12px;
+  border: none;
+  cursor: pointer;
+  background: rgba(245, 158, 11, 0.08);
+  transition: background 0.2s, transform 0.15s;
+}
+.indicator-pill.leaderboard-pill:hover {
+  background: rgba(245, 158, 11, 0.18);
+  transform: translateY(-1px);
+}
+
+.indicator-pill.leaderboard-pill.active,
+.indicator-pill.shop-pill.active {
+  background: #f59e0b !important;
+  color: white !important;
+}
+
 /* Learn Area Split Columns */
 .learn-grid-layout {
   display: grid;
