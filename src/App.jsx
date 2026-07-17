@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { supabase } from "./supabaseClient";
 import {
   getRandomAssessment, computeSkillScores, generateLearningPath, getOrderedSections,
@@ -464,6 +464,7 @@ const localDashboardTranslations = {
       4: { title: "వర్డ్‌స్మిత్", desc: "రచనలో 75% లేదా అంతకంటే ఎక్కువ స్కోరు చేయండి" },
       5: { title: "XP కలెక్టర్", desc: "100 XP లేదా అంతకంటే ఎక్కువ సంపాదించండి" },
       6: { title: "సమర్పిత అభ్యాసకుడు", desc: "3 లేదా అంతకంటే ఎక్కువ పాఠాలను పూర్తి చేయండి" },
+
       7: { title: "స్పీచ్ మాస్ట్రో", desc: "ఉచ్చారణలో 75% లేదా అంతకంటే ఎక్కువ స్కోరు చేయండి" },
       8: { title: "ఎలైట్ స్కాలర్", desc: "ప్రోగ్రెసివ్ లెవల్ 8 కి చేరుకోండి" },
       9: { title: "గ్రాండ్‌మాస్టర్", desc: "ప్రోగ్రెసివ్ లెవల్ 12 కి చేరుకోండి" }
@@ -526,6 +527,8 @@ function App() {
 
   const [streakPopupOpen, setStreakPopupOpen] = useState(false);
   const streakPopupRef = useRef(null);
+  const notifPanelRef = useRef(null);
+  const [notifOpen, setNotifOpen] = useState(false);
 
   const [activeLessonPopup, setActiveLessonPopup] = useState(null);
 
@@ -537,13 +540,16 @@ function App() {
       if (streakPopupOpen && streakPopupRef.current && !streakPopupRef.current.contains(e.target)) {
         setStreakPopupOpen(false);
       }
+      if (notifOpen && notifPanelRef.current && !notifPanelRef.current.contains(e.target)) {
+        setNotifOpen(false);
+      }
       if (activeLessonPopup && !e.target.closest('.duo-node-container')) {
         setActiveLessonPopup(null);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [profileDropdownOpen, streakPopupOpen, activeLessonPopup]);
+  }, [profileDropdownOpen, streakPopupOpen, notifOpen, activeLessonPopup]);
   const [session, setSession] = useState(null);
   const [profile, setProfile] = useState(null);
   const [profileBg, setProfileBg] = useState("#e86b6b");
@@ -605,6 +611,31 @@ function App() {
   const [timeLeftStr, setTimeLeftStr] = useState("24h 00m 00s");
   const [questBonusClaimed, setQuestBonusClaimed] = useState(false);
 
+  const [dismissedNotifIds, setDismissedNotifIds] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("lisa_dismissed_notifs") || "[]");
+    } catch {
+      return [];
+    }
+  });
+  const [readNotifIds, setReadNotifIds] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("lisa_read_notifs") || "[]");
+    } catch {
+      return [];
+    }
+  });
+
+  const saveDismissedNotifs = (ids) => {
+    setDismissedNotifIds(ids);
+    localStorage.setItem("lisa_dismissed_notifs", JSON.stringify(ids));
+  };
+
+  const saveReadNotifs = (ids) => {
+    setReadNotifIds(ids);
+    localStorage.setItem("lisa_read_notifs", JSON.stringify(ids));
+  };
+
   // Translated dashboard strings for non-English languages (fall back to English source values)
   const [translatedLevelMsg, setTranslatedLevelMsg] = useState("");
   const [translatedStreakMsg, setTranslatedStreakMsg] = useState("");
@@ -641,6 +672,52 @@ function App() {
     }
     return { current: 0, target: 1, completed: false, percent: 0, displayProgress: '0/1' };
   };
+
+  const lightenColor = (hex, alpha = 0.12) => {
+    if (!hex || !hex.startsWith('#')) return 'transparent';
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  };
+
+  const allNotifications = useMemo(() => {
+    const notifs = [];
+    if (streakCount > 0) {
+      notifs.push({ id: "streak", icon: "🔥", title: "Streak Reminder", message: getStreakMessage(streakCount), color: "#f97316" });
+    }
+    if (userXp >= 100) {
+      notifs.push({ id: "xp100", icon: "⭐", title: "XP Milestone", message: "You've earned 100 XP total!", color: "#f59e0b" });
+    }
+    const earnedAchIds = completedLessons.filter(id => id.startsWith("ach_")).map(id => parseInt(id.replace("ach_", ""), 10));
+    ACHIEVEMENT_DEFS.forEach(a => {
+      if (earnedAchIds.includes(a.id)) {
+        notifs.push({ id: `ach_${a.id}`, icon: a.icon, title: a.title, message: a.desc, color: a.color });
+      }
+    });
+    if (profileBadges.length > 0) {
+      notifs.push({ id: "badges", icon: "🏅", title: "Badge Unlocked", message: `You have ${profileBadges.length} badge${profileBadges.length > 1 ? 's' : ''} from the XP Shop!`, color: "#a855f7" });
+    }
+    if (dailyLessons === 0) {
+      notifs.push({ id: "lesson_reminder", icon: "📚", title: "Lesson Reminder", message: "You haven't practiced today. Start a lesson!", color: "#3b82f6" });
+    }
+    if (activeQuests.length > 0 && activeQuests.every(q => getQuestProgress(q).completed) && !questBonusClaimed) {
+      notifs.push({ id: "quest_complete", icon: "💎", title: "Quest Complete", message: "You've completed your daily quest! Claim your bonus.", color: "#10b981" });
+    }
+    const currentLevel = profile ? calculateProgressiveLevel(profile, completedLessons) : 1;
+    if (currentLevel > 1) {
+      notifs.push({ id: "levelup", icon: "🎉", title: "Level Up", message: `Congratulations! You reached Level ${currentLevel}.`, color: "#8b5cf6" });
+    }
+    return notifs;
+  }, [streakCount, userXp, completedLessons, profileBadges, dailyLessons, activeQuests, questBonusClaimed, profile]);
+
+  const notifications = useMemo(() => {
+    return allNotifications.filter(n => !dismissedNotifIds.includes(n.id));
+  }, [allNotifications, dismissedNotifIds]);
+
+  const unreadCount = useMemo(() => {
+    return notifications.filter(n => !readNotifIds.includes(n.id)).length;
+  }, [notifications, readNotifIds]);
 
   // Records correct answers made "today" into a daily counter (localStorage backed).
   // Reads the latest value from localStorage to avoid double counting from stale state.
@@ -3602,6 +3679,9 @@ function App() {
     });
 
     if (lessonSession) {
+
+
+
       setLessonSession(prev => ({
         ...prev,
         spokenText: transcript,
@@ -4366,13 +4446,30 @@ function App() {
                         </div>
                         <h2>
                           {isVoiceReading && t("readingSecTitle")}
+
+
                           {isCompMCQ && t("compSecTitle")}
                           {isWriting && t("writingSecTitle")}
                         </h2>
                         {isCompMCQ && compIdx.length > 0 && (
+                          
+                    
+                    
                           <p className="section-sub-progress">
-                            {t("questionOf").replace("{current}", compIdx.indexOf(currentStep) + 1).replace("{total}", compIdx.length)}
+
+                          
+                                                      {t("questionOf").replace("{current}", compIdx.indexOf(currentStep) + 1).replace("{total}", compIdx.length)}
                           </p>
+
+                            
+
+                        
+                          
+
+
+                      
+                    
+                  
                         )}
                       </div>
                       <div className="section-stepper">
@@ -4918,7 +5015,68 @@ function App() {
           </div>
 
           <div className="topbar-right">
-            {renderAiToggle()}
+            <div style={{ position: "relative" }}>
+              <button
+                type="button"
+                className="notif-bell-btn"
+                onClick={() => setNotifOpen((prev) => !prev)}
+                aria-label="Notifications"
+                title="Notifications"
+              >
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+                  <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+                </svg>
+                {unreadCount > 0 && (
+                  <span className="notif-badge">{unreadCount}</span>
+                )}
+              </button>
+              {notifOpen && (
+                <div className="notif-panel" ref={notifPanelRef}>
+                  <div className="notif-panel-header">
+                    <h4>Notifications</h4>
+                    <div className="notif-header-actions">
+                      {notifications.length > 0 && unreadCount > 0 && (
+                        <button
+                          type="button"
+                          className="notif-read-all-btn"
+                          onClick={() => {
+                            const newRead = [...new Set([...readNotifIds, ...notifications.map(n => n.id)])];
+                            saveReadNotifs(newRead);
+                          }}
+                        >
+                          Read All
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  <div className="notif-list">
+                    {notifications.length === 0 ? (
+                      <p className="notif-empty">No notifications yet.</p>
+                    ) : (
+                      notifications.map((n) => (
+                        <div key={n.id} className="notif-card" style={{ background: lightenColor(n.color) }}>
+                          <span className="notif-icon" style={{ color: n.color }}>{n.icon}</span>
+                          <div className="notif-content">
+                            <div className="notif-title">{n.title}</div>
+                            <div className="notif-message">{n.message}</div>
+                          </div>
+                          <button
+                            type="button"
+                            className="notif-read-btn"
+                            onClick={() => saveDismissedNotifs([...dismissedNotifIds, n.id])}
+                            aria-label={`Mark ${n.title} as read`}
+                            title="Mark as read"
+                          >
+                            Read
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
             {renderThemeToggle()}
             {renderLanguageDropdown(true)}
           </div>
@@ -5659,27 +5817,40 @@ function App() {
                     </form>
                   </div>
 
-                  <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-                    <div className="current-level-card" style={{ margin: 0, padding: "24px", background: '#5e4a87' }}>
-                      <h3 className="current-level-title">{t("profileDevControl")}</h3>
-                      <p style={{ fontSize: "0.85rem", color: "#ffffff", marginBottom: "16px" }}>{t("profileDevControlDesc")}</p>
-                      <button
-                        type="button"
-                        className="secondary-btn"
-                        style={{ borderColor: "#ff1a1a", color: "#ff1a1a", width: "100%", marginBottom: "12px" }}
-                        onClick={() => handleResetAssessmentStatus()}
-                      >
-                        {t("profileResetAssessment")}
-                      </button>
-                      <button
-                        type="button"
-                        className="secondary-btn"
-                        style={{ borderColor: "#e67e22", color: "#e67e22", width: "100%" }}
-                        onClick={() => handleResetLessons()}
-                      >
-                        {t("profileResetLessons")}
-                      </button>
-                    </div>
+                   <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+                     <div className="current-level-card" style={{ margin: 0, padding: "24px", background: '#5e4a87' }}>
+                       <h3 className="current-level-title">{t("profileDevControl")}</h3>
+                       <p style={{ fontSize: "0.85rem", color: "#ffffff", marginBottom: "16px" }}>{t("profileDevControlDesc")}</p>
+                       <div className="ai-toggle-container" style={{ marginBottom: "16px" }} title={aiEnabled ? "AI ON — lessons & word of day use AI" : "AI OFF — lessons & word of day use fallback"}>
+                         <button
+                           type="button"
+                           className={`ai-toggle-btn ${aiEnabled ? "ai-on" : "ai-off"}`}
+                           onClick={toggleAiMode}
+                           aria-pressed={aiEnabled}
+                           aria-label={aiEnabled ? "Turn AI off (development mode)" : "Turn AI on"}
+                           style={{ width: "100%" }}
+                         >
+                           <span className="ai-toggle-dot" />
+                           <span className="ai-toggle-label">{aiEnabled ? "AI ON" : "AI OFF"}</span>
+                         </button>
+                       </div>
+                       <button
+                         type="button"
+                         className="secondary-btn"
+                         style={{ borderColor: "#ff1a1a", color: "#ff1a1a", width: "100%", marginBottom: "12px" }}
+                         onClick={() => handleResetAssessmentStatus()}
+                       >
+                         {t("profileResetAssessment")}
+                       </button>
+                       <button
+                         type="button"
+                         className="secondary-btn"
+                         style={{ borderColor: "#e67e22", color: "#e67e22", width: "100%" }}
+                         onClick={() => handleResetLessons()}
+                       >
+                         {t("profileResetLessons")}
+                       </button>
+                     </div>
 
                     <div className="current-level-card" style={{ margin: 0, padding: "24px", background: '#7a1f1f', border: '1px solid #ff4d4d' }}>
                       <h3 className="current-level-title" style={{ color: '#ff8a8a' }}>{t("profileDangerZone")}</h3>
