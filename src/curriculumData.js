@@ -118,158 +118,470 @@ export const PROFICIENCY_LEVELS = {
 export const CURRICULUM_SECTIONS = [
   {
     id: "s1", num: 1,
-    title: "Letter & Sound Recognition",
+    title: "Letter Recognition",
     icon: "🔤",
     skillTarget: "letter_recognition",
     color: "#f59e0b",
     units: [
-      { id: "s1u1", num: 1, title: "Alphabet Basics",   skill: "letter_recognition",
-        lessons: Array.from({ length: 5 }, (_, i) => ({ id: `s1u1l${i+1}`, num: i+1, title: `Lesson ${i+1}`, icon: ["🔤","🅰️","📚","🎯","⭐"][i] })) },
-      { id: "s1u2", num: 2, title: "Basic Sound Matches", skill: "letter_recognition",
-        lessons: Array.from({ length: 5 }, (_, i) => ({ id: `s1u2l${i+1}`, num: i+1, title: `Lesson ${i+1}`, icon: ["🔊","🎵","🗣️","🎶","📢"][i] })) },
+      {
+        id: "s1u1", num: 1, title: "Alphabet Basics", skill: "letter_recognition",
+        lessons: [
+          { id: "s1u1l1", num: 1, title: "Identifying Letters", icon: "🔤" },
+          { id: "s1u1l2", num: 2, title: "Matching Letters", icon: "🅰️" },
+          { id: "s1u1l3", num: 3, title: "Letter Sequencing", icon: "📚" },
+          { id: "s1u1l4", num: 4, title: "Finding Missing Letters", icon: "🎯" },
+          { id: "s1u1l5", num: 5, title: "Unit Assessment", icon: "⭐" }
+        ]
+      },
+      {
+        id: "s1u2", num: 2, title: "Uppercase & Lowercase", skill: "letter_recognition",
+        lessons: [
+          { id: "s1u2l1", num: 1, title: "Uppercase Letters", icon: "🔠" },
+          { id: "s1u2l2", num: 2, title: "Lowercase Letters", icon: "🔡" },
+          { id: "s1u2l3", num: 3, title: "Matching Cases", icon: "🧩" },
+          { id: "s1u2l4", num: 4, title: "Mixed Letter Practice", icon: "🎯" },
+          { id: "s1u2l5", num: 5, title: "Unit Assessment", icon: "⭐" }
+        ]
+      },
+      {
+        id: "s1u3", num: 3, title: "Letter Sounds", skill: "letter_recognition",
+        lessons: [
+          { id: "s1u3l1", num: 1, title: "Vowel Sounds", icon: "🔊" },
+          { id: "s1u3l2", num: 2, title: "Consonant Sounds", icon: "🗣️" },
+          { id: "s1u3l3", num: 3, title: "Beginning Sounds", icon: "🎵" },
+          { id: "s1u3l4", num: 4, title: "Ending Sounds", icon: "🎶" },
+          { id: "s1u3l5", num: 5, title: "Unit Assessment", icon: "⭐" }
+        ]
+      }
     ]
   },
   {
     id: "s2", num: 2,
-    title: "Phonics & Syllables",
-    icon: "🔊",
-    skillTarget: "letter_recognition",
-    color: "#ec4899",
+    title: "Word Building",
+    icon: "🧱",
+    skillTarget: "word_recognition",
+    color: "#3b82f6",
     units: [
-      { id: "s2u1", num: 1, title: "Phonetics", skill: "letter_recognition",
-        lessons: Array.from({ length: 5 }, (_, i) => ({ id: `s2u1l${i+1}`, num: i+1, title: `Lesson ${i+1}`, icon: ["🗣️","👂","📣","🎙️","🔔"][i] })) },
-      { id: "s2u2", num: 2, title: "Syllable Counting", skill: "letter_recognition",
-        lessons: Array.from({ length: 5 }, (_, i) => ({ id: `s2u2l${i+1}`, num: i+1, title: `Lesson ${i+1}`, icon: ["🔢","💬","🥁","🎶","🔤"][i] })) },
+      {
+        id: "s2u1", num: 1, title: "Simple Words", skill: "word_recognition",
+        lessons: [
+          { id: "s2u1l1", num: 1, title: "Two-Letter Words", icon: "✌️" },
+          { id: "s2u1l2", num: 2, title: "Three-Letter Words", icon: "🤟" },
+          { id: "s2u1l3", num: 3, title: "Four-Letter Words", icon: "🍀" },
+          { id: "s2u1l4", num: 4, title: "Common Words", icon: "✨" },
+          { id: "s2u1l5", num: 5, title: "Unit Assessment", icon: "⭐" }
+        ]
+      },
+      {
+        id: "s2u2", num: 2, title: "Forming Words", skill: "word_recognition",
+        lessons: [
+          { id: "s2u2l1", num: 1, title: "Combining Letters", icon: "➕" },
+          { id: "s2u2l2", num: 2, title: "Rearranging Letters", icon: "🔄" },
+          { id: "s2u2l3", num: 3, title: "Missing Letters", icon: "🔍" },
+          { id: "s2u2l4", num: 4, title: "Complete the Word", icon: "✅" },
+          { id: "s2u2l5", num: 5, title: "Unit Assessment", icon: "⭐" }
+        ]
+      },
+      {
+        id: "s2u3", num: 3, title: "Everyday Vocabulary", skill: "word_recognition",
+        lessons: [
+          { id: "s2u3l1", num: 1, title: "Family Words", icon: "👨‍👩‍👧‍👦" },
+          { id: "s2u3l2", num: 2, title: "Food Words", icon: "🍎" },
+          { id: "s2u3l3", num: 3, title: "Object Names", icon: "📦" },
+          { id: "s2u3l4", num: 4, title: "Place Names", icon: "📍" },
+          { id: "s2u3l5", num: 5, title: "Unit Assessment", icon: "⭐" }
+        ]
+      }
     ]
   },
   {
     id: "s3", num: 3,
-    title: "Word Recognition",
-    icon: "📝",
+    title: "Vocabulary Development",
+    icon: "📚",
     skillTarget: "word_recognition",
-    color: "#3b82f6",
+    color: "#10b981",
     units: [
-      { id: "s3u1", num: 1, title: "Sight Words", skill: "word_recognition",
-        lessons: Array.from({ length: 5 }, (_, i) => ({ id: `s3u1l${i+1}`, num: i+1, title: `Lesson ${i+1}`, icon: ["👁️","📖","🏷️","🔍","✨"][i] })) },
-      { id: "s3u2", num: 2, title: "Word Blends", skill: "word_recognition",
-        lessons: Array.from({ length: 5 }, (_, i) => ({ id: `s3u2l${i+1}`, num: i+1, title: `Lesson ${i+1}`, icon: ["🧩","🔤","🔗","✍️","🎯"][i] })) },
+      {
+        id: "s3u1", num: 1, title: "Home & Family", skill: "word_recognition",
+        lessons: [
+          { id: "s3u1l1", num: 1, title: "Family Members", icon: "🏠" },
+          { id: "s3u1l2", num: 2, title: "Household Objects", icon: "🛋️" },
+          { id: "s3u1l3", num: 3, title: "Daily Activities", icon: "📅" },
+          { id: "s3u1l4", num: 4, title: "Rooms & Spaces", icon: "🚪" },
+          { id: "s3u1l5", num: 5, title: "Unit Assessment", icon: "⭐" }
+        ]
+      },
+      {
+        id: "s3u2", num: 2, title: "School & Learning", skill: "word_recognition",
+        lessons: [
+          { id: "s3u2l1", num: 1, title: "School Objects", icon: "🎒" },
+          { id: "s3u2l2", num: 2, title: "Classroom Vocabulary", icon: "🏫" },
+          { id: "s3u2l3", num: 3, title: "Learning Activities", icon: "📝" },
+          { id: "s3u2l4", num: 4, title: "Educational Terms", icon: "🎓" },
+          { id: "s3u2l5", num: 5, title: "Unit Assessment", icon: "⭐" }
+        ]
+      },
+      {
+        id: "s3u3", num: 3, title: "Community & Environment", skill: "word_recognition",
+        lessons: [
+          { id: "s3u3l1", num: 1, title: "Community Helpers", icon: "🧑‍🚒" },
+          { id: "s3u3l2", num: 2, title: "Transportation", icon: "🚌" },
+          { id: "s3u3l3", num: 3, title: "Nature & Environment", icon: "🌳" },
+          { id: "s3u3l4", num: 4, title: "Public Places", icon: "🏢" },
+          { id: "s3u3l5", num: 5, title: "Unit Assessment", icon: "⭐" }
+        ]
+      }
     ]
   },
   {
     id: "s4", num: 4,
-    title: "Basic Vocabulary",
-    icon: "🍎",
+    title: "Reading Words",
+    icon: "📖",
     skillTarget: "word_recognition",
-    color: "#10b981",
+    color: "#6366f1",
     units: [
-      { id: "s4u1", num: 1, title: "Nouns & Objects", skill: "word_recognition",
-        lessons: Array.from({ length: 5 }, (_, i) => ({ id: `s4u1l${i+1}`, num: i+1, title: `Lesson ${i+1}`, icon: ["🏠","🍎","🌞","🚗","👕"][i] })) },
-      { id: "s4u2", num: 2, title: "Action Verbs", skill: "word_recognition",
-        lessons: Array.from({ length: 5 }, (_, i) => ({ id: `s4u2l${i+1}`, num: i+1, title: `Lesson ${i+1}`, icon: ["🏃","🚶","🏊","🍽️","🛌"][i] })) },
+      {
+        id: "s4u1", num: 1, title: "Common Words", skill: "word_recognition",
+        lessons: [
+          { id: "s4u1l1", num: 1, title: "Sight Words", icon: "👁️" },
+          { id: "s4u1l2", num: 2, title: "Action Words", icon: "🏃" },
+          { id: "s4u1l3", num: 3, title: "Describing Words", icon: "🎨" },
+          { id: "s4u1l4", num: 4, title: "Everyday Words", icon: "☕" },
+          { id: "s4u1l5", num: 5, title: "Unit Assessment", icon: "⭐" }
+        ]
+      },
+      {
+        id: "s4u2", num: 2, title: "Understanding Meaning", skill: "word_recognition",
+        lessons: [
+          { id: "s4u2l1", num: 1, title: "Word Matching", icon: "🧩" },
+          { id: "s4u2l2", num: 2, title: "Picture Matching", icon: "🖼️" },
+          { id: "s4u2l3", num: 3, title: "Similar Meanings", icon: "👯" },
+          { id: "s4u2l4", num: 4, title: "Opposite Meanings", icon: "🌗" },
+          { id: "s4u2l5", num: 5, title: "Unit Assessment", icon: "⭐" }
+        ]
+      },
+      {
+        id: "s4u3", num: 3, title: "Functional Vocabulary", skill: "word_recognition",
+        lessons: [
+          { id: "s4u3l1", num: 1, title: "Signs", icon: "🪧" },
+          { id: "s4u3l2", num: 2, title: "Labels", icon: "🏷️" },
+          { id: "s4u3l3", num: 3, title: "Warnings", icon: "⚠️" },
+          { id: "s4u3l4", num: 4, title: "Instructions", icon: "📋" },
+          { id: "s4u3l5", num: 5, title: "Unit Assessment", icon: "⭐" }
+        ]
+      }
     ]
   },
   {
     id: "s5", num: 5,
-    title: "Sentence Reading",
+    title: "Reading Sentences",
     icon: "📖",
     skillTarget: "sentence_reading",
     color: "#8b5cf6",
     units: [
-      { id: "s5u1", num: 1, title: "Simple Sentences", skill: "sentence_reading",
-        lessons: Array.from({ length: 5 }, (_, i) => ({ id: `s5u1l${i+1}`, num: i+1, title: `Lesson ${i+1}`, icon: ["💬","📖","📝","📋","🌟"][i] })) },
-      { id: "s5u2", num: 2, title: "Compound Sentences", skill: "sentence_reading",
-        lessons: Array.from({ length: 5 }, (_, i) => ({ id: `s5u2l${i+1}`, num: i+1, title: `Lesson ${i+1}`, icon: ["🔗","💬","📄","📓","🏆"][i] })) },
+      {
+        id: "s5u1", num: 1, title: "Simple Sentences", skill: "sentence_reading",
+        lessons: [
+          { id: "s5u1l1", num: 1, title: "Subject & Action", icon: "👤" },
+          { id: "s5u1l2", num: 2, title: "Reading Statements", icon: "📄" },
+          { id: "s5u1l3", num: 3, title: "Everyday Sentences", icon: "💬" },
+          { id: "s5u1l4", num: 4, title: "Understanding Meaning", icon: "🧠" },
+          { id: "s5u1l5", num: 5, title: "Unit Assessment", icon: "⭐" }
+        ]
+      },
+      {
+        id: "s5u2", num: 2, title: "Questions & Answers", skill: "sentence_reading",
+        lessons: [
+          { id: "s5u2l1", num: 1, title: "Reading Questions", icon: "❓" },
+          { id: "s5u2l2", num: 2, title: "Finding Answers", icon: "💡" },
+          { id: "s5u2l3", num: 3, title: "Yes/No Questions", icon: "✔️" },
+          { id: "s5u2l4", num: 4, title: "WH Questions", icon: "🗣️" },
+          { id: "s5u2l5", num: 5, title: "Unit Assessment", icon: "⭐" }
+        ]
+      },
+      {
+        id: "s5u3", num: 3, title: "Daily Communication", skill: "sentence_reading",
+        lessons: [
+          { id: "s5u3l1", num: 1, title: "Greetings", icon: "👋" },
+          { id: "s5u3l2", num: 2, title: "Requests", icon: "🙏" },
+          { id: "s5u3l3", num: 3, title: "Directions", icon: "🧭" },
+          { id: "s5u3l4", num: 4, title: "Conversations", icon: "💬" },
+          { id: "s5u3l5", num: 5, title: "Unit Assessment", icon: "⭐" }
+        ]
+      }
     ]
   },
   {
     id: "s6", num: 6,
-    title: "Sentence Writing",
-    icon: "✍️",
-    skillTarget: "writing",
-    color: "#ef4444",
-    units: [
-      { id: "s6u1", num: 1, title: "Basic Structure", skill: "writing",
-        lessons: Array.from({ length: 5 }, (_, i) => ({ id: `s6u1l${i+1}`, num: i+1, title: `Lesson ${i+1}`, icon: ["✏️","🖊️","✍️","📝","🔏"][i] })) },
-      { id: "s6u2", num: 2, title: "Punctuation Rules", skill: "writing",
-        lessons: Array.from({ length: 5 }, (_, i) => ({ id: `s6u2l${i+1}`, num: i+1, title: `Lesson ${i+1}`, icon: ["❓","❗","💬","🖋️","📓"][i] })) },
-    ]
-  },
-  {
-    id: "s7", num: 7,
-    title: "Daily Communication",
-    icon: "💬",
-    skillTarget: "pronunciation",
-    color: "#06b6d4",
-    units: [
-      { id: "s7u1", num: 1, title: "Greetings & Polite Words", skill: "pronunciation",
-        lessons: Array.from({ length: 5 }, (_, i) => ({ id: `s7u1l${i+1}`, num: i+1, title: `Lesson ${i+1}`, icon: ["👋","😊","🙏","🤝","🌟"][i] })) },
-      { id: "s7u2", num: 2, title: "Asking Directions", skill: "pronunciation",
-        lessons: Array.from({ length: 5 }, (_, i) => ({ id: `s7u2l${i+1}`, num: i+1, title: `Lesson ${i+1}`, icon: ["🗺️","🧭","📍","🚶","🚗"][i] })) },
-    ]
-  },
-  {
-    id: "s8", num: 8,
     title: "Reading Comprehension",
     icon: "🧠",
     skillTarget: "comprehension",
     color: "#14b8a6",
     units: [
-      { id: "s8u1", num: 1, title: "Main Idea", skill: "comprehension",
-        lessons: Array.from({ length: 5 }, (_, i) => ({ id: `s8u1l${i+1}`, num: i+1, title: `Lesson ${i+1}`, icon: ["💡","🧠","🔍","📄","📜"][i] })) },
-      { id: "s8u2", num: 2, title: "Details Extraction", skill: "comprehension",
-        lessons: Array.from({ length: 5 }, (_, i) => ({ id: `s8u2l${i+1}`, num: i+1, title: `Lesson ${i+1}`, icon: ["🔎","📋","🗂️","📊","📈"][i] })) },
+      {
+        id: "s6u1", num: 1, title: "Short Paragraphs", skill: "comprehension",
+        lessons: [
+          { id: "s6u1l1", num: 1, title: "Reading Short Texts", icon: "📄" },
+          { id: "s6u1l2", num: 2, title: "Finding Main Ideas", icon: "💡" },
+          { id: "s6u1l3", num: 3, title: "Key Details", icon: "🔍" },
+          { id: "s6u1l4", num: 4, title: "Sequencing Events", icon: "🔢" },
+          { id: "s6u1l5", num: 5, title: "Unit Assessment", icon: "⭐" }
+        ]
+      },
+      {
+        id: "s6u2", num: 2, title: "Stories", skill: "comprehension",
+        lessons: [
+          { id: "s6u2l1", num: 1, title: "Characters", icon: "👥" },
+          { id: "s6u2l2", num: 2, title: "Events", icon: "🎭" },
+          { id: "s6u2l3", num: 3, title: "Problems & Solutions", icon: "🛠️" },
+          { id: "s6u2l4", num: 4, title: "Story Understanding", icon: "📖" },
+          { id: "s6u2l5", num: 5, title: "Unit Assessment", icon: "⭐" }
+        ]
+      },
+      {
+        id: "s6u3", num: 3, title: "Information Reading", skill: "comprehension",
+        lessons: [
+          { id: "s6u3l1", num: 1, title: "Notices", icon: "📢" },
+          { id: "s6u3l2", num: 2, title: "Announcements", icon: "📣" },
+          { id: "s6u3l3", num: 3, title: "Instructions", icon: "📋" },
+          { id: "s6u3l4", num: 4, title: "Information Extraction", icon: "📥" },
+          { id: "s6u3l5", num: 5, title: "Unit Assessment", icon: "⭐" }
+        ]
+      }
+    ]
+  },
+  {
+    id: "s7", num: 7,
+    title: "Writing Fundamentals",
+    icon: "✍️",
+    skillTarget: "writing",
+    color: "#ef4444",
+    units: [
+      {
+        id: "s7u1", num: 1, title: "Writing Letters", skill: "writing",
+        lessons: [
+          { id: "s7u1l1", num: 1, title: "Letter Formation", icon: "✏️" },
+          { id: "s7u1l2", num: 2, title: "Tracing Letters", icon: "🖊️" },
+          { id: "s7u1l3", num: 3, title: "Copying Letters", icon: "📝" },
+          { id: "s7u1l4", num: 4, title: "Independent Writing", icon: "✍️" },
+          { id: "s7u1l5", num: 5, title: "Unit Assessment", icon: "⭐" }
+        ]
+      },
+      {
+        id: "s7u2", num: 2, title: "Writing Words", skill: "writing",
+        lessons: [
+          { id: "s7u2l1", num: 1, title: "Copy Words", icon: "🖋️" },
+          { id: "s7u2l2", num: 2, title: "Complete Words", icon: "🧩" },
+          { id: "s7u2l3", num: 3, title: "Dictation Practice", icon: "🎙️" },
+          { id: "s7u2l4", num: 4, title: "Everyday Vocabulary", icon: "📓" },
+          { id: "s7u2l5", num: 5, title: "Unit Assessment", icon: "⭐" }
+        ]
+      },
+      {
+        id: "s7u3", num: 3, title: "Writing Sentences", skill: "writing",
+        lessons: [
+          { id: "s7u3l1", num: 1, title: "Simple Sentences", icon: "💬" },
+          { id: "s7u3l2", num: 2, title: "Sentence Completion", icon: "📝" },
+          { id: "s7u3l3", num: 3, title: "Sentence Creation", icon: "💡" },
+          { id: "s7u3l4", num: 4, title: "Daily Writing", icon: "📅" },
+          { id: "s7u3l5", num: 5, title: "Unit Assessment", icon: "⭐" }
+        ]
+      }
+    ]
+  },
+  {
+    id: "s8", num: 8,
+    title: "Grammar Foundations",
+    icon: "🏛️",
+    skillTarget: "sentence_reading",
+    color: "#ec4899",
+    units: [
+      {
+        id: "s8u1", num: 1, title: "Nouns", skill: "sentence_reading",
+        lessons: [
+          { id: "s8u1l1", num: 1, title: "People", icon: "🧑" },
+          { id: "s8u1l2", num: 2, title: "Places", icon: "🏢" },
+          { id: "s8u1l3", num: 3, title: "Objects", icon: "📦" },
+          { id: "s8u1l4", num: 4, title: "Naming Words Practice", icon: "✍️" },
+          { id: "s8u1l5", num: 5, title: "Unit Assessment", icon: "⭐" }
+        ]
+      },
+      {
+        id: "s8u2", num: 2, title: "Verbs", skill: "sentence_reading",
+        lessons: [
+          { id: "s8u2l1", num: 1, title: "Action Words", icon: "🏃" },
+          { id: "s8u2l2", num: 2, title: "Daily Actions", icon: "📅" },
+          { id: "s8u2l3", num: 3, title: "Verb Usage", icon: "📝" },
+          { id: "s8u2l4", num: 4, title: "Sentence Practice", icon: "🗣️" },
+          { id: "s8u2l5", num: 5, title: "Unit Assessment", icon: "⭐" }
+        ]
+      },
+      {
+        id: "s8u3", num: 3, title: "Sentence Structure", skill: "sentence_reading",
+        lessons: [
+          { id: "s8u3l1", num: 1, title: "Subject", icon: "👤" },
+          { id: "s8u3l2", num: 2, title: "Verb", icon: "⚡" },
+          { id: "s8u3l3", num: 3, title: "Complete Sentences", icon: "✅" },
+          { id: "s8u3l4", num: 4, title: "Sentence Correction", icon: "🛠️" },
+          { id: "s8u3l5", num: 5, title: "Unit Assessment", icon: "⭐" }
+        ]
+      }
     ]
   },
   {
     id: "s9", num: 9,
-    title: "Expressive Writing",
-    icon: "📓",
-    skillTarget: "writing",
-    color: "#6366f1",
+    title: "Listening & Pronunciation",
+    icon: "🎤",
+    skillTarget: "pronunciation",
+    color: "#06b6d4",
     units: [
-      { id: "s9u1", num: 1, title: "Personal Notes", skill: "writing",
-        lessons: Array.from({ length: 5 }, (_, i) => ({ id: `s9u1l${i+1}`, num: i+1, title: `Lesson ${i+1}`, icon: ["📓","🖊️","✉️","🗒️","✏️"][i] })) },
-      { id: "s9u2", num: 2, title: "Short Paragraphs", skill: "writing",
-        lessons: Array.from({ length: 5 }, (_, i) => ({ id: `s9u2l${i+1}`, num: i+1, title: `Lesson ${i+1}`, icon: ["📄","📃","📓","📝","🗂️"][i] })) },
+      {
+        id: "s9u1", num: 1, title: "Listening Skills", skill: "pronunciation",
+        lessons: [
+          { id: "s9u1l1", num: 1, title: "Listening to Words", icon: "👂" },
+          { id: "s9u1l2", num: 2, title: "Identifying Sounds", icon: "🔔" },
+          { id: "s9u1l3", num: 3, title: "Following Instructions", icon: "📋" },
+          { id: "s9u1l4", num: 4, title: "Listening Comprehension", icon: "🧠" },
+          { id: "s9u1l5", num: 5, title: "Unit Assessment", icon: "⭐" }
+        ]
+      },
+      {
+        id: "s9u2", num: 2, title: "Word Pronunciation", skill: "pronunciation",
+        lessons: [
+          { id: "s9u2l1", num: 1, title: "Pronouncing Letters", icon: "🗣️" },
+          { id: "s9u2l2", num: 2, title: "Pronouncing Words", icon: "🗣️" },
+          { id: "s9u2l3", num: 3, title: "Difficult Sounds", icon: "📢" },
+          { id: "s9u2l4", num: 4, title: "Common Vocabulary", icon: "💬" },
+          { id: "s9u2l5", num: 5, title: "Unit Assessment", icon: "⭐" }
+        ]
+      },
+      {
+        id: "s9u3", num: 3, title: "Sentence Pronunciation", skill: "pronunciation",
+        lessons: [
+          { id: "s9u3l1", num: 1, title: "Speaking Sentences", icon: "🎙️" },
+          { id: "s9u3l2", num: 2, title: "Stress & Rhythm", icon: "🥁" },
+          { id: "s9u3l3", num: 3, title: "Everyday Communication", icon: "💬" },
+          { id: "s9u3l4", num: 4, title: "Speaking Practice", icon: "🗣️" },
+          { id: "s9u3l5", num: 5, title: "Unit Assessment", icon: "⭐" }
+        ]
+      }
     ]
   },
   {
     id: "s10", num: 10,
-    title: "Conversational Fluency",
-    icon: "🗣️",
+    title: "Greetings & Introductions",
+    icon: "👋",
     skillTarget: "pronunciation",
     color: "#f43f5e",
     units: [
-      { id: "s10u1", num: 1, title: "Social Interaction", skill: "pronunciation",
-        lessons: Array.from({ length: 5 }, (_, i) => ({ id: `s10u1l${i+1}`, num: i+1, title: `Lesson ${i+1}`, icon: ["👥","💬","🤝","☕","📱"][i] })) },
-      { id: "s10u2", num: 2, title: "Expression & Tone", skill: "pronunciation",
-        lessons: Array.from({ length: 5 }, (_, i) => ({ id: `s10u2l${i+1}`, num: i+1, title: `Lesson ${i+1}`, icon: ["🎙️","🎭","📢","📣","🔔"][i] })) },
+      {
+        id: "s10u1", num: 1, title: "Greetings & Introductions", skill: "pronunciation",
+        lessons: [
+          { id: "s10u1l1", num: 1, title: "Greetings", icon: "👋" },
+          { id: "s10u1l2", num: 2, title: "Introducing Yourself", icon: "👤" },
+          { id: "s10u1l3", num: 3, title: "Introducing Others", icon: "👥" },
+          { id: "s10u1l4", num: 4, title: "Basic Conversations", icon: "💬" },
+          { id: "s10u1l5", num: 5, title: "Unit Assessment", icon: "⭐" }
+        ]
+      },
+      {
+        id: "s10u2", num: 2, title: "Everyday Communication", skill: "pronunciation",
+        lessons: [
+          { id: "s10u2l1", num: 1, title: "Asking Questions", icon: "❓" },
+          { id: "s10u2l2", num: 2, title: "Giving Answers", icon: "💡" },
+          { id: "s10u2l3", num: 3, title: "Seeking Help", icon: "🆘" },
+          { id: "s10u2l4", num: 4, title: "Expressing Needs", icon: "🙋" },
+          { id: "s10u2l5", num: 5, title: "Unit Assessment", icon: "⭐" }
+        ]
+      },
+      {
+        id: "s10u3", num: 3, title: "Social Communication", skill: "pronunciation",
+        lessons: [
+          { id: "s10u3l1", num: 1, title: "Polite Expressions", icon: "😊" },
+          { id: "s10u3l2", num: 2, title: "Thank You & Apologies", icon: "🙏" },
+          { id: "s10u3l3", num: 3, title: "Requests & Responses", icon: "💬" },
+          { id: "s10u3l4", num: 4, title: "Simple Discussions", icon: "🗣️" },
+          { id: "s10u3l5", num: 5, title: "Unit Assessment", icon: "⭐" }
+        ]
+      }
     ]
   },
   {
     id: "s11", num: 11,
-    title: "Real-World Literacy",
+    title: "Practical Literacy",
     icon: "📋",
     skillTarget: "comprehension",
     color: "#f97316",
     units: [
-      { id: "s11u1", num: 1, title: "Forms & Bills", skill: "comprehension",
-        lessons: Array.from({ length: 5 }, (_, i) => ({ id: `s11u1l${i+1}`, num: i+1, title: `Lesson ${i+1}`, icon: ["📋","🏦","🧾","🏥","📄"][i] })) },
-      { id: "s11u2", num: 2, title: "Public Signboards", skill: "sentence_reading",
-        lessons: Array.from({ length: 5 }, (_, i) => ({ id: `s11u2l${i+1}`, num: i+1, title: `Lesson ${i+1}`, icon: ["🚦","🛑","⚠️","🚧","🚏"][i] })) },
+      {
+        id: "s11u1", num: 1, title: "Signs & Symbols", skill: "comprehension",
+        lessons: [
+          { id: "s11u1l1", num: 1, title: "Road Signs", icon: "🛑" },
+          { id: "s11u1l2", num: 2, title: "Safety Signs", icon: "⚠️" },
+          { id: "s11u1l3", num: 3, title: "Public Signs", icon: "🪧" },
+          { id: "s11u1l4", num: 4, title: "Symbol Recognition", icon: "🔍" },
+          { id: "s11u1l5", num: 5, title: "Unit Assessment", icon: "⭐" }
+        ]
+      },
+      {
+        id: "s11u2", num: 2, title: "Forms & Documents", skill: "comprehension",
+        lessons: [
+          { id: "s11u2l1", num: 1, title: "Personal Information", icon: "📝" },
+          { id: "s11u2l2", num: 2, title: "Registration Forms", icon: "📋" },
+          { id: "s11u2l3", num: 3, title: "Application Forms", icon: "📄" },
+          { id: "s11u2l4", num: 4, title: "Reading Documents", icon: "📖" },
+          { id: "s11u2l5", num: 5, title: "Unit Assessment", icon: "⭐" }
+        ]
+      },
+      {
+        id: "s11u3", num: 3, title: "Instructions & Notices", skill: "comprehension",
+        lessons: [
+          { id: "s11u3l1", num: 1, title: "Product Labels", icon: "🏷️" },
+          { id: "s11u3l2", num: 2, title: "Medicine Labels", icon: "💊" },
+          { id: "s11u3l3", num: 3, title: "Public Notices", icon: "📢" },
+          { id: "s11u3l4", num: 4, title: "Safety Instructions", icon: "🛡️" },
+          { id: "s11u3l5", num: 5, title: "Unit Assessment", icon: "⭐" }
+        ]
+      }
     ]
   },
   {
     id: "s12", num: 12,
-    title: "Digital Literacy",
-    icon: "💻",
-    skillTarget: "sentence_reading",
+    title: "Real-Life Application",
+    icon: "💼",
+    skillTarget: "comprehension",
     color: "#059669",
     units: [
-      { id: "s12u1", num: 1, title: "Keyboard & Typing", skill: "sentence_reading",
-        lessons: Array.from({ length: 5 }, (_, i) => ({ id: `s12u1l${i+1}`, num: i+1, title: `Lesson ${i+1}`, icon: ["⌨️","💻","🖱️","📧","🌐"][i] })) },
-      { id: "s12u2", num: 2, title: "Mobile & Messaging", skill: "sentence_reading",
-        lessons: Array.from({ length: 5 }, (_, i) => ({ id: `s12u2l${i+1}`, num: i+1, title: `Lesson ${i+1}`, icon: ["📱","💬","🔔","👤","📩"][i] })) },
+      {
+        id: "s12u1", num: 1, title: "Money & Banking", skill: "comprehension",
+        lessons: [
+          { id: "s12u1l1", num: 1, title: "Currency Recognition", icon: "💵" },
+          { id: "s12u1l2", num: 2, title: "Prices & Bills", icon: "🧾" },
+          { id: "s12u1l3", num: 3, title: "Banking Basics", icon: "🏦" },
+          { id: "s12u1l4", num: 4, title: "Digital Payments", icon: "📱" },
+          { id: "s12u1l5", num: 5, title: "Unit Assessment", icon: "⭐" }
+        ]
+      },
+      {
+        id: "s12u2", num: 2, title: "Health & Safety", skill: "comprehension",
+        lessons: [
+          { id: "s12u2l1", num: 1, title: "Hospital Information", icon: "🏥" },
+          { id: "s12u2l2", num: 2, title: "Health Instructions", icon: "🩺" },
+          { id: "s12u2l3", num: 3, title: "Emergency Contacts", icon: "🚨" },
+          { id: "s12u2l4", num: 4, title: "Safety Messages", icon: "🛡️" },
+          { id: "s12u2l5", num: 5, title: "Unit Assessment", icon: "⭐" }
+        ]
+      },
+      {
+        id: "s12u3", num: 3, title: "Travel & Public Services", skill: "comprehension",
+        lessons: [
+          { id: "s12u3l1", num: 1, title: "Bus & Train Information", icon: "🚌" },
+          { id: "s12u3l2", num: 2, title: "Tickets & Schedules", icon: "🎟️" },
+          { id: "s12u3l3", num: 3, title: "Government Services", icon: "🏛️" },
+          { id: "s12u3l4", num: 4, title: "Community Services", icon: "🤝" },
+          { id: "s12u3l5", num: 5, title: "Unit Assessment", icon: "⭐" }
+        ]
+      }
     ]
   }
 ];
@@ -291,15 +603,15 @@ export const generateLearningPath = (skillScores) => {
 
   // Spec rules — add sections for weak skills (< 50%)
   if (letter_recognition < 50) path.push({ sectionId: "s1", unitId: "s1u1", reason: "Letter Recognition needs improvement" });
-  if (word_recognition < 50)   path.push({ sectionId: "s1", unitId: "s1u3", reason: "Word Recognition needs improvement" });
-  if (sentence_reading < 50)   path.push({ sectionId: "s2", unitId: "s2u2", reason: "Sentence Reading needs improvement" });
-  if (writing < 50)            path.push({ sectionId: "s3", unitId: "s3u1", reason: "Writing needs improvement" });
-  if (comprehension < 50)      path.push({ sectionId: "s5", unitId: "s5u1", reason: "Comprehension needs improvement" });
-  if (pronunciation < 50)      path.push({ sectionId: "s6", unitId: "s6u1", reason: "Pronunciation needs improvement" });
+  if (word_recognition < 50)   path.push({ sectionId: "s2", unitId: "s2u1", reason: "Word Recognition needs improvement" });
+  if (sentence_reading < 50)   path.push({ sectionId: "s5", unitId: "s5u1", reason: "Sentence Reading needs improvement" });
+  if (writing < 50)            path.push({ sectionId: "s7", unitId: "s7u1", reason: "Writing needs improvement" });
+  if (comprehension < 50)      path.push({ sectionId: "s6", unitId: "s6u1", reason: "Comprehension needs improvement" });
+  if (pronunciation < 50)      path.push({ sectionId: "s9", unitId: "s9u1", reason: "Pronunciation needs improvement" });
 
   // Always include vocabulary and practical literacy at the end
-  path.push({ sectionId: "s4", unitId: "s4u1", reason: "Vocabulary development" });
-  path.push({ sectionId: "s7", unitId: "s7u1", reason: "Practical literacy skills" });
+  path.push({ sectionId: "s3", unitId: "s3u1", reason: "Vocabulary development" });
+  path.push({ sectionId: "s11", unitId: "s11u1", reason: "Practical literacy skills" });
 
   // Deduplicate
   const seen = new Set();
