@@ -4758,14 +4758,10 @@ function App() {
       return "s1u1l1";
     })();
 
-    const startingIndex = flatLessonsWithLocation.findIndex(item => item.lesson.id === startingLessonId);
-    const startIndexToUse = startingIndex !== -1 ? startingIndex : 0;
-
     // Find the active resumed lesson item
     const activeItem = (showPersonalizedPath && flatPersonalizedLessons.length > 0)
       ? (flatPersonalizedLessons.find(item => !completedLessons.includes(item.lesson.id)) || flatPersonalizedLessons[0])
-      : (flatLessonsWithLocation.slice(startIndexToUse).find(item => !completedLessons.includes(item.lesson.id))
-         || flatLessonsWithLocation[startIndexToUse]
+      : (flatLessonsWithLocation.slice(0).find(item => !completedLessons.includes(item.lesson.id))
          || flatLessonsWithLocation[0]);
 
     const currentUnit = activeItem?.lesson;
@@ -5963,18 +5959,7 @@ function App() {
               });
 
               // Determine starting lesson index based on diagnosed literacy level (per Spec mapping 1-5 levels)
-              const startingLessonId = (() => {
-                const level = profile?.literacy_level || 1;
-                if (level === 2) return "s2u1l1";
-                if (level === 3) return "s3u1l1";
-                if (level === 4) return "s5u1l1";
-                if (level === 5) return "s7u1l1";
-                return "s1u1l1"; // Default/Level 1
-              })();
-
-              const startingLessonIndex = allLessonsList.indexOf(startingLessonId);
-
-              let unitCounter = 0;
+                  let unitCounter = 0;
               let renderedUnitCounter = 0;
 
               return (
@@ -6143,6 +6128,8 @@ function App() {
                                 {unitLessons.map((lesson, lIdx) => {
                                   const isCompleted = completedLessons.includes(lesson.id);
                                   const isUnlocked = (() => {
+                                    // Personalized path: first lesson is open so the learner can start the flow,
+                                    // then sequential unlock as previous lessons are completed.
                                     if (showPersonalizedPath && personalizedLessonsList.length > 0) {
                                       const idx = personalizedLessonsList.indexOf(lesson.id);
                                       if (idx === 0) return true;
@@ -6150,8 +6137,16 @@ function App() {
                                         return completedLessons.includes(personalizedLessonsList[idx - 1]);
                                       }
                                     }
+                                    // Full Path: a locked sequential path for learners who want to start from the
+                                    // beginning. The first lesson is open; each lesson unlocks once the prior one is
+                                    // completed. Any lesson already unlocked via the personalized path stays unlocked.
                                     const lessonIndexInCurriculum = allLessonsList.indexOf(lesson.id);
-                                    return lessonIndexInCurriculum <= startingLessonIndex || completedLessons.includes(allLessonsList[lessonIndexInCurriculum - 1]);
+                                    if (lessonIndexInCurriculum === 0) return true;
+                                    const prevCompleted = lessonIndexInCurriculum > 0 && completedLessons.includes(allLessonsList[lessonIndexInCurriculum - 1]);
+                                    const personalizedIdx = personalizedLessonsList.indexOf(lesson.id);
+                                    const personalizedUnlocked = personalizedIdx === 0
+                                      || (personalizedIdx > 0 && completedLessons.includes(personalizedLessonsList[personalizedIdx - 1]));
+                                    return prevCompleted || personalizedUnlocked;
                                   })();
                                   const status = isCompleted ? "completed" : isUnlocked ? "unlocked" : "locked";
                                   const lessonXp = lIdx === 4 ? 60 : 15;
@@ -6163,8 +6158,13 @@ function App() {
 
                                   const isPopupOpen = activeLessonPopup === lesson.id;
 
-                                  // Find the active resumed lesson ID (starting from their diagnosed level)
-                                  const currentActiveLessonId = allLessonsList.slice(startingLessonIndex).find(id => !completedLessons.includes(id)) || allLessonsList[0];
+                                  // Find the active resumed lesson ID.
+                                  // Personalized Path: the first uncompleted lesson within the personalized list
+                                  // (so we scroll to the last unlocked lesson in the custom path).
+                                  // Full Path: start from the very first lesson (learn from the beginning).
+                                  const currentActiveLessonId = showPersonalizedPath && personalizedLessonsList.length > 0
+                                    ? (personalizedLessonsList.find(id => !completedLessons.includes(id)) || personalizedLessonsList[personalizedLessonsList.length - 1] || allLessonsList[0])
+                                    : (allLessonsList.slice(0).find(id => !completedLessons.includes(id)) || allLessonsList[0]);
                                   const isActiveNode = lesson.id === currentActiveLessonId;
 
                                   return (
