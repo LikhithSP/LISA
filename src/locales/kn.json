@@ -122,5 +122,11 @@
   "viewLearningPath": "ಕಲಿಕೆಯ ಮಾರ್ಗ ವೀಕ್ಷಿಸಿ",
   "No Formal EducationOption": "ಯಾವುದೇ ಔಪಚಾರಿಕ ಶಿಕ್ಷಣವಿಲ್ಲ (ಶಾಲೆಗೆ ಹೋಗಿಲ್ಲ)",
   "Middle SchoolOption": "ಮಧ್ಯಮ ಶಾಲೆ (ತರಗತಿಗಳು 6-8)",
-  "Secondary & AboveOption": "ಪ್ರೌಢಶಾಲೆ ಮತ್ತು ಮೇಲ್ಪಟ್ಟು (ತರಗತಿ 9 ಮತ್ತು ಹೆಚ್ಚಿನದು)"
+  "Secondary & AboveOption": "ಪ್ರೌಢಶಾಲೆ ಮತ್ತು ಮೇಲ್ಪಟ್ಟು (ತರಗತಿ 9 ಮತ್ತು ಹೆಚ್ಚಿನದು)",
+  "skillVocabularyRecognition": "Vocabulary Recognition",
+  "skillSentenceUnderstanding": "Sentence Understanding",
+  "skillReadingComprehension": "Reading Comprehension",
+  "skillPracticalLiteracy": "Practical Literacy",
+  "skillReadingAbility": "Reading Ability",
+  "skillWritingAbility": "Writing Ability"
 }
