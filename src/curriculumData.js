@@ -32,12 +32,12 @@ export const SKILL_TRANSLATION_KEYS = {
 
 export const getStrongSkillKeys = (skillScores, threshold = 50) =>
   Object.entries(skillScores || {})
-    .filter(([_, v]) => typeof v === "number" && v >= threshold)
+    .filter(([_, v]) => typeof v === "number" && v > threshold)
     .map(([k]) => k);
 
 export const getWeakSkillKeys = (skillScores, threshold = 50) =>
   Object.entries(skillScores || {})
-    .filter(([_, v]) => typeof v === "number" && v < threshold)
+    .filter(([_, v]) => typeof v === "number" && v <= threshold)
     .map(([k]) => k);
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -659,13 +659,13 @@ export const getProficiencyName = (level, language = "English") => {
 
 export const getWeakSkills = (skillScores, threshold = 50) => {
   return Object.entries(skillScores || {})
-    .filter(([_, v]) => typeof v === "number" && v < threshold)
+    .filter(([_, v]) => typeof v === "number" && v <= threshold)
     .map(([k]) => SKILL_CATEGORIES[k]?.label || k);
 };
 
 export const getStrongSkills = (skillScores, threshold = 50) => {
   return Object.entries(skillScores || {})
-    .filter(([_, v]) => typeof v === "number" && v >= threshold)
+    .filter(([_, v]) => typeof v === "number" && v > threshold)
     .map(([k]) => SKILL_CATEGORIES[k]?.label || k);
 };
 
