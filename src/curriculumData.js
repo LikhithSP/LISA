@@ -8,22 +8,26 @@ import { assessmentReadingWriting } from "./assessmentReadingWritingData.js";
 // SKILL CATEGORY DEFINITIONS
 // ─────────────────────────────────────────────────────────────────────────────
 export const SKILL_CATEGORIES = {
-  letter_recognition: { label: "Letter Recognition", icon: "🔤", color: "#f59e0b" },
-  word_recognition:   { label: "Word Recognition",   icon: "📝", color: "#3b82f6" },
-  sentence_reading:   { label: "Sentence Reading",   icon: "📖", color: "#10b981" },
-  comprehension:      { label: "Comprehension",       icon: "🧠", color: "#8b5cf6" },
-  writing:            { label: "Writing",             icon: "✍️", color: "#ef4444" },
-  pronunciation:      { label: "Pronunciation",       icon: "🎤", color: "#06b6d4" },
+  letter_recognition: { label: "Letter Recognition", icon: "LR", color: "#f59e0b" },
+  word_recognition: { label: "Word Recognition", icon: "WR", color: "#3b82f6" },
+  vocabulary_recognition: { label: "Vocabulary Recognition", icon: "VR", color: "#14b8a6" },
+  sentence_understanding: { label: "Sentence Understanding", icon: "SU", color: "#10b981" },
+  reading_comprehension: { label: "Reading Comprehension", icon: "RC", color: "#8b5cf6" },
+  practical_literacy: { label: "Practical Literacy", icon: "PL", color: "#f97316" },
+  reading_ability: { label: "Reading Ability", icon: "RA", color: "#06b6d4" },
+  writing_ability: { label: "Writing Ability", icon: "WA", color: "#ef4444" },
 };
 
 // Maps each skill key to its i18n translation key (see translations in App.jsx)
 export const SKILL_TRANSLATION_KEYS = {
   letter_recognition: "skillLetterRecognition",
   word_recognition: "skillWordRecognition",
-  sentence_reading: "skillSentenceReading",
-  comprehension: "skillComprehension",
-  writing: "skillWriting",
-  pronunciation: "skillPronunciation",
+  vocabulary_recognition: "skillVocabularyRecognition",
+  sentence_understanding: "skillSentenceUnderstanding",
+  reading_comprehension: "skillReadingComprehension",
+  practical_literacy: "skillPracticalLiteracy",
+  reading_ability: "skillReadingAbility",
+  writing_ability: "skillWritingAbility",
 };
 
 export const getStrongSkillKeys = (skillScores, threshold = 50) =>
@@ -276,11 +280,11 @@ export const CURRICULUM_SECTIONS = [
     id: "s5", num: 5,
     title: "Reading Sentences",
     icon: "📖",
-    skillTarget: "sentence_reading",
+    skillTarget: "sentence_understanding",
     color: "#8b5cf6",
     units: [
       {
-        id: "s5u1", num: 1, title: "Simple Sentences", skill: "sentence_reading",
+        id: "s5u1", num: 1, title: "Simple Sentences", skill: "sentence_understanding",
         lessons: [
           { id: "s5u1l1", num: 1, title: "Subject & Action", icon: "👤" },
           { id: "s5u1l2", num: 2, title: "Reading Statements", icon: "📄" },
@@ -290,7 +294,7 @@ export const CURRICULUM_SECTIONS = [
         ]
       },
       {
-        id: "s5u2", num: 2, title: "Questions & Answers", skill: "sentence_reading",
+        id: "s5u2", num: 2, title: "Questions & Answers", skill: "sentence_understanding",
         lessons: [
           { id: "s5u2l1", num: 1, title: "Reading Questions", icon: "❓" },
           { id: "s5u2l2", num: 2, title: "Finding Answers", icon: "💡" },
@@ -300,7 +304,7 @@ export const CURRICULUM_SECTIONS = [
         ]
       },
       {
-        id: "s5u3", num: 3, title: "Daily Communication", skill: "sentence_reading",
+        id: "s5u3", num: 3, title: "Daily Communication", skill: "sentence_understanding",
         lessons: [
           { id: "s5u3l1", num: 1, title: "Greetings", icon: "👋" },
           { id: "s5u3l2", num: 2, title: "Requests", icon: "🙏" },
@@ -315,11 +319,11 @@ export const CURRICULUM_SECTIONS = [
     id: "s6", num: 6,
     title: "Reading Comprehension",
     icon: "🧠",
-    skillTarget: "comprehension",
+    skillTarget: "reading_comprehension",
     color: "#14b8a6",
     units: [
       {
-        id: "s6u1", num: 1, title: "Short Paragraphs", skill: "comprehension",
+        id: "s6u1", num: 1, title: "Short Paragraphs", skill: "reading_comprehension",
         lessons: [
           { id: "s6u1l1", num: 1, title: "Reading Short Texts", icon: "📄" },
           { id: "s6u1l2", num: 2, title: "Finding Main Ideas", icon: "💡" },
@@ -329,7 +333,7 @@ export const CURRICULUM_SECTIONS = [
         ]
       },
       {
-        id: "s6u2", num: 2, title: "Stories", skill: "comprehension",
+        id: "s6u2", num: 2, title: "Stories", skill: "reading_comprehension",
         lessons: [
           { id: "s6u2l1", num: 1, title: "Characters", icon: "👥" },
           { id: "s6u2l2", num: 2, title: "Events", icon: "🎭" },
@@ -339,7 +343,7 @@ export const CURRICULUM_SECTIONS = [
         ]
       },
       {
-        id: "s6u3", num: 3, title: "Information Reading", skill: "comprehension",
+        id: "s6u3", num: 3, title: "Information Reading", skill: "reading_comprehension",
         lessons: [
           { id: "s6u3l1", num: 1, title: "Notices", icon: "📢" },
           { id: "s6u3l2", num: 2, title: "Announcements", icon: "📣" },
@@ -358,7 +362,7 @@ export const CURRICULUM_SECTIONS = [
     color: "#ef4444",
     units: [
       {
-        id: "s7u1", num: 1, title: "Writing Letters", skill: "writing",
+        id: "s7u1", num: 1, title: "Writing Letters", skill: "writing_ability",
         lessons: [
           { id: "s7u1l1", num: 1, title: "Letter Formation", icon: "✏️" },
           { id: "s7u1l2", num: 2, title: "Tracing Letters", icon: "🖊️" },
@@ -368,7 +372,7 @@ export const CURRICULUM_SECTIONS = [
         ]
       },
       {
-        id: "s7u2", num: 2, title: "Writing Words", skill: "writing",
+        id: "s7u2", num: 2, title: "Writing Words", skill: "writing_ability",
         lessons: [
           { id: "s7u2l1", num: 1, title: "Copy Words", icon: "🖋️" },
           { id: "s7u2l2", num: 2, title: "Complete Words", icon: "🧩" },
@@ -378,7 +382,7 @@ export const CURRICULUM_SECTIONS = [
         ]
       },
       {
-        id: "s7u3", num: 3, title: "Writing Sentences", skill: "writing",
+        id: "s7u3", num: 3, title: "Writing Sentences", skill: "writing_ability",
         lessons: [
           { id: "s7u3l1", num: 1, title: "Simple Sentences", icon: "💬" },
           { id: "s7u3l2", num: 2, title: "Sentence Completion", icon: "📝" },
@@ -393,11 +397,11 @@ export const CURRICULUM_SECTIONS = [
     id: "s8", num: 8,
     title: "Grammar Foundations",
     icon: "🏛️",
-    skillTarget: "sentence_reading",
+    skillTarget: "sentence_understanding",
     color: "#ec4899",
     units: [
       {
-        id: "s8u1", num: 1, title: "Nouns", skill: "sentence_reading",
+        id: "s8u1", num: 1, title: "Nouns", skill: "sentence_understanding",
         lessons: [
           { id: "s8u1l1", num: 1, title: "People", icon: "🧑" },
           { id: "s8u1l2", num: 2, title: "Places", icon: "🏢" },
@@ -407,7 +411,7 @@ export const CURRICULUM_SECTIONS = [
         ]
       },
       {
-        id: "s8u2", num: 2, title: "Verbs", skill: "sentence_reading",
+        id: "s8u2", num: 2, title: "Verbs", skill: "sentence_understanding",
         lessons: [
           { id: "s8u2l1", num: 1, title: "Action Words", icon: "🏃" },
           { id: "s8u2l2", num: 2, title: "Daily Actions", icon: "📅" },
@@ -417,7 +421,7 @@ export const CURRICULUM_SECTIONS = [
         ]
       },
       {
-        id: "s8u3", num: 3, title: "Sentence Structure", skill: "sentence_reading",
+        id: "s8u3", num: 3, title: "Sentence Structure", skill: "sentence_understanding",
         lessons: [
           { id: "s8u3l1", num: 1, title: "Subject", icon: "👤" },
           { id: "s8u3l2", num: 2, title: "Verb", icon: "⚡" },
@@ -432,11 +436,11 @@ export const CURRICULUM_SECTIONS = [
     id: "s9", num: 9,
     title: "Listening & Pronunciation",
     icon: "🎤",
-    skillTarget: "pronunciation",
+    skillTarget: "reading_ability",
     color: "#06b6d4",
     units: [
       {
-        id: "s9u1", num: 1, title: "Listening Skills", skill: "pronunciation",
+        id: "s9u1", num: 1, title: "Listening Skills", skill: "reading_ability",
         lessons: [
           { id: "s9u1l1", num: 1, title: "Listening to Words", icon: "👂" },
           { id: "s9u1l2", num: 2, title: "Identifying Sounds", icon: "🔔" },
@@ -446,7 +450,7 @@ export const CURRICULUM_SECTIONS = [
         ]
       },
       {
-        id: "s9u2", num: 2, title: "Word Pronunciation", skill: "pronunciation",
+        id: "s9u2", num: 2, title: "Word Pronunciation", skill: "reading_ability",
         lessons: [
           { id: "s9u2l1", num: 1, title: "Pronouncing Letters", icon: "🗣️" },
           { id: "s9u2l2", num: 2, title: "Pronouncing Words", icon: "🗣️" },
@@ -456,7 +460,7 @@ export const CURRICULUM_SECTIONS = [
         ]
       },
       {
-        id: "s9u3", num: 3, title: "Sentence Pronunciation", skill: "pronunciation",
+        id: "s9u3", num: 3, title: "Sentence Pronunciation", skill: "reading_ability",
         lessons: [
           { id: "s9u3l1", num: 1, title: "Speaking Sentences", icon: "🎙️" },
           { id: "s9u3l2", num: 2, title: "Stress & Rhythm", icon: "🥁" },
@@ -471,11 +475,11 @@ export const CURRICULUM_SECTIONS = [
     id: "s10", num: 10,
     title: "Greetings & Introductions",
     icon: "👋",
-    skillTarget: "pronunciation",
+    skillTarget: "reading_ability",
     color: "#f43f5e",
     units: [
       {
-        id: "s10u1", num: 1, title: "Greetings & Introductions", skill: "pronunciation",
+        id: "s10u1", num: 1, title: "Greetings & Introductions", skill: "reading_ability",
         lessons: [
           { id: "s10u1l1", num: 1, title: "Greetings", icon: "👋" },
           { id: "s10u1l2", num: 2, title: "Introducing Yourself", icon: "👤" },
@@ -485,7 +489,7 @@ export const CURRICULUM_SECTIONS = [
         ]
       },
       {
-        id: "s10u2", num: 2, title: "Everyday Communication", skill: "pronunciation",
+        id: "s10u2", num: 2, title: "Everyday Communication", skill: "reading_ability",
         lessons: [
           { id: "s10u2l1", num: 1, title: "Asking Questions", icon: "❓" },
           { id: "s10u2l2", num: 2, title: "Giving Answers", icon: "💡" },
@@ -495,7 +499,7 @@ export const CURRICULUM_SECTIONS = [
         ]
       },
       {
-        id: "s10u3", num: 3, title: "Social Communication", skill: "pronunciation",
+        id: "s10u3", num: 3, title: "Social Communication", skill: "reading_ability",
         lessons: [
           { id: "s10u3l1", num: 1, title: "Polite Expressions", icon: "😊" },
           { id: "s10u3l2", num: 2, title: "Thank You & Apologies", icon: "🙏" },
@@ -510,11 +514,11 @@ export const CURRICULUM_SECTIONS = [
     id: "s11", num: 11,
     title: "Practical Literacy",
     icon: "📋",
-    skillTarget: "comprehension",
+    skillTarget: "reading_comprehension",
     color: "#f97316",
     units: [
       {
-        id: "s11u1", num: 1, title: "Signs & Symbols", skill: "comprehension",
+        id: "s11u1", num: 1, title: "Signs & Symbols", skill: "reading_comprehension",
         lessons: [
           { id: "s11u1l1", num: 1, title: "Road Signs", icon: "🛑" },
           { id: "s11u1l2", num: 2, title: "Safety Signs", icon: "⚠️" },
@@ -524,7 +528,7 @@ export const CURRICULUM_SECTIONS = [
         ]
       },
       {
-        id: "s11u2", num: 2, title: "Forms & Documents", skill: "comprehension",
+        id: "s11u2", num: 2, title: "Forms & Documents", skill: "reading_comprehension",
         lessons: [
           { id: "s11u2l1", num: 1, title: "Personal Information", icon: "📝" },
           { id: "s11u2l2", num: 2, title: "Registration Forms", icon: "📋" },
@@ -534,7 +538,7 @@ export const CURRICULUM_SECTIONS = [
         ]
       },
       {
-        id: "s11u3", num: 3, title: "Instructions & Notices", skill: "comprehension",
+        id: "s11u3", num: 3, title: "Instructions & Notices", skill: "reading_comprehension",
         lessons: [
           { id: "s11u3l1", num: 1, title: "Product Labels", icon: "🏷️" },
           { id: "s11u3l2", num: 2, title: "Medicine Labels", icon: "💊" },
@@ -549,11 +553,11 @@ export const CURRICULUM_SECTIONS = [
     id: "s12", num: 12,
     title: "Real-Life Application",
     icon: "💼",
-    skillTarget: "comprehension",
+    skillTarget: "reading_comprehension",
     color: "#059669",
     units: [
       {
-        id: "s12u1", num: 1, title: "Money & Banking", skill: "comprehension",
+        id: "s12u1", num: 1, title: "Money & Banking", skill: "reading_comprehension",
         lessons: [
           { id: "s12u1l1", num: 1, title: "Currency Recognition", icon: "💵" },
           { id: "s12u1l2", num: 2, title: "Prices & Bills", icon: "🧾" },
@@ -563,7 +567,7 @@ export const CURRICULUM_SECTIONS = [
         ]
       },
       {
-        id: "s12u2", num: 2, title: "Health & Safety", skill: "comprehension",
+        id: "s12u2", num: 2, title: "Health & Safety", skill: "reading_comprehension",
         lessons: [
           { id: "s12u2l1", num: 1, title: "Hospital Information", icon: "🏥" },
           { id: "s12u2l2", num: 2, title: "Health Instructions", icon: "🩺" },
@@ -573,7 +577,7 @@ export const CURRICULUM_SECTIONS = [
         ]
       },
       {
-        id: "s12u3", num: 3, title: "Travel & Public Services", skill: "comprehension",
+        id: "s12u3", num: 3, title: "Travel & Public Services", skill: "reading_comprehension",
         lessons: [
           { id: "s12u3l1", num: 1, title: "Bus & Train Information", icon: "🚌" },
           { id: "s12u3l2", num: 2, title: "Tickets & Schedules", icon: "🎟️" },
@@ -592,28 +596,25 @@ export const CURRICULUM_SECTIONS = [
 // ─────────────────────────────────────────────────────────────────────────────
 export const generateLearningPath = (skillScores) => {
   const path = [];
-  const {
-    letter_recognition = 100,
-    word_recognition = 100,
-    sentence_reading = 100,
-    writing = 100,
-    comprehension = 100,
-    pronunciation = 100,
-  } = skillScores || {};
+  const scores = skillScores || {};
+  const add = (skill, sectionId, unitId, lessonId, reason) => {
+    if ((scores[skill] ?? 100) < 50) path.push({ skill, sectionId, unitId, lessonId, reason });
+  };
 
-  // Spec rules — add sections for weak skills (< 50%)
-  if (letter_recognition < 50) path.push({ sectionId: "s1", unitId: "s1u1", reason: "Letter Recognition needs improvement" });
-  if (word_recognition < 50)   path.push({ sectionId: "s2", unitId: "s2u1", reason: "Word Recognition needs improvement" });
-  if (sentence_reading < 50)   path.push({ sectionId: "s5", unitId: "s5u1", reason: "Sentence Reading needs improvement" });
-  if (writing < 50)            path.push({ sectionId: "s7", unitId: "s7u1", reason: "Writing needs improvement" });
-  if (comprehension < 50)      path.push({ sectionId: "s6", unitId: "s6u1", reason: "Comprehension needs improvement" });
-  if (pronunciation < 50)      path.push({ sectionId: "s9", unitId: "s9u1", reason: "Pronunciation needs improvement" });
+  add("letter_recognition", "s1", "s1u1", "s1u1l1", "Letter Recognition needs improvement");
+  add("word_recognition", "s2", "s2u1", "s2u1l1", "Word Recognition needs improvement");
+  add("vocabulary_recognition", "s3", "s3u1", "s3u1l1", "Vocabulary Recognition needs improvement");
+  add("sentence_understanding", "s5", "s5u1", "s5u1l1", "Sentence Understanding needs improvement");
+  add("reading_comprehension", "s6", "s6u1", "s6u1l1", "Reading Comprehension needs improvement");
+  add("writing_ability", "s7", "s7u1", "s7u1l1", "Writing Ability needs improvement");
+  add("reading_ability", "s9", "s9u1", "s9u1l1", "Reading Ability needs improvement");
+  add("practical_literacy", "s11", "s11u1", "s11u1l1", "Practical Literacy needs improvement");
 
-  // Always include vocabulary and practical literacy at the end
-  path.push({ sectionId: "s3", unitId: "s3u1", reason: "Vocabulary development" });
-  path.push({ sectionId: "s11", unitId: "s11u1", reason: "Practical literacy skills" });
+  if (path.length === 0) {
+    path.push({ skill: "vocabulary_recognition", sectionId: "s3", unitId: "s3u1", lessonId: "s3u1l1", reason: "Vocabulary enrichment" });
+    path.push({ skill: "practical_literacy", sectionId: "s11", unitId: "s11u1", lessonId: "s11u1l1", reason: "Practical literacy extension" });
+  }
 
-  // Deduplicate
   const seen = new Set();
   return path.filter(p => { if (seen.has(p.sectionId)) return false; seen.add(p.sectionId); return true; });
 };
@@ -637,9 +638,16 @@ export const classifyProficiency = (skillScores) => {
   const scores = Object.values(skillScores || {}).filter(v => typeof v === "number");
   if (scores.length === 0) return 1;
   const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
-  if (avg >= 80) return 5;
-  if (avg >= 60) return 4;
-  if (avg >= 40) return 3;
+  if (avg >= 95) return 12;
+  if (avg >= 88) return 11;
+  if (avg >= 82) return 10;
+  if (avg >= 76) return 9;
+  if (avg >= 70) return 8;
+  if (avg >= 64) return 7;
+  if (avg >= 58) return 6;
+  if (avg >= 50) return 5;
+  if (avg >= 40) return 4;
+  if (avg >= 30) return 3;
   if (avg >= 20) return 2;
   return 1;
 };
@@ -685,20 +693,29 @@ const getLevel = (educationLevel, ageNum) => {
 
 // Map question ID prefix to skill category
 const inferSkillFromQuestion = (question, questionIdx, totalQuestions) => {
-  const id = question?.id || "";
-  // Level 1 questions → letter recognition
-  if (id.includes("_l1_")) return "letter_recognition";
-  // Level 2 → word recognition
-  if (id.includes("_l2_")) return "word_recognition";
-  // Level 3-4 → sentence reading / comprehension  
-  if (id.includes("_l3_")) return "sentence_reading";
-  if (id.includes("_l4_")) return "comprehension";
-  if (id.includes("_l5_")) return "comprehension";
+  if (Array.isArray(question?.skills) && question.skills.length > 0) return question.skills[0];
+  if (question?.skill) return question.skill;
 
-  // Fallback: distribute skills across 10 MCQs
-  const skills = ["letter_recognition", "word_recognition", "sentence_reading", "comprehension", "comprehension",
-                  "word_recognition", "sentence_reading", "comprehension", "letter_recognition", "word_recognition"];
-  return skills[questionIdx % skills.length] || "comprehension";
+  const id = question?.id || "";
+  const text = String(question?.question || "").toLowerCase();
+  if (id.includes("_l1_")) return "letter_recognition";
+  if (id.includes("_l2_")) return "word_recognition";
+  if (id.includes("_l3_")) return "vocabulary_recognition";
+  if (text.includes("sign") || text.includes("notice") || text.includes("timetable") || text.includes("instruction") || text.includes("danger") || text.includes("exit")) {
+    return "practical_literacy";
+  }
+  if (id.includes("_l4_")) return "sentence_understanding";
+  if (id.includes("_l5_")) return "reading_comprehension";
+
+  const skills = [
+    "letter_recognition",
+    "word_recognition",
+    "vocabulary_recognition",
+    "sentence_understanding",
+    "reading_comprehension",
+    "practical_literacy",
+  ];
+  return skills[questionIdx % skills.length] || "reading_comprehension";
 };
 
 // Main assessment generator — returns 12 questions (10 MCQ + 1 reading + 1 writing)
@@ -758,7 +775,7 @@ export const getRandomAssessment = (age, educationLevel, language = "English") =
   const readingQuestions = readings.slice(0, 3).map((text, i) => ({
     id: `${key}_reading_${i + 1}`,
     type: "reading",
-    skill: "pronunciation",
+    skill: "reading_ability",
     rawQuestion: { reading: text },
   }));
 
@@ -767,7 +784,7 @@ export const getRandomAssessment = (age, educationLevel, language = "English") =
     return {
       id: `${key}_writing_${i + 1}`,
       type: "writing",
-      skill: "writing",
+      skill: "writing_ability",
       rawQuestion: { writing: w?.prompt || "Listen to the sentence and write exactly what you hear (in English).", dictation },
       evaluator: (text) => {
         const targetWords = dictation.toLowerCase().split(/\s+/).filter(Boolean);
@@ -801,56 +818,39 @@ export const computeSkillScores = (questions, selectedAnswers, readingAttempts, 
   });
 
   questions.forEach((q, idx) => {
-    const skill = q.skill || "comprehension";
+    const skill = q.skill || "reading_comprehension";
     if (!skillBuckets[skill]) skillBuckets[skill] = { correct: 0, total: 0 };
 
     if (q.type === "comprehension") {
       const isCorrect = selectedAnswers[idx] === q.correctIndex ? 1 : 0;
-      skillBuckets["comprehension"].total += 1;
-      skillBuckets["comprehension"].correct += isCorrect;
-      if (skill === "letter_recognition" || skill === "word_recognition") {
-        skillBuckets[skill].total += 1;
-        skillBuckets[skill].correct += isCorrect;
-      }
-
+      skillBuckets[skill].total += 1;
+      skillBuckets[skill].correct += isCorrect;
     } else if (q.type === "reading") {
       const attempt = readingAttempts[idx];
       const ratio = (attempt && attempt.totalWords > 0) ? attempt.matchedCount / attempt.totalWords : 0;
-      skillBuckets["pronunciation"].total += 1;
-      skillBuckets["pronunciation"].correct += ratio;
-      skillBuckets["sentence_reading"].total += 1;
-      skillBuckets["sentence_reading"].correct += ratio;
-
+      skillBuckets.reading_ability.total += 1;
+      skillBuckets.reading_ability.correct += ratio;
     } else if (q.type === "writing") {
       const text = writingAnswers[idx] || "";
       const result = q.evaluator ? q.evaluator(text) : { score: 0 };
-      skillBuckets["writing"].total += 1;
-      skillBuckets["writing"].correct += result.score / 10;
+      skillBuckets.writing_ability.total += 1;
+      skillBuckets.writing_ability.correct += result.score / 10;
     }
   });
 
-  // Convert to percentages
   const scores = {};
   Object.entries(skillBuckets).forEach(([skill, { correct, total }]) => {
     scores[skill] = total > 0 ? Math.round((correct / total) * 100) : null;
   });
 
-  // Fill any null skills with smart defaults based on other scores
-  const nonNullScores = Object.values(scores).filter(v => v !== null);
-  const avgNonNull = nonNullScores.length > 0
-    ? Math.round(nonNullScores.reduce((a, b) => a + b, 0) / nonNullScores.length)
-    : 50;
+  const assessedScores = Object.values(scores).filter(v => typeof v === "number");
+  const avgAssessed = assessedScores.length > 0
+    ? Math.round(assessedScores.reduce((a, b) => a + b, 0) / assessedScores.length)
+    : 0;
 
-  // Skills not directly assessed get estimated from adjacent skills
-  if (scores.letter_recognition === null) {
-    scores.letter_recognition = scores.word_recognition !== null ? Math.round(scores.word_recognition * 1.1) : avgNonNull;
-  }
-  if (scores.word_recognition === null) scores.word_recognition = avgNonNull;
-  if (scores.sentence_reading === null) scores.sentence_reading = scores.comprehension !== null ? Math.round(scores.comprehension * 0.9) : avgNonNull;
-
-  // Clamp all to 0-100
   Object.keys(scores).forEach(k => {
-    if (scores[k] !== null) scores[k] = Math.max(0, Math.min(100, scores[k]));
+    if (scores[k] === null) scores[k] = avgAssessed;
+    scores[k] = Math.max(0, Math.min(100, scores[k]));
   });
 
   return scores;

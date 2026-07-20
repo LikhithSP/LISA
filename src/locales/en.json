@@ -122,5 +122,11 @@
   "viewLearningPath": "View Learning Path",
   "No Formal EducationOption": "No Formal Education (Never attended school)",
   "Middle SchoolOption": "Middle School (Classes 6–8)",
-  "Secondary & AboveOption": "Secondary & Above (Class 9 and higher)"
+  "Secondary & AboveOption": "Secondary & Above (Class 9 and higher)",
+  "skillVocabularyRecognition": "Vocabulary Recognition",
+  "skillSentenceUnderstanding": "Sentence Understanding",
+  "skillReadingComprehension": "Reading Comprehension",
+  "skillPracticalLiteracy": "Practical Literacy",
+  "skillReadingAbility": "Reading Ability",
+  "skillWritingAbility": "Writing Ability"
 }

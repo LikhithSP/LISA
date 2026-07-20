@@ -122,5 +122,11 @@
   "viewLearningPath": "கற்றல் பாதையைக் காண்க",
   "No Formal EducationOption": "முறையான கல்வி இல்லை (ஒருபோதும் பள்ளிக்குச் சென்றதில்லை)",
   "Middle SchoolOption": "நடுநிலைப் பள்ளி (வகுப்புகள் 6-8)",
-  "Secondary & AboveOption": "மேல்நிலைக் கல்வி மற்றும் அதற்கு மேல் (வகுப்பு 9 மற்றும் அதற்கு மேல்)"
+  "Secondary & AboveOption": "மேல்நிலைக் கல்வி மற்றும் அதற்கு மேல் (வகுப்பு 9 மற்றும் அதற்கு மேல்)",
+  "skillVocabularyRecognition": "Vocabulary Recognition",
+  "skillSentenceUnderstanding": "Sentence Understanding",
+  "skillReadingComprehension": "Reading Comprehension",
+  "skillPracticalLiteracy": "Practical Literacy",
+  "skillReadingAbility": "Reading Ability",
+  "skillWritingAbility": "Writing Ability"
 }

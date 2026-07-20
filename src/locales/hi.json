@@ -122,5 +122,11 @@
   "viewLearningPath": "सीखने का मार्ग देखें",
   "No Formal EducationOption": "कोई औपचारिक शिक्षा नहीं (कभी स्कूल नहीं गए)",
   "Middle SchoolOption": "मध्यम स्कूल (कक्षा 6-8)",
-  "Secondary & AboveOption": "माध्यमिक और उससे ऊपर (कक्षा 9 और उससे उच्च)"
+  "Secondary & AboveOption": "माध्यमिक और उससे ऊपर (कक्षा 9 और उससे उच्च)",
+  "skillVocabularyRecognition": "Vocabulary Recognition",
+  "skillSentenceUnderstanding": "Sentence Understanding",
+  "skillReadingComprehension": "Reading Comprehension",
+  "skillPracticalLiteracy": "Practical Literacy",
+  "skillReadingAbility": "Reading Ability",
+  "skillWritingAbility": "Writing Ability"
 }

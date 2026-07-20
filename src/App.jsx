@@ -19,6 +19,38 @@ import WeeklyLeaderboard from "./WeeklyLeaderboard";
 const languages = ["English", "Hindi", "Kannada", "Telugu", "Tamil"];
 const educationLevels = ["No Formal Education", "Primary", "Middle School", "Secondary & Above"];
 
+const FALLBACK_PRACTICE_MISTAKES = [
+  {
+    id: "fallback_m1",
+    type: "Review",
+    prompt: "Translate to English",
+    text: "वह हर दिन अभ्यास करता है।",
+    correctAnswer: "He practices every day."
+  },
+  {
+    id: "fallback_m2",
+    type: "Review",
+    prompt: "Correct the spelling",
+    text: "recieve",
+    correctAnswer: "receive"
+  },
+  {
+    id: "fallback_m3",
+    type: "Review",
+    prompt: "Identify the noun",
+    text: "The dog barked loudly.",
+    correctAnswer: "dog"
+  }
+];
+
+const FALLBACK_PRACTICE_WORDS = [
+  { word: "Diligent", meaning: "Showing care and effort in work" },
+  { word: "Curious", meaning: "Eager to learn or know things" },
+  { word: "Resilient", meaning: "Able to recover quickly from difficulties" },
+  { word: "Fluency", meaning: "Ability to express oneself easily and articulately" },
+  { word: "Literacy", meaning: "The ability to read and write" }
+];
+
 // Draws a faint guide letter/word on the tracing canvas
 const drawTracingGuide = (canvas, item) => {
   if (!canvas || !item) return;
@@ -596,6 +628,7 @@ function App() {
   const [isEditingCover, setIsEditingCover] = useState(false);
   const [activeTab, setActiveTab] = useState("login"); // "login", "register", "forgot"
   const [dashboardTab, setDashboardTab] = useState("dashboard"); // "dashboard", "learn", "practice", "profile", "shop"
+  const [practiceCollectionPage, setPracticeCollectionPage] = useState(null); // null, "mistakes", "words"
 
   // XP Shop state — loaded per-user from Supabase (profiles.shop_data).
   // No global localStorage keys are used so shop unlocks stay tied to each account.
@@ -633,6 +666,49 @@ function App() {
   const [lessonSession, setLessonSession] = useState(null);
   const [streakCount, setStreakCount] = useState(0);
   const [wordOfDay, setWordOfDay] = useState({ word: "Diligent", meaning: "Hardworking and showing care", example: "A diligent student practices reading a little every day." });
+  const [userMistakes, setUserMistakes] = useState([]);
+
+  const recentMistakes = useMemo(() => {
+    const normalized = (userMistakes || []).map((m, idx) => ({
+      id: m.id || `mistake_${idx}`,
+      type: m.type || m.prompt || "Review this item",
+      prompt: m.prompt || m.type || "Review this item",
+      text: m.sentence || m.question || m.phrase || m.audioText || m.text || m.correctAnswer || m.answer || "Practice this again",
+      correctAnswer: m.correctAnswer || m.answer || m.englishTranslation || ""
+    }));
+    return normalized.length ? normalized : FALLBACK_PRACTICE_MISTAKES;
+  }, [userMistakes]);
+
+  const practiceWords = useMemo(() => {
+    const dynamicWords = [
+      wordOfDay?.word && { word: wordOfDay.word, meaning: wordOfDay.meaning || "Word of the day", isNew: true },
+      ...recentMistakes.map((m) => {
+        const text = String(m.correctAnswer || m.text || "").replace(/[^A-Za-z\s]/g, " ").split(/\s+/).filter(Boolean).find(w => w.length > 3);
+        return text ? { word: text, meaning: m.prompt || "From your mistakes", isNew: true } : null;
+      })
+    ].filter(Boolean);
+    const merged = [...dynamicWords, ...FALLBACK_PRACTICE_WORDS];
+    const seen = new Set();
+    return merged.filter((item) => {
+      const key = item.word.toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    }).slice(0, 72);
+  }, [recentMistakes, wordOfDay]);
+
+  useEffect(() => {
+    if (!session?.user?.id) {
+      setUserMistakes([]);
+      return;
+    }
+    try {
+      const stored = localStorage.getItem(`lisa_user_mistakes_${session.user.id}`);
+      setUserMistakes(stored ? JSON.parse(stored) : []);
+    } catch {
+      setUserMistakes([]);
+    }
+  }, [session?.user?.id]);
 
   const [dailyXp, setDailyXp] = useState(0);
   const [dailyTimeSpent, setDailyTimeSpent] = useState(0); // in seconds
@@ -2181,6 +2257,31 @@ function App() {
     );
   };
 
+  const recordUserMistake = (mistake) => {
+    if (!session?.user?.id || !mistake) return;
+    const item = {
+      id: `mistake_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+      date: new Date().toISOString(),
+      ...mistake
+    };
+    setUserMistakes(prev => {
+      const next = [item, ...prev].slice(0, 50);
+      localStorage.setItem(`lisa_user_mistakes_${session.user.id}`, JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const openPracticeCollection = (page) => {
+    setPracticeCollectionPage(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const startCollectionPractice = (type) => {
+    const title = type === "mistakes" ? "Mistakes Practice" : "Words Practice";
+    const desc = type === "mistakes" ? "Review your recent mistakes" : "Practice your saved words";
+    startLessonSession({ id: `l${currentLevelNum}_${type}_practice`, title, desc });
+  };
+
   const completeLesson = async (lessonId, xpAwarded) => {
 
     if (!session?.user?.id) return;
@@ -2318,7 +2419,7 @@ function App() {
         language: selectedLanguage || "English",
         literacyLevel: currentLevelNum,
         literacyLevelName: profInfo?.name || "Beginner",
-        mistakesList: [],
+        mistakesList: lesson.title === "Mistakes Practice" ? recentMistakes : [],
         useFallback: !aiEnabled
       });
     } else {
@@ -3286,11 +3387,11 @@ function App() {
       const achievementsDefinitions = [
         { id: 1, condition: true },
         { id: 2, condition: calculateSkillProficiency("reading") >= 75 },
-        { id: 3, condition: calculateSkillProficiency("comprehension") >= 75 },
+        { id: 3, condition: calculateSkillProficiency("reading_comprehension") >= 75 },
         { id: 4, condition: calculateSkillProficiency("writing") >= 75 },
         { id: 5, condition: userXp >= 100 },
         { id: 6, condition: completedLessons.filter(id => !id.startsWith("ach_")).length >= 3 },
-        { id: 7, condition: calculateSkillProficiency("pronunciation") >= 75 },
+        { id: 7, condition: calculateSkillProficiency("reading_ability") >= 75 },
         { id: 8, condition: currentLevel >= 8 },
         { id: 9, condition: currentLevel >= 12 },
       ];
@@ -4073,12 +4174,17 @@ function App() {
         percentage: overallPercent,
         level: diagnosedLevel,
         skills: {
-          reading: skillScores.sentence_reading || 0,
-          comprehension: skillScores.comprehension || 0,
-          writing: skillScores.writing || 0,
+          reading: skillScores.reading_ability || 0,
+          comprehension: skillScores.reading_comprehension || 0,
+          writing: skillScores.writing_ability || 0,
           letter_recognition: skillScores.letter_recognition || 0,
           word_recognition: skillScores.word_recognition || 0,
-          pronunciation: skillScores.pronunciation || 0,
+          vocabulary_recognition: skillScores.vocabulary_recognition || 0,
+          sentence_understanding: skillScores.sentence_understanding || 0,
+          reading_comprehension: skillScores.reading_comprehension || 0,
+          practical_literacy: skillScores.practical_literacy || 0,
+          reading_ability: skillScores.reading_ability || 0,
+          writing_ability: skillScores.writing_ability || 0,
         },
         skillScores,
         weakAreas,
@@ -5045,7 +5151,7 @@ function App() {
                 const skillScores = latestAttempt?.skillScores || {};
                 const overallPercent = latestAttempt?.percentage || 0;
 
-                // New 6-skill analysis
+                // Diagnostic skill analysis
                 const strongKeys = latestAttempt?.strongSkillKeys || getStrongSkillKeys(skillScores);
                 const weakKeys = latestAttempt?.weakSkillKeys || getWeakSkillKeys(skillScores);
 
@@ -5054,14 +5160,12 @@ function App() {
                 if (overallPercent >= 90) dailyPracticeTime = t("daily10min");
                 else if (overallPercent < 50) dailyPracticeTime = t("daily25min");
 
-                const skillOrder = [
-                  { key: "letter_recognition", label: "Letter Recognition", color: "#f59e0b", icon: "🔤" },
-                  { key: "word_recognition", label: "Word Recognition", color: "#3b82f6", icon: "📝" },
-                  { key: "sentence_reading", label: "Sentence Reading", color: "#10b981", icon: "📖" },
-                  { key: "comprehension", label: "Comprehension", color: "#8b5cf6", icon: "🧠" },
-                  { key: "writing", label: "Writing", color: "#ef4444", icon: "✍️" },
-                  { key: "pronunciation", label: "Pronunciation", color: "#06b6d4", icon: "🎤" },
-                ];
+                const skillOrder = Object.entries(SKILL_CATEGORIES).map(([key, meta]) => ({
+                  key,
+                  label: t(SKILL_TRANSLATION_KEYS[key]) || meta.label,
+                  color: meta.color,
+                  icon: meta.icon,
+                }));
 
 
                 return (
@@ -5115,33 +5219,20 @@ function App() {
 
                       <div className="skill-breakdowns-box" style={{ margin: 0 }}>
                         <h3>{t("skillBreakdown")}</h3>
-                        <div className="skill-progress-bar">
-                          <div className="skill-progress-label">
-                            <span>{t("readingSkill")}</span>
-                            <span>{latestAttempt?.skills?.reading || 0}%</span>
-                          </div>
-                          <div className="bar-bg">
-                            <div className="bar-fill reading" style={{ width: `${latestAttempt?.skills?.reading || 0}%` }}></div>
-                          </div>
-                        </div>
-                        <div className="skill-progress-bar">
-                          <div className="skill-progress-label">
-                            <span>{t("compSkill")}</span>
-                            <span>{latestAttempt?.skills?.comprehension || 0}%</span>
-                          </div>
-                          <div className="bar-bg">
-                            <div className="bar-fill comprehension" style={{ width: `${latestAttempt?.skills?.comprehension || 0}%` }}></div>
-                          </div>
-                        </div>
-                        <div className="skill-progress-bar">
-                          <div className="skill-progress-label">
-                            <span>{t("writingSkill")}</span>
-                            <span>{latestAttempt?.skills?.writing || 0}%</span>
-                          </div>
-                          <div className="bar-bg">
-                            <div className="bar-fill writing" style={{ width: `${latestAttempt?.skills?.writing || 0}%` }}></div>
-                          </div>
-                        </div>
+                        {skillOrder.map(({ key, label, color }) => {
+                          const value = skillScores[key] ?? latestAttempt?.skills?.[key] ?? 0;
+                          return (
+                            <div className="skill-progress-bar" key={key}>
+                              <div className="skill-progress-label">
+                                <span>{label}</span>
+                                <span>{value}%</span>
+                              </div>
+                              <div className="bar-bg">
+                                <div className="bar-fill" style={{ width: `${value}%`, background: color }}></div>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
 
@@ -5729,8 +5820,8 @@ function App() {
                               earned = calculateSkillProficiency("reading") >= 75;
                               progress = Math.min(100, Math.round(calculateSkillProficiency("reading"))); break;
                             case 3:
-                              earned = calculateSkillProficiency("comprehension") >= 75;
-                              progress = Math.min(100, Math.round(calculateSkillProficiency("comprehension"))); break;
+                              earned = calculateSkillProficiency("reading_comprehension") >= 75;
+                              progress = Math.min(100, Math.round(calculateSkillProficiency("reading_comprehension"))); break;
                             case 4:
                               earned = calculateSkillProficiency("writing") >= 75;
                               progress = Math.min(100, Math.round(calculateSkillProficiency("writing"))); break;
@@ -5741,8 +5832,8 @@ function App() {
                               earned = completedLessons.filter(id => !id.startsWith("ach_")).length >= 3;
                               progress = Math.min(100, Math.round((completedLessons.filter(id => !id.startsWith("ach_")).length / 3) * 100)); break;
                             case 7:
-                              earned = calculateSkillProficiency("pronunciation") >= 75;
-                              progress = Math.min(100, Math.round(calculateSkillProficiency("pronunciation"))); break;
+                              earned = calculateSkillProficiency("reading_ability") >= 75;
+                              progress = Math.min(100, Math.round(calculateSkillProficiency("reading_ability"))); break;
                             case 8:
                               earned = currentLevelNum >= 8;
                               progress = Math.min(100, Math.round((currentLevelNum / 8) * 100)); break;
@@ -6059,107 +6150,175 @@ function App() {
 
             {/* 3.2. Practice Tab */}
             {dashboardTab === "practice" && (
-              <div className="practice-grid-layout">
-                {/* Left/Center Column - Custom Practice Sections */}
-                <div className="practice-content-column">
+              practiceCollectionPage === "mistakes" ? (
+                <div className="duo-practice-page">
+                  <button type="button" className="duo-practice-back" onClick={() => setPracticeCollectionPage(null)} aria-label="Back to practice">
+                    <span>←</span>
+                    <span>Practice</span>
+                  </button>
 
-                  {/* Today's Review Section */}
-                  <div className="practice-section">
-                    <h2 className="practice-section-title">{t("practiceTodaysReview")}</h2>
-                    <div className="perfect-pronunciation-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_read_practice`, title: "Perfect Pronunciation", desc: "Speak out sentences aloud" })}>
-                      <div className="perfect-pronunciation-info">
-                        <h3 className="perfect-pronunciation-title">{t("practicePerfectPronunciation")}</h3>
-                        <p className="perfect-pronunciation-desc">{t("practicePerfectPronunciationDesc")}</p>
-                        <button type="button" className="perfect-pronunciation-btn">{t("practiceStart")}</button>
-                      </div>
-                      <img src="/as4.png" alt="Mascot" className="perfect-pronunciation-mascot" />
+                  <section className="duo-practice-hero">
+                    <div className="duo-hero-icon duo-hero-mistakes" aria-hidden="true">
+                      <span>💔</span>
                     </div>
-                  </div>
+                    <h1>Review your recent mistakes</h1>
+                    <button type="button" className="primary-btn duo-start-btn" onClick={() => startCollectionPractice("mistakes")}>START +20 XP</button>
+                  </section>
 
-                  {/* Conversation Section */}
-                  <div className="practice-section">
-                    <h2 className="practice-section-title">{t("practiceConversation")}</h2>
-                    <div className="practice-row-cards">
-                      <div className="practice-row-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_read_practice`, title: "Speak Practice", desc: "Improve your speaking skills with these phrases" })}>
-                        <div className="practice-row-card-content">
-                          <h3 className="practice-row-card-title">{t("practiceSpeak") || "Speak"}</h3>
-                          <p className="practice-row-card-desc">{t("practiceSpeakDesc")}</p>
-                        </div>
-                        <div className="practice-row-card-icon speak-icon">🎙️</div>
-                      </div>
-                      <div className="practice-row-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_write_practice`, title: "Listen Practice", desc: "Boost your listening skills with an audio-only session" })}>
-                        <div className="practice-row-card-content">
-                          <h3 className="practice-row-card-title">{t("practiceListen") || "Listen"}</h3>
-                          <p className="practice-row-card-desc">{t("practiceListenDesc")}</p>
-                        </div>
-                        <div className="practice-row-card-icon listen-icon">🎧</div>
-                      </div>
-                      <div className="practice-row-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_write_practice`, title: "Write Practice", desc: "Enhance your writing skills with interactive exercises" })}>
-                        <div className="practice-row-card-content">
-                          <h3 className="practice-row-card-title">{t("practiceWrite") || "Write"}</h3>
-                          <p className="practice-row-card-desc">{t("practiceWriteDesc") || "Enhance your writing skills with interactive exercises"}</p>
-                        </div>
-                        <div className="practice-row-card-icon write-icon">✍️</div>
-                      </div>
+                  <div className="duo-practice-divider" />
+
+                  <section className="duo-collection-section">
+                    <h2>{recentMistakes.length} mistakes</h2>
+                    <div className="duo-mistake-list">
+                      {recentMistakes.map((mistake, idx) => (
+                        <button
+                          type="button"
+                          className="duo-mistake-row"
+                          key={mistake.id || idx}
+                          onClick={() => startCollectionPractice("mistakes")}
+                        >
+                          <span className="duo-broken-heart" aria-hidden="true">💔</span>
+                          <span className="duo-mistake-copy">
+                            <span className="duo-row-kicker">{mistake.prompt || mistake.type}</span>
+                            <span className="duo-row-main">{mistake.text}</span>
+                          </span>
+                        </button>
+                      ))}
                     </div>
-                  </div>
-
-                  {/* Your collections Section */}
-                  <div className="practice-section">
-                    <h2 className="practice-section-title">{t("practiceYourCollections")}</h2>
-                    <div className="practice-row-cards">
-                      <div className="practice-row-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_write_practice`, title: "Mistakes Practice", desc: "Start a personalized lesson to practice your mistakes" })}>
-                        <div className="practice-row-card-content">
-                          <h3 className="practice-row-card-title">
-                            {t("practiceMistakes")}
-                            <span className="practice-badge">7</span>
-                          </h3>
-                          <p className="practice-row-card-desc">{t("practiceMistakesDesc")}</p>
-                        </div>
-                        <div className="practice-row-card-icon mistakes-icon">🔄</div>
-                      </div>
-
-                      <div className="practice-row-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_write_practice`, title: "Words Practice", desc: "Review your vocabulary at any time" })}>
-                        <div className="practice-row-card-content">
-                          <h3 className="practice-row-card-title">
-                            {t("practiceWords")}
-                            <span className="practice-badge">30+</span>
-                          </h3>
-                          <p className="practice-row-card-desc">{t("practiceWordsDesc")}</p>
-                        </div>
-                        <div className="practice-row-card-icon words-icon">✨</div>
-                      </div>
-
-                      <div className="practice-row-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_comp_practice`, title: "Stories Practice", desc: "Reread a story to review words in context" })}>
-                        <div className="practice-row-card-content">
-                          <h3 className="practice-row-card-title">{t("practiceStories")}</h3>
-                          <p className="practice-row-card-desc">{t("practiceStoriesDesc")}</p>
-                        </div>
-                        <div className="practice-row-card-icon stories-icon">📖</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Fun & Learn Zone */}
-                  <FunLearnZone
-                    onXpEarned={(amount) => {
-                      const newXp = userXp + amount;
-                      setUserXp(newXp);
-                      if (session?.user?.id) {
-                        const userId = session.user.id;
-                        const todayStr = new Date().toLocaleDateString("en-CA");
-                        const storedDailyXp = localStorage.getItem(`lisa_daily_xp_${userId}_${todayStr}`);
-                        const nextDailyXp = (storedDailyXp ? parseInt(storedDailyXp, 10) : 0) + amount;
-                        setDailyXp(nextDailyXp);
-                        localStorage.setItem(`lisa_daily_xp_${userId}_${todayStr}`, nextDailyXp);
-                        supabase.from("profiles").update({ xp: newXp }).eq("id", userId);
-                        recordWeeklyXp(amount);
-                      }
-                    }}
-                  />
-
+                  </section>
                 </div>
-              </div>
+              ) : practiceCollectionPage === "words" ? (
+                <div className="duo-practice-page">
+                  <button type="button" className="duo-practice-back" onClick={() => setPracticeCollectionPage(null)} aria-label="Back to practice">
+                    <span>←</span>
+                    <span>Practice</span>
+                  </button>
+
+                  <section className="duo-practice-hero">
+                    <div className="duo-hero-icon duo-hero-words" aria-hidden="true">
+                      <span>📚</span>
+                    </div>
+                    <h1>Practice your {selectedLanguage || "English"} words</h1>
+                    <button type="button" className="primary-btn duo-start-btn" onClick={() => startCollectionPractice("words")}>START +10 XP</button>
+                  </section>
+
+                  <div className="duo-practice-divider" />
+
+                  <section className="duo-collection-section">
+                    <div className="duo-collection-head">
+                      <h2>{practiceWords.length} words</h2>
+                      <button type="button" className="duo-sort-btn">RECENTLY LEARNED <span>▼</span></button>
+                    </div>
+                    <div className="duo-word-list">
+                      {practiceWords.map((item, idx) => (
+                        <button type="button" className="duo-word-row" key={`word_${item.word}_${idx}`} onClick={() => speakWord(item.word)}>
+                          <span className="duo-audio-icon" aria-hidden="true">🔊</span>
+                          <span className="duo-word-copy">
+                            <span className="duo-word-term">{item.word}</span>
+                            <span className="duo-word-meaning">{item.meaning}</span>
+                          </span>
+                          {item.isNew && <span className="duo-new-dot" aria-label="Recently learned" />}
+                        </button>
+                      ))}
+                    </div>
+                  </section>
+                </div>
+              ) : (
+                <div className="practice-grid-layout">
+                  <div className="practice-content-column">
+                    <div className="practice-section">
+                      <h2 className="practice-section-title">{t("practiceTodaysReview")}</h2>
+                      <div className="perfect-pronunciation-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_read_practice`, title: "Perfect Pronunciation", desc: "Speak out sentences aloud" })}>
+                        <div className="perfect-pronunciation-info">
+                          <h3 className="perfect-pronunciation-title">{t("practicePerfectPronunciation")}</h3>
+                          <p className="perfect-pronunciation-desc">{t("practicePerfectPronunciationDesc")}</p>
+                          <button type="button" className="perfect-pronunciation-btn">{t("practiceStart")}</button>
+                        </div>
+                        <img src="/as4.png" alt="Mascot" className="perfect-pronunciation-mascot" />
+                      </div>
+                    </div>
+
+                    <div className="practice-section">
+                      <h2 className="practice-section-title">{t("practiceConversation")}</h2>
+                      <div className="practice-row-cards">
+                        <div className="practice-row-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_read_practice`, title: "Speak Practice", desc: "Improve your speaking skills with these phrases" })}>
+                          <div className="practice-row-card-content">
+                            <h3 className="practice-row-card-title">{t("practiceSpeak") || "Speak"}</h3>
+                            <p className="practice-row-card-desc">{t("practiceSpeakDesc")}</p>
+                          </div>
+                          <div className="practice-row-card-icon speak-icon">🗣️</div>
+                        </div>
+                        <div className="practice-row-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_write_practice`, title: "Listen Practice", desc: "Boost your listening skills with an audio-only session" })}>
+                          <div className="practice-row-card-content">
+                            <h3 className="practice-row-card-title">{t("practiceListen") || "Listen"}</h3>
+                            <p className="practice-row-card-desc">{t("practiceListenDesc")}</p>
+                          </div>
+                          <div className="practice-row-card-icon listen-icon">🎧</div>
+                        </div>
+                        <div className="practice-row-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_write_practice`, title: "Write Practice", desc: "Enhance your writing skills with interactive exercises" })}>
+                          <div className="practice-row-card-content">
+                            <h3 className="practice-row-card-title">{t("practiceWrite") || "Write"}</h3>
+                            <p className="practice-row-card-desc">{t("practiceWriteDesc") || "Enhance your writing skills with interactive exercises"}</p>
+                          </div>
+                          <div className="practice-row-card-icon write-icon">✍️</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="practice-section">
+                      <h2 className="practice-section-title">{t("practiceYourCollections")}</h2>
+                      <div className="practice-row-cards">
+                        <div className="practice-row-card" onClick={() => openPracticeCollection("mistakes")}>
+                          <div className="practice-row-card-content">
+                            <h3 className="practice-row-card-title">
+                              {t("practiceMistakes")}
+                              <span className="practice-badge">{recentMistakes.length}</span>
+                            </h3>
+                            <p className="practice-row-card-desc">{t("practiceMistakesDesc")}</p>
+                          </div>
+                          <div className="practice-row-card-icon mistakes-icon">💔</div>
+                        </div>
+
+                        <div className="practice-row-card" onClick={() => openPracticeCollection("words")}>
+                          <div className="practice-row-card-content">
+                            <h3 className="practice-row-card-title">
+                              {t("practiceWords")}
+                              <span className="practice-badge">{practiceWords.length}</span>
+                            </h3>
+                            <p className="practice-row-card-desc">{t("practiceWordsDesc")}</p>
+                          </div>
+                          <div className="practice-row-card-icon words-icon">📚</div>
+                        </div>
+
+                        <div className="practice-row-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_comp_practice`, title: "Stories Practice", desc: "Reread a story to review words in context" })}>
+                          <div className="practice-row-card-content">
+                            <h3 className="practice-row-card-title">{t("practiceStories")}</h3>
+                            <p className="practice-row-card-desc">{t("practiceStoriesDesc")}</p>
+                          </div>
+                          <div className="practice-row-card-icon stories-icon">📖</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <FunLearnZone
+                      onXpEarned={(amount) => {
+                        const newXp = userXp + amount;
+                        setUserXp(newXp);
+                        if (session?.user?.id) {
+                          const userId = session.user.id;
+                          const todayStr = new Date().toLocaleDateString("en-CA");
+                          const storedDailyXp = localStorage.getItem(`lisa_daily_xp_${userId}_${todayStr}`);
+                          const nextDailyXp = (storedDailyXp ? parseInt(storedDailyXp, 10) : 0) + amount;
+                          setDailyXp(nextDailyXp);
+                          localStorage.setItem(`lisa_daily_xp_${userId}_${todayStr}`, nextDailyXp);
+                          supabase.from("profiles").update({ xp: newXp }).eq("id", userId);
+                          recordWeeklyXp(amount);
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
+              )
             )}
 
             {/* 3.3. Profile Tab */}
@@ -8802,8 +8961,8 @@ function App() {
                       earned = calculateSkillProficiency("reading") >= 75;
                       progress = Math.min(100, Math.round(calculateSkillProficiency("reading"))); break;
                     case 3:
-                      earned = calculateSkillProficiency("comprehension") >= 75;
-                      progress = Math.min(100, Math.round(calculateSkillProficiency("comprehension"))); break;
+                      earned = calculateSkillProficiency("reading_comprehension") >= 75;
+                      progress = Math.min(100, Math.round(calculateSkillProficiency("reading_comprehension"))); break;
                     case 4:
                       earned = calculateSkillProficiency("writing") >= 75;
                       progress = Math.min(100, Math.round(calculateSkillProficiency("writing"))); break;
@@ -8814,8 +8973,8 @@ function App() {
                       earned = completedLessons.filter(id => !id.startsWith("ach_")).length >= 3;
                       progress = Math.min(100, Math.round((completedLessons.filter(id => !id.startsWith("ach_")).length / 3) * 100)); break;
                     case 7:
-                      earned = calculateSkillProficiency("pronunciation") >= 75;
-                      progress = Math.min(100, Math.round(calculateSkillProficiency("pronunciation"))); break;
+                      earned = calculateSkillProficiency("reading_ability") >= 75;
+                      progress = Math.min(100, Math.round(calculateSkillProficiency("reading_ability"))); break;
                     case 8:
                       earned = currentLevelNum >= 8;
                       progress = Math.min(100, Math.round((currentLevelNum / 8) * 100)); break;

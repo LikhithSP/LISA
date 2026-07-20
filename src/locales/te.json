@@ -122,5 +122,11 @@
   "viewLearningPath": "అభ్యాస మార్గాన్ని చూడండి",
   "No Formal EducationOption": "అధికారిక విద్య లేదు (ఎప్పుడూ పాఠశాలకు వెళ్ళలేదు)",
   "Middle SchoolOption": "మిడిల్ స్కూల్ (తరగతులు 6-8)",
-  "Secondary & AboveOption": "సెకండరీ & అంతకంటే ఎక్కువ (తరగతి 9 మరియు అంతకంటే ఎక్కువ)"
+  "Secondary & AboveOption": "సెకండరీ & అంతకంటే ఎక్కువ (తరగతి 9 మరియు అంతకంటే ఎక్కువ)",
+  "skillVocabularyRecognition": "Vocabulary Recognition",
+  "skillSentenceUnderstanding": "Sentence Understanding",
+  "skillReadingComprehension": "Reading Comprehension",
+  "skillPracticalLiteracy": "Practical Literacy",
+  "skillReadingAbility": "Reading Ability",
+  "skillWritingAbility": "Writing Ability"
 }
