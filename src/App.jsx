@@ -629,6 +629,7 @@ function App() {
   const [activeTab, setActiveTab] = useState("login"); // "login", "register", "forgot"
   const [dashboardTab, setDashboardTab] = useState("dashboard"); // "dashboard", "learn", "practice", "profile", "shop"
   const [practiceCollectionPage, setPracticeCollectionPage] = useState(null); // null, "mistakes", "words"
+  const [showPersonalizedPath, setShowPersonalizedPath] = useState(false);
 
   // XP Shop state — loaded per-user from Supabase (profiles.shop_data).
   // No global localStorage keys are used so shop unlocks stay tied to each account.
@@ -5276,6 +5277,7 @@ function App() {
                         style={{ background: 'var(--accent)', border: 'none', color: 'white', padding: '12px 24px', borderRadius: '12px', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', flex: 1, maxWidth: '300px' }}
                         onClick={() => {
                           setDashboardTab("learn");
+                          setShowPersonalizedPath(true);
                           setAssessmentState("not_started");
                         }}
                       >
@@ -5888,15 +5890,32 @@ function App() {
               const storedSkills = (() => { try { const s = getStoredAssessmentState(session?.user?.id); return s?.skill_scores || profile?.skill_scores || {}; } catch { return {}; } })();
               const weakSkillLabels = getWeakSkills(storedSkills);
 
-              // Render all sections sequentially in standard order (1 to 7) per spec
-              const orderedSections = CURRICULUM_SECTIONS;
+              const hasDiagnosed = hasCompletedAssessment(profile);
+              const recommendedSections = CURRICULUM_SECTIONS.filter(section =>
+                weakSkillLabels.some(w => w.toLowerCase().includes(section.skillTarget?.replace("_", " ") || ""))
+              );
+
+              // Render recommended sections if personalized path is enabled and custom path exists, otherwise standard curriculum
+              const activeSections = (showPersonalizedPath && recommendedSections.length > 0)
+                ? recommendedSections
+                : CURRICULUM_SECTIONS;
 
               // Build a flat ordered list of all lessons in the curriculum for chain unlocking
               const allLessonsList = [];
-              orderedSections.forEach((sec) => {
+              CURRICULUM_SECTIONS.forEach((sec) => {
                 sec.units.forEach((uni) => {
                   uni.lessons.forEach((les) => {
                     allLessonsList.push(les.id);
+                  });
+                });
+              });
+
+              // Build a flat list of lessons in the personalized path
+              const personalizedLessonsList = [];
+              recommendedSections.forEach((sec) => {
+                sec.units.forEach((uni) => {
+                  uni.lessons.forEach((les) => {
+                    personalizedLessonsList.push(les.id);
                   });
                 });
               });
@@ -5914,9 +5933,49 @@ function App() {
               const startingLessonIndex = allLessonsList.indexOf(startingLessonId);
 
               let unitCounter = 0;
+              let renderedUnitCounter = 0;
 
               return (
                 <div className="duo-learn-container" ref={learnJourneyRef}>
+                  {/* Personalized Path Banner */}
+                  <div className="personalized-path-banner-wrapper">
+                    {!hasDiagnosed ? (
+                      <div className="personalized-banner locked" onClick={() => setDashboardTab("dashboard")}>
+                        <div className="personalized-banner-content">
+                          <span className="personalized-banner-badge locked">🔒 PERSONALIZED PATH</span>
+                          <h3>Want a custom study plan?</h3>
+                          <p>Take the Diagnostic Assessment to unlock a personalized path focusing only on your weak areas.</p>
+                        </div>
+                        <button className="personalized-banner-toggle-btn">Take Assessment</button>
+                      </div>
+                    ) : recommendedSections.length === 0 ? (
+                      <div className="personalized-banner locked" style={{ cursor: "default" }}>
+                        <div className="personalized-banner-content">
+                          <span className="personalized-banner-badge">✨ ALL SKILLS MASTERED</span>
+                          <h3>You're doing fantastic!</h3>
+                          <p>No weak areas were identified. You can review all sections below at your own pace.</p>
+                        </div>
+                      </div>
+                    ) : showPersonalizedPath ? (
+                      <div className="personalized-banner active" onClick={() => setShowPersonalizedPath(false)}>
+                        <div className="personalized-banner-content">
+                          <span className="personalized-banner-badge">✨ PERSONALIZED PATH ACTIVE</span>
+                          <h3>Showing your custom learning path</h3>
+                          <p>Focusing only on recommended topics. Click to show the Full Curriculum Path.</p>
+                        </div>
+                        <button className="personalized-banner-toggle-btn">Show Full Path</button>
+                      </div>
+                    ) : (
+                      <div className="personalized-banner" onClick={() => setShowPersonalizedPath(true)}>
+                        <div className="personalized-banner-content">
+                          <span className="personalized-banner-badge">🎯 CUSTOM PATH AVAILABLE</span>
+                          <h3>Focus on recommended topics</h3>
+                          <p>Click to switch to your custom path showing only the recommended lessons.</p>
+                        </div>
+                        <button className="personalized-banner-toggle-btn">Show Personalized Path</button>
+                      </div>
+                    )}
+                  </div>
 
 
 
@@ -5991,8 +6050,10 @@ function App() {
 
 
 
-                  {orderedSections.map((section, secIdx) => {
+                  {activeSections.map((section, secIdx) => {
                     const isSectionRecommended = weakSkillLabels.some(w => w.toLowerCase().includes(section.skillTarget?.replace("_", " ") || ""));
+                    const sectionDisplayNum = showPersonalizedPath ? (secIdx + 1) : section.num;
+                    const totalSectionsDisplay = activeSections.length;
 
                     return (
                       <div key={section.id} className="duo-section-block">
@@ -6000,7 +6061,7 @@ function App() {
                         <div className="duo-section-banner" style={{ background: `linear-gradient(135deg, ${section.color} 0%, ${section.color}cc 100%)`, boxShadow: `0 8px 24px ${section.color}33` }}>
                           <span className="duo-section-banner-icon">{section.icon}</span>
                           <div className="duo-section-banner-text">
-                            <span className="duo-section-banner-meta">{t("learnSectionOf").replace("{current}", section.num).replace("{total}", orderedSections.length)}</span>
+                            <span className="duo-section-banner-meta">{t("learnSectionOf").replace("{current}", sectionDisplayNum).replace("{total}", totalSectionsDisplay)}</span>
                             <h2 className="duo-section-banner-title">{t(`${section.id}_title`) || section.title}</h2>
                           </div>
                           {isSectionRecommended && (
@@ -6009,6 +6070,7 @@ function App() {
                         </div>
 
                         {section.units.map((unit) => {
+                          renderedUnitCounter++;
                           const unitLessons = unit.lessons;
                           const completedInUnit = unitLessons.filter(l => completedLessons.includes(l.id)).length;
                           const currentUnitIndex = unitCounter++;
@@ -6018,7 +6080,7 @@ function App() {
                           return (
                             <div key={unit.id} className="duo-unit-block">
                               <div className="duo-unit-header">
-                                <h3 className="duo-unit-title">{t("learnUnit")} {unit.num}</h3>
+                                <h3 className="duo-unit-title">{t("learnUnit")} {showPersonalizedPath ? renderedUnitCounter : unit.num}</h3>
                                 <span className="duo-unit-topic">{t(`${unit.id}_title`) || unit.title}</span>
                                 <span className="duo-unit-progress">{completedInUnit}/{unitLessons.length} {t("learnDone") || "Done"}</span>
                               </div>
@@ -6038,8 +6100,17 @@ function App() {
 
                                 {unitLessons.map((lesson, lIdx) => {
                                   const isCompleted = completedLessons.includes(lesson.id);
-                                  const lessonIndexInCurriculum = allLessonsList.indexOf(lesson.id);
-                                  const isUnlocked = lessonIndexInCurriculum <= startingLessonIndex || completedLessons.includes(allLessonsList[lessonIndexInCurriculum - 1]);
+                                  const isUnlocked = (() => {
+                                    if (showPersonalizedPath && personalizedLessonsList.length > 0) {
+                                      const idx = personalizedLessonsList.indexOf(lesson.id);
+                                      if (idx === 0) return true;
+                                      if (idx > 0) {
+                                        return completedLessons.includes(personalizedLessonsList[idx - 1]);
+                                      }
+                                    }
+                                    const lessonIndexInCurriculum = allLessonsList.indexOf(lesson.id);
+                                    return lessonIndexInCurriculum <= startingLessonIndex || completedLessons.includes(allLessonsList[lessonIndexInCurriculum - 1]);
+                                  })();
                                   const status = isCompleted ? "completed" : isUnlocked ? "unlocked" : "locked";
                                   const lessonXp = lIdx === 4 ? 60 : 15;
 
