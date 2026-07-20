@@ -5562,7 +5562,7 @@ select:focus {
   color: #10b981;
 }
 
-.listen-icon {
+.listen-icon, .read-icon {
   color: #ef4444;
 }
 
