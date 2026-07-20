@@ -629,7 +629,7 @@ function App() {
   const [activeTab, setActiveTab] = useState("login"); // "login", "register", "forgot"
   const [dashboardTab, setDashboardTab] = useState("dashboard"); // "dashboard", "learn", "practice", "profile", "shop"
   const [practiceCollectionPage, setPracticeCollectionPage] = useState(null); // null, "mistakes", "words"
-  const [showPersonalizedPath, setShowPersonalizedPath] = useState(false);
+  const [showPersonalizedPath, setShowPersonalizedPath] = useState(true);
 
   // XP Shop state — loaded per-user from Supabase (profiles.shop_data).
   // No global localStorage keys are used so shop unlocks stay tied to each account.
@@ -4690,6 +4690,16 @@ function App() {
     const currentLevelNum = calculateProgressiveLevel(profile, completedLessons);
     const currentLang = selectedLanguage || "English";
 
+    const storedSkills = (() => { try { const s = getStoredAssessmentState(session?.user?.id); return s?.skill_scores || profile?.skill_scores || {}; } catch { return {}; } })();
+    const weakSkillLabels = getWeakSkills(storedSkills);
+    const recommendedSections = CURRICULUM_SECTIONS.filter(section =>
+      weakSkillLabels.some(w => w.toLowerCase().includes(section.skillTarget?.replace("_", " ") || ""))
+    );
+
+    const activeDashboardSections = (showPersonalizedPath && recommendedSections.length > 0)
+      ? recommendedSections
+      : CURRICULUM_SECTIONS;
+
     // Build flat list of all lessons with their section/unit info
     const flatLessonsWithLocation = [];
     const sections = CURRICULUM_SECTIONS;
@@ -4701,6 +4711,23 @@ function App() {
             section: sec,
             unit: uni,
             secIdx,
+            uniIdx,
+            lesIdx
+          });
+        });
+      });
+    });
+
+    // Build flat list of all lessons in recommended sections for personalized path continue learning
+    const flatPersonalizedLessons = [];
+    recommendedSections.forEach((sec, secIdx) => {
+      sec.units.forEach((uni, uniIdx) => {
+        uni.lessons.forEach((les, lesIdx) => {
+          flatPersonalizedLessons.push({
+            lesson: les,
+            section: sec,
+            unit: uni,
+            secIdx, // index in activeDashboardSections
             uniIdx,
             lesIdx
           });
@@ -4721,10 +4748,12 @@ function App() {
     const startingIndex = flatLessonsWithLocation.findIndex(item => item.lesson.id === startingLessonId);
     const startIndexToUse = startingIndex !== -1 ? startingIndex : 0;
 
-    // Find the active resumed lesson item (first incomplete starting from startingIndex)
-    const activeItem = flatLessonsWithLocation.slice(startIndexToUse).find(item => !completedLessons.includes(item.lesson.id))
-      || flatLessonsWithLocation[startIndexToUse]
-      || flatLessonsWithLocation[0];
+    // Find the active resumed lesson item
+    const activeItem = (showPersonalizedPath && flatPersonalizedLessons.length > 0)
+      ? (flatPersonalizedLessons.find(item => !completedLessons.includes(item.lesson.id)) || flatPersonalizedLessons[0])
+      : (flatLessonsWithLocation.slice(startIndexToUse).find(item => !completedLessons.includes(item.lesson.id))
+         || flatLessonsWithLocation[startIndexToUse]
+         || flatLessonsWithLocation[0]);
 
     const currentUnit = activeItem?.lesson;
     const currentUnitPos = {
@@ -5596,10 +5625,10 @@ function App() {
                   <div className="resume-card">
                     <div className="resume-card-info">
                       <span className="resume-card-label">{t("dashboardContinueLearning")}</span>
-                        <h3 className="resume-card-title">{t(`${sections[currentUnitPos.sectionIdx]?.units[currentUnitPos.unitIdx]?.id}_title`) || sections[currentUnitPos.sectionIdx]?.units[currentUnitPos.unitIdx]?.title || t("dashboardStartLearning")}</h3>
+                        <h3 className="resume-card-title">{t(`${activeDashboardSections[currentUnitPos.sectionIdx]?.units[currentUnitPos.unitIdx]?.id}_title`) || activeDashboardSections[currentUnitPos.sectionIdx]?.units[currentUnitPos.unitIdx]?.title || t("dashboardStartLearning")}</h3>
                         <div className="resume-card-sub" style={{ display: 'flex', flexDirection: 'column' }}>
                           <span style={{ fontSize: '0.85rem' }}>
-                            {t("dashboardSection")}: {t(`${sections[currentUnitPos.sectionIdx]?.id}_title`) || sections[currentUnitPos.sectionIdx]?.title || `${t("dashboardSection")} ${currentUnitPos.sectionIdx + 1}`}
+                            {t("dashboardSection")}: {t(`${activeDashboardSections[currentUnitPos.sectionIdx]?.id}_title`) || activeDashboardSections[currentUnitPos.sectionIdx]?.title || `${t("dashboardSection")} ${currentUnitPos.sectionIdx + 1}`}
                           </span>
                           <span style={{
                             fontSize: '0.78rem',
