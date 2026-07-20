@@ -5964,118 +5964,20 @@ function App() {
 
               return (
                 <div className="duo-learn-container" ref={learnJourneyRef}>
-                  {/* Personalized Path Banner */}
-                  <div className="personalized-path-banner-wrapper">
-                    {!hasDiagnosed ? (
-                      <div className="personalized-banner locked" onClick={() => setDashboardTab("dashboard")}>
-                        <div className="personalized-banner-content">
-                          <span className="personalized-banner-badge locked">🔒 PERSONALIZED PATH</span>
-                          <h3>Want a custom study plan?</h3>
-                          <p>Take the Diagnostic Assessment to unlock a personalized path focusing only on your weak areas.</p>
-                        </div>
-                        <button className="personalized-banner-toggle-btn">Take Assessment</button>
-                      </div>
-                    ) : recommendedSections.length === 0 ? (
-                      <div className="personalized-banner locked" style={{ cursor: "default" }}>
-                        <div className="personalized-banner-content">
-                          <span className="personalized-banner-badge">✨ ALL SKILLS MASTERED</span>
-                          <h3>You're doing fantastic!</h3>
-                          <p>No weak areas were identified. You can review all sections below at your own pace.</p>
-                        </div>
-                      </div>
-                    ) : showPersonalizedPath ? (
-                      <div className="personalized-banner active" onClick={() => setShowPersonalizedPath(false)}>
-                        <div className="personalized-banner-content">
-                          <span className="personalized-banner-badge">✨ PERSONALIZED PATH ACTIVE</span>
-                          <h3>Showing your custom learning path</h3>
-                          <p>Focusing only on recommended topics. Click to show the Full Curriculum Path.</p>
-                        </div>
-                        <button className="personalized-banner-toggle-btn">Show Full Path</button>
-                      </div>
-                    ) : (
-                      <div className="personalized-banner" onClick={() => setShowPersonalizedPath(true)}>
-                        <div className="personalized-banner-content">
-                          <span className="personalized-banner-badge">🎯 CUSTOM PATH AVAILABLE</span>
-                          <h3>Focus on recommended topics</h3>
-                          <p>Click to switch to your custom path showing only the recommended lessons.</p>
-                        </div>
-                        <button className="personalized-banner-toggle-btn">Show Personalized Path</button>
-                      </div>
-                    )}
-                  </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+                  {/* Path mode toggle — only shown when a personalized path is available */}
+                  {hasDiagnosed && recommendedSections.length > 0 && (
+                    <div className="path-mode-toggle-wrapper">
+                      <span className="path-mode-toggle-label">{t("learningMode")}</span>
+                      <select
+                        className="path-mode-select"
+                        value={showPersonalizedPath ? "personalized" : "full"}
+                        onChange={(e) => setShowPersonalizedPath(e.target.value === "personalized")}
+                      >
+                        <option value="personalized">{t("pathPersonalized")}</option>
+                        <option value="full">{t("pathFull")}</option>
+                      </select>
+                    </div>
+                  )}
 
                   {activeSections.map((section, secIdx) => {
                     const isSectionRecommended = weakSkillLabels.some(w => w.toLowerCase().includes(section.skillTarget?.replace("_", " ") || ""));
@@ -6091,8 +5993,8 @@ function App() {
                             <span className="duo-section-banner-meta">{t("learnSectionOf").replace("{current}", sectionDisplayNum).replace("{total}", totalSectionsDisplay)}</span>
                             <h2 className="duo-section-banner-title">{t(`${section.id}_title`) || section.title}</h2>
                           </div>
-                          {isSectionRecommended && (
-                            <span className="duo-section-badge">⭐ {t("learnRecommended") || "Recommended"}</span>
+                          {isSectionRecommended && showPersonalizedPath && (
+                            <span className="duo-section-badge">⭐</span>
                           )}
                         </div>
 

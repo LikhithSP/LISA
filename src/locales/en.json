@@ -128,5 +128,8 @@
   "skillReadingComprehension": "Reading Comprehension",
   "skillPracticalLiteracy": "Practical Literacy",
   "skillReadingAbility": "Reading Ability",
-  "skillWritingAbility": "Writing Ability"
+  "skillWritingAbility": "Writing Ability",
+  "learningMode": "Learning Mode",
+  "pathPersonalized": "⭐ Personalized",
+  "pathFull": "📚 Full Path"
 }

@@ -128,5 +128,8 @@
   "skillReadingComprehension": "Reading Comprehension",
   "skillPracticalLiteracy": "Practical Literacy",
   "skillReadingAbility": "Reading Ability",
-  "skillWritingAbility": "Writing Ability"
+  "skillWritingAbility": "Writing Ability",
+  "learningMode": "கற்றல் முறை",
+  "pathPersonalized": "⭐ தனிப்பயன்",
+  "pathFull": "📚 முழு பாதை"
 }
