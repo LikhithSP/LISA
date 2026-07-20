@@ -1442,7 +1442,10 @@ function App() {
                   "Perfect Pronunciation": "practicePerfectPronunciation",
                   "Conversation": "practiceConversation",
                   "Speak": "practiceSpeak",
+                  "Speak Practice": "practiceSpeak",
                   "Listen": "practiceListen",
+                  "Read": "practiceRead",
+                  "Read Practice": "practiceRead",
                   "Write": "practiceWrite",
                   "Mistakes Practice": "practiceMistakes",
                   "Words Practice": "practiceWords",
@@ -2732,6 +2735,8 @@ function App() {
       practiceSpeakDesc: "Improve your speaking skills with these phrases",
       practiceListen: "Listen",
       practiceListenDesc: "Boost your listening skills with an audio-only session",
+      practiceRead: "Read",
+      practiceReadDesc: "Improve your reading comprehension and vocabulary",
       practiceWrite: "Write",
       practiceWriteDesc: "Enhance your writing skills with interactive exercises",
       practiceYourCollections: "Your collections",
@@ -2862,6 +2867,8 @@ function App() {
       practiceSpeakDesc: "इन वाक्यांशों के साथ अपने बोलने के कौशल में सुधार करें",
       practiceListen: "सुनें",
       practiceListenDesc: "केवल सुनने वाले सत्र के साथ अपने सुनने के कौशल को बढ़ाएं",
+      practiceRead: "पढ़ें",
+      practiceReadDesc: "अपनी पढ़ने की समझ और शब्दावली में सुधार करें",
       practiceWrite: "लिखें",
       practiceWriteDesc: "इंटरैक्टिव अभ्यासों के साथ अपने लेखन कौशल को बढ़ाएं",
       practiceYourCollections: "आपके संग्रह",
@@ -2992,6 +2999,8 @@ function App() {
       practiceSpeakDesc: "ಈ ನುಡಿಗಟ್ಟುಗಳೊಂದಿಗೆ ನಿಮ್ಮ ಮಾತನಾಡುವ ಕೌಶಲ್ಯವನ್ನು ಸುಧಾರಿಸಿ",
       practiceListen: "ಕೇಳು",
       practiceListenDesc: "ಕೇವಲ ಆಲಿಸುವ ಸೆಷನ್ ಮೂಲಕ ನಿಮ್ಮ ಆಲಿಸುವ ಕೌಶಲ್ಯವನ್ನು ಹೆಚ್ಚಿಸಿ",
+      practiceRead: "ಓದು",
+      practiceReadDesc: "ನಿಮ್ಮ ಓದುವ ಗ್ರಹಿಕೆ ಮತ್ತು ಶಬ್ದಕೋಶವನ್ನು ಸುಧಾರಿಸಿ",
       practiceWrite: "ಬರೆಯಿರಿ",
       practiceWriteDesc: "ಸಂವಾದಾತ್ಮಕ ಅಭ್ಯಾಸಗಳೊಂದಿಗೆ ನಿಮ್ಮ ಬರವಣಿಗೆಯ ಕೌಶಲ್ಯಗಳನ್ನು ಹೆಚ್ಚಿಸಿ",
       practiceYourCollections: "ನಿಮ್ಮ ಸಂಗ್ರಹಗಳು",
@@ -3121,7 +3130,9 @@ function App() {
       practiceSpeak: "మాట్లాడండి",
       practiceSpeakDesc: "ఈ పదబంధాలతో మీ మాట్లాడే నైపుణ్యాలను మెరుగుపరచుకోండి",
       practiceListen: "వినండి",
-      practiceListenDesc: "ఆడియో మాత్రమే ఉండే సెషన్‌తో మీ వినికిడి నైపుణ్యాలను పెంచుకోండి",
+      practiceListenDesc: "ఆడియో మాత్రమే ఉండే సెషన్‌తో మీ వినికిడి నൈపుణ్యాలను పెంచుకోండి",
+      practiceRead: "Read (చదవండి)",
+      practiceReadDesc: "Improve your reading comprehension and vocabulary",
       practiceWrite: "రాయండి",
       practiceWriteDesc: "ఇంటరాక్టివ్ వ్యాయామాలతో మీ రాయడం నైపుణ్యాలను మెరుగుపరచుకోండి",
       practiceYourCollections: "మీ సేకరణలు",
@@ -3252,6 +3263,8 @@ function App() {
       practiceSpeakDesc: "இந்த சொற்றொடர்களைக் கொண்டு உங்கள் பேசும் திறனை மேம்படுத்துங்கள்",
       practiceListen: "கேள்",
       practiceListenDesc: "ஆடியோ மூலம் உங்கள் கேட்கும் திறனை அதிகரிக்கவும்",
+      practiceRead: "Read (படி)",
+      practiceReadDesc: "Improve your reading comprehension and vocabulary",
       practiceWrite: "எழுதுங்கள்",
       practiceWriteDesc: "ஊடாடும் பயிற்சிகள் மூலம் உங்கள் எழுத்துத் திறனை மேம்படுத்துங்கள்",
       practiceYourCollections: "உங்கள் சேகரிப்புகள்",
@@ -6348,12 +6361,12 @@ function App() {
                           </div>
                           <div className="practice-row-card-icon speak-icon">🗣️</div>
                         </div>
-                        <div className="practice-row-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_write_practice`, title: "Listen Practice", desc: "Boost your listening skills with an audio-only session" })}>
+                        <div className="practice-row-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_read_practice`, title: "Read Practice", desc: "Improve your reading comprehension and vocabulary" })}>
                           <div className="practice-row-card-content">
-                            <h3 className="practice-row-card-title">{t("practiceListen") || "Listen"}</h3>
-                            <p className="practice-row-card-desc">{t("practiceListenDesc")}</p>
+                            <h3 className="practice-row-card-title">{t("practiceRead") || "Read"}</h3>
+                            <p className="practice-row-card-desc">{t("practiceReadDesc") || "Improve your reading comprehension and vocabulary"}</p>
                           </div>
-                          <div className="practice-row-card-icon listen-icon">🎧</div>
+                          <div className="practice-row-card-icon read-icon">📖</div>
                         </div>
                         <div className="practice-row-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_write_practice`, title: "Write Practice", desc: "Enhance your writing skills with interactive exercises" })}>
                           <div className="practice-row-card-content">

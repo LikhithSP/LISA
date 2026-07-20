@@ -426,20 +426,32 @@ Return ONLY valid JSON with this exact structure:
 } (Make sure there are exactly 10 items in the array)`;
   }
 
-  if (practiceType === "Listen Practice") {
-    return `You are LISA, an expert AI literacy tutor. Generate exactly 10 listening practice questions in ${language} suitable for a learner at Literacy Level ${literacyLevel} (${literacyLevelName}).
-Each question must be a simple, practical sentence in ${language}. Provide the sentence and an array of word tiles in ${language} that the user will tap to reconstruct the sentence (include all words of the sentence plus 2-3 distractor words).
+  if (practiceType === "Read Practice") {
+    return `You are LISA, an expert AI literacy tutor. Generate exactly 10 reading practice questions in ${language} suitable for a learner at Literacy Level ${literacyLevel} (${literacyLevelName}).
+The questions must be a mix of the following reading/comprehension activity types:
+1. "mcq": A multiple choice question in ${language} testing reading comprehension, grammar, or word usage.
+2. "meaning": Select the correct English translation/meaning of a target language word or short phrase.
 
 Return ONLY valid JSON with this exact structure:
 {
   "questions": [
     {
       "id": 1,
-      "audioText": "The sentence in ${language} to listen to",
-      "tiles": ["array of 6-8 words in ${language} containing all words from audioText plus 2-3 distractor words"]
+      "type": "mcq",
+      "question": "A comprehension question in ${language} based on a short reading context",
+      "options": ["Option A", "Option B", "Option C", "Option D"],
+      "correctIndex": 0,
+      "explanation": "Explanation of correct answer in ${language}"
+    },
+    {
+      "id": 2,
+      "type": "meaning",
+      "phrase": "Word or short phrase in ${language}",
+      "options": ["Correct English translation", "incorrect distractor 1", "incorrect distractor 2"],
+      "correctIndex": 0
     }
   ]
-} (Make sure there are exactly 10 items in the array)`;
+} (Make sure there are exactly 10 items in the array, using a mix of these types)`;
   }
 
   if (practiceType === "Mistakes Practice") {
@@ -591,46 +603,22 @@ const getFallbackPractice = (params) => {
     };
   }
 
-  if (practiceType === "Listen Practice") {
-    const sentences = language === "Hindi" ? [
-      { audioText: "वह स्कूल जाता है", tiles: ["वह", "स्कूल", "जाता", "है", "घर", "खाता"] },
-      { audioText: "राम किताब पढ़ता है", tiles: ["राम", "किताब", "पढ़ता", "है", "लिखता", "सीता"] },
-      { audioText: "सीता गाना गाती है", tiles: ["सीता", "गाना", "गाती", "है", "नाचती", "गीत"] },
-      { audioText: "आज मौसम बहुत अच्छा है", tiles: ["आज", "मौसम", "बहुत", "अच्छा", "है", "बुरा", "कल"] },
-      { audioText: "मुझे फल खाना पसंद है", tiles: ["मुझे", "फल", "खाना", "पसंद", "है", "नापसंद", "पानी"] },
-      { audioText: "यह मेरी नई पुस्तक है", tiles: ["यह", "मेरी", "नई", "पुस्तक", "है", "पुरानी", "कलम"] },
-      { audioText: "हम सब मिलकर खेलेंगे", tiles: ["हम", "सब", "मिलकर", "खेलेंगे", "पढ़ेंगे", "आप"] },
-      { audioText: "पानी बहुत ठंडा है", tiles: ["पानी", "बहुत", "ठंडा", "है", "गर्म", "चाय"] },
-      { audioText: "पेड़ पर पक्षी बैठे हैं", tiles: ["पेड़", "पर", "पक्षी", "बैठे", "हैं", "बिल्ली", "नीचे"] },
-      { audioText: "समय बहुत मूल्यवान होता है", tiles: ["समय", "बहुत", "मूल्यवान", "होता", "है", "बेकार", "सस्ता"] }
-    ] : language === "Kannada" ? [
-      { audioText: "ಅವನು ಶಾಲೆಗೆ ಹೋಗುತ್ತಾನೆ", tiles: ["ಅವನು", "ಶಾಲೆಗೆ", "ಹೋಗುತ್ತಾನೆ", "ಮನೆಗೆ", "ಬರುತ್ತಾನೆ"] },
-      { audioText: "ರಾಮ್ ಪುಸ್ತಕ ಓದುತ್ತಾನೆ", tiles: ["ರಾಮ್", "ಪುಸ್ತಕ", "ಓದುತ್ತಾನೆ", "ಬರೆಯುತ್ತಾನೆ", "ಸೀತಾ"] },
-      { audioText: "ಸೀತಾ ಹಾಡು ಹಾಡುತ್ತಾಳೆ", tiles: ["ಸೀತಾ", "ಹಾಡು", "ಹಾಡುತ್ತಾಳೆ", "ಕುಣಿಯುತ್ತಾಳೆ", "ಹಾಡುಗಾರ"] },
-      { audioText: "ಇಂದು ಹವಾಮಾನ ಚೆನ್ನಾಗಿದೆ", tiles: ["ಇಂದು", "ಹವಾಮಾನ", "ಚೆನ್ನಾಗಿದೆ", "ಬಿಸಿಲಿದೆ", "ನಾಳೆ"] },
-      { audioText: "ನನಗೆ ಹಣ್ಣು ತಿನ್ನಲು ಇಷ್ಟ", tiles: ["ನನಗೆ", "ಹಣ್ಣು", "ತಿನ್ನಲು", "ಇಷ್ಟ", "ತರಕಾರಿ", "ಕಷ್ಟ"] },
-      { audioText: "ಇದು ನನ್ನ ಪುಸ್ತಕ", tiles: ["ಇದು", "ನನ್ನ", "ಪುಸ್ತಕ", "ಕಂಪ್ಯೂಟರ್", "ಅವಳ"] },
-      { audioText: "ನಾವೆಲ್ಲರೂ ಒಟ್ಟಿಗೆ ಆಡೋಣ", tiles: ["ನಾವೆಲ್ಲರೂ", "ಒಟ್ಟಿಗೆ", "ಆಡೋಣ", "ಓದೋಣ", "ನೀವು"] },
-      { audioText: "ನೀರು ತುಂಬಾ ತಣ್ಣಗಿದೆ", tiles: ["ನೀರು", "ತುಂಬಾ", "ತಣ್ಣಗಿದೆ", "ಬಿಸಿಯಾಗಿದೆ", "ಹಾಲು"] },
-      { audioText: "ಮರದ ಮೇಲೆ ಹಕ್ಕಿಗಳಿವೆ", tiles: ["ಮರದ", "ಮೇಲೆ", "ಹಕ್ಕಿಗಳಿವೆ", "ಕೋತಿಗಳಿವೆ", "ಕೆಳಗೆ"] },
-      { audioText: "ಸಮಯ ತುಂಬಾ ಅಮೂಲ್ಯವಾಗಿದೆ", tiles: ["ಸಮಯ", "ತುಂಬಾ", "ಅಮೂಲ್ಯವಾಗಿದೆ", "ವೇಸ್ಟ್", "ಹಣ"] }
-    ] : [
-      { audioText: "He goes to school", tiles: ["He", "goes", "to", "school", "runs", "they", "market"] },
-      { audioText: "Ram reads a book", tiles: ["Ram", "reads", "a", "book", "writes", "paper", "she"] },
-      { audioText: "Sita sings a song", tiles: ["Sita", "sings", "a", "song", "dances", "beautiful", "he"] },
-      { audioText: "Today the weather is good", tiles: ["Today", "the", "weather", "is", "good", "bad", "hot"] },
-      { audioText: "I like eating fresh fruits", tiles: ["I", "like", "eating", "fresh", "fruits", "vegetables", "dislike"] },
-      { audioText: "This is my new notebook", tiles: ["This", "is", "my", "new", "notebook", "old", "pen"] },
-      { audioText: "We will all play together", tiles: ["We", "will", "all", "play", "together", "study", "alone"] },
-      { audioText: "The drinking water is cold", tiles: ["The", "drinking", "water", "is", "cold", "hot", "warm"] },
-      { audioText: "Birds are sitting on trees", tiles: ["Birds", "are", "sitting", "on", "trees", "ground", "flying"] },
-      { audioText: "Time is very valuable indeed", tiles: ["Time", "is", "very", "valuable", "indeed", "wasted", "money"] }
-    ];
+  if (practiceType === "Read Practice") {
     return {
-      questions: sentences.map((item, idx) => ({
-        id: idx + 1,
-        audioText: item.audioText,
-        tiles: item.tiles
+      questions: Array.from({ length: 10 }, (_, i) => ({
+        id: i + 1,
+        type: i % 2 === 0 ? "mcq" : "meaning",
+        question: i % 2 === 0 
+          ? (language === "Hindi" ? "सूरज किस दिशा से उगता है?" : language === "Kannada" ? "ಸೂರ್ಯನು ಯಾವ ದಿಕ್ಕಿನಲ್ಲಿ ಉದಯಿಸುತ್ತಾನೆ?" : "From which direction does the sun rise?")
+          : undefined,
+        options: i % 2 === 0
+          ? (language === "Hindi" ? ["पूर्व", "पश्चिम", "उत्तर", "दक्षिण"] : language === "Kannada" ? ["ಪೂರ್ವ", "ಪಶ್ಚಿಮ", "ಉತ್ತರ", "ದಕ್ಷಿಣ"] : ["East", "West", "North", "South"])
+          : (language === "Hindi" ? ["पुस्तकालय (Library)", "विद्यालय (School)", "बाज़ार (Market)"] : language === "Kannada" ? ["ಗ್ರಂಥಾಲಯ (Library)", "ಶಾಲೆ (School)", "ಮಾರುಕಟ್ಟೆ (Market)"] : ["Library", "School", "Market"]),
+        phrase: i % 2 !== 0 
+          ? (language === "Hindi" ? "पुस्तकालय" : language === "Kannada" ? "ಗ್ರಂಥಾಲಯ" : "Library")
+          : undefined,
+        correctIndex: 0,
+        explanation: "Correct selection."
       }))
     };
   }
