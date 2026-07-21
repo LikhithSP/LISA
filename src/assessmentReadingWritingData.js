@@ -249,22 +249,22 @@ export const assessmentReadingWritingByLanguage = {
     "child_level_1": {
       "readings": ["ಸೂರ್ಯನು ಬೆಳಿಗ್ಗೆ ಮೂಡುತ್ತಾನೆ.", "ನಾಯಿ ಓಡುತ್ತದೆ.", "ಮಕ್ಕಳು ಆಟವಾಡುತ್ತಾರೆ."],
       "writings": [
-        { "prompt": "Listen to the sentence and write exactly what you hear:", "dictation": "ಸೂರ್ಯನು ಬೆಳಿಗ್ಗೆ ಮೂಡುತ್ತಾನೆ." },
-        { "prompt": "Listen to the sentence and write exactly what you hear:", "dictation": "ನಾಯಿ ಓಡುತ್ತದೆ." },
-        { "prompt": "Listen to the sentence and write exactly what you hear:", "dictation": "ಮಕ್ಕಳು ಆಟವಾಡುತ್ತಾರೆ." }
+        { "prompt": "Listen to the sentence and arrange the word blocks:", "dictation": "ಹಕ್ಕಿಯು ಆಕಾಶದಲ್ಲಿ ಹಾರುತ್ತದೆ." },
+        { "prompt": "Listen to the sentence and arrange the word blocks:", "dictation": "ನಮ್ಮ ಮನೆ ದೊಡ್ಡದಾಗಿದೆ." },
+        { "prompt": "Listen to the sentence and arrange the word blocks:", "dictation": "ಹೂವು ತುಂಬಾ ಕೆಂಪಗಿದೆ." }
       ]
     },
     "child_level_2": {
       "readings": ["ಮಕ್ಕಳು ಶಾಲೆಯಲ್ಲಿ ಓದುತ್ತಾರೆ.", "ನಮ್ಮ ಮನೆಯಲ್ಲಿ ಕೆಂಪು ಕಾರು ಇದೆ.", "ನಾವು ಪ್ರತಿಯೊಂದು ದಿನ ಹಣ್ಣುಗಳನ್ನು ತಿನ್ನುತ್ತೇವೆ."],
       "writings": [
-        { "prompt": "Listen to the sentence and write exactly what you hear:", "dictation": "ಮಕ್ಕಳು ಶಾಲೆಯಲ್ಲಿ ಓದುತ್ತಾರೆ." },
-        { "prompt": "Listen to the sentence and write exactly what you hear:", "dictation": "ನಮ್ಮ ಮನೆಯಲ್ಲಿ ಕೆಂಪು ಕಾರು ಇದೆ." }
+        { "prompt": "Listen to the sentence and arrange the word blocks:", "dictation": "ಗುರುಗಳು ಶಾಲೆಯಲ್ಲಿ ಪಾಠ ಮಾಡುತ್ತಾರೆ." },
+        { "prompt": "Listen to the sentence and arrange the word blocks:", "dictation": "ಬೆಕ್ಕಿನ ಕಣ್ಣುಗಳು ಕತ್ತಲಿನಲ್ಲಿ ಹೊಳೆಯುತ್ತವೆ." }
       ]
     },
     "child_level_3": {
       "readings": ["ರಾಮು ಮತ್ತು ಸೀತಾ ಪ್ರತಿಯೊಂದು ಬೆಳಿಗ್ಗೆ ಸೇಬು ತಿನ್ನುತ್ತಾರೆ.", "ಮಕ್ಕಳು ಮಲಗುವ ಮುನ್ನ ಪುಸ್ತಕ ಓದುತ್ತಾರೆ."],
       "writings": [
-        { "prompt": "Listen to the sentence and write exactly what you hear:", "dictation": "ರಾಮು ಮತ್ತು ಸೀತಾ ಬೆಳಿಗ್ಗೆ ಸೇಬು ತಿನ್ನುತ್ತಾರೆ." }
+        { "prompt": "Listen to the sentence and arrange the word blocks:", "dictation": "ಕಾಡಿನಲ್ಲಿ ಅನೇಕ ಕಾಡು ಪ್ರಾಣಿಗಳು ವಾಸಿಸುತ್ತವೆ." }
       ]
     }
   },
@@ -272,15 +272,15 @@ export const assessmentReadingWritingByLanguage = {
     "child_level_1": {
       "readings": ["सूरज सुबह उगता है।", "कुत्ता दौड़ता है।", "बच्चे खेलते हैं।"],
       "writings": [
-        { "prompt": "Listen to the sentence and write exactly what you hear:", "dictation": "सूरज सुबह उगता है।" },
-        { "prompt": "Listen to the sentence and write exactly what you hear:", "dictation": "कुत्ता दौड़ता है।" },
-        { "prompt": "Listen to the sentence and write exactly what you hear:", "dictation": "बच्चे खेलते हैं।" }
+        { "prompt": "Listen to the sentence and arrange the word blocks:", "dictation": "पक्षी आकाश में उड़ता है।" },
+        { "prompt": "Listen to the sentence and arrange the word blocks:", "dictation": "हमारा घर बहुत बड़ा है।" },
+        { "prompt": "Listen to the sentence and arrange the word blocks:", "dictation": "सुंदर लाल फूल खिला है।" }
       ]
     },
     "child_level_2": {
       "readings": ["बच्चे स्कूल में पढ़ते हैं।", "हमारे घर में लाल कार है।", "हम हर रोज फल खाते हैं।"],
       "writings": [
-        { "prompt": "Listen to the sentence and write exactly what you hear:", "dictation": "बच्चे स्कूल में पढ़ते हैं।" }
+        { "prompt": "Listen to the sentence and arrange the word blocks:", "dictation": "शिक्षक हमें अच्छी बातें सिखाते हैं।" }
       ]
     }
   },
@@ -288,8 +288,8 @@ export const assessmentReadingWritingByLanguage = {
     "child_level_1": {
       "readings": ["సూర్యుడు ఉదయిస్తున్నాడు.", "కుక్క పరిగెడుతోంది.", "పిల్లలు ఆడుకుంటున్నారు."],
       "writings": [
-        { "prompt": "Listen to the sentence and write exactly what you hear:", "dictation": "సూర్యుడు ఉదయిస్తున్నాడు." },
-        { "prompt": "Listen to the sentence and write exactly what you hear:", "dictation": "పిల్లలు ఆడుకుంటున్నారు." }
+        { "prompt": "Listen to the sentence and arrange the word blocks:", "dictation": "పక్షి ఆకాశంలో ఎగురుతోంది." },
+        { "prompt": "Listen to the sentence and arrange the word blocks:", "dictation": "మా ఇల్లు చాలా అందంగా ఉంది." }
       ]
     }
   },
@@ -297,8 +297,8 @@ export const assessmentReadingWritingByLanguage = {
     "child_level_1": {
       "readings": ["சூரியன் உதிக்கிறது.", "நாய் ஓடுகிறது.", "குழந்தைகள் விளையாடுகிறார்கள்."],
       "writings": [
-        { "prompt": "Listen to the sentence and write exactly what you hear:", "dictation": "சூரியன் உதிக்கிறது." },
-        { "prompt": "Listen to the sentence and write exactly what you hear:", "dictation": "குழந்தைகள் விளையாடுகிறார்கள்." }
+        { "prompt": "Listen to the sentence and arrange the word blocks:", "dictation": "பறவை வானத்தில் பறக்கிறது." },
+        { "prompt": "Listen to the sentence and arrange the word blocks:", "dictation": "எங்கள் வீடு பெரியதாக உள்ளது." }
       ]
     }
   }

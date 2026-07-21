@@ -1,8 +1,8 @@
 // LISA — Curriculum Data + Assessment Engine
 // Fixed 7-section curriculum per spec. Lesson content generated dynamically via Gemini AI.
 
-import { assessmentQuestions } from "./assessmentQuestionsData.js";
-import { assessmentReadingWriting } from "./assessmentReadingWritingData.js";
+import { assessmentQuestions, assessmentQuestionsByLanguage } from "./assessmentQuestionsData.js";
+import { assessmentReadingWriting, assessmentReadingWritingByLanguage } from "./assessmentReadingWritingData.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SKILL CATEGORY DEFINITIONS
@@ -30,12 +30,12 @@ export const SKILL_TRANSLATION_KEYS = {
   writing_ability: "skillWritingAbility",
 };
 
-export const getStrongSkillKeys = (skillScores, threshold = 50) =>
+export const getStrongSkillKeys = (skillScores, threshold = 75) =>
   Object.entries(skillScores || {})
     .filter(([_, v]) => typeof v === "number" && v > threshold)
     .map(([k]) => k);
 
-export const getWeakSkillKeys = (skillScores, threshold = 50) =>
+export const getWeakSkillKeys = (skillScores, threshold = 75) =>
   Object.entries(skillScores || {})
     .filter(([_, v]) => typeof v === "number" && v <= threshold)
     .map(([k]) => k);
@@ -598,7 +598,7 @@ export const generateLearningPath = (skillScores) => {
   const path = [];
   const scores = skillScores || {};
   const add = (skill, sectionId, unitId, lessonId, reason) => {
-    if ((scores[skill] ?? 100) < 50) path.push({ skill, sectionId, unitId, lessonId, reason });
+    if ((scores[skill] ?? 100) < 75) path.push({ skill, sectionId, unitId, lessonId, reason });
   };
 
   add("letter_recognition", "s1", "s1u1", "s1u1l1", "Letter Recognition needs improvement");
@@ -658,13 +658,13 @@ export const getProficiencyName = (level, language = "English") => {
   return levels.find(l => l.level === level) || levels[0];
 };
 
-export const getWeakSkills = (skillScores, threshold = 50) => {
+export const getWeakSkills = (skillScores, threshold = 75) => {
   return Object.entries(skillScores || {})
     .filter(([_, v]) => typeof v === "number" && v <= threshold)
     .map(([k]) => SKILL_CATEGORIES[k]?.label || k);
 };
 
-export const getStrongSkills = (skillScores, threshold = 50) => {
+export const getStrongSkills = (skillScores, threshold = 75) => {
   return Object.entries(skillScores || {})
     .filter(([_, v]) => typeof v === "number" && v > threshold)
     .map(([k]) => SKILL_CATEGORIES[k]?.label || k);
