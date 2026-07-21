@@ -131,5 +131,10 @@
   "skillWritingAbility": "Writing Ability",
   "learningMode": "ಕಲಿಕೆಯ ಮೋಡ್",
   "pathPersonalized": "⭐ ವೈಯಕ್ತಿಕ",
-  "pathFull": "📚 ಪೂರ್ಣ ಪಥ"
+  "pathFull": "📚 ಪೂರ್ಣ ಪಥ",
+  "interfaceLanguage": "ಇಂಟರ್ಫೇಸ್ ಭಾಷೆ",
+  "learningLanguage": "ಕಲಿಯುವ ಭಾಷೆ",
+  "selectInterfaceLanguage": "ಇಂಟರ್ಫೇಸ್ ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+  "selectLearningLanguage": "ಕಲಿಯುವ ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+  "whatDoYouWantToLearn": "ನೀವು ಯಾವ ಭಾಷೆಯನ್ನು ಕಲಿಯಲು ಬಯಸುತ್ತೀರಿ?"
 }

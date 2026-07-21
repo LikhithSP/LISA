@@ -36,12 +36,13 @@ create policy "Users can delete their own profile." on public.profiles
 create or replace function public.handle_new_user()
 returns trigger as $$
 begin
-  insert into public.profiles (id, full_name, age, preferred_language, education_level, literacy_level, assessment_completed, streak, last_active_date)
+  insert into public.profiles (id, full_name, age, preferred_language, learning_language, education_level, literacy_level, assessment_completed, streak, last_active_date)
   values (
     new.id,
     coalesce(new.raw_user_meta_data->>'full_name', ''),
     coalesce((new.raw_user_meta_data->>'age')::integer, null),
-    coalesce(new.raw_user_meta_data->>'preferred_language', ''),
+    coalesce(new.raw_user_meta_data->>'preferred_language', 'English'),
+    coalesce(new.raw_user_meta_data->>'learning_language', 'English'),
     coalesce(new.raw_user_meta_data->>'education_level', ''),
     null,
     false,
@@ -60,6 +61,7 @@ create trigger on_auth_user_created
   for each row execute procedure public.handle_new_user();
 
 -- Execute the following SQL statements in the Supabase SQL Editor to support the shop, notification, and profile progression systems:
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS learning_language text DEFAULT 'English';
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS xp integer NOT NULL DEFAULT 0;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS completed_lessons text[] DEFAULT '{}';
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS literacy_level integer;
@@ -75,4 +77,5 @@ ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS weekly_start date;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS avatar_emoji text;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS shop_data jsonb;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS notif_data jsonb;
+
 

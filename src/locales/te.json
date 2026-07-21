@@ -131,5 +131,10 @@
   "skillWritingAbility": "Writing Ability",
   "learningMode": "నేర్చుకునే విధానం",
   "pathPersonalized": "⭐ వ్యక్తిగత",
-  "pathFull": "📚 పూర్తి పథం"
+  "pathFull": "📚 పూర్తి పథం",
+  "interfaceLanguage": "ఇంటర్ఫేస్ భాష",
+  "learningLanguage": "నేర్చుకునే భాష",
+  "selectInterfaceLanguage": "ఇంటర్ఫేస్ భాషను ఎంచుకోండి",
+  "selectLearningLanguage": "నేర్చుకోవాలనుకుంటున్న భాషను ఎంచుకోండి",
+  "whatDoYouWantToLearn": "మీరు ఏ భాష నేర్చుకోవాలనుకుంటున్నారు?"
 }

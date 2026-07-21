@@ -274,8 +274,18 @@ const calculateProgressiveLevel = (userProfile, completedLessonsList) => {
   return Math.min(12, Math.max(1, activeItem.sectionNum));
 };
 
-const hasCompletedAssessment = (userProfile) => {
-  return userProfile?.assessment_completed === true || getLiteracyLevel(userProfile) !== null;
+const hasCompletedAssessment = (userProfile, userId) => {
+  if (userProfile?.assessment_completed === true || getLiteracyLevel(userProfile) !== null) {
+    return true;
+  }
+  if (!userId) return false;
+  try {
+    const key = `lisa_assessment_state_${userId}`;
+    const stored = JSON.parse(localStorage.getItem(key)) || null;
+    return stored?.completed === true || (stored?.skill_scores && Object.keys(stored.skill_scores).length > 0);
+  } catch {
+    return false;
+  }
 };
 
 const getAssessmentStorageKey = (userId) => `lisa_assessment_state_${userId || "anonymous"}`;
@@ -591,6 +601,9 @@ const localDashboardTranslations = {
 function App() {
   const [selectedLanguage, setSelectedLanguage] = useState(
     localStorage.getItem("lisa_lang") || null
+  );
+  const [learningLanguage, setLearningLanguage] = useState(
+    localStorage.getItem("lisa_learning_lang") || "English"
   );
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
@@ -2304,10 +2317,10 @@ function App() {
                   const rec = new SpeechRecognition();
                   rec.continuous = false;
                   rec.interimResults = false;
-                  rec.lang = selectedLanguage === "Kannada" ? "kn-IN" :
-                    selectedLanguage === "Hindi" ? "hi-IN" :
-                      selectedLanguage === "Telugu" ? "te-IN" :
-                        selectedLanguage === "Tamil" ? "ta-IN" : "en-US";
+                  rec.lang = learningLanguage === "Kannada" ? "kn-IN" :
+                    learningLanguage === "Hindi" ? "hi-IN" :
+                      learningLanguage === "Telugu" ? "te-IN" :
+                        learningLanguage === "Tamil" ? "ta-IN" : "en-US";
                   rec.onstart = () => {
                     setLessonSpeakIsListening(true);
                     setLessonSpeakTranscript("");
@@ -3236,7 +3249,9 @@ function App() {
     if (isPractice) {
       aiContent = await generatePracticeContent({
         practiceType: lesson.title,
-        language: selectedLanguage || "English",
+        language: learningLanguage || "English",
+        learningLanguage: learningLanguage || "English",
+        interfaceLanguage: selectedLanguage || "English",
         literacyLevel: currentLevelNum,
         literacyLevelName: profInfo?.name || "Beginner",
         mistakesList: lesson.title === "Mistakes Practice" ? recentMistakes : [],
@@ -3246,7 +3261,9 @@ function App() {
       aiContent = await generateLessonContent({
         age: profile?.age || 25,
         educationLevel: profile?.education_level || "No Formal Education",
-        language: selectedLanguage || "English",
+        language: learningLanguage || "English",
+        learningLanguage: learningLanguage || "English",
+        interfaceLanguage: selectedLanguage || "English",
         literacyLevel: currentLevelNum,
         literacyLevelName: profInfo?.name || "Beginner",
         weakAreas,
@@ -3342,6 +3359,8 @@ function App() {
   const [selectedAnswers, setSelectedAnswers] = useState({}); // { index: optionIndex }
   const [writingAnswers, setWritingAnswers] = useState({}); // { index: "user text" }
   const [readingAttempts, setReadingAttempts] = useState({}); // { index: { matchedCount, totalWords, transcript, scores } }
+  const [shuffledWordBlocks, setShuffledWordBlocks] = useState([]);
+  const [arrangedBlockIndices, setArrangedBlockIndices] = useState([]);
   const [translatingQ, setTranslatingQ] = useState(false);
   const [translatedQ, setTranslatedQ] = useState(null);
 
@@ -3477,6 +3496,20 @@ function App() {
     };
   }, [currentStep, selectedLanguage, assessmentQuestionsList, assessmentState]);
 
+  // Shuffles dictation sentence words into interactive word blocks for the initial assessment writing tasks
+  useEffect(() => {
+    if (assessmentState === "answering" && assessmentQuestionsList && assessmentQuestionsList[currentStep]) {
+      const q = assessmentQuestionsList[currentStep];
+      if (q.type === "writing") {
+        const dictationText = q.rawQuestion?.dictation || "";
+        const cleanWords = dictationText.split(/\s+/).filter(Boolean).map(w => w.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?।]/g, "").trim()).filter(Boolean);
+        const shuffled = [...cleanWords].sort(() => 0.5 - Math.random());
+        setShuffledWordBlocks(shuffled);
+        setArrangedBlockIndices([]);
+      }
+    }
+  }, [currentStep, assessmentQuestionsList, assessmentState]);
+
   // History and analytics
   const [historyAttempts, setHistoryAttempts] = useState(() => {
     try {
@@ -3491,6 +3524,7 @@ function App() {
   const [editFullName, setEditFullName] = useState("");
   const [editAge, setEditAge] = useState("");
   const [editPreferredLang, setEditPreferredLang] = useState("");
+  const [editLearningLang, setEditLearningLang] = useState("");
   const [editEdLevel, setEditEdLevel] = useState("");
 
   // Delete Account States
@@ -3518,6 +3552,7 @@ function App() {
     setEditFullName(profile.full_name || "");
     setEditAge(profile.age || "");
     setEditPreferredLang(profile.preferred_language || selectedLanguage || "English");
+    setEditLearningLang(profile.learning_language || learningLanguage || "English");
     setEditEdLevel(profile.education_level || "No Formal Education");
   }, [profile]);
 
@@ -4473,7 +4508,7 @@ function App() {
           }
         }
 
-        // Sync locally selected language from login screen to database profile
+        // Sync locally selected interface language to database profile
         const localLang = localStorage.getItem("lisa_lang") || selectedLanguage || "English";
         if (localLang && mergedProfile.preferred_language !== localLang) {
           await supabase.from("profiles").update({ preferred_language: localLang }).eq("id", userId);
@@ -4482,6 +4517,17 @@ function App() {
         } else if (mergedProfile.preferred_language) {
           setSelectedLanguage(mergedProfile.preferred_language);
           localStorage.setItem("lisa_lang", mergedProfile.preferred_language);
+        }
+
+        // Sync learning language to database profile
+        const localLearnLang = localStorage.getItem("lisa_learning_lang") || learningLanguage || "English";
+        if (mergedProfile.learning_language) {
+          setLearningLanguage(mergedProfile.learning_language);
+          localStorage.setItem("lisa_learning_lang", mergedProfile.learning_language);
+        } else if (localLearnLang) {
+          await supabase.from("profiles").update({ learning_language: localLearnLang }).eq("id", userId);
+          setProfile(prev => prev ? { ...prev, learning_language: localLearnLang } : null);
+          setLearningLanguage(localLearnLang);
         }
       }
     } catch (err) {
@@ -4504,7 +4550,25 @@ function App() {
           setProfile(prev => prev ? { ...prev, preferred_language: lang } : null);
         }
       } catch (err) {
-        console.error("Error saving profile language preference:", err);
+        console.error("Error saving profile interface language preference:", err);
+      }
+    }
+  };
+
+  const handleLearningLanguageSelect = async (lang) => {
+    setLearningLanguage(lang);
+    localStorage.setItem("lisa_learning_lang", lang);
+    if (session?.user) {
+      try {
+        const { error } = await supabase
+          .from("profiles")
+          .update({ learning_language: lang })
+          .eq("id", session.user.id);
+        if (!error) {
+          setProfile(prev => prev ? { ...prev, learning_language: lang } : null);
+        }
+      } catch (err) {
+        console.error("Error saving profile learning language preference:", err);
       }
     }
   };
@@ -4537,7 +4601,8 @@ function App() {
     const confirmPassword = formData.get("confirmPassword");
     const fullName = formData.get("fullName");
     const age = parseInt(formData.get("age"), 10);
-    const language = formData.get("language");
+    const interfaceLang = formData.get("interfaceLanguage") || selectedLanguage || "English";
+    const learnLang = formData.get("learningLanguage") || learningLanguage || "English";
     const educationLevel = formData.get("educationLevel");
 
     if (password !== confirmPassword) {
@@ -4553,7 +4618,8 @@ function App() {
         data: {
           full_name: fullName,
           age: age,
-          preferred_language: language,
+          preferred_language: interfaceLang,
+          learning_language: learnLang,
           education_level: educationLevel,
         },
       },
@@ -4566,13 +4632,19 @@ function App() {
     }
 
     if (data.user) {
+      setSelectedLanguage(interfaceLang);
+      localStorage.setItem("lisa_lang", interfaceLang);
+      setLearningLanguage(learnLang);
+      localStorage.setItem("lisa_learning_lang", learnLang);
+
       if (data.session) {
         setMessage(t("successAccountCreated"));
         const newProfile = {
           id: data.user.id,
           full_name: fullName,
           age,
-          preferred_language: language,
+          preferred_language: interfaceLang,
+          learning_language: learnLang,
           education_level: educationLevel,
           literacy_level: null,
           assessment_completed: false
@@ -4697,7 +4769,7 @@ function App() {
     const assessment = getRandomAssessment(
       profile?.age || 20,
       profile?.education_level || "No Formal Education",
-      selectedLanguage || "English"
+      learningLanguage || "English"
     );
     setAssessmentQuestionsList(assessment.questions);
     setCurrentStep(0);
@@ -4717,8 +4789,8 @@ function App() {
       recognition.continuous = false;
       recognition.interimResults = false;
 
-      // Always use English (en-US) for speech recognition in the English reading assessment
-      let locale = "en-US";
+      // Use the learning target language locale for speech recognition
+      let locale = getLocale(learningLanguage || "English");
       recognition.lang = locale;
       recognitionRef.current = recognition;
 
@@ -4761,7 +4833,7 @@ function App() {
   };
 
   const speakText = (text, rate) => {
-    const lang = selectedLanguage || "English";
+    const lang = learningLanguage || "English";
     const r = typeof rate === "number" ? rate : 0.9;
 
     if (window.responsiveVoice) {
@@ -5078,6 +5150,7 @@ function App() {
           full_name: editFullName,
           age: parseInt(editAge, 10),
           preferred_language: editPreferredLang,
+          learning_language: editLearningLang,
           education_level: editEdLevel
         })
         .eq("id", session.user.id);
@@ -5091,10 +5164,13 @@ function App() {
         full_name: editFullName,
         age: parseInt(editAge, 10),
         preferred_language: editPreferredLang,
+        learning_language: editLearningLang,
         education_level: editEdLevel
       }));
       setSelectedLanguage(editPreferredLang);
       localStorage.setItem("lisa_lang", editPreferredLang);
+      setLearningLanguage(editLearningLang);
+      localStorage.setItem("lisa_learning_lang", editLearningLang);
       setEditingProfile(false);
     } catch (err) {
       console.error("Profile edit error:", err);
@@ -5301,7 +5377,10 @@ function App() {
         <span>{t("changeLanguageBtn")}</span>
       </button>
       {langDropdownOpen && (
-        <div className="lang-selector-dropdown">
+        <div className="lang-selector-dropdown" style={{ minWidth: "220px", padding: "12px" }}>
+          <div style={{ fontSize: "0.75rem", fontWeight: "700", textTransform: "uppercase", color: "var(--muted)", marginBottom: "6px" }}>
+            {t("interfaceLanguage")}
+          </div>
           {[
             { key: "English", native: "English" },
             { key: "Hindi", native: "हिन्दी" },
@@ -5310,10 +5389,32 @@ function App() {
             { key: "Tamil", native: "தமிழ்" },
           ].map((lang) => (
             <button
-              key={lang.key}
+              key={`ui_${lang.key}`}
               className={`lang-dropdown-item ${selectedLanguage === lang.key ? "active" : ""}`}
               onClick={() => {
                 handleLanguageSelect(lang.key);
+                setLangDropdownOpen(false);
+              }}
+            >
+              {lang.native}
+            </button>
+          ))}
+
+          <div style={{ fontSize: "0.75rem", fontWeight: "700", textTransform: "uppercase", color: "var(--muted)", marginTop: "12px", marginBottom: "6px" }}>
+            {t("learningLanguage")}
+          </div>
+          {[
+            { key: "English", native: "English" },
+            { key: "Hindi", native: "हिन्दी" },
+            { key: "Kannada", native: "ಕನ್ನಡ" },
+            { key: "Telugu", native: "తెలుగు" },
+            { key: "Tamil", native: "தமிழ்" },
+          ].map((lang) => (
+            <button
+              key={`learn_${lang.key}`}
+              className={`lang-dropdown-item ${learningLanguage === lang.key ? "active" : ""}`}
+              onClick={() => {
+                handleLearningLanguageSelect(lang.key);
                 setLangDropdownOpen(false);
               }}
             >
@@ -5332,6 +5433,7 @@ function App() {
         setEditFullName(profile?.full_name || "");
         setEditAge(profile?.age || "");
         setEditPreferredLang(profile?.preferred_language || selectedLanguage || "English");
+        setEditLearningLang(profile?.learning_language || learningLanguage || "English");
         setEditEdLevel(profile?.education_level || "No Formal Education");
       }
       setProfileDropdownOpen(!profileDropdownOpen);
@@ -5418,11 +5520,25 @@ function App() {
               </label>
 
               <label className="profile-dropdown-label">
-                Preferred Language
+                {t("interfaceLanguage")}
                 <select
                   required
                   value={editPreferredLang}
                   onChange={(e) => setEditPreferredLang(e.target.value)}
+                  style={{ width: "100%", boxSizing: "border-box" }}
+                >
+                  {languages.map((l) => (
+                    <option key={l} value={l}>{t(l + "Option")}</option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="profile-dropdown-label">
+                {t("learningLanguage")}
+                <select
+                  required
+                  value={editLearningLang}
+                  onChange={(e) => setEditLearningLang(e.target.value)}
                   style={{ width: "100%", boxSizing: "border-box" }}
                 >
                   {languages.map((l) => (
@@ -5515,14 +5631,16 @@ function App() {
   // Dashboard / Assessment Screens when Logged In
   if (session) {
     const userLevel = getLiteracyLevel(profile);
-    const hasDiagnosed = hasCompletedAssessment(profile);
+    const hasDiagnosed = hasCompletedAssessment(profile, session?.user?.id);
     const currentLevelNum = calculateProgressiveLevel(profile, completedLessons);
     const currentLang = selectedLanguage || "English";
 
     const storedSkills = (() => { try { const s = getStoredAssessmentState(session?.user?.id); return s?.skill_scores || profile?.skill_scores || {}; } catch { return {}; } })();
     const weakSkillLabels = getWeakSkills(storedSkills);
+    const pathRecommendations = generateLearningPath(storedSkills);
+    const recommendedSectionIds = pathRecommendations.map(p => p.sectionId);
     const recommendedSections = CURRICULUM_SECTIONS.filter(section =>
-      weakSkillLabels.some(w => w.toLowerCase().includes(section.skillTarget?.replace("_", " ") || ""))
+      recommendedSectionIds.includes(section.id)
     );
 
     const activeDashboardSections = (showPersonalizedPath && recommendedSections.length > 0)
@@ -5920,7 +6038,7 @@ function App() {
                               <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px', justifyContent: 'space-between', width: '100%' }}>
                                 <div style={{ flex: 1 }}>
                                   <p className="writing-prompt" style={{ margin: 0, fontWeight: 700, fontSize: "1.2rem" }}>{writingPromptText}</p>
-                                  <p className="helper-text" style={{ margin: '8px 0 0' }}>{t("dictationTip") || "Press play and write the sentence you hear."}</p>
+                                  <p className="helper-text" style={{ margin: '8px 0 0' }}>{t("dictationTip") || "Press play and arrange the word blocks to form the sentence you hear."}</p>
                                 </div>
                                 <button
                                   type="button"
@@ -5931,16 +6049,131 @@ function App() {
                                   🔊 {t("listenBtn") || "Listen"}
                                 </button>
                               </div>
-                              <textarea
-                                className="writing-textarea"
-                                placeholder="Write the sentence you heard here..."
-                                rows={6}
-                                value={writingAnswers[currentStep] || ""}
-                                onChange={(e) => setWritingAnswers({ ...writingAnswers, [currentStep]: e.target.value })}
-                              />
-                              <div className="text-counter">
-                                Characters: {(writingAnswers[currentStep] || "").length} | Words: {(writingAnswers[currentStep] || "").split(/\s+/).filter(Boolean).length}
+
+                              {/* Arranged Sentence Workspace */}
+                              <div className="sentence-workspace-label" style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '8px', color: 'var(--text-secondary)' }}>
+                                Your Answer:
                               </div>
+                              <div className="sentence-workspace" style={{
+                                minHeight: '60px',
+                                border: '2px dashed var(--border-color)',
+                                borderRadius: '12px',
+                                padding: '12px',
+                                display: 'flex',
+                                flexWrap: 'wrap',
+                                gap: '8px',
+                                alignItems: 'center',
+                                backgroundColor: 'var(--bg-card-hover)',
+                                marginBottom: '20px'
+                              }}>
+                                {arrangedBlockIndices.length === 0 ? (
+                                  <span style={{ color: 'gray', fontSize: '0.95rem', fontStyle: 'italic' }}>
+                                    Click the word blocks below in the correct order to arrange the sentence...
+                                  </span>
+                                ) : (
+                                  arrangedBlockIndices.map((blockIdx, pos) => {
+                                    const word = shuffledWordBlocks[blockIdx];
+                                    return (
+                                      <button
+                                        key={pos}
+                                        type="button"
+                                        className="word-block active-block"
+                                        style={{
+                                          padding: '8px 14px',
+                                          borderRadius: '8px',
+                                          border: '1px solid var(--primary-color)',
+                                          backgroundColor: 'var(--primary-light)',
+                                          color: 'var(--primary-color)',
+                                          fontWeight: '600',
+                                          cursor: 'pointer',
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          gap: '6px',
+                                          boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+                                          transition: 'transform 0.1s'
+                                        }}
+                                        onClick={() => {
+                                          const newArranged = [...arrangedBlockIndices];
+                                          newArranged.splice(pos, 1);
+                                          setArrangedBlockIndices(newArranged);
+                                          const text = newArranged.map(i => shuffledWordBlocks[i]).join(" ");
+                                          setWritingAnswers({ ...writingAnswers, [currentStep]: text });
+                                        }}
+                                      >
+                                        {word} <span style={{ fontSize: '0.8rem', opacity: 0.6 }}>×</span>
+                                      </button>
+                                    );
+                                  })
+                                )}
+                              </div>
+
+                              {/* Word Bank Pool */}
+                              <div className="word-bank-label" style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '8px', color: 'var(--text-secondary)' }}>
+                                Word Bank:
+                              </div>
+                              <div className="word-bank" style={{
+                                display: 'flex',
+                                flexWrap: 'wrap',
+                                gap: '10px',
+                                padding: '16px',
+                                backgroundColor: 'var(--bg-card)',
+                                border: '1px solid var(--border-color)',
+                                borderRadius: '12px',
+                                marginBottom: '24px',
+                                minHeight: '80px'
+                              }}>
+                                {shuffledWordBlocks.map((word, idx) => {
+                                  const isUsed = arrangedBlockIndices.includes(idx);
+                                  return (
+                                    <button
+                                      key={idx}
+                                      type="button"
+                                      disabled={isUsed}
+                                      className={`word-block-choice ${isUsed ? 'used' : ''}`}
+                                      style={{
+                                        padding: '10px 16px',
+                                        borderRadius: '8px',
+                                        border: isUsed ? '1px solid transparent' : '1px solid var(--border-color)',
+                                        backgroundColor: isUsed ? 'var(--bg-card-hover)' : 'var(--bg-card)',
+                                        color: isUsed ? 'transparent' : 'var(--text-primary)',
+                                        fontWeight: '600',
+                                        cursor: isUsed ? 'default' : 'pointer',
+                                        opacity: isUsed ? 0.2 : 1,
+                                        boxShadow: isUsed ? 'none' : '0 2px 4px rgba(0,0,0,0.05)',
+                                        userSelect: 'none',
+                                        transform: isUsed ? 'none' : 'translateY(0)',
+                                        transition: 'all 0.15s'
+                                      }}
+                                      onClick={() => {
+                                        if (isUsed) return;
+                                        const newArranged = [...arrangedBlockIndices, idx];
+                                        setArrangedBlockIndices(newArranged);
+                                        const text = newArranged.map(i => shuffledWordBlocks[i]).join(" ");
+                                        setWritingAnswers({ ...writingAnswers, [currentStep]: text });
+                                      }}
+                                    >
+                                      {word}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+
+                              {/* Manual Fallback Option */}
+                              <details style={{ marginTop: '16px', cursor: 'pointer' }}>
+                                <summary style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', userSelect: 'none' }}>
+                                  Type manually instead
+                                </summary>
+                                <div style={{ marginTop: '8px' }}>
+                                  <textarea
+                                    className="writing-textarea"
+                                    placeholder="Type the sentence manually here..."
+                                    rows={4}
+                                    style={{ width: '100%', marginTop: '8px', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)' }}
+                                    value={writingAnswers[currentStep] || ""}
+                                    onChange={(e) => setWritingAnswers({ ...writingAnswers, [currentStep]: e.target.value })}
+                                  />
+                                </div>
+                              </details>
                             </div>
                           )}
                         </>
@@ -6744,9 +6977,11 @@ function App() {
               const storedSkills = (() => { try { const s = getStoredAssessmentState(session?.user?.id); return s?.skill_scores || profile?.skill_scores || {}; } catch { return {}; } })();
               const weakSkillLabels = getWeakSkills(storedSkills);
 
-              const hasDiagnosed = hasCompletedAssessment(profile);
+              const hasDiagnosed = hasCompletedAssessment(profile, session?.user?.id);
+              const pathRecommendations = generateLearningPath(storedSkills);
+              const recommendedSectionIds = pathRecommendations.map(p => p.sectionId);
               const recommendedSections = CURRICULUM_SECTIONS.filter(section =>
-                weakSkillLabels.some(w => w.toLowerCase().includes(section.skillTarget?.replace("_", " ") || ""))
+                recommendedSectionIds.includes(section.id)
               );
 
               // Render recommended sections if personalized path is enabled and custom path exists, otherwise standard curriculum
@@ -7306,11 +7541,24 @@ function App() {
                         />
                       </label>
                       <label className="profile-dropdown-label">
-                        {t("profilePreferredLang")}
+                        {t("interfaceLanguage")}
                         <select
                           required
                           value={editPreferredLang}
                           onChange={(e) => setEditPreferredLang(e.target.value)}
+                          style={{ width: "100%", boxSizing: "border-box" }}
+                        >
+                          {languages.map((l) => (
+                            <option key={l} value={l}>{t(l + "Option")}</option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="profile-dropdown-label">
+                        {t("learningLanguage")}
+                        <select
+                          required
+                          value={editLearningLang}
+                          onChange={(e) => setEditLearningLang(e.target.value)}
                           style={{ width: "100%", boxSizing: "border-box" }}
                         >
                           {languages.map((l) => (
@@ -8486,10 +8734,10 @@ function App() {
                           const rec = new SpeechRecognition();
                           rec.continuous = false;
                           rec.interimResults = false;
-                          rec.lang = selectedLanguage === "Kannada" ? "kn-IN" :
-                            selectedLanguage === "Hindi" ? "hi-IN" :
-                              selectedLanguage === "Telugu" ? "te-IN" :
-                                selectedLanguage === "Tamil" ? "ta-IN" : "en-US";
+                          rec.lang = learningLanguage === "Kannada" ? "kn-IN" :
+                            learningLanguage === "Hindi" ? "hi-IN" :
+                              learningLanguage === "Telugu" ? "te-IN" :
+                                learningLanguage === "Tamil" ? "ta-IN" : "en-US";
 
                           rec.onstart = () => {
                             setLessonSpeakIsListening(true);
@@ -10177,9 +10425,18 @@ function App() {
 
               <div className="two-col">
                 <label>
-                  {t("preferredLanguage")}
-                  <select name="language" required value={selectedLanguage || ""} onChange={(e) => handleLanguageSelect(e.target.value)} disabled={submitting}>
-                    <option value="" disabled>{t("selectLanguage")}</option>
+                  {t("interfaceLanguage")}
+                  <select name="interfaceLanguage" required value={selectedLanguage || ""} onChange={(e) => handleLanguageSelect(e.target.value)} disabled={submitting}>
+                    <option value="" disabled>{t("selectInterfaceLanguage")}</option>
+                    {languages.map((language) => (
+                      <option key={language} value={language}>{t(language + "Option")}</option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  {t("learningLanguage")}
+                  <select name="learningLanguage" required value={learningLanguage || "English"} onChange={(e) => handleLearningLanguageSelect(e.target.value)} disabled={submitting}>
+                    <option value="" disabled>{t("selectLearningLanguage")}</option>
                     {languages.map((language) => (
                       <option key={language} value={language}>{t(language + "Option")}</option>
                     ))}

@@ -242,3 +242,65 @@ export const assessmentReadingWriting = {
     ]
   }
 };
+
+export const assessmentReadingWritingByLanguage = {
+  "English": assessmentReadingWriting,
+  "Kannada": {
+    "child_level_1": {
+      "readings": ["ಸೂರ್ಯನು ಬೆಳಿಗ್ಗೆ ಮೂಡುತ್ತಾನೆ.", "ನಾಯಿ ಓಡುತ್ತದೆ.", "ಮಕ್ಕಳು ಆಟವಾಡುತ್ತಾರೆ."],
+      "writings": [
+        { "prompt": "Listen to the sentence and write exactly what you hear:", "dictation": "ಸೂರ್ಯನು ಬೆಳಿಗ್ಗೆ ಮೂಡುತ್ತಾನೆ." },
+        { "prompt": "Listen to the sentence and write exactly what you hear:", "dictation": "ನಾಯಿ ಓಡುತ್ತದೆ." },
+        { "prompt": "Listen to the sentence and write exactly what you hear:", "dictation": "ಮಕ್ಕಳು ಆಟವಾಡುತ್ತಾರೆ." }
+      ]
+    },
+    "child_level_2": {
+      "readings": ["ಮಕ್ಕಳು ಶಾಲೆಯಲ್ಲಿ ಓದುತ್ತಾರೆ.", "ನಮ್ಮ ಮನೆಯಲ್ಲಿ ಕೆಂಪು ಕಾರು ಇದೆ.", "ನಾವು ಪ್ರತಿಯೊಂದು ದಿನ ಹಣ್ಣುಗಳನ್ನು ತಿನ್ನುತ್ತೇವೆ."],
+      "writings": [
+        { "prompt": "Listen to the sentence and write exactly what you hear:", "dictation": "ಮಕ್ಕಳು ಶಾಲೆಯಲ್ಲಿ ಓದುತ್ತಾರೆ." },
+        { "prompt": "Listen to the sentence and write exactly what you hear:", "dictation": "ನಮ್ಮ ಮನೆಯಲ್ಲಿ ಕೆಂಪು ಕಾರು ಇದೆ." }
+      ]
+    },
+    "child_level_3": {
+      "readings": ["ರಾಮು ಮತ್ತು ಸೀತಾ ಪ್ರತಿಯೊಂದು ಬೆಳಿಗ್ಗೆ ಸೇಬು ತಿನ್ನುತ್ತಾರೆ.", "ಮಕ್ಕಳು ಮಲಗುವ ಮುನ್ನ ಪುಸ್ತಕ ಓದುತ್ತಾರೆ."],
+      "writings": [
+        { "prompt": "Listen to the sentence and write exactly what you hear:", "dictation": "ರಾಮು ಮತ್ತು ಸೀತಾ ಬೆಳಿಗ್ಗೆ ಸೇಬು ತಿನ್ನುತ್ತಾರೆ." }
+      ]
+    }
+  },
+  "Hindi": {
+    "child_level_1": {
+      "readings": ["सूरज सुबह उगता है।", "कुत्ता दौड़ता है।", "बच्चे खेलते हैं।"],
+      "writings": [
+        { "prompt": "Listen to the sentence and write exactly what you hear:", "dictation": "सूरज सुबह उगता है।" },
+        { "prompt": "Listen to the sentence and write exactly what you hear:", "dictation": "कुत्ता दौड़ता है।" },
+        { "prompt": "Listen to the sentence and write exactly what you hear:", "dictation": "बच्चे खेलते हैं।" }
+      ]
+    },
+    "child_level_2": {
+      "readings": ["बच्चे स्कूल में पढ़ते हैं।", "हमारे घर में लाल कार है।", "हम हर रोज फल खाते हैं।"],
+      "writings": [
+        { "prompt": "Listen to the sentence and write exactly what you hear:", "dictation": "बच्चे स्कूल में पढ़ते हैं।" }
+      ]
+    }
+  },
+  "Telugu": {
+    "child_level_1": {
+      "readings": ["సూర్యుడు ఉదయిస్తున్నాడు.", "కుక్క పరిగెడుతోంది.", "పిల్లలు ఆడుకుంటున్నారు."],
+      "writings": [
+        { "prompt": "Listen to the sentence and write exactly what you hear:", "dictation": "సూర్యుడు ఉదయిస్తున్నాడు." },
+        { "prompt": "Listen to the sentence and write exactly what you hear:", "dictation": "పిల్లలు ఆడుకుంటున్నారు." }
+      ]
+    }
+  },
+  "Tamil": {
+    "child_level_1": {
+      "readings": ["சூரியன் உதிக்கிறது.", "நாய் ஓடுகிறது.", "குழந்தைகள் விளையாடுகிறார்கள்."],
+      "writings": [
+        { "prompt": "Listen to the sentence and write exactly what you hear:", "dictation": "சூரியன் உதிக்கிறது." },
+        { "prompt": "Listen to the sentence and write exactly what you hear:", "dictation": "குழந்தைகள் விளையாடுகிறார்கள்." }
+      ]
+    }
+  }
+};
+

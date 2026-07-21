@@ -611,8 +611,9 @@ export const generateLearningPath = (skillScores) => {
   add("practical_literacy", "s11", "s11u1", "s11u1l1", "Practical Literacy needs improvement");
 
   if (path.length === 0) {
-    path.push({ skill: "vocabulary_recognition", sectionId: "s3", unitId: "s3u1", lessonId: "s3u1l1", reason: "Vocabulary enrichment" });
-    path.push({ skill: "practical_literacy", sectionId: "s11", unitId: "s11u1", lessonId: "s11u1l1", reason: "Practical literacy extension" });
+    path.push({ skill: "reading_ability", sectionId: "s10", unitId: "s10u1", lessonId: "s10u1l1", reason: "Communication Skills enrichment" });
+    path.push({ skill: "practical_literacy", sectionId: "s11", unitId: "s11u1", lessonId: "s11u1l1", reason: "Practical Literacy reinforcement" });
+    path.push({ skill: "reading_comprehension", sectionId: "s12", unitId: "s12u1", lessonId: "s12u1l1", reason: "Real-Life Application extension" });
   }
 
   const seen = new Set();
@@ -725,14 +726,17 @@ export const getRandomAssessment = (age, educationLevel, language = "English") =
   const level = getLevel(educationLevel, ageNum);
   const key = `${ageGroup}_level_${level}`;
 
+  const questionsPool = (assessmentQuestionsByLanguage && assessmentQuestionsByLanguage[language]) || assessmentQuestionsByLanguage["English"] || assessmentQuestions;
+  const rwSource = (assessmentReadingWritingByLanguage && assessmentReadingWritingByLanguage[language]) || assessmentReadingWritingByLanguage["English"] || assessmentReadingWriting;
+
   // Comprehension MCQ Pool — sample 2 random questions from EACH of the 5 levels
-  // of the user's age group to increase difficulty spread across the assessment.
   const levelQuestions = [];
   for (let lvl = 1; lvl <= 5; lvl++) {
     const levelPool =
-      assessmentQuestions[`${ageGroup}_level_${lvl}`] ||
-      assessmentQuestions[key] ||
-      assessmentQuestions[`${ageGroup}_level_1`] ||
+      questionsPool[`${ageGroup}_level_${lvl}`] ||
+      questionsPool[key] ||
+      questionsPool[`${ageGroup}_level_1`] ||
+      questionsPool["child_level_1"] ||
       assessmentQuestions["child_level_1"];
 
     const poolQuestions = levelPool?.questions || [];
@@ -742,7 +746,20 @@ export const getRandomAssessment = (age, educationLevel, language = "English") =
     }
   }
 
-  // 10 MCQs in ascending difficulty: 2 from level 1 ... 2 from level 5.
+  // Backfill if fewer than 10 questions in target language pool
+  if (levelQuestions.length < 10) {
+    for (let lvl = 1; lvl <= 5 && levelQuestions.length < 10; lvl++) {
+      const fallbackPool = assessmentQuestions[`${ageGroup}_level_${lvl}`] || assessmentQuestions["child_level_1"];
+      const poolQuestions = fallbackPool?.questions || [];
+      for (const q of poolQuestions) {
+        if (levelQuestions.length >= 10) break;
+        if (!levelQuestions.some(existing => existing.id === q.id)) {
+          levelQuestions.push(q);
+        }
+      }
+    }
+  }
+
   const sampled = levelQuestions;
 
   const comprehensionQuestions = sampled.map((q, idx) => {
@@ -763,11 +780,12 @@ export const getRandomAssessment = (age, educationLevel, language = "English") =
     };
   });
 
-  // Reading + Writing from assessmentReadingWriting (3 of each)
+  // Reading + Writing from assessmentReadingWriting
   const rwPool =
-    assessmentReadingWriting[key] ||
-    assessmentReadingWriting[`${ageGroup}_level_1`] ||
-    assessmentReadingWriting["adult_level_1"];
+    rwSource[key] ||
+    rwSource[`${ageGroup}_level_1`] ||
+    rwSource["child_level_1"] ||
+    assessmentReadingWriting["child_level_1"];
 
   const readings = Array.isArray(rwPool?.readings) ? rwPool.readings : [];
   const writings = Array.isArray(rwPool?.writings) ? rwPool.writings : [];
@@ -785,7 +803,7 @@ export const getRandomAssessment = (age, educationLevel, language = "English") =
       id: `${key}_writing_${i + 1}`,
       type: "writing",
       skill: "writing_ability",
-      rawQuestion: { writing: w?.prompt || "Listen to the sentence and write exactly what you hear (in English).", dictation },
+      rawQuestion: { writing: w?.prompt || "Listen to the sentence and write exactly what you hear.", dictation },
       evaluator: (text) => {
         const targetWords = dictation.toLowerCase().split(/\s+/).filter(Boolean);
         const userWords = text.trim().toLowerCase().split(/\s+/).filter(Boolean);
