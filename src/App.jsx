@@ -5027,25 +5027,34 @@ function App() {
     const strongSkillKeys = getStrongSkillKeys(skillScores);
     const weakSkillKeys = getWeakSkillKeys(skillScores);
 
-    // Compute marks out of 70: 10 comprehension MCQ (1 mark each) + 3 reading (10 each) + 3 writing (10 each)
+    // Compute marks based on generated questions: 1 point per MCQ, 10 points per reading/writing task
     let compMarks = 0;
     let readingMarks = 0;
     let writingMarks = 0;
+    let maxCompMarks = 0;
+    let maxReadingMarks = 0;
+    let maxWritingMarks = 0;
+
     assessmentQuestionsList.forEach((q, idx) => {
       if (q.type === "comprehension") {
+        maxCompMarks += 1;
         if (selectedAnswers[idx] === q.correctIndex) compMarks += 1;
       } else if (q.type === "reading") {
+        maxReadingMarks += 10;
         const attempt = readingAttempts[idx];
         const ratio = (attempt && attempt.totalWords > 0) ? attempt.matchedCount / attempt.totalWords : 0;
         readingMarks += Math.round(ratio * 10);
       } else if (q.type === "writing") {
+        maxWritingMarks += 10;
         const text = writingAnswers[idx] || "";
         const res = q.evaluator ? q.evaluator(text) : { score: 0 };
         writingMarks += res.score;
       }
     });
+
+    const maxScore = maxCompMarks + maxReadingMarks + maxWritingMarks;
     const totalMarks = compMarks + readingMarks + writingMarks;
-    const overallPercent = Math.round((totalMarks / 70) * 100);
+    const overallPercent = Math.round((totalMarks / (maxScore || 1)) * 100);
 
     // Count discrete right answers from the diagnostic (comprehension MCQs)
     const today = new Date().toLocaleDateString("en-CA");
@@ -5072,7 +5081,7 @@ function App() {
         date: new Date().toLocaleDateString(),
         type: "Diagnostic Evaluation",
         score: totalMarks,
-        maxScore: 70,
+        maxScore: maxScore,
         percentage: overallPercent,
         level: diagnosedLevel,
         skills: {
@@ -5101,10 +5110,11 @@ function App() {
       setHistoryAttempts(updatedHistory);
       localStorage.setItem("lisa_attempts_history", JSON.stringify(updatedHistory));
 
-      // Update Supabase profile (do not overwrite the user's chosen education_level)
+      // Update Supabase profile
       await supabase.from("profiles").update({
         literacy_level: diagnosedLevel,
         assessment_completed: true,
+        skill_scores: skillScores,
         attempts_history: updatedHistory,
         xp: nextUserXp,
         daily_xp: nextDailyXp,
@@ -6355,6 +6365,36 @@ function App() {
                           <p className="insight-time-val">{dailyPracticeTime}</p>
                         </div>
                       </div>
+                    </div>
+
+                    {/* Diagnostic Summary Analysis */}
+                    <div className="diagnostic-summary-analysis" style={{
+                      marginTop: '24px',
+                      padding: '20px',
+                      backgroundColor: 'var(--primary-light)',
+                      borderLeft: '4px solid var(--primary-color)',
+                      borderRadius: '8px',
+                      color: 'var(--text-primary)',
+                      lineHeight: '1.6',
+                      fontSize: '1rem',
+                      textAlign: 'left'
+                    }}>
+                      <h4 style={{ margin: '0 0 8px', fontWeight: 800, color: 'var(--primary-color)' }}>
+                        📝 Diagnostic Analysis & Learning Path Recommendation
+                      </h4>
+                      <p style={{ margin: 0 }}>
+                        {(() => {
+                          if (overallPercent >= 85) {
+                            return `Fantastic work! You demonstrated highly advanced literacy skills, scoring ${overallPercent}% overall. You have near-perfect mastery of basic alphabet, vocabulary, and grammar rules. Your learning path is optimized to target communication refinement and real-life functional application to polish your fluency.`;
+                          } else if (overallPercent >= 60) {
+                            return `Great job! You achieved a solid score of ${overallPercent}% overall. You possess strong foundational skills in letter and word recognition, but can benefit from expanding your sentence structures and reading longer paragraphs. Your learning path focuses on bridges to reading comprehension and advanced expression.`;
+                          } else if (overallPercent >= 35) {
+                            return `Good effort! You scored ${overallPercent}% overall. While you show comfortable familiarity with letters and simple vocabulary, you face challenges with complex sentence structures and writing. Your learning path is customized with stepped modules to build reading confidence and sentence composition.`;
+                          } else {
+                            return `Welcome to LISA! You scored ${overallPercent}% on this assessment. This indicates you are at the early stages of your literacy journey. We have personalized a learning path starting with step-by-step phonics, basic letter recognition, and simple word building to establish a strong, confident foundation.`;
+                          }
+                        })()}
+                      </p>
                     </div>
 
                     <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', marginTop: '32px' }}>
