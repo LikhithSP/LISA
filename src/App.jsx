@@ -1399,10 +1399,10 @@ function App() {
     const practiceType = lessonSession.practiceType;
     const isChecked =
       practiceType.includes("Speak") || practiceType.includes("Pronunciation")
-        ? lessonSpeakFeedback !== null
+        ? (currentQuestion.type === "listeningTask" ? lessonListeningFeedback !== null : lessonSpeakFeedback !== null)
         : practiceType.includes("Listen")
           ? lessonListeningFeedback !== null
-          : currentQuestion.type === "mcq" || currentQuestion.type === "meaning"
+          : currentQuestion.type === "mcq" || currentQuestion.type === "meaning" || currentQuestion.type === "passage"
             ? lessonMeaningFeedback !== null || lessonMcqFeedback !== null
             : currentQuestion.type === "unscramble"
               ? lessonUnscrambleFeedback !== null
@@ -1410,7 +1410,15 @@ function App() {
                 ? lessonTracingDone
                 : currentQuestion.type === "writingActivity"
                   ? lessonWritingText.trim().length > 0
-                  : lessonFillFeedback !== null;
+                  : currentQuestion.type === "matchingPairs"
+                    ? lessonMatchCompleted.length === (currentQuestion.pairs || []).length
+                    : currentQuestion.type === "imageChoice"
+                      ? lessonImageChoiceFeedback !== null
+                      : currentQuestion.type === "translationTask"
+                        ? lessonTranslationFeedback !== null
+                        : currentQuestion.type === "listeningTask"
+                          ? lessonListeningFeedback !== null
+                          : lessonFillFeedback !== null;
 
     const handleNext = () => {
       // Clear current step state
@@ -1429,6 +1437,14 @@ function App() {
       setLessonUnscrambleSelected([]);
       setLessonTracingDone(false);
       setLessonWritingText("");
+      setLessonMatchCompleted([]);
+      setLessonMatchSelectedLeft(null);
+      setLessonMatchSelectedRight(null);
+      setLessonMatchFeedback(null);
+      setLessonImageChoiceSel(null);
+      setLessonImageChoiceFeedback(null);
+      setLessonTranslationFeedback(null);
+      setLessonTranslationSelected([]);
       advanceLessonStep();
     };
 
@@ -1475,6 +1491,806 @@ function App() {
 
           {/* Render content based on Practice Type */}
           {(() => {
+            // New Custom Question Types for Practice Page
+            if (currentQuestion.type === "listeningTask") {
+              const lt = currentQuestion.listeningTask || currentQuestion || { audioText: "Hello", tiles: ["Hello", "Bye", "Welcome"] };
+              const isChecked = lessonListeningFeedback !== null;
+
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '120px' }}>
+                  <div style={{ marginBottom: '16px', textAlign: 'center' }}>
+                    <span className="ai-step-badge">🎧 Choose the words you hear</span>
+                  </div>
+
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    gap: '20px',
+                    margin: '30px 0'
+                  }}>
+                    <button
+                      type="button"
+                      onClick={() => speakText(lt.audioText || lt.sentence || "", 1.0)}
+                      style={{
+                        width: '80px',
+                        height: '80px',
+                        borderRadius: '24px',
+                        background: '#38bdf8',
+                        border: 'none',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                      }}
+                    >
+                      <span style={{ fontSize: '2.5rem' }}>🔊</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => speakText(lt.audioText || lt.sentence || "", 0.2)}
+                      style={{
+                        width: '60px',
+                        height: '60px',
+                        borderRadius: '18px',
+                        background: '#0284c7',
+                        border: 'none',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                      }}
+                      title="Listen slowly"
+                    >
+                      <span style={{ fontSize: '1.8rem' }}>🐢</span>
+                    </button>
+                  </div>
+
+                  <div style={{
+                    borderBottom: '2px solid var(--line)',
+                    minHeight: '80px',
+                    margin: '30px 0 20px',
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: '10px',
+                    padding: '10px 0',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    {lessonListeningSelected.map((word, wIdx) => (
+                      <button
+                        key={wIdx}
+                        type="button"
+                        style={{
+                          background: 'var(--accent)',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '10px',
+                          padding: '10px 16px',
+                          fontSize: '1.1rem',
+                          fontWeight: '700',
+                          cursor: 'pointer',
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                        }}
+                        onClick={() => {
+                          if (!isChecked) {
+                            setLessonListeningSelected(prev => prev.filter((_, idx) => idx !== wIdx));
+                          }
+                        }}
+                        disabled={isChecked}
+                      >
+                        {word}
+                      </button>
+                    ))}
+                    {lessonListeningSelected.length === 0 && (
+                      <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Tap words below to arrange...</span>
+                    )}
+                  </div>
+
+                  <div style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: '10px',
+                    justifyContent: 'center',
+                    margin: '20px 0 30px'
+                  }}>
+                    {(lt.tiles || []).map((word, wIdx) => {
+                      const isUsed = lessonListeningSelected.includes(word);
+                      return (
+                        <button
+                          key={wIdx}
+                          type="button"
+                          style={{
+                            background: isUsed ? 'var(--line)' : 'var(--panel)',
+                            color: isUsed ? 'transparent' : 'var(--text)',
+                            border: '2px solid var(--line)',
+                            borderRadius: '10px',
+                            padding: '10px 16px',
+                            fontSize: '1.1rem',
+                            fontWeight: '700',
+                            cursor: isUsed ? 'default' : 'pointer',
+                            boxShadow: isUsed ? 'none' : '0 2px 4px rgba(0,0,0,0.05)',
+                            opacity: isUsed ? 0.3 : 1
+                          }}
+                          onClick={() => {
+                            if (!isChecked && !isUsed) {
+                              setLessonListeningSelected(prev => [...prev, word]);
+                            }
+                          }}
+                          disabled={isChecked || isUsed}
+                        >
+                          {word}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {!isChecked && (
+                    <div style={{ display: 'flex', justifyContent: 'center' }}>
+                      <button
+                        type="button"
+                        className="primary-btn"
+                        style={{ padding: '12px 40px', borderRadius: '12px' }}
+                        onClick={() => {
+                          const userSentence = lessonListeningSelected.join(" ").trim().toLowerCase();
+                          const clean = (s) => s.replace(/[.,\/#!$%\^&\*;:{}=\-_\u0060()?]/g, "").toLowerCase().trim();
+                          const correct = clean(userSentence) === clean(lt.audioText || lt.sentence || "");
+
+                          setLessonListeningFeedback({
+                            isCorrect: correct,
+                            correctAnswer: lt.audioText || lt.sentence || ""
+                          });
+                          if (correct) recordDailyCorrect();
+                          recordLessonAnswer(correct);
+                        }}
+                        disabled={lessonListeningSelected.length === 0}
+                      >
+                        Check Answer
+                      </button>
+                    </div>
+                  )}
+
+                  {isChecked && (
+                    <div style={{
+                      position: 'absolute',
+                      bottom: 0, left: 0, right: 0,
+                      background: lessonListeningFeedback.isCorrect ? '#d1fae5' : '#fee2e2',
+                      borderTop: `2px solid ${lessonListeningFeedback.isCorrect ? '#10b981' : '#ef4444'}`,
+                      padding: '20px 40px',
+                      zIndex: 100,
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                    }}>
+                      <div>
+                        <h4 style={{ margin: 0, color: lessonListeningFeedback.isCorrect ? '#065f46' : '#991b1b', fontWeight: '800', fontSize: '1.2rem' }}>
+                          {lessonListeningFeedback.isCorrect ? "Excellent!" : "Incorrect"}
+                        </h4>
+                        <p style={{ margin: '4px 0 0', color: lessonListeningFeedback.isCorrect ? '#047857' : '#b91c1c', fontSize: '0.95rem' }}>
+                          {lessonListeningFeedback.isCorrect ? "You heard it correctly!" : `Correct Answer: "${lessonListeningFeedback.correctAnswer}"`}
+                        </p>
+                      </div>
+                      <button type="button" className="primary-btn" onClick={handleNext}>
+                        Continue
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
+            if (currentQuestion.type === "passage") {
+              const questionText = currentQuestion.question || "Read the passage and choose the correct answer:";
+              const options = currentQuestion.options || [];
+              const selectedAnswer = lessonMeaningAnswer;
+              const isChecked = lessonMeaningFeedback !== null;
+
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  <div style={{
+                    background: 'rgba(2, 132, 199, 0.05)',
+                    border: '2px solid rgba(2, 132, 199, 0.2)',
+                    borderRadius: '20px',
+                    padding: '20px',
+                    marginBottom: '10px'
+                  }}>
+                    <h4 style={{ margin: '0 0 8px', color: '#0284c7', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      📖 Reading Passage
+                      <button type="button" className="tts-btn" onClick={() => speakText(currentQuestion.passage)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem' }}>🔊</button>
+                    </h4>
+                    <p style={{ margin: 0, fontSize: '1.15rem', lineHeight: '1.6', fontWeight: '500', color: 'var(--text)' }}>{currentQuestion.passage}</p>
+                  </div>
+
+                  <div style={{
+                    background: 'var(--panel)',
+                    border: '2px solid var(--line)',
+                    borderRadius: '20px',
+                    padding: '20px',
+                    fontSize: '1.2rem',
+                    fontWeight: '800',
+                    textAlign: 'center'
+                  }}>
+                    {questionText}
+                  </div>
+
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(2, 1fr)',
+                    gap: '16px',
+                    margin: '20px 0'
+                  }}>
+                    {options.map((opt, oIdx) => {
+                      const isSelected = selectedAnswer === oIdx;
+                      let btnBg = 'var(--panel)';
+                      let btnBorder = '2px solid var(--line)';
+                      let btnColor = 'var(--text)';
+
+                      if (isChecked) {
+                        if (oIdx === currentQuestion.correctIndex) {
+                          btnBg = 'rgba(16, 185, 129, 0.1)';
+                          btnBorder = '2px solid #10b981';
+                          btnColor = '#065f46';
+                        } else if (isSelected) {
+                          btnBg = 'rgba(239, 68, 68, 0.1)';
+                          btnBorder = '2px solid #ef4444';
+                          btnColor = '#991b1b';
+                        }
+                      } else if (isSelected) {
+                        btnBorder = '2px solid var(--accent)';
+                        btnColor = 'var(--accent-dark)';
+                      }
+
+                      return (
+                        <button
+                          key={opt + '_' + oIdx}
+                          type="button"
+                          onClick={() => { if (!isChecked) setLessonMeaningAnswer(oIdx); }}
+                          style={{
+                            background: btnBg,
+                            border: btnBorder,
+                            color: btnColor,
+                            borderRadius: '16px',
+                            padding: '20px',
+                            fontSize: '1.1rem',
+                            fontWeight: '600',
+                            cursor: isChecked ? 'default' : 'pointer',
+                            textAlign: 'center',
+                            transition: 'all 0.2s ease'
+                          }}
+                          disabled={isChecked}
+                        >
+                          {opt}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {!isChecked && (
+                    <div style={{ display: 'flex', justifyContent: 'center' }}>
+                      <button
+                        type="button"
+                        className="primary-btn"
+                        style={{ padding: '12px 40px', borderRadius: '12px' }}
+                        disabled={selectedAnswer === null}
+                        onClick={() => {
+                          const correct = selectedAnswer === currentQuestion.correctIndex;
+                          setLessonMeaningFeedback({
+                            isCorrect: correct,
+                            correctAnswer: options[currentQuestion.correctIndex]
+                          });
+                          if (correct) recordDailyCorrect();
+                          recordLessonAnswer(correct);
+                        }}
+                      >
+                        Check Answer
+                      </button>
+                    </div>
+                  )}
+
+                  {isChecked && (
+                    <div style={{
+                      position: 'absolute',
+                      bottom: 0, left: 0, right: 0,
+                      background: lessonMeaningFeedback.isCorrect ? '#d1fae5' : '#fee2e2',
+                      borderTop: `2px solid ${lessonMeaningFeedback.isCorrect ? '#10b981' : '#ef4444'}`,
+                      padding: '20px 40px',
+                      zIndex: 100,
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                    }}>
+                      <div>
+                        <h4 style={{ margin: 0, color: lessonMeaningFeedback.isCorrect ? '#065f46' : '#991b1b', fontWeight: '800', fontSize: '1.2rem' }}>
+                          {lessonMeaningFeedback.isCorrect ? "Excellent!" : "Incorrect"}
+                        </h4>
+                        <p style={{ margin: '4px 0 0', color: lessonMeaningFeedback.isCorrect ? '#047857' : '#b91c1c', fontSize: '0.95rem' }}>
+                          {lessonMeaningFeedback.isCorrect ? "You got it right!" : `Correct Answer: "${lessonMeaningFeedback.correctAnswer}"`}
+                        </p>
+                      </div>
+                      <button type="button" className="primary-btn" onClick={handleNext}>
+                        Continue
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
+            if (currentQuestion.type === "matchingPairs") {
+              const pairs = currentQuestion.pairs || [];
+              const leftItems = pairs.map(p => p.left);
+              const rightItems = [...pairs].map(p => p.right).sort();
+              const isStepFinished = lessonMatchCompleted.length === pairs.length;
+
+              const handleLeftClick = (item) => {
+                if (lessonMatchCompleted.includes(item)) return;
+                setLessonMatchSelectedLeft(item);
+                if (lessonMatchSelectedRight) {
+                  const pair = pairs.find(p => p.left === item && p.right === lessonMatchSelectedRight);
+                  if (pair) {
+                    setLessonMatchCompleted(prev => [...prev, item]);
+                    recordDailyCorrect();
+                    recordLessonAnswer(true);
+                  } else {
+                    setLessonMatchFeedback("Incorrect pair!");
+                    setTimeout(() => setLessonMatchFeedback(null), 1000);
+                  }
+                  setLessonMatchSelectedLeft(null);
+                  setLessonMatchSelectedRight(null);
+                }
+              };
+
+              const handleRightClick = (item) => {
+                const pair = pairs.find(p => p.right === item);
+                if (pair && lessonMatchCompleted.includes(pair.left)) return;
+
+                setLessonMatchSelectedRight(item);
+                if (lessonMatchSelectedLeft) {
+                  const pObj = pairs.find(p => p.left === lessonMatchSelectedLeft && p.right === item);
+                  if (pObj) {
+                    setLessonMatchCompleted(prev => [...prev, lessonMatchSelectedLeft]);
+                    recordDailyCorrect();
+                  } else {
+                    setLessonMatchFeedback("Incorrect pair!");
+                    setTimeout(() => setLessonMatchFeedback(null), 1000);
+                  }
+                  setLessonMatchSelectedLeft(null);
+                  setLessonMatchSelectedRight(null);
+                }
+              };
+
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '120px' }}>
+                  <div style={{ marginBottom: '16px', textAlign: 'center' }}>
+                    <span className="ai-step-badge">🔗 Make the correct pairs of words</span>
+                  </div>
+
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1fr',
+                    gap: '24px',
+                    margin: '30px 0'
+                  }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      {leftItems.map((item, idx) => {
+                        const isCompleted = lessonMatchCompleted.includes(item);
+                        const isSelected = lessonMatchSelectedLeft === item;
+
+                        return (
+                          <button
+                            key={'left_' + idx}
+                            type="button"
+                            onClick={() => handleLeftClick(item)}
+                            style={{
+                              padding: '16px',
+                              borderRadius: '16px',
+                              border: isSelected ? '2px solid var(--accent)' : '2px solid var(--line)',
+                              background: isCompleted ? 'var(--line)' : isSelected ? 'rgba(var(--accent-rgb), 0.1)' : 'var(--panel)',
+                              color: isCompleted ? 'var(--text-muted)' : 'var(--text)',
+                              textDecoration: isCompleted ? 'line-through' : 'none',
+                              fontWeight: '700',
+                              fontSize: '1.1rem',
+                              cursor: isCompleted ? 'default' : 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '8px',
+                              textAlign: 'center',
+                              opacity: isCompleted ? 0.6 : 1
+                            }}
+                            disabled={isCompleted}
+                          >
+                            <span>{item}</span>
+                            {isCompleted && <span>✅</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      {rightItems.map((item, idx) => {
+                        const matchedPair = pairs.find(p => p.right === item);
+                        const isCompleted = matchedPair && lessonMatchCompleted.includes(matchedPair.left);
+                        const isSelected = lessonMatchSelectedRight === item;
+
+                        return (
+                          <button
+                            key={'right_' + idx}
+                            type="button"
+                            onClick={() => handleRightClick(item)}
+                            style={{
+                              padding: '16px',
+                              borderRadius: '16px',
+                              border: isSelected ? '2px solid var(--accent)' : '2px solid var(--line)',
+                              background: isCompleted ? 'var(--line)' : isSelected ? 'rgba(var(--accent-rgb), 0.1)' : 'var(--panel)',
+                              color: isCompleted ? 'var(--text-muted)' : 'var(--text)',
+                              textDecoration: isCompleted ? 'line-through' : 'none',
+                              fontWeight: '700',
+                              fontSize: '1.1rem',
+                              cursor: isCompleted ? 'default' : 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '8px',
+                              textAlign: 'center',
+                              opacity: isCompleted ? 0.6 : 1
+                            }}
+                            disabled={isCompleted}
+                          >
+                            <span>{item}</span>
+                            {isCompleted && <span>✅</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {lessonMatchFeedback && (
+                    <div style={{ color: '#ef4444', textAlign: 'center', fontWeight: 'bold' }}>{lessonMatchFeedback}</div>
+                  )}
+
+                  {isStepFinished && (
+                    <div style={{
+                      position: 'absolute',
+                      bottom: 0, left: 0, right: 0,
+                      background: '#d1fae5',
+                      borderTop: '2px solid #10b981',
+                      padding: '20px 40px',
+                      zIndex: 100,
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                    }}>
+                      <div>
+                        <h4 style={{ margin: 0, color: '#065f46', fontWeight: '800', fontSize: '1.2rem' }}>Excellent!</h4>
+                        <p style={{ margin: '4px 0 0', color: '#047857', fontSize: '0.95rem' }}>You matched all pairs correctly!</p>
+                      </div>
+                      <button type="button" className="primary-btn" onClick={handleNext}>
+                        Continue
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
+            if (currentQuestion.type === "imageChoice") {
+              const options = currentQuestion.options || [];
+              const word = currentQuestion.word || "";
+              const prompt = currentQuestion.prompt || `Choose the correct picture for "${word}"`;
+              const isChecked = lessonImageChoiceFeedback !== null;
+
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '120px' }}>
+                  <div style={{ marginBottom: '16px', textAlign: 'center' }}>
+                    <span className="ai-step-badge">🖼️ Choose the correct picture</span>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '20px', margin: '20px 0' }}>
+                    <img src="/as1.png" alt="LISA Mascot" style={{ width: '80px', height: '80px', objectFit: 'contain' }} />
+                    <div style={{
+                      flexGrow: 1,
+                      background: 'var(--panel)',
+                      border: '2px solid var(--line)',
+                      borderRadius: '20px',
+                      padding: '16px 24px',
+                      position: 'relative'
+                    }}>
+                      <div style={{
+                        position: 'absolute',
+                        left: '-9px',
+                        top: '32px',
+                        width: '14px',
+                        height: '14px',
+                        background: 'var(--panel)',
+                        borderLeft: '2px solid var(--line)',
+                        borderBottom: '2px solid var(--line)',
+                        transform: 'rotate(45deg)'
+                      }}></div>
+                      <p style={{ fontSize: '1.25rem', fontWeight: '800', margin: 0 }}>{prompt}</p>
+                    </div>
+                  </div>
+
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    gap: '24px',
+                    margin: '30px 0'
+                  }}>
+                    {options.map((option, oIdx) => {
+                      const selected = lessonImageChoiceSel === oIdx;
+                      let btnBorder = '2px solid var(--line)';
+                      let btnBg = 'var(--panel)';
+
+                      if (isChecked) {
+                        if (oIdx === currentQuestion.correctIndex) {
+                          btnBorder = '2px solid #10b981';
+                          btnBg = 'rgba(16, 185, 129, 0.1)';
+                        } else if (selected) {
+                          btnBorder = '2px solid #ef4444';
+                          btnBg = 'rgba(239, 68, 68, 0.1)';
+                        }
+                      } else if (selected) {
+                        btnBorder = '2px solid var(--accent)';
+                        btnBg = 'rgba(var(--accent-rgb), 0.1)';
+                      }
+
+                      return (
+                        <button
+                          key={'img_' + oIdx}
+                          type="button"
+                          onClick={() => { if (!isChecked) setLessonImageChoiceSel(oIdx); }}
+                          disabled={isChecked}
+                          style={{
+                            width: '120px',
+                            height: '120px',
+                            borderRadius: '24px',
+                            border: btnBorder,
+                            background: btnBg,
+                            fontSize: '3.5rem',
+                            cursor: isChecked ? 'default' : 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'all 0.2s ease'
+                          }}
+                        >
+                          {option}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {!isChecked && (
+                    <div style={{ display: 'flex', justifyContent: 'center' }}>
+                      <button
+                        type="button"
+                        className="primary-btn"
+                        style={{ padding: '12px 40px', borderRadius: '12px' }}
+                        onClick={() => {
+                          const correct = lessonImageChoiceSel === currentQuestion.correctIndex;
+                          setLessonImageChoiceFeedback({ isCorrect: correct });
+                          if (correct) recordDailyCorrect();
+                          recordLessonAnswer(correct);
+                        }}
+                        disabled={lessonImageChoiceSel === null}
+                      >
+                        Check Answer
+                      </button>
+                    </div>
+                  )}
+
+                  {isChecked && (
+                    <div style={{
+                      position: 'absolute',
+                      bottom: 0, left: 0, right: 0,
+                      background: lessonImageChoiceFeedback.isCorrect ? '#d1fae5' : '#fee2e2',
+                      borderTop: `2px solid ${lessonImageChoiceFeedback.isCorrect ? '#10b981' : '#ef4444'}`,
+                      padding: '20px 40px',
+                      zIndex: 100,
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                    }}>
+                      <div>
+                        <h4 style={{ margin: 0, color: lessonImageChoiceFeedback.isCorrect ? '#065f46' : '#991b1b', fontWeight: '800', fontSize: '1.2rem' }}>
+                          {lessonImageChoiceFeedback.isCorrect ? "Excellent!" : "Incorrect"}
+                        </h4>
+                        <p style={{ margin: '4px 0 0', color: lessonImageChoiceFeedback.isCorrect ? '#047857' : '#b91c1c', fontSize: '0.95rem' }}>
+                          {lessonImageChoiceFeedback.isCorrect ? "You picked the right picture!" : `Correct picture: ${options[currentQuestion.correctIndex]}`}
+                        </p>
+                      </div>
+                      <button type="button" className="primary-btn" onClick={handleNext}>
+                        Continue
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
+            if (currentQuestion.type === "translationTask") {
+              const tt = currentQuestion;
+              const isChecked = lessonTranslationFeedback !== null;
+
+              const tilesKey = (tt.tiles || []).join("|");
+              if (lessonTranslationShuffleRef.current.key !== tilesKey) {
+                const arr = [...(tt.tiles || [])];
+                for (let i = arr.length - 1; i > 0; i--) {
+                  const j = Math.floor(Math.random() * (i + 1));
+                  [arr[i], arr[j]] = [arr[j], arr[i]];
+                }
+                lessonTranslationShuffleRef.current = { key: tilesKey, tiles: arr };
+              }
+              const shuffledTiles = lessonTranslationShuffleRef.current.tiles;
+
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '120px' }}>
+                  <div style={{ marginBottom: '16px', textAlign: 'center' }}>
+                    <span className="ai-step-badge">🧩 Arrange the words</span>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '20px', margin: '20px 0' }}>
+                    <img src="/as1.png" alt="LISA Mascot" style={{ width: '80px', height: '80px', objectFit: 'contain' }} />
+                    <div style={{
+                      flexGrow: 1,
+                      background: 'var(--panel)',
+                      border: '2px solid var(--line)',
+                      borderRadius: '20px',
+                      padding: '16px 24px',
+                      position: 'relative'
+                    }}>
+                      <div style={{
+                        position: 'absolute',
+                        left: '-9px',
+                        top: '32px',
+                        width: '14px',
+                        height: '14px',
+                        background: 'var(--panel)',
+                        borderLeft: '2px solid var(--line)',
+                        borderBottom: '2px solid var(--line)',
+                        transform: 'rotate(45deg)'
+                      }}></div>
+                      <p style={{ fontSize: '1.25rem', fontWeight: '800', margin: 0 }}>{tt.prompt}</p>
+                    </div>
+                  </div>
+
+                  <div style={{
+                    borderBottom: '2px solid var(--line)',
+                    minHeight: '80px',
+                    margin: '30px 0 20px',
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: '10px',
+                    padding: '10px 0',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    {lessonTranslationSelected.map((word, wIdx) => (
+                      <button
+                        key={'sel_' + wIdx}
+                        type="button"
+                        style={{
+                          background: 'var(--accent)',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '10px',
+                          padding: '10px 16px',
+                          fontSize: '1.1rem',
+                          fontWeight: '700',
+                          cursor: 'pointer',
+                          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                        }}
+                        onClick={() => {
+                          if (!isChecked) {
+                            setLessonTranslationSelected(prev => prev.filter((_, idx) => idx !== wIdx));
+                          }
+                        }}
+                        disabled={isChecked}
+                      >
+                        {word}
+                      </button>
+                    ))}
+                    {lessonTranslationSelected.length === 0 && (
+                      <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Tap words below to arrange...</span>
+                    )}
+                  </div>
+
+                  <div style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: '10px',
+                    justifyContent: 'center',
+                    margin: '20px 0 30px'
+                  }}>
+                    {shuffledTiles.map((word, wIdx) => {
+                      const isUsed = lessonTranslationSelected.includes(word);
+                      return (
+                        <button
+                          key={'tile_' + wIdx}
+                          type="button"
+                          style={{
+                            background: isUsed ? 'var(--line)' : 'var(--panel)',
+                            color: isUsed ? 'transparent' : 'var(--text)',
+                            border: '2px solid var(--line)',
+                            borderRadius: '10px',
+                            padding: '10px 16px',
+                            fontSize: '1.1rem',
+                            fontWeight: '700',
+                            cursor: isUsed ? 'default' : 'pointer',
+                            boxShadow: isUsed ? 'none' : '0 2px 4px rgba(0,0,0,0.05)',
+                            opacity: isUsed ? 0.3 : 1
+                          }}
+                          onClick={() => {
+                            if (!isChecked && !isUsed) {
+                              setLessonTranslationSelected(prev => [...prev, word]);
+                            }
+                          }}
+                          disabled={isChecked || isUsed}
+                        >
+                          {word}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {!isChecked && (
+                    <div style={{ display: 'flex', justifyContent: 'center' }}>
+                      <button
+                        type="button"
+                        className="primary-btn"
+                        style={{ padding: '12px 40px', borderRadius: '12px' }}
+                        onClick={() => {
+                          const userSentence = lessonTranslationSelected.join(" ").trim().toLowerCase();
+                          const clean = (s) => s.replace(/[.,\/#!$%\^&\*;:{}=\-_\u0060()?]/g, "").toLowerCase().trim();
+                          const correct = clean(userSentence) === clean(tt.englishTranslation || tt.answer || "");
+
+                          setLessonTranslationFeedback({
+                            isCorrect: correct,
+                            correctAnswer: tt.englishTranslation || tt.answer || ""
+                          });
+                          if (correct) recordDailyCorrect();
+                          recordLessonAnswer(correct);
+                        }}
+                        disabled={lessonTranslationSelected.length === 0}
+                      >
+                        Check Answer
+                      </button>
+                    </div>
+                  )}
+
+                  {isChecked && (
+                    <div style={{
+                      position: 'absolute',
+                      bottom: 0, left: 0, right: 0,
+                      background: lessonTranslationFeedback.isCorrect ? '#d1fae5' : '#fee2e2',
+                      borderTop: `2px solid ${lessonTranslationFeedback.isCorrect ? '#10b981' : '#ef4444'}`,
+                      padding: '20px 40px',
+                      zIndex: 100,
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                    }}>
+                      <div>
+                        <h4 style={{ margin: 0, color: lessonTranslationFeedback.isCorrect ? '#065f46' : '#991b1b', fontWeight: '800', fontSize: '1.2rem' }}>
+                          {lessonTranslationFeedback.isCorrect ? "Excellent!" : "Incorrect"}
+                        </h4>
+                        <p style={{ margin: '4px 0 0', color: lessonTranslationFeedback.isCorrect ? '#047857' : '#b91c1c', fontSize: '0.95rem' }}>
+                          {lessonTranslationFeedback.isCorrect ? "Beautiful translation!" : `Correct Translation: "${lessonTranslationFeedback.correctAnswer}"`}
+                        </p>
+                      </div>
+                      <button type="button" className="primary-btn" onClick={handleNext}>
+                        Continue
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
             // 1. Speak/Pronunciation Practice
             if (practiceType.includes("Speak") || practiceType.includes("Pronunciation")) {
               const sentence = currentQuestion.sentence || "";
