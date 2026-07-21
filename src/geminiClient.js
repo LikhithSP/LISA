@@ -840,29 +840,62 @@ const getFallbackPractice = (params) => {
       : language === "Tamil"
       ? "ஒரு கிராமத்தில் ராகுல் என்ற சிறுவன் வாழ்ந்து வந்தான். ராகுலுக்கு புத்தகங்கள் படிப்பது மிகவும் பிடிக்கும். அவன் ஒவ்வொரு நாளும் புதிய மற்றும் சுவாரஸ்யமான கதைகளைப் படிக்க உள்ளூர் நூலகத்திற்குச் சென்றான்."
       : "A little boy named Rahul lived in a green village. Rahul loved reading books very much. Every single day, he visited the local library to read new and exciting stories.",
-    questions: Array.from({ length: 10 }, (_, i) => ({
-      id: i + 1,
-      question: language === "Hindi" 
-        ? `कहानी प्रश्न ${i + 1}: मुख्य पात्र का क्या नाम था?` 
-        : language === "Kannada" 
-        ? `ಕಥೆಯ ಪ್ರಶ್ನೆ ${i + 1}: ಮುಖ್ಯ ಪಾತ್ರದ ಹೆಸರೇನು?` 
-        : language === "Telugu"
-        ? `కథా ప్రశ్న ${i + 1}: ప్రధాన పాత్ర పేరు ఏమిటి?`
-        : language === "Tamil"
-        ? `கதை கேள்வி ${i + 1}: முக்கிய கதாபாத்திரத்தின் பெயர் என்ன?`
-        : `Story Question ${i + 1}: What was the name of the main character?`,
-      options: ["Rahul", "Ravi", "Amit", "Vijay"],
-      correctIndex: 0,
-      explanation: language === "Hindi"
-        ? "कहानी में कहा गया है कि लड़के का नाम राहुल था।"
-        : language === "Kannada"
-        ? "ಹುಡುಗನ ಹೆಸರು ರಾಹುಲ್ ಎಂದು ಕಥೆಯಲ್ಲಿ ಹೇಳಲಾಗಿದೆ."
-        : language === "Telugu"
-        ? "బాలుడి పేరు రాహుల్ అని కథలో పేర్కొనబడింది."
-        : language === "Tamil"
-        ? "சிறுவனின் பெயர் ராகுல் என்று கதையில் கூறப்பட்டுள்ளது."
-        : "The story states the boy's name was Rahul."
-    }))
+    questions: language === "Hindi" ? [
+      { id: 1, question: "लड़के का क्या नाम था?", options: ["राहुल", "रवि", "अमित", "विजय"], correctIndex: 0, explanation: "कहानी में कहा गया है कि लड़के का नाम राहुल था।" },
+      { id: 2, question: "राहुल कहाँ रहता था?", options: ["एक हरे-भरे गाँव में", "एक शहर में", "एक जंगल में", "पहाड़ पर"], correctIndex: 0, explanation: "राहुल एक गाँव (हरे-भरे गाँव) में रहता था।" },
+      { id: 3, question: "राहुल को क्या करना बहुत पसंद था?", options: ["किताबें पढ़ना", "क्रिकेट खेलना", "टीवी देखना", "तैरना"], correctIndex: 0, explanation: "राहुल को पढ़ना बहुत पसंद था।" },
+      { id: 4, question: "राहुल कितनी बार पुस्तकालय जाता था?", options: ["हर दिन", "सप्ताह में एक बार", "केवल सप्ताहांत पर", "महीने में एक बार"], correctIndex: 0, explanation: "वह हर दिन पुस्तकालय जाता था।" },
+      { id: 5, question: "राहुल नई कहानियाँ पढ़ने कहाँ जाता था?", options: ["स्थानीय पुस्तकालय", "अपने स्कूल", "पार्क", "दोस्त के घर"], correctIndex: 0, explanation: "वह हर दिन पुस्तकालय जाता था।" },
+      { id: 6, question: "राहुल किस प्रकार की कहानियाँ पढ़ता था?", options: ["नई और रोमांचक कहानियाँ", "डरावनी कहानियाँ", "उबाऊ कहानियाँ", "गणित की पुस्तकें"], correctIndex: 0, explanation: "वह नई कहानियाँ पढ़ता था।" },
+      { id: 7, question: "राहुल जिस गाँव में रहता था वह कैसा था?", options: ["हरा-भरा", "बड़ा", "व्यस्त", "सूखा"], correctIndex: 0, explanation: "वह एक हरे-भरे (green) गाँव में रहता था।" },
+      { id: 8, question: "इस कहानी का मुख्य पात्र कौन है?", options: ["राहुल", "रवि", "अमित", "विजय"], correctIndex: 0, explanation: "मुख्य पात्र राहुल है।" },
+      { id: 9, question: "राहुल का पसंदीदा शौक क्या था?", options: ["पढ़ना", "दौड़ना", "चित्र बनाना", "नाचना"], correctIndex: 0, explanation: "राहुल को किताबें पढ़ना बहुत पसंद था।" },
+      { id: 10, question: "वाक्य पूरा करें: राहुल पढ़ने के लिए स्थानीय ___ जाता था।", options: ["पुस्तकालय", "स्कूल", "दुकान", "उद्यान"], correctIndex: 0, explanation: "वह स्थानीय पुस्तकालय जाता था।" }
+    ] : language === "Kannada" ? [
+      { id: 1, question: "ಹುಡುಗನ ಹೆಸರೇನು?", options: ["ರಾಹುಲ್", "ರವಿ", "ಅಮಿತ್", "ವಿಜಯ್"], correctIndex: 0, explanation: "ಹುಡುಗನ ಹೆಸರು ರಾಹುಲ್ ಎಂದು ಕಥೆಯಲ್ಲಿ ಹೇಳಲಾಗಿದೆ." },
+      { id: 2, question: "ರಾಹುಲ್ ಎಲ್ಲಿ ವಾಸಿಸುತ್ತಿದ್ದನು?", options: ["ಹಸಿರು ಹಳ್ಳಿಯಲ್ಲಿ", "ನಗರಾಟದಲ್ಲಿ", "ಕಾಡಿನಲ್ಲಿ", "ಬೆಟ್ಟದ ಮೇಲೆ"], correctIndex: 0, explanation: "ರಾಹುಲ್ ಹಳ್ಳಿಯಲ್ಲಿ ವಾಸಿಸುತ್ತಿದ್ದನು." },
+      { id: 3, question: "ರಾಹುಲ್ ಗೆ ಏನು ಮಾಡುವುದೆಂದರೆ ತುಂಬಾ ಇಷ್ಟ?", options: ["ಪುಸ್ತಕ ಓದುವುದು", "ಕ್ರಿಕೆಟ್ ಆಡುವುದು", "ಟಿವಿ ನೋಡುವುದು", "ಈಜುವುದು"], correctIndex: 0, explanation: "ರಾಹುಲ್ ಗೆ ಓದುವುದೆಂದರೆ ತುಂಬಾ ಇಷ್ಟ." },
+      { id: 4, question: "ರಾಹುಲ್ ಎಷ್ಟು ಬಾರಿ ಗ್ರಂಥಾಲಯಕ್ಕೆ ಹೋಗುತ್ತಿದ್ದನು?", options: ["ಪ್ರತಿದಿನ", "ವಾರಕ್ಕೊಮ್ಮೆ", "ವಾರಾಂತ್ಯದಲ್ಲಿ ಮಾತ್ರ", "ತಿಂಗಳಿಗೊಮ್ಮೆ"], correctIndex: 0, explanation: "ಅವನು ಪ್ರತಿದಿನ ಗ್ರಂಥಾಲಯಕ್ಕೆ ಹೋಗುತ್ತಿದ್ದನು." },
+      { id: 5, question: "ರಾಹುಲ್ ಹೊಸ ಕಥೆಗಳನ್ನು ಓದಲು ಎಲ್ಲಿಗೆ ಹೋಗುತ್ತಿದ್ದನು?", options: ["ಸ್ಥಾನಿಕ ಗ್ರಂಥಾಲಯಕ್ಕೆ", "ಶಾಲೆಗೆ", "ಪಾರ್ಕ್ ಗೆ", "ಸ್ನೇಹಿತನ ಮನೆಗೆ"], correctIndex: 0, explanation: "ಅವನು ಸ್ಥಾನಿಕ ಗ್ರಂಥಾಲಯಕ್ಕೆ ಹೋಗುತ್ತಿದ್ದನು." },
+      { id: 6, question: "ರಾಹುಲ್ ಎಂತಹ ಕಥೆಗಳನ್ನು ಓದುತ್ತಿದ್ದನು?", options: ["ಹೊಸ ಮತ್ತು ರೋಮಾಂಚಕ ಕಥೆಗಳನ್ನು", "ಭಯಾನಕ ಕಥೆಗಳನ್ನು", "ಬೇಸರದ ಕಥೆಗಳನ್ನು", "ಗಣಿತ ಪುಸ್ತಕಗಳನ್ನು"], correctIndex: 0, explanation: "ಅವನು ಹೊಸ ಕಥೆಗಳನ್ನು ಓದುತ್ತಿದ್ದನು." },
+      { id: 7, question: "ರಾಹುಲ್ ವಾಸಿಸುತ್ತಿದ್ದ ಹಳ್ಳಿ ಎಂತಹದ್ದಾಗಿತ್ತು?", options: ["ಹಸಿರು", "ದೊಡ್ಡದಾದ", "ಗಿಜಿಗುಡುವ", "ಒಣಗಿದ"], correctIndex: 0, explanation: "ಅವನು ಹಸಿರು ಹಳ್ಳಿಯಲ್ಲಿ ವಾಸಿಸುತ್ತಿದ್ದನು." },
+      { id: 8, question: "ಈ ಕಥೆಯ ಮುಖ್ಯ ಪಾತ್ರ ಯಾರು?", options: ["ರಾಹುಲ್", "ರವಿ", "ಅಮಿತ್", "ವಿಜಯ್"], correctIndex: 0, explanation: "ಮುಖ್ಯ ಪಾತ್ರ ರಾಹುಲ್." },
+      { id: 9, question: "ರಾಹುಲ್ ನ ನೆಚ್ಚಿನ ಹವ್ಯಾಸ ಯಾವುದು?", options: ["ಓದುವುದು", "ಓಡುವುದು", "ಚಿತ್ರ ಬಿಡಿಸುವುದು", "ನೃತ್ಯ"], correctIndex: 0, explanation: "ಅವನಿಗೆ ಓದುವುದೆಂದರೆ ತುಂಬಾ ಇಷ್ಟ." },
+      { id: 10, question: "ವಾಕ್ಯ ಪೂರ್ಣಗೊಳಿಸಿ: ರಾಹುಲ್ ಓದಲು ಸ್ಥಾನಿಕ ___ ಕ್ಕೆ ಹೋಗುತ್ತಿದ್ದನು.", options: ["ಗ್ರಂಥಾಲಯಕ್ಕೆ", "ಶಾಲೆಗೆ", "ಅಂಗಡಿಗೆ", "ತೋಟಕ್ಕೆ"], correctIndex: 0, explanation: "ಅವನು ಸ್ಥಾನಿಕ ಗ್ರಂಥಾಲಯಕ್ಕೆ ಹೋಗುತ್ತಿದ್ದನು." }
+    ] : language === "Telugu" ? [
+      { id: 1, question: "బాలుడి పేరు ఏమిటి?", options: ["రాహుల్", "రవి", "అమిత్", "విజయ్"], correctIndex: 0, explanation: "బాలుడి పేరు రాహుల్ అని కథలో పేర్కొనబడింది." },
+      { id: 2, question: "రాహుల్ ఎక్కడ నివసించేవాడు?", options: ["ఆకుపచ్చని గ్రామంలో", "నగరంలో", "అడవిలో", "కొండపై"], correctIndex: 0, explanation: "రాహుల్ ఒక పచ్చని గ్రామంలో నివసించేవాడు." },
+      { id: 3, question: "రాహుల్‌కు ఏమి చేయడం చాలా ఇష్టం?", options: ["పుస్తకాలు చదవడం", "క్రికెట్ ఆడటం", "టీవీ చూడటం", "ఈదడం"], correctIndex: 0, explanation: "రాహుల్‌కు పుస్తకాలు చదవడం చాలా ఇష్టం." },
+      { id: 4, question: "రాహుల్ ఎంత తరచుగా గ్రంథాలయానికి వెళ్ళేవాడు?", options: ["ప్రతిరోజూ", "వారానికి ఒకసారి", "వారాంతాల్లో మాత్రమే", "నెలకు ఒకసారి"], correctIndex: 0, explanation: "అతను ప్రతిరోజూ గ్రంథాలయానికి వెళ్ళేవాడు." },
+      { id: 5, question: "రాహుల్ కొత్త కథలు చదవడానికి ఎక్కడికి వెళ్ళేవాడు?", options: ["స్థానిక గ్రంథాలయానికి", "పాఠశాలకు", "పార్కుకు", "స్నేహితుడి ఇంటికి"], correctIndex: 0, explanation: "స్థానిక గ్రంథాలయానికి వెళ్ళేవాడు." },
+      { id: 6, question: "రాహుల్ ఎలాంటి కథలు చదివేవాడు?", options: ["కొత్త మరియు ఆసక్తికరమైన కథలు", "భయానక కథలు", "విసుగు పుట్టించే కథలు", "గణిత పుస్తకాలు"], correctIndex: 0, explanation: "కొత్త మరియు ఆసక్తికరమైన కథలను చదివేవాడు." },
+      { id: 7, question: "రాహుల్ నివసించిన గ్రామం ఎటువంటిది?", options: ["ఆకుపచ్చనిది", "పెద్దది", "సందడిగా ఉండేది", "ఎండిపోయినది"], correctIndex: 0, explanation: "ఆకుపచ్చని గ్రామంలో నివసించేవాడు." },
+      { id: 8, question: "ఈ కథలో ప్రధాన పాత్ర ఎవరు?", options: ["రాహుల్", "రవి", "అమిత్", "విజయ్"], correctIndex: 0, explanation: "ప్రధాన పాత్ర రాహుల్." },
+      { id: 9, question: "రాహుల్ కి ఇష్టమైన వ్యాపకం ఏమిటి?", options: ["చదవడం", "పరుగెత్తడం", "చిత్రాలు గీయడం", "నాట్యం చేయడం"], correctIndex: 0, explanation: "పుస్తకాలు చదవడం చాలా ఇష్టం." },
+      { id: 10, question: "వాక్యం పూర్తి చేయండి: రాహుల్ చదవడానికి స్థానిక ___ కి వెళ్ళేవాడు.", options: ["గ్రంథాలయానికి", "పాఠశాలకు", "దుకాణానికి", "తోటకి"], correctIndex: 0, explanation: "స్థానిక గ్రంథాలయానికి వెళ్ళేవాడు." }
+    ] : language === "Tamil" ? [
+      { id: 1, question: "சிறுவனின் பெயர் என்ன?", options: ["ராகுல்", "ரவி", "அமித்", "விஜய்"], correctIndex: 0, explanation: "சிறுவனின் பெயர் ராகுல் என்று கதையில் கூறப்பட்டுள்ளது." },
+      { id: 2, question: "ராகுல் எங்கு வாழ்ந்து வந்தான்?", options: ["பசுமையான கிராமத்தில்", "நகரத்தில்", "காட்டில்", "மலையில்"], correctIndex: 0, explanation: "ராகுல் பசுமையான கிராமத்தில் வாழ்ந்து வந்தான்." },
+      { id: 3, question: "ராகுலுக்கு என்ன செய்ய மிகவும் பிடிக்கும்?", options: ["புத்தகங்கள் படிப்பது", "கிரிக்கெட் விளையாடுவது", "டிவி பார்ப்பது", "நீந்துவது"], correctIndex: 0, explanation: "ராகுலுக்கு புத்தகங்கள் படிப்பது மிகவும் பிடிக்கும்." },
+      { id: 4, question: "ராகுல் எவ்வளவு அடிக்கடி நூலகத்திற்குச் சென்றான்?", options: ["ஒவ்வொரு நாளும்", "வாரத்திற்கு ஒருமுறை", "வார இறுதியில் மட்டும்", "மாதத்திற்கு ஒருமுறை"], correctIndex: 0, explanation: "அவன் ஒவ்வொரு நாளும் நூலகத்திற்குச் சென்றான்." },
+      { id: 5, question: "ராகுல் புதிய கதைகளைப் படிக்க எங்குச் சென்றான்?", options: ["உள்ளூர் நூலகத்திற்கு", "பள்ளிக்கு", "பூங்காவிற்கு", "நண்பன் வீட்டிற்கு"], correctIndex: 0, explanation: "உள்ளூர் நூலகத்திற்குச் சென்றான்." },
+      { id: 6, question: "ராகுல் எத்தகைய கதைகளைப் படித்தான்?", options: ["புதிய மற்றும் சுவாரஸ்யமான கதைகளை", "பயமுறுத்தும் கதைகளை", "சலிப்பான கதைகளை", "கணக்கு புத்தகங்களை"], correctIndex: 0, explanation: "புதிய மற்றும் சுவாரஸ்யமான கதைகளைப் படித்தான்." },
+      { id: 7, question: "ராகுல் வாழ்ந்த கிராமத்தின் தன்மை என்ன?", options: ["பசுமையான", "பெரிய", "பரபரப்பான", "வறண்ட"], correctIndex: 0, explanation: "பசுமையான கிராமத்தில் வாழ்ந்து வந்தான்." },
+      { id: 8, question: "இந்த கதையின் முக்கிய கதாபாத்திரம் யார்?", options: ["ராகுல்", "ரவி", "அமித்", "விஜய்"], correctIndex: 0, explanation: "முக்கிய கதாபாத்திரம் ராகுல்." },
+      { id: 9, question: "ராகுலின் விருப்பமான பொழுதுபோக்கு எது?", options: ["படிப்பது", "ஓடுவது", "வரைவது", "நடனமாடுவது"], correctIndex: 0, explanation: "புத்தகங்கள் படிப்பது அவனுக்கு மிகவும் பிடிக்கும்." },
+      { id: 10, question: "வாக்கியத்தை நிரப்புக: ராகுல் படிக்க உள்ளூர் ___ க்குச் சென்றான்.", options: ["நூலகத்திற்கு", "பள்ளிக்கு", "கடைக்கு", "தோட்டத்திற்கு"], correctIndex: 0, explanation: "உள்ளூர் நூலகத்திற்குச் சென்றான்." }
+    ] : [
+      { id: 1, question: "What was the name of the boy?", options: ["Rahul", "Ravi", "Amit", "Vijay"], correctIndex: 0, explanation: "The story states the boy's name was Rahul." },
+      { id: 2, question: "Where did Rahul live?", options: ["In a green village", "In a city", "In a forest", "On a hill"], correctIndex: 0, explanation: "Rahul lived in a green village." },
+      { id: 3, question: "What did Rahul love doing?", options: ["Reading books", "Playing cricket", "Watching television", "Swimming"], correctIndex: 0, explanation: "Rahul loved reading books very much." },
+      { id: 4, question: "How often did Rahul visit the library?", options: ["Every single day", "Once a week", "Only on weekends", "Once a month"], correctIndex: 0, explanation: "He visited the library every single day." },
+      { id: 5, question: "Where did Rahul go to read new stories?", options: ["The local library", "His school", "A park", "A friend's house"], correctIndex: 0, explanation: "He visited the local library to read." },
+      { id: 6, question: "What kind of stories did Rahul read?", options: ["New and exciting stories", "Scary stories", "Boring stories", "Math books"], correctIndex: 0, explanation: "He read new and exciting stories." },
+      { id: 7, question: "What describes the village Rahul lived in?", options: ["Green", "Large", "Busy", "Dry"], correctIndex: 0, explanation: "He lived in a green village." },
+      { id: 8, question: "Who is the main character of this story?", options: ["Rahul", "Ravi", "Amit", "Vijay"], correctIndex: 0, explanation: "Rahul is the main character." },
+      { id: 9, question: "What was Rahul's favorite hobby?", options: ["Reading", "Running", "Drawing", "Dancing"], correctIndex: 0, explanation: "Rahul loved reading books." },
+      { id: 10, question: "Complete the sentence: Rahul visited the local ___ to read.", options: ["Library", "School", "Shop", "Garden"], correctIndex: 0, explanation: "He visited the local library." }
+    ]
   };
 };;
 
