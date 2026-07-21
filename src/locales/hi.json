@@ -131,5 +131,10 @@
   "skillWritingAbility": "Writing Ability",
   "learningMode": "सीखने का मोड",
   "pathPersonalized": "⭐ व्यक्तिगत",
-  "pathFull": "📚 पूरा पथ"
+  "pathFull": "📚 पूरा पथ",
+  "interfaceLanguage": "इंटरफ़ेस भाषा",
+  "learningLanguage": "सीखने की भाषा",
+  "selectInterfaceLanguage": "इंटरफ़ेस भाषा चुनें",
+  "selectLearningLanguage": "सीखने की भाषा चुनें",
+  "whatDoYouWantToLearn": "आप कौन सी भाषा सीखना चाहते हैं?"
 }

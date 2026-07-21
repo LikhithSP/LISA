@@ -66,10 +66,13 @@ const getAgeContext = (age) => {
 
 const buildPrompt = (params) => {
   const {
-    age, educationLevel, language, literacyLevel, literacyLevelName,
-    weakAreas, sectionNum, sectionTitle, unitNum, unitTitle,
+    age, educationLevel, language, learningLanguage: paramLearningLang, interfaceLanguage: paramInterfaceLang,
+    literacyLevel, literacyLevelName, weakAreas, sectionNum, sectionTitle, unitNum, unitTitle,
     lessonNum, lessonTitle, difficulty
   } = params;
+
+  const learningLanguage = paramLearningLang || language || "English";
+  const interfaceLanguage = paramInterfaceLang || language || "English";
 
   const ageCtx = getAgeContext(age);
   const weakList = (weakAreas || []).join(", ") || "general literacy";
@@ -79,7 +82,8 @@ const buildPrompt = (params) => {
 LEARNER PROFILE:
 - Age: ${age} (${ageCtx.contextName})
 - Education Level: ${educationLevel}
-- Preferred Language: ${language}
+- Interface Language (Site UI & Instructions): ${interfaceLanguage}
+- Learning Language (Target Language to Learn): ${learningLanguage}
 - Literacy Level: Level ${literacyLevel} — ${literacyLevelName}
 - Weak Areas: ${weakList}
 
@@ -90,19 +94,20 @@ LESSON DETAILS:
 - Difficulty: ${difficulty}
 
 IMPORTANT RULES:
-1. ALL lesson content (explanation, examples, exercises) must be in ${language}.
-2. Adapt ALL context examples to be age-appropriate. Example for this learner's age: "${ageCtx.contextExample}"
-  3. Keep language simple and encouraging. Do not use jargon.
-  4. The lesson must directly target the weak skill: ${weakList}.
-  5. For "unscramble": "tiles" must be the individual letters of "answer" shuffled into a random order, written in the ${language} script.
-  6. For "imageChoice": provide exactly 3 emoji options where "correctIndex" points to the emoji that matches "word".
-  7. For "tracing": provide a letter/word to practice writing, a short "info" fact, and the "sound" text (spoken aloud to the learner).
+1. Target literacy content (target words, letters, sentences, reading passages, dictation sentences, unscramble tiles) MUST be in ${learningLanguage}.
+2. Instructions, explanations, hints, guidance, and question prompts MUST be given in ${interfaceLanguage} so the learner understands what to do while learning ${learningLanguage}.
+3. Adapt ALL context examples to be age-appropriate. Example for this learner's age: "${ageCtx.contextExample}"
+4. Keep language simple and encouraging. Do not use jargon.
+5. The lesson must directly target the weak skill: ${weakList}.
+6. For "unscramble": "tiles" must be the individual letters of "answer" shuffled into a random order, written in the ${learningLanguage} script.
+7. For "imageChoice": provide exactly 3 emoji options where "correctIndex" points to the emoji that matches "word".
+8. For "tracing": provide a letter/word to practice writing in ${learningLanguage}, a short "info" fact in ${interfaceLanguage}, and the "sound" text in ${learningLanguage}.
 
 Return ONLY valid JSON with this exact structure (no markdown, no backticks):
 {
   "lessonTitle": "string",
   "skillFocus": "string",
-  "explanation": "string (2-3 paragraphs explaining the concept clearly in ${language})",
+  "explanation": "string (2-3 paragraphs explaining the concept clearly in ${interfaceLanguage})",
   "examples": [
     {"text": "string", "translation": "string (English translation if not English)"},
     {"text": "string", "translation": "string"},

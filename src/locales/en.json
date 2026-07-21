@@ -131,5 +131,10 @@
   "skillWritingAbility": "Writing Ability",
   "learningMode": "Learning Mode",
   "pathPersonalized": "⭐ Personalized",
-  "pathFull": "📚 Full Path"
+  "pathFull": "📚 Full Path",
+  "interfaceLanguage": "Interface Language",
+  "learningLanguage": "Learning Language",
+  "selectInterfaceLanguage": "Select interface language",
+  "selectLearningLanguage": "Select language to learn",
+  "whatDoYouWantToLearn": "What language do you want to learn?"
 }

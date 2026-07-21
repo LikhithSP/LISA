@@ -2321,3 +2321,213 @@ export const assessmentQuestions = {
     ]
   }
 };
+
+// Language-native initial assessment pools for supported learning languages
+export const assessmentQuestionsByLanguage = {
+  "English": assessmentQuestions,
+  "Kannada": {
+    "child_level_1": {
+      "title": "Kannada Level 1 Assessment",
+      "description": "Test checking capability at Level 1 for Kannada learners.",
+      "questions": [
+        { "id": "kn_l1_1", "question": "Find the Kannada letter 'ತ'.", "options": ["ಮ", "ಕ", "ತ", "ಲ"], "correctIndex": 2 },
+        { "id": "kn_l1_2", "question": "Which letter matches the Kannada vowel 'ಅ'?", "options": ["ಆ", "ಅ", "ಇ", "ಈ"], "correctIndex": 1 },
+        { "id": "kn_l1_3", "question": "Identify the letter 'ಮ'.", "options": ["ಮ", "ವ", "ನ", "ರ"], "correctIndex": 0 },
+        { "id": "kn_l1_4", "question": "Which is the Kannada letter 'ಕ'?", "options": ["ರ", "ಕ", "ತ", "ನ"], "correctIndex": 1 },
+        { "id": "kn_l1_5", "question": "Complete the sequence: ಅ, ಆ, ಇ, __", "options": ["ಉ", "ಈ", "ಊ", "ಋ"], "correctIndex": 1 },
+        { "id": "kn_l1_6", "question": "Find the letter matching 'ರ'.", "options": ["ಮ", "ನ", "ರ", "ವ"], "correctIndex": 2 },
+        { "id": "kn_l1_7", "question": "Which letter is different from the others?", "options": ["ಕ", "ಕ", "ಕ", "ಮ"], "correctIndex": 3 },
+        { "id": "kn_l1_8", "question": "Identify the letter 'ನ'.", "options": ["ನ", "ವ", "ಮ", "ರ"], "correctIndex": 0 },
+        { "id": "kn_l1_9", "question": "Find the vowel letter 'ಉ'.", "options": ["ಉ", "ಊ", "ಋ", "ಎ"], "correctIndex": 0 },
+        { "id": "kn_l1_10", "question": "Which letter shape is 'ಒ'?", "options": ["ಅ", "ಒ", "ಂ", "ಃ"], "correctIndex": 1 }
+      ]
+    },
+    "child_level_2": {
+      "title": "Kannada Level 2 Assessment",
+      "description": "Test checking capability at Level 2 for Kannada learners.",
+      "questions": [
+        { "id": "kn_l2_1", "question": "Which letter makes the starting sound of 'ಮರ' (Tree)?", "options": ["ಕ", "ರ", "ಮ", "ನ"], "correctIndex": 2 },
+        { "id": "kn_l2_2", "question": "Identify the missing letter in: 'ಅ_ಸ' (King)?", "options": ["ರ", "ಮ", "ನ", "ಕ"], "correctIndex": 0 },
+        { "id": "kn_l2_3", "question": "Which word means 'House' in Kannada?", "options": ["ಮನೆ", "ಮರ", "ನದಿ", "ಹೂವು"], "correctIndex": 0 },
+        { "id": "kn_l2_4", "question": "Find the word starting with 'ಅ'.", "options": ["ಅರಸ", "ಮನೆ", "ಕಾಡು", "ಬಾಗಿಲು"], "correctIndex": 0 },
+        { "id": "kn_l2_5", "question": "Which word rhymes with 'ಮರ'?", "options": ["ಸರ", "ಮನೆ", "ಹಣ್ಣು", "ನೀರು"], "correctIndex": 0 },
+        { "id": "kn_l2_6", "question": "What sound does the letter 'ಕ' make in 'ಕಮಲ'?", "options": ["Ka", "Ma", "La", "Ra"], "correctIndex": 0 },
+        { "id": "kn_l2_7", "question": "Identify the Kannada word for 'Sun'.", "options": ["ಸೂರ್ಯ", "ಚಂದ್ರ", "ಮೋಡ", "ಮಳೆ"], "correctIndex": 0 },
+        { "id": "kn_l2_8", "question": "Which letter completes the word: 'ಹಾ_ು' (Milk)?", "options": ["ಲು", "ಮ", "ನ", "ಕ"], "correctIndex": 0 },
+        { "id": "kn_l2_9", "question": "Which word starts with the 'ಬ' sound?", "options": ["ಬಾಳೆ", "ಮನೆ", "ನದಿ", "ಹಾಲು"], "correctIndex": 0 },
+        { "id": "kn_l2_10", "question": "Identify the missing letter in: 'ಹಾ_ು' (Milk).", "options": ["ಲು", "ಮ", "ನ", "ಕ"], "correctIndex": 0 }
+      ]
+    },
+    "child_level_3": {
+      "title": "Kannada Level 3 Assessment",
+      "description": "Test checking capability at Level 3 for Kannada learners.",
+      "questions": [
+        { "id": "kn_l3_1", "question": "Which word completes: 'ನಾನು ____ ಕುಡಿಯುತ್ತೇನೆ' (I drink ____)?", "options": ["ನೀರು", "ಮರ", "ಪುಸ್ತಕ", "ಬಾಗಿಲು"], "correctIndex": 0 },
+        { "id": "kn_l3_2", "question": "Identify the action word (Verb) in Kannada:", "options": ["ಓಡು", "ಮನೆ", "ಹುಲ್ಲು", "ಕಲ್ಲು"], "correctIndex": 0 },
+        { "id": "kn_l3_3", "question": "Which word means 'Book' in Kannada?", "options": ["ಪುಸ್ತಕ", "ಪೆನ್ನು", "ಶಾಲೆ", "ಮನೆ"], "correctIndex": 0 },
+        { "id": "kn_l3_4", "question": "What is the opposite of 'ಹಗಲು' (Day) in Kannada?", "options": ["ರಾತ್ರಿ", "ಸಂಜೆ", "ಬೆಳಿಗ್ಗೆ", "ಮಧ್ಯಾಹ್ನ"], "correctIndex": 0 },
+        { "id": "kn_l3_5", "question": "Find the word related to 'School':", "options": ["ಶಾಲೆ", "ಕಾಡು", "ಸಮುದ್ರ", "ಆಕಾಶ"], "correctIndex": 0 },
+        { "id": "kn_l3_6", "question": "Which word means 'Water' in Kannada?", "options": ["ನೀರು", "ಹಾಲು", "ಗಾಳಿ", "ಬೆಂಕಿ"], "correctIndex": 0 },
+        { "id": "kn_l3_7", "question": "Identify the word for 'Tree' in Kannada:", "options": ["ಮರ", "ಗಿಡ", "ಹೂವು", "ಎಲೆ"], "correctIndex": 0 },
+        { "id": "kn_l3_8", "question": "Which word means 'Apple' in Kannada?", "options": ["ಸೇಬು", "ಬಾಳೆ", "ಮಾವು", "ಕಿತ್ತಳೆ"], "correctIndex": 0 },
+        { "id": "kn_l3_9", "question": "Find the noun word in Kannada:", "options": ["ರಾಮು", "ಓಡು", "ಕುಡಿ", "ನಡೆ"], "correctIndex": 0 },
+        { "id": "kn_l3_10", "question": "Which word means 'Flower' in Kannada?", "options": ["ಹೂವು", "ಎಲೆ", "ಮರ", "ಕಾಯಿ"], "correctIndex": 0 }
+      ]
+    },
+    "child_level_4": {
+      "title": "Kannada Level 4 Assessment",
+      "description": "Test checking capability at Level 4 for Kannada learners.",
+      "questions": [
+        { "id": "kn_l4_1", "question": "Read: 'ಮಕ್ಕಳು ಶಾಲೆಯಲ್ಲಿ ಓದುತ್ತಾರೆ.' What are children doing?", "options": ["ಓದುತ್ತಿದ್ದಾರೆ", "ಆಡುತ್ತಿದ್ದಾರೆ", "ತೂಗುತ್ತಿದ್ದಾರೆ", "ಮಲಗಿದ್ದಾರೆ"], "correctIndex": 0 },
+        { "id": "kn_l4_2", "question": "Select the correct sentence structure in Kannada:", "options": ["ರಾಮು ಹಣ್ಣು ತಿಂದನು.", "ತಿಂದನು ರಾಮು ಹಣ್ಣು.", "ಹಣ್ಣು ತಿಂದನು ರಾಮು.", "ರಾಮು ತಿಂದನು ಹಣ್ಣು."], "correctIndex": 0 },
+        { "id": "kn_l4_3", "question": "Which sign means 'STOP' in Kannada?", "options": ["ನಿಲ್ಲಿಸಿ", "ಹೋಗಿ", "ಮೆಲ್ಲನೆ", "ಗಮನಿಸಿ"], "correctIndex": 0 },
+        { "id": "kn_l4_4", "question": "What does 'ಅಪಾಯ' (Danger) indicate on a sign?", "options": ["ಅಪಾಯಕಾರಿ ಸ್ಥಳ", "ವಿಶ್ರಾಂತಿ", "ಸ್ವಾಗತ", "ಉಚಿತ"], "correctIndex": 0 },
+        { "id": "kn_l4_5", "question": "Which sentence describes the sun rising?", "options": ["ಸೂರ್ಯನು ಮೂಡುತ್ತಾನೆ.", "ಚಂದ್ರನು ಪ್ರಕಾಶಿಸುತ್ತಾನೆ.", "ಮಳೆ ಬೀಳುತ್ತದೆ.", "ಗಾಳಿ ಬೀಸುತ್ತದೆ."], "correctIndex": 0 }
+      ]
+    },
+    "child_level_5": {
+      "title": "Kannada Level 5 Assessment",
+      "description": "Test checking capability at Level 5 for Kannada learners.",
+      "questions": [
+        { "id": "kn_l5_1", "question": "Read notice: 'ಎಚ್ಚರಿಕೆ: ಅಪಾಯಕಾರಿ ಸ್ಥಳ. ಪ್ರವೇಶ ನಿಷೇಧಿಸಲಾಗಿದೆ.' What is indicated?", "options": ["ಪ್ರವೇಶ ನಿಷೇಧಿಸಲಾಗಿದೆ", "ಸಾರ್ವಜನಿಕ ಪ್ರವೇಶ ಉಚಿತ", "ವಿಶ್ರಾಮ ಕೊಠಡಿ", "ಊಟದ ಗೃಹ"], "correctIndex": 0 },
+        { "id": "kn_l5_2", "question": "What action should be taken when you see 'ನಿಲ್ಲಿಸಿ'?", "options": ["ವಾಹನ ನಿಲ್ಲಿಸಬೇಕು", "ವೇಗವಾಗಿ ಹೋಗಬೇಕು", "ಹಾರ್ನ್ ಮಾಡಬೇಕು", "ತಿರುಗಬೇಕು"], "correctIndex": 0 }
+      ]
+    }
+  },
+  "Hindi": {
+    "child_level_1": {
+      "title": "Hindi Level 1 Assessment",
+      "description": "Test checking capability at Level 1 for Hindi learners.",
+      "questions": [
+        { "id": "hi_l1_1", "question": "Find the Hindi letter 'क'.", "options": ["ख", "क", "ग", "घ"], "correctIndex": 1 },
+        { "id": "hi_l1_2", "question": "Which is the Hindi vowel 'अ'?", "options": ["आ", "अ", "इ", "ई"], "correctIndex": 1 },
+        { "id": "hi_l1_3", "question": "Identify the letter 'म'.", "options": ["म", "न", "र", "ल"], "correctIndex": 0 },
+        { "id": "hi_l1_4", "question": "Which letter matches 'त'?", "options": ["थ", "द", "त", "ध"], "correctIndex": 2 },
+        { "id": "hi_l1_5", "question": "Complete the sequence: अ, आ, इ, __", "options": ["उ", "ई", "ऊ", "ऋ"], "correctIndex": 1 },
+        { "id": "hi_l1_6", "question": "Find the letter 'र'.", "options": ["म", "न", "र", "ल"], "correctIndex": 2 },
+        { "id": "hi_l1_7", "question": "Which letter is different from others?", "options": ["क", "क", "क", "म"], "correctIndex": 3 },
+        { "id": "hi_l1_8", "question": "Identify the letter 'न'.", "options": ["न", "व", "म", "र"], "correctIndex": 0 },
+        { "id": "hi_l1_9", "question": "Find the vowel 'उ'.", "options": ["उ", "ऊ", "ऋ", "ए"], "correctIndex": 0 },
+        { "id": "hi_l1_10", "question": "Which letter shape is 'ओ'?", "options": ["अ", "ओ", "ं", "ः"], "correctIndex": 1 }
+      ]
+    },
+    "child_level_2": {
+      "title": "Hindi Level 2 Assessment",
+      "description": "Test checking capability at Level 2 for Hindi learners.",
+      "questions": [
+        { "id": "hi_l2_1", "question": "Which letter starts 'कमल' (Lotus)?", "options": ["क", "म", "ल", "र"], "correctIndex": 0 },
+        { "id": "hi_l2_2", "question": "Which word means 'House' in Hindi?", "options": ["घर", "पेड़", "नदी", "फूल"], "correctIndex": 0 },
+        { "id": "hi_l2_3", "question": "Find the word starting with 'अ'.", "options": ["अनार", "आम", "इमली", "ईख"], "correctIndex": 0 },
+        { "id": "hi_l2_4", "question": "Which word rhymes with 'घर'?", "options": ["पर", "पानी", "दूध", "रोटी"], "correctIndex": 0 },
+        { "id": "hi_l2_5", "question": "Identify missing letter in: 'अ_ार' (Pomegranate)?", "options": ["न", "म", "क", "र"], "correctIndex": 0 }
+      ]
+    },
+    "child_level_3": {
+      "title": "Hindi Level 3 Assessment",
+      "description": "Test checking capability at Level 3 for Hindi learners.",
+      "questions": [
+        { "id": "hi_l3_1", "question": "Which word completes: 'मैं ____ पीता हूँ' (I drink ____)?", "options": ["पानी", "किताब", "पेड़", "घर"], "correctIndex": 0 },
+        { "id": "hi_l3_2", "question": "Identify the action word (Verb):", "options": ["दौड़ना", "घर", "पेड़", "किताब"], "correctIndex": 0 },
+        { "id": "hi_l3_3", "question": "Which word means 'Book' in Hindi?", "options": ["किताब", "कलम", "स्कूल", "घर"], "correctIndex": 0 }
+      ]
+    },
+    "child_level_4": {
+      "title": "Hindi Level 4 Assessment",
+      "description": "Test checking capability at Level 4 for Hindi learners.",
+      "questions": [
+        { "id": "hi_l4_1", "question": "Which notice means 'DANGER' in Hindi?", "options": ["खतरा", "स्वागत", "प्रवेश", "निकास"], "correctIndex": 0 },
+        { "id": "hi_l4_2", "question": "Read notice: 'कृपया शांत रहें।' What is instructed?", "options": ["शांति बनाए रखें", "शोर मचाएं", "दौड़ें", "सो जाएं"], "correctIndex": 0 }
+      ]
+    },
+    "child_level_5": {
+      "title": "Hindi Level 5 Assessment",
+      "description": "Test checking capability at Level 5 for Hindi learners.",
+      "questions": [
+        { "id": "hi_l5_1", "question": "Read notice: 'सावधान: आगे कार्य प्रगति पर है।' What does it mean?", "options": ["कार्य प्रगति पर है", "सड़क बंद है", "विश्राम गृह", "दुकान खुली है"], "correctIndex": 0 }
+      ]
+    }
+  },
+  "Telugu": {
+    "child_level_1": {
+      "title": "Telugu Level 1 Assessment",
+      "description": "Test checking capability at Level 1 for Telugu learners.",
+      "questions": [
+        { "id": "te_l1_1", "question": "Find the Telugu letter 'క'.", "options": ["ఖ", "క", "గ", "ఘ"], "correctIndex": 1 },
+        { "id": "te_l1_2", "question": "Which is the Telugu vowel 'అ'?", "options": ["ఆ", "అ", "ఇ", "ఈ"], "correctIndex": 1 },
+        { "id": "te_l1_3", "question": "Identify the letter 'మ'.", "options": ["మ", "న", "ర", "ల"], "correctIndex": 0 },
+        { "id": "te_l1_4", "question": "Complete the sequence: అ, ఆ, ఇ, __", "options": ["ఉ", "ఈ", "ఊ", "ఋ"], "correctIndex": 1 }
+      ]
+    },
+    "child_level_2": {
+      "title": "Telugu Level 2 Assessment",
+      "description": "Test checking capability at Level 2 for Telugu learners.",
+      "questions": [
+        { "id": "te_l2_1", "question": "Which letter starts 'అమ్మ' (Mother)?", "options": ["అ", "ఆ", "ఇ", "ఈ"], "correctIndex": 0 },
+        { "id": "te_l2_2", "question": "Which word means 'House' in Telugu?", "options": ["ఇల్లు", "చెట్టు", "నది", "పువ్వు"], "correctIndex": 0 }
+      ]
+    },
+    "child_level_3": {
+      "title": "Telugu Level 3 Assessment",
+      "description": "Test checking capability at Level 3 for Telugu learners.",
+      "questions": [
+        { "id": "te_l3_1", "question": "Which word completes: 'నేను ____ తాగుతాను' (I drink ____)?", "options": ["నీళ్ళు", "పుస్తకం", "చెట్టు", "తలుపు"], "correctIndex": 0 }
+      ]
+    },
+    "child_level_4": {
+      "title": "Telugu Level 4 Assessment",
+      "description": "Test checking capability at Level 4 for Telugu learners.",
+      "questions": [
+        { "id": "te_l4_1", "question": "Which sign means 'STOP' in Telugu?", "options": ["ఆగండి", "వెళ్ళండి", "నెమ్మదిగా", "గమనించండి"], "correctIndex": 0 }
+      ]
+    },
+    "child_level_5": {
+      "title": "Telugu Level 5 Assessment",
+      "description": "Test checking capability at Level 5 for Telugu learners.",
+      "questions": [
+        { "id": "te_l5_1", "question": "What action should be taken when you see 'ఆగండి'?", "options": ["వాహనం ఆపాలి", "వేగంగా వెళ్ళాలి", "హార్న్ కొట్టాలి", "తిరగాలి"], "correctIndex": 0 }
+      ]
+    }
+  },
+  "Tamil": {
+    "child_level_1": {
+      "title": "Tamil Level 1 Assessment",
+      "description": "Test checking capability at Level 1 for Tamil learners.",
+      "questions": [
+        { "id": "ta_l1_1", "question": "Find the Tamil letter 'க'.", "options": ["ங", "க", "ச", "ஞ"], "correctIndex": 1 },
+        { "id": "ta_l1_2", "question": "Which is the Tamil vowel 'அ'?", "options": ["ஆ", "அ", "இ", "ஈ"], "correctIndex": 1 },
+        { "id": "ta_l1_3", "question": "Identify the letter 'ம'.", "options": ["ம", "ந", "ர", "ல"], "correctIndex": 0 },
+        { "id": "ta_l1_4", "question": "Complete the sequence: அ, ஆ, இ, __", "options": ["உ", "ஈ", "ஊ", "எ"], "correctIndex": 1 }
+      ]
+    },
+    "child_level_2": {
+      "title": "Tamil Level 2 Assessment",
+      "description": "Test checking capability at Level 2 for Tamil learners.",
+      "questions": [
+        { "id": "ta_l2_1", "question": "Which letter starts 'அம்மா' (Mother)?", "options": ["அ", "ஆ", "இ", "ஈ"], "correctIndex": 0 },
+        { "id": "ta_l2_2", "question": "Which word means 'House' in Tamil?", "options": ["வீடு", "மரம்", "ஆறு", "பூ"], "correctIndex": 0 }
+      ]
+    },
+    "child_level_3": {
+      "title": "Tamil Level 3 Assessment",
+      "description": "Test checking capability at Level 3 for Tamil learners.",
+      "questions": [
+        { "id": "ta_l3_1", "question": "Which word completes: 'நான் ____ குடிக்கிறேன்' (I drink ____)?", "options": ["தண்ணீர்", "புத்தகம்", "மரம்", "கதவு"], "correctIndex": 0 }
+      ]
+    },
+    "child_level_4": {
+      "title": "Tamil Level 4 Assessment",
+      "description": "Test checking capability at Level 4 for Tamil learners.",
+      "questions": [
+        { "id": "ta_l4_1", "question": "Which sign means 'STOP' in Tamil?", "options": ["நில்", "செல்", "மெதுவாக", "கவனி"], "correctIndex": 0 }
+      ]
+    },
+    "child_level_5": {
+      "title": "Tamil Level 5 Assessment",
+      "description": "Test checking capability at Level 5 for Tamil learners.",
+      "questions": [
+        { "id": "ta_l5_1", "question": "What action should be taken when you see 'நில்'?", "options": ["வாகனத்தை நிறுத்த வேண்டும்", "வேகமாக செல்ல வேண்டும்", "ஹாரன் அடிக்க வேண்டும்", "திரும்ப வேண்டும்"], "correctIndex": 0 }
+      ]
+    }
+  }
+};
+
