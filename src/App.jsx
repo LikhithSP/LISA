@@ -3,7 +3,7 @@ import { supabase } from "./supabaseClient";
 import {
   getRandomAssessment, computeSkillScores, generateLearningPath, getOrderedSections,
   classifyProficiency, getProficiencyName, getWeakSkills, getStrongSkills, getStrongSkillKeys, getWeakSkillKeys, SKILL_TRANSLATION_KEYS,
-  SKILL_CATEGORIES, CURRICULUM_SECTIONS, PROFICIENCY_LEVELS, lessonsData
+  SKILL_CATEGORIES, CURRICULUM_SECTIONS, PROFICIENCY_LEVELS, lessonsData, getLCSLength
 } from "./curriculumData";
 import { generateLessonContent, fetchWordOfDay, generatePracticeContent, translateTextContent, translateMCQContent } from "./geminiClient";
 import enJson from "./locales/en.json";
@@ -4524,10 +4524,15 @@ function App() {
           setCompletedLessons(merged);
           localStorage.setItem(`lisa_completed_lessons_${userId}`, JSON.stringify(merged));
         }
-        if (mergedProfile.attempts_history) {
-          const historyList = Array.isArray(mergedProfile.attempts_history) ? mergedProfile.attempts_history : [];
+        if (mergedProfile.attempts_history && Array.isArray(mergedProfile.attempts_history) && mergedProfile.attempts_history.length > 0) {
+          const historyList = mergedProfile.attempts_history;
           setHistoryAttempts(historyList);
           localStorage.setItem("lisa_attempts_history", JSON.stringify(historyList));
+        } else {
+          const localHistory = JSON.parse(localStorage.getItem("lisa_attempts_history")) || [];
+          if (localHistory.length > 0) {
+            setHistoryAttempts(localHistory);
+          }
         }
         if (mergedProfile.profile_bg) {
           setProfileBg(mergedProfile.profile_bg);
@@ -5025,22 +5030,45 @@ function App() {
     return w.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g, "").toLowerCase().trim();
   };
 
+  // Helper to trace LCS alignment for word-order highlights
+  const getLCSMask = (targetWords, spokenWords) => {
+    const m = targetWords.length;
+    const n = spokenWords.length;
+    const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+    for (let i = 1; i <= m; i++) {
+      for (let j = 1; j <= n; j++) {
+        if (targetWords[i - 1] === spokenWords[j - 1]) {
+          dp[i][j] = dp[i - 1][j - 1] + 1;
+        } else {
+          dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+        }
+      }
+    }
+    const mask = new Array(m).fill(false);
+    let i = m, j = n;
+    while (i > 0 && j > 0) {
+      if (targetWords[i - 1] === spokenWords[j - 1]) {
+        mask[i - 1] = true;
+        i--;
+        j--;
+      } else if (dp[i - 1][j] >= dp[i][j - 1]) {
+        i--;
+      } else {
+        j--;
+      }
+    }
+    return mask;
+  };
+
   const evaluateSpeechText = (transcript, targetText) => {
     const targetWords = targetText.split(/\s+/).filter(Boolean);
+    const cleanedTargetWords = targetWords.map(cleanWord);
     const spokenWords = transcript.split(/\s+/).filter(Boolean).map(cleanWord);
 
-    let matchedCount = 0;
-    const scores = targetWords.map((word) => {
-      const cleaned = cleanWord(word);
-      const isMatched = spokenWords.includes(cleaned);
-      if (isMatched) matchedCount++;
-      return isMatched;
-    });
+    const scores = getLCSMask(cleanedTargetWords, spokenWords);
+    const matchedCount = scores.filter(Boolean).length;
 
     if (lessonSession) {
-
-
-
       setLessonSession(prev => ({
         ...prev,
         spokenText: transcript,
@@ -5102,7 +5130,7 @@ function App() {
     const strongSkillKeys = getStrongSkillKeys(skillScores);
     const weakSkillKeys = getWeakSkillKeys(skillScores);
 
-    // Compute marks based on generated questions: 1 point per MCQ, 10 points per reading/writing task
+    // Compute marks based on generated questions: 1 point per MCQ, 5 points per reading/writing task (Total 40)
     let compMarks = 0;
     let readingMarks = 0;
     let writingMarks = 0;
@@ -5115,15 +5143,15 @@ function App() {
         maxCompMarks += 1;
         if (selectedAnswers[idx] === q.correctIndex) compMarks += 1;
       } else if (q.type === "reading") {
-        maxReadingMarks += 10;
+        maxReadingMarks += 5;
         const attempt = readingAttempts[idx];
         const ratio = (attempt && attempt.totalWords > 0) ? attempt.matchedCount / attempt.totalWords : 0;
-        readingMarks += Math.round(ratio * 10);
+        readingMarks += Math.round(ratio * 5);
       } else if (q.type === "writing") {
-        maxWritingMarks += 10;
+        maxWritingMarks += 5;
         const text = writingAnswers[idx] || "";
         const res = q.evaluator ? q.evaluator(text) : { score: 0 };
-        writingMarks += res.score;
+        writingMarks += Math.round((res.score / 10) * 5);
       }
     });
 
@@ -6310,9 +6338,9 @@ function App() {
 
                       <div className="results-hero-right">
                         <img
-                          src="/as3.png"
-                          alt="LISA mascot"
-                          className="assessment-mascot results-mascot-medium"
+                           src="/as3.png"
+                           alt="LISA mascot"
+                           className="assessment-mascot results-mascot-medium"
                         />
                       </div>
                     </div>
@@ -6321,19 +6349,20 @@ function App() {
                       display: 'inline-flex',
                       alignItems: 'center',
                       gap: '8px',
-                      margin: '0 auto 8px',
-                      padding: '10px 20px',
+                      margin: '0 auto 16px',
+                      padding: '10px 24px',
                       borderRadius: '999px',
                       background: 'linear-gradient(135deg, #f59e0b22, #f59e0b11)',
                       color: '#b45309',
                       fontWeight: 800,
-                      fontSize: '1.05rem'
+                      fontSize: '1.05rem',
+                      boxShadow: '0 4px 12px rgba(245, 158, 11, 0.08)'
                     }}>
                       <StarIcon style={{ color: '#f59e0b' }} /> +30 XP Earned
                     </div>
 
-                    <div className="results-detail-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                      <div className="benchmark-card" style={{ margin: 0 }}>
+                    <div className="results-detail-row">
+                      <div className="benchmark-card">
                         <div className="benchmark-badge-icon">🎖️</div>
                         <h3 className="benchmark-title">{getLevelCategoryAndDescription(currentLevelIndex, currentLang).category}</h3>
                         <p className="benchmark-desc">
@@ -6341,7 +6370,7 @@ function App() {
                         </p>
                       </div>
 
-                      <div className="skill-breakdowns-box" style={{ margin: 0 }}>
+                      <div className="skill-breakdowns-box">
                         <h3>{t("skillBreakdown")}</h3>
                         {skillOrder.map(({ key, label, color }) => {
                           const value = skillScores[key] ?? latestAttempt?.skills?.[key] ?? 0;
@@ -6370,18 +6399,36 @@ function App() {
                         <div className="insight-box insight-strong">
                           <div className="insight-badge">🌟</div>
                           <h4>{t("strongAreas")}</h4>
-                          <ul>
-                            {strongKeys.map((k) => <li key={k}>{t(SKILL_TRANSLATION_KEYS[k])}</li>)}
+                          <ul style={{ margin: 0, paddingLeft: '20px', color: 'var(--text)', width: '100%', textAlign: 'left' }}>
+                            {strongKeys.length > 0 ? (
+                              strongKeys.map((k) => (
+                                <li key={k} style={{ marginBottom: '6px', fontWeight: 600, fontSize: '0.9rem' }}>
+                                  {t(SKILL_TRANSLATION_KEYS[k]) || k}
+                                </li>
+                              ))
+                            ) : (
+                              <li style={{ listStyleType: 'none', marginLeft: '-20px', fontSize: '0.88rem', color: 'var(--muted)', fontStyle: 'italic', lineHeight: '1.4' }}>
+                                Work on lessons to build your first Strong area!
+                              </li>
+                            )}
                           </ul>
                         </div>
 
                         <div className="insight-box insight-improve">
                           <div className="insight-badge">⚠️</div>
                           <h4>{t("areasToImprove")}</h4>
-                          <ul>
-                            {weakKeys.length > 0
-                              ? weakKeys.map((k) => <li key={k}>{t(SKILL_TRANSLATION_KEYS[k])}</li>)
-                              : <li>{t("noAreasToImprove")}</li>}
+                          <ul style={{ margin: 0, paddingLeft: '20px', color: 'var(--text)', width: '100%', textAlign: 'left' }}>
+                            {weakKeys.length > 0 ? (
+                              weakKeys.map((k) => (
+                                <li key={k} style={{ marginBottom: '6px', fontWeight: 600, fontSize: '0.9rem' }}>
+                                  {t(SKILL_TRANSLATION_KEYS[k]) || k}
+                                </li>
+                              ))
+                            ) : (
+                              <li style={{ listStyleType: 'none', marginLeft: '-20px', fontSize: '0.88rem', color: 'var(--muted)', fontStyle: 'italic', lineHeight: '1.4' }}>
+                                Congratulations! No critical areas need immediate improvement. Recommend advanced practice!
+                              </li>
+                            )}
                           </ul>
                         </div>
 
@@ -6393,22 +6440,10 @@ function App() {
                       </div>
                     </div>
 
-                    {/* Diagnostic Summary Analysis */}
-                    <div className="diagnostic-summary-analysis" style={{
-                      marginTop: '24px',
-                      padding: '20px',
-                      backgroundColor: 'var(--primary-light)',
-                      borderLeft: '4px solid var(--primary-color)',
-                      borderRadius: '8px',
-                      color: 'var(--text-primary)',
-                      lineHeight: '1.6',
-                      fontSize: '1rem',
-                      textAlign: 'left'
-                    }}>
-                      <h4 style={{ margin: '0 0 8px', fontWeight: 800, color: 'var(--primary-color)' }}>
-                        📝 Diagnostic Analysis & Learning Path Recommendation
-                      </h4>
-                      <p style={{ margin: 0 }}>
+                     {/* Diagnostic Summary Analysis */}
+                     <div className="diagnostic-recommendation-box">
+                       <h4>Summary</h4>
+                       <p>
                         {(() => {
                           if (overallPercent >= 85) {
                             return `Fantastic work! You demonstrated highly advanced literacy skills, scoring ${overallPercent}% overall. You have near-perfect mastery of basic alphabet, vocabulary, and grammar rules. Your learning path is optimized to target communication refinement and real-life functional application to polish your fluency.`;
