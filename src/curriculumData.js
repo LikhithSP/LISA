@@ -763,68 +763,29 @@ export const getLCSLength = (arr1, arr2) => {
 //   Block C: 4 questions from startLevel+1 (or startLevel+2 if both blocks advanced)
 // Each question is tagged with its `blockLevel` for adaptive scoring at submission.
 // ─────────────────────────────────────────────────────────────────────────────
-export const getRandomAssessment = (age, educationLevel, language = "English", experienceLevel = "") => {
+// Helper: pull and format N shuffled questions from a specific level, avoiding already-used IDs
+export const getQuestionsForBlock = (age, language, level, count, usedIds = new Set(), blockName = "A") => {
   const ageNum = parseInt(age, 10) || 20;
   const ageGroup = getAgeGroup(ageNum);
-  const startLevel = getStartingLevelFromExperience(experienceLevel);
-
+  const clampedLvl = Math.min(Math.max(level, 1), 5);
+  
   const questionsPool =
     (assessmentQuestionsByLanguage && assessmentQuestionsByLanguage[language]) ||
     assessmentQuestionsByLanguage["English"] ||
     assessmentQuestions;
-  const rwSource =
-    (assessmentReadingWritingByLanguage && assessmentReadingWritingByLanguage[language]) ||
-    assessmentReadingWritingByLanguage["English"] ||
-    assessmentReadingWriting;
 
-  // Helper: pull N shuffled questions from a specific level, avoiding already-used IDs
-  const pickFromLevel = (lvl, n, usedIds = new Set()) => {
-    const clampedLvl = Math.min(Math.max(lvl, 1), 5);
-    const poolKey = `${ageGroup}_level_${clampedLvl}`;
-    const pool =
-      questionsPool[poolKey] ||
-      questionsPool[`${ageGroup}_level_1`] ||
-      questionsPool["child_level_1"] ||
-      assessmentQuestions["child_level_1"];
-    const questions = (pool?.questions || []).filter((q) => !usedIds.has(q.id));
-    const shuffled = [...questions].sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, n);
-  };
+  const poolKey = `${ageGroup}_level_${clampedLvl}`;
+  const pool =
+    questionsPool[poolKey] ||
+    questionsPool[`${ageGroup}_level_1`] ||
+    questionsPool["child_level_1"] ||
+    assessmentQuestions["child_level_1"];
+  
+  const questions = (pool?.questions || []).filter((q) => !usedIds.has(q.id));
+  const shuffled = [...questions].sort(() => 0.5 - Math.random());
+  const selected = shuffled.slice(0, count);
 
-  // Build adaptive 3 + 3 + 4 blocks
-  const usedIds = new Set();
-
-  const blockA = pickFromLevel(startLevel, 3, usedIds);
-  blockA.forEach((q) => usedIds.add(q.id));
-
-  const blockB = pickFromLevel(startLevel, 3, usedIds);
-  blockB.forEach((q) => usedIds.add(q.id));
-
-  const blockCLevel = Math.min(startLevel + 1, 5);
-  const blockC = pickFromLevel(blockCLevel, 4, usedIds);
-  blockC.forEach((q) => usedIds.add(q.id));
-
-  // Backfill any empty slots with questions from any level
-  const allSampled = [...blockA, ...blockB, ...blockC];
-  if (allSampled.length < 10) {
-    for (let lvl = 1; lvl <= 5 && allSampled.length < 10; lvl++) {
-      const fallbackPool =
-        assessmentQuestions[`${ageGroup}_level_${lvl}`] || assessmentQuestions["child_level_1"];
-      for (const q of (fallbackPool?.questions || [])) {
-        if (allSampled.length >= 10) break;
-        if (!usedIds.has(q.id)) {
-          allSampled.push(q);
-          usedIds.add(q.id);
-        }
-      }
-    }
-  }
-
-  // Tag questions with block membership for adaptive scoring
-  const blockAIds = new Set(blockA.map((q) => q.id));
-  const blockBIds = new Set(blockB.map((q) => q.id));
-
-  const comprehensionQuestions = allSampled.map((q, idx) => {
+  return selected.map((q, idx) => {
     const rawOptionsEnglish = Array.isArray(q.options)
       ? q.options
       : (q.options && q.options["English"]) || [];
@@ -832,11 +793,7 @@ export const getRandomAssessment = (age, educationLevel, language = "English", e
     const indices = rawOptionsEnglish.map((_, i) => i);
     const shuffledIndices = [...indices].sort(() => 0.5 - Math.random());
     const newCorrectIndex = shuffledIndices.indexOf(correctIdx);
-    const skill = inferSkillFromQuestion(q, idx, allSampled.length);
-
-    // Tag each question with its adaptive block
-    const adaptiveBlock = blockAIds.has(q.id) ? "A" : blockBIds.has(q.id) ? "B" : "C";
-    const blockLevel = adaptiveBlock === "C" ? blockCLevel : startLevel;
+    const skill = inferSkillFromQuestion(q, idx, count);
 
     return {
       id: q.id,
@@ -845,10 +802,41 @@ export const getRandomAssessment = (age, educationLevel, language = "English", e
       rawQuestion: q,
       shuffledIndices,
       correctIndex: newCorrectIndex,
-      adaptiveBlock,
-      blockLevel,
+      adaptiveBlock: blockName,
+      blockLevel: clampedLvl,
     };
   });
+};
+
+export const getRandomAssessment = (age, educationLevel, language = "English", experienceLevel = "") => {
+  const ageNum = parseInt(age, 10) || 20;
+  const ageGroup = getAgeGroup(ageNum);
+  const startLevel = getStartingLevelFromExperience(experienceLevel);
+
+  const rwSource =
+    (assessmentReadingWritingByLanguage && assessmentReadingWritingByLanguage[language]) ||
+    assessmentReadingWritingByLanguage["English"] ||
+    assessmentReadingWriting;
+
+  const usedIds = new Set();
+
+  const blockA = getQuestionsForBlock(ageNum, language, startLevel, 3, usedIds, "A");
+  blockA.forEach((q) => usedIds.add(q.id));
+
+  const blockB = getQuestionsForBlock(ageNum, language, startLevel, 3, usedIds, "B");
+  blockB.forEach((q) => usedIds.add(q.id));
+
+  const blockCLevel = Math.min(startLevel + 1, 5);
+  const blockC = getQuestionsForBlock(ageNum, language, blockCLevel, 4, usedIds, "C");
+  blockC.forEach((q) => usedIds.add(q.id));
+
+  // Backfill if empty (extremely rare, pools are large)
+  let comprehensionQuestions = [...blockA, ...blockB, ...blockC];
+  if (comprehensionQuestions.length < 10) {
+    const needed = 10 - comprehensionQuestions.length;
+    const extra = getQuestionsForBlock(ageNum, language, 1, needed, usedIds, "C");
+    comprehensionQuestions = [...comprehensionQuestions, ...extra];
+  }
 
   // Reading + Writing — use startLevel key for appropriate difficulty
   const rwKey = `${ageGroup}_level_${startLevel}`;
