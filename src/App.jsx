@@ -679,7 +679,7 @@ function App() {
   const [completedLessons, setCompletedLessons] = useState([]);
   const [lessonSession, setLessonSession] = useState(null);
   const [streakCount, setStreakCount] = useState(0);
-  const [wordOfDay, setWordOfDay] = useState({ word: "Diligent", meaning: "Hardworking and showing care", example: "A diligent student practices reading a little every day." });
+  const [wordOfDay, setWordOfDay] = useState(null);
   const [userMistakes, setUserMistakes] = useState([]);
 
   const recentMistakes = useMemo(() => {
@@ -1076,19 +1076,94 @@ function App() {
   useEffect(() => {
     let active = true;
     const loadWordOfDay = async () => {
-      const levelCtx = calculateProgressiveLevel(profile, completedLessons);
-      const res = await fetchWordOfDay(selectedLanguage || "English", {
-        level: levelCtx,
-        age: profile?.age ?? null,
-        education: profile?.education_level ?? null
-      }, !aiEnabled);
-      if (active && res) {
-        setWordOfDay(res);
+      const userId = session?.user?.id;
+      // Get the user's target learning language (learningLanguage or profile.learning_language)
+      const learnLang = profile?.learning_language || learningLanguage || "English";
+      const interfaceLang = selectedLanguage || "English";
+      
+      // Fallback word in case of failures or fallback mode
+      const getFallback = () => {
+        if (interfaceLang === "Hindi") {
+          return { word: "Diligent", meaning: "मेहनती और लगनशील", example: "A diligent student practices reading a little every day." };
+        } else if (interfaceLang === "Kannada") {
+          return { word: "Diligent", meaning: "ಕಷ್ಟಪಟ್ಟು ಕೆಲಸ ಮಾಡುವ ಮತ್ತು ಕಾಳಜಿ ತೋರುವ", example: "A diligent student practices reading a little every day." };
+        } else if (interfaceLang === "Telugu") {
+          return { word: "Diligent", meaning: "కష్టపడి పనిచేసే మరియు శ్రద్ధ చూపించే", example: "A diligent student practices reading a little every day." };
+        } else if (interfaceLang === "Tamil") {
+          return { word: "Diligent", meaning: "கடின உழைப்பு மற்றும் அக்கறை காட்டுதல்", example: "A diligent student practices reading a little every day." };
+        }
+        return { word: "Diligent", meaning: "Hardworking and showing care", example: "A diligent student practices reading a little every day." };
+      };
+
+      // If AI is disabled, we still attempt to fetch the word of the day from the database.
+// Fallback will be used only if fetching fails.
+
+
+      if (!userId) {
+        if (active) setWordOfDay(getFallback());
+        return;
+      }
+
+      try {
+        const today = new Date().toLocaleDateString("en-CA");
+        
+        // 1. Fetch all words for this target learning language
+        const { data: words, error: fetchErr } = await supabase
+          .from("word_of_day")
+          .select("*")
+          .eq("language", learnLang)
+          .order("word"); // Ordering consistently to maintain index ordering
+
+        if (fetchErr || !words || words.length === 0) {
+          console.warn("Could not fetch words from database, using fallback:", fetchErr);
+          if (active) setWordOfDay(getFallback());
+          return;
+        }
+
+        // 2. Check if the user needs a new word rotation today
+        let currentIndex = profile?.word_of_day_index ?? 0;
+        let lastDate = profile?.word_of_day_date;
+
+        if (!lastDate || lastDate !== today) {
+          // It's a new day or first login ever: rotate index
+          if (lastDate) {
+            currentIndex = (currentIndex + 1) % words.length;
+          } else {
+            currentIndex = currentIndex % words.length;
+          }
+
+          // Update profile in DB first
+          await supabase
+            .from("profiles")
+            .update({
+              word_of_day_date: today,
+              word_of_day_index: currentIndex
+            })
+            .eq("id", userId);
+
+          // Update local profile state
+          setProfile(prev => prev ? { ...prev, word_of_day_date: today, word_of_day_index: currentIndex } : null);
+        }
+
+        const selectedWordObj = words[currentIndex];
+        
+        // Map word and example in learningLanguage, meaning translated to interfaceLanguage (or UI language)
+        // If the meaning stored in DB needs translation, we can use it or fallback, but the table contains meanings.
+        if (active && selectedWordObj) {
+          setWordOfDay({
+            word: selectedWordObj.word,
+            meaning: selectedWordObj.meaning,
+            example: selectedWordObj.example
+          });
+        }
+      } catch (err) {
+        console.error("Error loading word of the day:", err);
+        if (active) setWordOfDay(getFallback());
       }
     };
     loadWordOfDay();
     return () => { active = false; };
-  }, [selectedLanguage, profile, completedLessons]);
+  }, [selectedLanguage, learningLanguage, profile?.learning_language, session?.user?.id]);
 
   // Translate static dashboard strings (level message, streak message, quest titles, achievement title/desc)
   // into the selected language. Re-runs when language or the underlying values change. English shows the source text.
