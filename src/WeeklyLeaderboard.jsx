@@ -328,7 +328,7 @@ export default function WeeklyLeaderboard({ session, profile, weeklyXp, canUsePh
           </div>
 
           <div className="weekly-leaderboard-list">
-            {leaderboardData.sorted.slice(3).map((user, idx) => {
+            {leaderboardData.sorted.slice(3, 10).map((user, idx) => {
               const rank = idx + 4;
               return (
                 <div
@@ -351,7 +351,7 @@ export default function WeeklyLeaderboard({ session, profile, weeklyXp, canUsePh
             })}
           </div>
 
-          {leaderboardData.currentUserRank > 3 && (
+          {leaderboardData.currentUserRank > 10 && (
             <div className="weekly-leaderboard-your-rank">
               <div className="leaderboard-divider" />
               <div className="weekly-leaderboard-row is-current-user highlight">
