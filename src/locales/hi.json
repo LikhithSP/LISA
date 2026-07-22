@@ -136,5 +136,13 @@
   "learningLanguage": "सीखने की भाषा",
   "selectInterfaceLanguage": "इंटरफ़ेस भाषा चुनें",
   "selectLearningLanguage": "सीखने की भाषा चुनें",
-  "whatDoYouWantToLearn": "आप कौन सी भाषा सीखना चाहते हैं?"
+  "whatDoYouWantToLearn": "आप कौन सी भाषा सीखना चाहते हैं?",
+  "experienceInTargetLanguage": "लक्ष्य भाषा में अनुभव",
+  "selectExperienceLevel": "अपना अनुभव स्तर चुनें",
+  "profileExperienceStatus": "लक्ष्य भाषा अनुभव",
+  "completelyNewOption": "I am completely new to this language",
+  "recognizeLettersOption": "I can recognize some letters and words",
+  "readSentencesOption": "I can read simple sentences",
+  "readParagraphsOption": "I can read paragraphs and understand basic content",
+  "improveVocabOption": "I want to improve my vocabulary and communication skills"
 }

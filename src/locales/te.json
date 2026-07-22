@@ -136,5 +136,13 @@
   "learningLanguage": "నేర్చుకునే భాష",
   "selectInterfaceLanguage": "ఇంటర్ఫేస్ భాషను ఎంచుకోండి",
   "selectLearningLanguage": "నేర్చుకోవాలనుకుంటున్న భాషను ఎంచుకోండి",
-  "whatDoYouWantToLearn": "మీరు ఏ భాష నేర్చుకోవాలనుకుంటున్నారు?"
+  "whatDoYouWantToLearn": "మీరు ఏ భాష నేర్చుకోవాలనుకుంటున్నారు?",
+  "experienceInTargetLanguage": "లక్ష్య భాషలో అనుభవం",
+  "selectExperienceLevel": "మీ అనుభవ స్థాయిని ఎంచుకోండి",
+  "profileExperienceStatus": "లక్ష్య భాషా అనుభవం",
+  "completelyNewOption": "I am completely new to this language",
+  "recognizeLettersOption": "I can recognize some letters and words",
+  "readSentencesOption": "I can read simple sentences",
+  "readParagraphsOption": "I can read paragraphs and understand basic content",
+  "improveVocabOption": "I want to improve my vocabulary and communication skills"
 }
