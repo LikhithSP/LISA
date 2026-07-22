@@ -30,14 +30,14 @@ export const SKILL_TRANSLATION_KEYS = {
   writing_ability: "skillWritingAbility",
 };
 
-export const getStrongSkillKeys = (skillScores, threshold = 75) =>
+export const getStrongSkillKeys = (skillScores) =>
   Object.entries(skillScores || {})
-    .filter(([_, v]) => typeof v === "number" && v > threshold)
+    .filter(([_, v]) => typeof v === "number" && v >= 90)
     .map(([k]) => k);
 
-export const getWeakSkillKeys = (skillScores, threshold = 75) =>
+export const getWeakSkillKeys = (skillScores) =>
   Object.entries(skillScores || {})
-    .filter(([_, v]) => typeof v === "number" && v <= threshold)
+    .filter(([_, v]) => typeof v === "number" && v < 35)
     .map(([k]) => k);
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -597,18 +597,37 @@ export const CURRICULUM_SECTIONS = [
 export const generateLearningPath = (skillScores) => {
   const path = [];
   const scores = skillScores || {};
-  const add = (skill, sectionId, unitId, lessonId, reason) => {
-    if ((scores[skill] ?? 100) < 75) path.push({ skill, sectionId, unitId, lessonId, reason });
-  };
 
-  add("letter_recognition", "s1", "s1u1", "s1u1l1", "Letter Recognition needs improvement");
-  add("word_recognition", "s2", "s2u1", "s2u1l1", "Word Recognition needs improvement");
-  add("vocabulary_recognition", "s3", "s3u1", "s3u1l1", "Vocabulary Recognition needs improvement");
-  add("sentence_understanding", "s5", "s5u1", "s5u1l1", "Sentence Understanding needs improvement");
-  add("reading_comprehension", "s6", "s6u1", "s6u1l1", "Reading Comprehension needs improvement");
-  add("writing_ability", "s7", "s7u1", "s7u1l1", "Writing Ability needs improvement");
-  add("reading_ability", "s9", "s9u1", "s9u1l1", "Reading Ability needs improvement");
-  add("practical_literacy", "s11", "s11u1", "s11u1l1", "Practical Literacy needs improvement");
+  const mappings = [
+    { skill: "letter_recognition", sectionId: "s1", unitId: "s1u1", lessonId: "s1u1l1", reason: "Letter Recognition needs improvement" },
+    { skill: "word_recognition", sectionId: "s2", unitId: "s2u1", lessonId: "s2u1l1", reason: "Word Recognition needs improvement" },
+    { skill: "vocabulary_recognition", sectionId: "s3", unitId: "s3u1", lessonId: "s3u1l1", reason: "Vocabulary Recognition needs improvement" },
+    { skill: "word_recognition", sectionId: "s4", unitId: "s4u1", lessonId: "s4u1l1", reason: "Word Reading needs improvement" },
+    { skill: "sentence_understanding", sectionId: "s5", unitId: "s5u1", lessonId: "s5u1l1", reason: "Sentence Understanding needs improvement" },
+    { skill: "reading_comprehension", sectionId: "s6", unitId: "s6u1", lessonId: "s6u1l1", reason: "Reading Comprehension needs improvement" },
+    { skill: "writing_ability", sectionId: "s7", unitId: "s7u1", lessonId: "s7u1l1", reason: "Writing Ability needs improvement" },
+    { skill: "sentence_understanding", sectionId: "s8", unitId: "s8u1", lessonId: "s8u1l1", reason: "Grammar Foundations needs improvement" },
+    { skill: "reading_ability", sectionId: "s9", unitId: "s9u1", lessonId: "s9u1l1", reason: "Reading Ability needs improvement" },
+    { skill: "reading_ability", sectionId: "s10", unitId: "s10u1", lessonId: "s10u1l1", reason: "Greetings & Introductions needs improvement" },
+    { skill: "practical_literacy", sectionId: "s11", unitId: "s11u1", lessonId: "s11u1l1", reason: "Practical Literacy needs improvement" },
+    { skill: "reading_comprehension", sectionId: "s12", unitId: "s12u1", lessonId: "s12u1l1", reason: "Real-Life Application needs improvement" }
+  ];
+
+  // 1. Add "Needs Improvement" skills (< 35) first
+  mappings.forEach(m => {
+    const score = scores[m.skill] ?? 100;
+    if (score < 35) {
+      path.push(m);
+    }
+  });
+
+  // 2. Add "Developing" skills (35 <= score <= 74) second
+  mappings.forEach(m => {
+    const score = scores[m.skill] ?? 100;
+    if (score >= 35 && score <= 74) {
+      path.push(m);
+    }
+  });
 
   if (path.length === 0) {
     path.push({ skill: "reading_ability", sectionId: "s10", unitId: "s10u1", lessonId: "s10u1l1", reason: "Communication Skills enrichment" });
@@ -719,6 +738,23 @@ const inferSkillFromQuestion = (question, questionIdx, totalQuestions) => {
   return skills[questionIdx % skills.length] || "reading_comprehension";
 };
 
+// Calculate Longest Common Subsequence length for word order evaluation
+export const getLCSLength = (arr1, arr2) => {
+  const m = arr1.length;
+  const n = arr2.length;
+  const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      if (arr1[i - 1] === arr2[j - 1]) {
+        dp[i][j] = dp[i - 1][j - 1] + 1;
+      } else {
+        dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+      }
+    }
+  }
+  return dp[m][n];
+};
+
 // Main assessment generator — returns 12 questions (10 MCQ + 1 reading + 1 writing)
 export const getRandomAssessment = (age, educationLevel, language = "English") => {
   const ageNum = parseInt(age, 10) || 20;
@@ -805,17 +841,20 @@ export const getRandomAssessment = (age, educationLevel, language = "English") =
       skill: "writing_ability",
       rawQuestion: { writing: w?.prompt || "Listen to the sentence and write exactly what you hear.", dictation },
       evaluator: (text) => {
-        const targetWords = dictation.toLowerCase().split(/\s+/).filter(Boolean);
-        const userWords = text.trim().toLowerCase().split(/\s+/).filter(Boolean);
+        const cleanWord = (wordStr) => wordStr.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g, "").toLowerCase().trim();
+        const targetWords = dictation.split(/\s+/).filter(Boolean).map(cleanWord);
+        const userWords = text.trim().split(/\s+/).filter(Boolean).map(cleanWord);
         if (userWords.length === 0) return { score: 0, feedback: "Please write the sentence you heard." };
-        if (targetWords.length === 0) return { score: 5, feedback: "Thanks for writing!" };
-        const userSet = new Set(userWords);
-        const matched = targetWords.filter(word => userSet.has(word)).length;
-        const ratio = matched / targetWords.length;
-        if (ratio >= 0.8) return { score: 10, feedback: "Excellent! You wrote the sentence accurately." };
-        if (ratio >= 0.5) return { score: 7, feedback: "Good, but some words are missing or incorrect." };
-        if (ratio >= 0.25) return { score: 4, feedback: "You caught some words. Listen again and try more." };
-        return { score: 2, feedback: "Try to write what you hear more carefully." };
+        if (targetWords.length === 0) return { score: 10, feedback: "Excellent!" };
+        const lcsLen = getLCSLength(targetWords, userWords);
+        const ratio = lcsLen / targetWords.length;
+        const score = Math.round(ratio * 10);
+        let feedback = "Try to write what you hear more carefully.";
+        if (ratio >= 0.95) feedback = "Excellent! You wrote the sentence accurately.";
+        else if (ratio >= 0.75) feedback = "Good job! Almost fully correct.";
+        else if (ratio >= 0.5) feedback = "Good start, but some words are out of order, missing, or incorrect.";
+        else if (ratio >= 0.25) feedback = "You got a few words. Keep practicing to build confidence.";
+        return { score, feedback };
       },
     };
   });
@@ -858,7 +897,28 @@ export const computeSkillScores = (questions, selectedAnswers, readingAttempts, 
 
   const scores = {};
   Object.entries(skillBuckets).forEach(([skill, { correct, total }]) => {
-    scores[skill] = total > 0 ? Math.round((correct / total) * 100) : null;
+    if (total === 0) {
+      scores[skill] = null;
+      return;
+    }
+    if (skill !== "reading_ability" && skill !== "writing_ability") {
+      if (total === 2) {
+        if (correct === 2) scores[skill] = 100;
+        else if (correct === 1) scores[skill] = 50;
+        else scores[skill] = 0;
+      } else {
+        const ratio = correct / total;
+        if (ratio >= 0.85) scores[skill] = 100;
+        else if (ratio >= 0.45) scores[skill] = 50;
+        else scores[skill] = 0;
+      }
+    } else {
+      const totalPoints = correct * 10;
+      if (totalPoints >= 25) scores[skill] = 100;
+      else if (totalPoints >= 15) scores[skill] = 67;
+      else if (totalPoints >= 5) scores[skill] = 33;
+      else scores[skill] = 0;
+    }
   });
 
   const assessedScores = Object.values(scores).filter(v => typeof v === "number");
