@@ -3475,6 +3475,20 @@ function App() {
     return out;
   };
 
+  const parseQuestionByInterfaceLanguage = (questionText, interfaceLang) => {
+    if (!questionText || !questionText.includes("/")) return questionText;
+    const parts = questionText.split("/").map(s => s.trim());
+    if (parts.length < 5) return questionText;
+    
+    const lang = interfaceLang || "English";
+    if (lang === "English") return parts[0];
+    if (lang === "Kannada") return parts[1];
+    if (lang === "Hindi") return parts[2];
+    if (lang === "Telugu") return parts[3];
+    if (lang === "Tamil") return parts[4];
+    return parts[0];
+  };
+
   // Fetch translation dynamically when selected language is not English and the question changes
   useEffect(() => {
     if (assessmentState !== "answering" || !assessmentQuestionsList || assessmentQuestionsList.length === 0) {
@@ -3485,7 +3499,11 @@ function App() {
 
     const lang = selectedLanguage || "English";
     if (lang === "English") {
-      setTranslatedQ(q.rawQuestion);
+      const parsedQText = parseQuestionByInterfaceLanguage(q.rawQuestion.question, "English");
+      setTranslatedQ({
+        ...q.rawQuestion,
+        question: parsedQText
+      });
       setTranslatingQ(false);
       return;
     }
@@ -3496,6 +3514,20 @@ function App() {
       try {
         const dict = assessmentTranslations && assessmentTranslations[lang];
         if (q.type === "comprehension") {
+          // If the question contains language slashes, parse directly for maximum speed and correctness
+          if (q.rawQuestion.question && q.rawQuestion.question.includes("/")) {
+            const parsedQText = parseQuestionByInterfaceLanguage(q.rawQuestion.question, lang);
+            if (active) {
+              setTranslatedQ({
+                ...q.rawQuestion,
+                question: parsedQText,
+                options: Array.isArray(q.rawQuestion.options) ? [...q.rawQuestion.options] : []
+              });
+            }
+            setTranslatingQ(false);
+            return;
+          }
+
           if (dict && dict[q.rawQuestion.question]) {
             const trQuestion = await keepEnglishQuotedWords(q.rawQuestion.question, dict[q.rawQuestion.question], lang);
             // Keep options in English only (initial assessment checks the user,
@@ -6464,7 +6496,7 @@ function App() {
                       fontSize: '1.05rem',
                       boxShadow: '0 4px 12px rgba(245, 158, 11, 0.08)'
                     }}>
-                      <StarIcon style={{ color: '#f59e0b' }} /> +30 XP Earned
+                      <StarIcon style={{ color: '#f59e0b' }} /> {t("xpEarned").replace("{xp}", "30")}
                     </div>
 
                     <div className="results-detail-row">
@@ -6532,7 +6564,7 @@ function App() {
                               ))
                             ) : (
                               <li style={{ listStyleType: 'none', marginLeft: '-20px', fontSize: '0.88rem', color: 'var(--muted)', fontStyle: 'italic', lineHeight: '1.4' }}>
-                                Congratulations! No critical areas need immediate improvement. Recommend advanced practice!
+                                {t("noImprovementNeeded")}
                               </li>
                             )}
                           </ul>
@@ -6548,17 +6580,17 @@ function App() {
 
                      {/* Diagnostic Summary Analysis */}
                      <div className="diagnostic-recommendation-box">
-                       <h4>Summary</h4>
+                       <h4>{t("summaryTitle")}</h4>
                        <p>
                         {(() => {
                           if (overallPercent >= 85) {
-                            return `Fantastic work! You demonstrated highly advanced literacy skills, scoring ${overallPercent}% overall. You have near-perfect mastery of basic alphabet, vocabulary, and grammar rules. Your learning path is optimized to target communication refinement and real-life functional application to polish your fluency.`;
+                            return t("summaryLevel4").replace("{percent}", overallPercent);
                           } else if (overallPercent >= 60) {
-                            return `Great job! You achieved a solid score of ${overallPercent}% overall. You possess strong foundational skills in letter and word recognition, but can benefit from expanding your sentence structures and reading longer paragraphs. Your learning path focuses on bridges to reading comprehension and advanced expression.`;
+                            return t("summaryLevel3").replace("{percent}", overallPercent);
                           } else if (overallPercent >= 35) {
-                            return `Good effort! You scored ${overallPercent}% overall. While you show comfortable familiarity with letters and simple vocabulary, you face challenges with complex sentence structures and writing. Your learning path is customized with stepped modules to build reading confidence and sentence composition.`;
+                            return t("summaryLevel2").replace("{percent}", overallPercent);
                           } else {
-                            return `Welcome to LISA! You scored ${overallPercent}% on this assessment. This indicates you are at the early stages of your literacy journey. We have personalized a learning path starting with step-by-step phonics, basic letter recognition, and simple word building to establish a strong, confident foundation.`;
+                            return t("summaryLevel1").replace("{percent}", overallPercent);
                           }
                         })()}
                       </p>
