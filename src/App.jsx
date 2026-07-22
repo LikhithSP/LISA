@@ -3,7 +3,7 @@ import { supabase } from "./supabaseClient";
 import {
   getRandomAssessment, computeSkillScores, generateLearningPath, getOrderedSections,
   classifyProficiency, getProficiencyName, getWeakSkills, getStrongSkills, getStrongSkillKeys, getWeakSkillKeys, SKILL_TRANSLATION_KEYS,
-  SKILL_CATEGORIES, CURRICULUM_SECTIONS, PROFICIENCY_LEVELS, lessonsData, getLCSLength, computeAdaptiveDiagnosedLevel
+  SKILL_CATEGORIES, CURRICULUM_SECTIONS, PROFICIENCY_LEVELS, lessonsData, getLCSLength, computeAdaptiveDiagnosedLevel, getQuestionsForBlock
 } from "./curriculumData";
 import { generateLessonContent, fetchWordOfDay, generatePracticeContent, translateTextContent, translateMCQContent } from "./geminiClient";
 import enJson from "./locales/en.json";
@@ -4487,13 +4487,14 @@ function App() {
       if (error) {
         console.warn("Could not fetch profile, setting default session:", error.message);
         const storedAssessment = getStoredAssessmentState(userId);
-        // Fallback for demo users
+        const localExp = localStorage.getItem(`lisa_user_experience_level_${userId}`) || "I am completely new to this language";
         const defaultProfile = {
           id: userId,
           full_name: session?.user?.user_metadata?.full_name || session?.user?.email || "Learner",
           age: session?.user?.user_metadata?.age || 20,
           preferred_language: session?.user?.user_metadata?.preferred_language || selectedLanguage || "English",
           education_level: session?.user?.user_metadata?.education_level || "No Formal Education",
+          experience_level: session?.user?.user_metadata?.experience_level || localExp,
           literacy_level: storedAssessment?.literacy_level ?? null,
           assessment_completed: storedAssessment?.assessment_completed ?? false,
           xp: 0,
@@ -4504,13 +4505,13 @@ function App() {
         updateStreak(userId, defaultProfile);
       } else {
         const storedAssessment = getStoredAssessmentState(userId);
-        const mergedProfile = storedAssessment
-          ? {
-            ...data,
-            literacy_level: data.literacy_level ?? storedAssessment.literacy_level ?? null,
-            assessment_completed: data.assessment_completed ?? storedAssessment.assessment_completed ?? false
-          }
-          : data;
+        const localExp = localStorage.getItem(`lisa_user_experience_level_${userId}`) || "I am completely new to this language";
+        const mergedProfile = {
+          ...data,
+          experience_level: data.experience_level || localExp,
+          literacy_level: data.literacy_level ?? storedAssessment?.literacy_level ?? null,
+          assessment_completed: data.assessment_completed ?? storedAssessment?.assessment_completed ?? false
+        };
 
         setProfile(mergedProfile);
         updateStreak(userId, mergedProfile);
@@ -4730,6 +4731,7 @@ function App() {
 
       if (data.session) {
         setMessage(t("successAccountCreated"));
+        localStorage.setItem(`lisa_user_experience_level_${data.user.id}`, experienceLevel);
         const newProfile = {
           id: data.user.id,
           full_name: fullName,
@@ -5116,6 +5118,67 @@ function App() {
       if ("speechSynthesis" in window) {
         window.speechSynthesis.cancel();
       }
+
+      // Dynamic question adaptation: check block performance on the fly
+      let updatedList = [...assessmentQuestionsList];
+      let questionsChanged = false;
+
+      if (currentStep === 2) {
+        // Just finished Block A (indices 0, 1, 2)
+        const scoreA = [0, 1, 2].filter(
+          (i) => selectedAnswers[i] === assessmentQuestionsList[i].correctIndex
+        ).length;
+        
+        const startLevel = assessmentQuestionsList[0]?.blockLevel || 1;
+        const desiredLevelForB = scoreA === 3 ? Math.min(startLevel + 1, 5) : startLevel;
+        const currentLevelForB = assessmentQuestionsList[3]?.blockLevel;
+
+        if (currentLevelForB !== desiredLevelForB) {
+          const usedIds = new Set(assessmentQuestionsList.slice(0, 3).map((q) => q.id));
+          const newBlockB = getQuestionsForBlock(
+            profile?.age || 20,
+            learningLanguage || "English",
+            desiredLevelForB,
+            3,
+            usedIds,
+            "B"
+          );
+          if (newBlockB.length === 3) {
+            updatedList.splice(3, 3, ...newBlockB);
+            questionsChanged = true;
+          }
+        }
+      } else if (currentStep === 5) {
+        // Just finished Block B (indices 3, 4, 5)
+        const scoreB = [3, 4, 5].filter(
+          (i) => selectedAnswers[i] === assessmentQuestionsList[i].correctIndex
+        ).length;
+
+        const blockBLevel = assessmentQuestionsList[3]?.blockLevel || 1;
+        const desiredLevelForC = scoreB === 3 ? Math.min(blockBLevel + 1, 5) : blockBLevel;
+        const currentLevelForC = assessmentQuestionsList[6]?.blockLevel;
+
+        if (currentLevelForC !== desiredLevelForC) {
+          const usedIds = new Set(assessmentQuestionsList.slice(0, 6).map((q) => q.id));
+          const newBlockC = getQuestionsForBlock(
+            profile?.age || 20,
+            learningLanguage || "English",
+            desiredLevelForC,
+            4,
+            usedIds,
+            "C"
+          );
+          if (newBlockC.length === 4) {
+            updatedList.splice(6, 4, ...newBlockC);
+            questionsChanged = true;
+          }
+        }
+      }
+
+      if (questionsChanged) {
+        setAssessmentQuestionsList(updatedList);
+      }
+
       setCurrentStep(currentStep + 1);
       setSpokenTranscript("");
       setManualTextFallback("");
@@ -5295,6 +5358,8 @@ function App() {
       if (error) {
         console.warn("DB profile save error, caching:", error.message);
       }
+
+      localStorage.setItem(`lisa_user_experience_level_${session.user.id}`, editExpLevel);
 
       setProfile(prev => ({
         ...prev,

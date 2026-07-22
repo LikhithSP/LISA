@@ -36,7 +36,7 @@ create policy "Users can delete their own profile." on public.profiles
 create or replace function public.handle_new_user()
 returns trigger as $$
 begin
-  insert into public.profiles (id, full_name, age, preferred_language, learning_language, education_level, literacy_level, assessment_completed, streak, last_active_date)
+  insert into public.profiles (id, full_name, age, preferred_language, learning_language, education_level, experience_level, literacy_level, assessment_completed, streak, last_active_date)
   values (
     new.id,
     coalesce(new.raw_user_meta_data->>'full_name', ''),
@@ -44,6 +44,7 @@ begin
     coalesce(new.raw_user_meta_data->>'preferred_language', 'English'),
     coalesce(new.raw_user_meta_data->>'learning_language', 'English'),
     coalesce(new.raw_user_meta_data->>'education_level', ''),
+    coalesce(new.raw_user_meta_data->>'experience_level', 'I am completely new to this language'),
     null,
     false,
     0,
@@ -79,6 +80,7 @@ ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS shop_data jsonb;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS notif_data jsonb;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS word_of_day_date date;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS word_of_day_index integer DEFAULT 0;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS experience_level text DEFAULT 'I am completely new to this language';
 
 -- Create the word of the day table
 CREATE TABLE IF NOT EXISTS public.word_of_day (
