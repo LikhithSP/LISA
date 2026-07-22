@@ -136,5 +136,13 @@
   "learningLanguage": "Learning Language",
   "selectInterfaceLanguage": "Select interface language",
   "selectLearningLanguage": "Select language to learn",
-  "whatDoYouWantToLearn": "What language do you want to learn?"
+  "whatDoYouWantToLearn": "What language do you want to learn?",
+  "experienceInTargetLanguage": "Experience in target language",
+  "selectExperienceLevel": "Select your experience level",
+  "profileExperienceStatus": "Target Language Experience",
+  "completelyNewOption": "I am completely new to this language",
+  "recognizeLettersOption": "I can recognize some letters and words",
+  "readSentencesOption": "I can read simple sentences",
+  "readParagraphsOption": "I can read paragraphs and understand basic content",
+  "improveVocabOption": "I want to improve my vocabulary and communication skills"
 }

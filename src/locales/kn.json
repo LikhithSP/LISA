@@ -136,5 +136,13 @@
   "learningLanguage": "ಕಲಿಯುವ ಭಾಷೆ",
   "selectInterfaceLanguage": "ಇಂಟರ್ಫೇಸ್ ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ",
   "selectLearningLanguage": "ಕಲಿಯುವ ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ",
-  "whatDoYouWantToLearn": "ನೀವು ಯಾವ ಭಾಷೆಯನ್ನು ಕಲಿಯಲು ಬಯಸುತ್ತೀರಿ?"
+  "whatDoYouWantToLearn": "ನೀವು ಯಾವ ಭಾಷೆಯನ್ನು ಕಲಿಯಲು ಬಯಸುತ್ತೀರಿ?",
+  "experienceInTargetLanguage": "ಗುರಿ ಭಾಷೆಯಲ್ಲಿ ಅನುಭವ",
+  "selectExperienceLevel": "ನಿಮ್ಮ ಅನುಭವ ಮಟ್ಟವನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+  "profileExperienceStatus": "ಗುರಿ ಭಾಷಾ ಅನುಭವ",
+  "completelyNewOption": "I am completely new to this language",
+  "recognizeLettersOption": "I can recognize some letters and words",
+  "readSentencesOption": "I can read simple sentences",
+  "readParagraphsOption": "I can read paragraphs and understand basic content",
+  "improveVocabOption": "I want to improve my vocabulary and communication skills"
 }

@@ -3,7 +3,7 @@ import { supabase } from "./supabaseClient";
 import {
   getRandomAssessment, computeSkillScores, generateLearningPath, getOrderedSections,
   classifyProficiency, getProficiencyName, getWeakSkills, getStrongSkills, getStrongSkillKeys, getWeakSkillKeys, SKILL_TRANSLATION_KEYS,
-  SKILL_CATEGORIES, CURRICULUM_SECTIONS, PROFICIENCY_LEVELS, lessonsData, getLCSLength
+  SKILL_CATEGORIES, CURRICULUM_SECTIONS, PROFICIENCY_LEVELS, lessonsData, getLCSLength, computeAdaptiveDiagnosedLevel
 } from "./curriculumData";
 import { generateLessonContent, fetchWordOfDay, generatePracticeContent, translateTextContent, translateMCQContent } from "./geminiClient";
 import enJson from "./locales/en.json";
@@ -18,6 +18,13 @@ import WeeklyLeaderboard from "./WeeklyLeaderboard";
 
 const languages = ["English", "Hindi", "Kannada", "Telugu", "Tamil"];
 const educationLevels = ["No Formal Education", "Primary", "Middle School", "Secondary & Above"];
+const experienceLevels = [
+  "I am completely new to this language",
+  "I can recognize some letters and words",
+  "I can read simple sentences",
+  "I can read paragraphs and understand basic content",
+  "I want to improve my vocabulary and communication skills"
+];
 
 const FALLBACK_PRACTICE_MISTAKES = [
   {
@@ -3601,6 +3608,7 @@ function App() {
   const [editPreferredLang, setEditPreferredLang] = useState("");
   const [editLearningLang, setEditLearningLang] = useState("");
   const [editEdLevel, setEditEdLevel] = useState("");
+  const [editExpLevel, setEditExpLevel] = useState("I am completely new to this language");
 
   // Delete Account States
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -3629,6 +3637,7 @@ function App() {
     setEditPreferredLang(profile.preferred_language || selectedLanguage || "English");
     setEditLearningLang(profile.learning_language || learningLanguage || "English");
     setEditEdLevel(profile.education_level || "No Formal Education");
+    setEditExpLevel(profile.experience_level || "I am completely new to this language");
   }, [profile]);
 
   const localUiTranslations = {
@@ -4684,6 +4693,7 @@ function App() {
     const interfaceLang = formData.get("interfaceLanguage") || selectedLanguage || "English";
     const learnLang = formData.get("learningLanguage") || learningLanguage || "English";
     const educationLevel = formData.get("educationLevel");
+    const experienceLevel = formData.get("experienceLevel") || "I am completely new to this language";
 
     if (password !== confirmPassword) {
       setMessage(t("passwordsDoNotMatch"));
@@ -4701,6 +4711,7 @@ function App() {
           preferred_language: interfaceLang,
           learning_language: learnLang,
           education_level: educationLevel,
+          experience_level: experienceLevel,
         },
       },
     });
@@ -4726,6 +4737,7 @@ function App() {
           preferred_language: interfaceLang,
           learning_language: learnLang,
           education_level: educationLevel,
+          experience_level: experienceLevel,
           literacy_level: null,
           assessment_completed: false
         };
@@ -4846,14 +4858,18 @@ function App() {
 
     // Generates a dynamic test where the questions are shuffled
     // and MCQ options are shuffled as well.
+    // Starting level is determined by age + experience level (not education level).
     const assessment = getRandomAssessment(
       profile?.age || 20,
       profile?.education_level || "No Formal Education",
-      learningLanguage || "English"
+      learningLanguage || "English",
+      profile?.experience_level || "I am completely new to this language"
     );
     setAssessmentQuestionsList(assessment.questions);
     setCurrentStep(0);
     setAssessmentState("answering");
+    // Store startLevel so submitInitialAssessment can use it for adaptive scoring
+    sessionStorage.setItem("lisa_assessment_start_level", String(assessment.startLevel || 1));
   };
 
   // Speech Recognition Logic
@@ -5120,8 +5136,15 @@ function App() {
       writingAnswers
     );
 
-    // Classify proficiency level (1-5) from skill averages
-    const diagnosedLevel = classifyProficiency(skillScores);
+    // Use adaptive block scoring to determine the diagnosed level.
+    // The starting level is recovered from sessionStorage (set when the assessment was initialized).
+    const startLevel = parseInt(sessionStorage.getItem("lisa_assessment_start_level") || "1", 10);
+    const adaptiveLevel = computeAdaptiveDiagnosedLevel(assessmentQuestionsList, selectedAnswers, startLevel);
+
+    // diagnosedLevel blends adaptive block score with skill-score classification.
+    // Adaptive score takes priority since it directly reflects block performance.
+    const skillBasedLevel = classifyProficiency(skillScores);
+    const diagnosedLevel = adaptiveLevel;
 
     // Generate learning path from weak skills
     const learningPath = generateLearningPath(skillScores);
@@ -5264,7 +5287,8 @@ function App() {
           age: parseInt(editAge, 10),
           preferred_language: editPreferredLang,
           learning_language: editLearningLang,
-          education_level: editEdLevel
+          education_level: editEdLevel,
+          experience_level: editExpLevel
         })
         .eq("id", session.user.id);
 
@@ -5278,7 +5302,8 @@ function App() {
         age: parseInt(editAge, 10),
         preferred_language: editPreferredLang,
         learning_language: editLearningLang,
-        education_level: editEdLevel
+        education_level: editEdLevel,
+        experience_level: editExpLevel
       }));
       setSelectedLanguage(editPreferredLang);
       localStorage.setItem("lisa_lang", editPreferredLang);
@@ -5343,6 +5368,7 @@ function App() {
     setEditAge(profile?.age || "");
     setEditPreferredLang(profile?.preferred_language || selectedLanguage || "English");
     setEditEdLevel(profile?.education_level || "No Formal Education");
+    setEditExpLevel(profile?.experience_level || "I am completely new to this language");
     setEditingProfile(true);
   };
 
@@ -5548,6 +5574,7 @@ function App() {
         setEditPreferredLang(profile?.preferred_language || selectedLanguage || "English");
         setEditLearningLang(profile?.learning_language || learningLanguage || "English");
         setEditEdLevel(profile?.education_level || "No Formal Education");
+        setEditExpLevel(profile?.experience_level || "I am completely new to this language");
       }
       setProfileDropdownOpen(!profileDropdownOpen);
     };
@@ -5670,6 +5697,20 @@ function App() {
                 >
                   {educationLevels.map((ed) => (
                     <option key={ed} value={ed}>{t(ed + "Option")}</option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="profile-dropdown-label">
+                {t("profileExperienceStatus")}
+                <select
+                  required
+                  value={editExpLevel}
+                  onChange={(e) => setEditExpLevel(e.target.value)}
+                  style={{ width: "100%", boxSizing: "border-box" }}
+                >
+                  {experienceLevels.map((exp) => (
+                    <option key={exp} value={exp}>{exp}</option>
                   ))}
                 </select>
               </label>
@@ -7607,9 +7648,12 @@ function App() {
                   <div className="profile-info-large">
                     <h2>{profile?.full_name || "Learner"}</h2>
                     <p>{session.user.email}</p>
-                    <div style={{ display: "flex", gap: "16px", marginTop: "12px" }}>
+                    <div style={{ display: "flex", gap: "16px", marginTop: "12px", flexWrap: "wrap" }}>
                       <span style={{ fontWeight: 700 }}>{t("profileAge")}: {profile?.age || t("naText")}</span>
                       <span style={{ fontWeight: 700 }}>{t("profileEducation")}: {profile?.education_level || t("naText")}</span>
+                      {profile?.experience_level && (
+                        <span style={{ fontWeight: 700 }}>{t("profileExperienceStatus")}: {profile.experience_level}</span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -7677,6 +7721,19 @@ function App() {
                         >
                           {educationLevels.map((ed) => (
                             <option key={ed} value={ed}>{t(ed + "Option")}</option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="profile-dropdown-label">
+                        {t("profileExperienceStatus")}
+                        <select
+                          required
+                          value={editExpLevel}
+                          onChange={(e) => setEditExpLevel(e.target.value)}
+                          style={{ width: "100%", boxSizing: "border-box" }}
+                        >
+                          {experienceLevels.map((exp) => (
+                            <option key={exp} value={exp}>{exp}</option>
                           ))}
                         </select>
                       </label>
@@ -10551,6 +10608,15 @@ function App() {
                   <option value="" disabled>{t("selectEducation")}</option>
                   {educationLevels.map((ed) => (
                     <option key={ed} value={ed}>{t(ed + "Option")}</option>
+                  ))}
+                </select>
+              </label>
+
+              <label>
+                {t("experienceInTargetLanguage")}
+                <select name="experienceLevel" required defaultValue="I am completely new to this language" disabled={submitting}>
+                  {experienceLevels.map((exp) => (
+                    <option key={exp} value={exp}>{exp}</option>
                   ))}
                 </select>
               </label>

@@ -701,14 +701,14 @@ const getAgeGroup = (ageNum) => {
   return "senior";
 };
 
-// Map education level → approximate literacy level (1–5)
-const getLevel = (educationLevel, ageNum) => {
-  const eduStr = (educationLevel || "").toLowerCase();
-  if (eduStr.includes("no formal")) return 1;
-  if (eduStr.includes("primary")) return 2;
-  if (eduStr.includes("middle")) return 3;
-  if (eduStr.includes("secondary")) return 4;
-  return 2; // Default fallback to Beginner questions
+// Map experience level string → starting assessment level (1–5)
+const getStartingLevelFromExperience = (experienceLevel) => {
+  const exp = (experienceLevel || "").toLowerCase();
+  if (exp.includes("completely new") || exp.includes("recognize some letters")) return 1;
+  if (exp.includes("read simple sentences")) return 2;
+  if (exp.includes("read paragraphs")) return 3;
+  if (exp.includes("improve my vocabulary") || exp.includes("vocabulary and communication")) return 4;
+  return 1; // Default fallback — start at L1
 };
 
 // Map question ID prefix to skill category
@@ -755,56 +755,88 @@ export const getLCSLength = (arr1, arr2) => {
   return dp[m][n];
 };
 
-// Main assessment generator — returns 12 questions (10 MCQ + 1 reading + 1 writing)
-export const getRandomAssessment = (age, educationLevel, language = "English") => {
+// ─────────────────────────────────────────────────────────────────────────────
+// ADAPTIVE ASSESSMENT GENERATOR
+// Builds 10 comprehension MCQs in experience-level-based adaptive blocks:
+//   Block A: 3 questions from startLevel
+//   Block B: 3 questions from startLevel (score 3/3 at submit → advance to startLevel+1)
+//   Block C: 4 questions from startLevel+1 (or startLevel+2 if both blocks advanced)
+// Each question is tagged with its `blockLevel` for adaptive scoring at submission.
+// ─────────────────────────────────────────────────────────────────────────────
+export const getRandomAssessment = (age, educationLevel, language = "English", experienceLevel = "") => {
   const ageNum = parseInt(age, 10) || 20;
   const ageGroup = getAgeGroup(ageNum);
-  const level = getLevel(educationLevel, ageNum);
-  const key = `${ageGroup}_level_${level}`;
+  const startLevel = getStartingLevelFromExperience(experienceLevel);
 
-  const questionsPool = (assessmentQuestionsByLanguage && assessmentQuestionsByLanguage[language]) || assessmentQuestionsByLanguage["English"] || assessmentQuestions;
-  const rwSource = (assessmentReadingWritingByLanguage && assessmentReadingWritingByLanguage[language]) || assessmentReadingWritingByLanguage["English"] || assessmentReadingWriting;
+  const questionsPool =
+    (assessmentQuestionsByLanguage && assessmentQuestionsByLanguage[language]) ||
+    assessmentQuestionsByLanguage["English"] ||
+    assessmentQuestions;
+  const rwSource =
+    (assessmentReadingWritingByLanguage && assessmentReadingWritingByLanguage[language]) ||
+    assessmentReadingWritingByLanguage["English"] ||
+    assessmentReadingWriting;
 
-  // Comprehension MCQ Pool — sample 2 random questions from EACH of the 5 levels
-  const levelQuestions = [];
-  for (let lvl = 1; lvl <= 5; lvl++) {
-    const levelPool =
-      questionsPool[`${ageGroup}_level_${lvl}`] ||
-      questionsPool[key] ||
+  // Helper: pull N shuffled questions from a specific level, avoiding already-used IDs
+  const pickFromLevel = (lvl, n, usedIds = new Set()) => {
+    const clampedLvl = Math.min(Math.max(lvl, 1), 5);
+    const poolKey = `${ageGroup}_level_${clampedLvl}`;
+    const pool =
+      questionsPool[poolKey] ||
       questionsPool[`${ageGroup}_level_1`] ||
       questionsPool["child_level_1"] ||
       assessmentQuestions["child_level_1"];
+    const questions = (pool?.questions || []).filter((q) => !usedIds.has(q.id));
+    const shuffled = [...questions].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, n);
+  };
 
-    const poolQuestions = levelPool?.questions || [];
-    const shuffledLevel = [...poolQuestions].sort(() => 0.5 - Math.random());
-    for (let i = 0; i < 2 && i < shuffledLevel.length; i++) {
-      levelQuestions.push(shuffledLevel[i]);
-    }
-  }
+  // Build adaptive 3 + 3 + 4 blocks
+  const usedIds = new Set();
 
-  // Backfill if fewer than 10 questions in target language pool
-  if (levelQuestions.length < 10) {
-    for (let lvl = 1; lvl <= 5 && levelQuestions.length < 10; lvl++) {
-      const fallbackPool = assessmentQuestions[`${ageGroup}_level_${lvl}`] || assessmentQuestions["child_level_1"];
-      const poolQuestions = fallbackPool?.questions || [];
-      for (const q of poolQuestions) {
-        if (levelQuestions.length >= 10) break;
-        if (!levelQuestions.some(existing => existing.id === q.id)) {
-          levelQuestions.push(q);
+  const blockA = pickFromLevel(startLevel, 3, usedIds);
+  blockA.forEach((q) => usedIds.add(q.id));
+
+  const blockB = pickFromLevel(startLevel, 3, usedIds);
+  blockB.forEach((q) => usedIds.add(q.id));
+
+  const blockCLevel = Math.min(startLevel + 1, 5);
+  const blockC = pickFromLevel(blockCLevel, 4, usedIds);
+  blockC.forEach((q) => usedIds.add(q.id));
+
+  // Backfill any empty slots with questions from any level
+  const allSampled = [...blockA, ...blockB, ...blockC];
+  if (allSampled.length < 10) {
+    for (let lvl = 1; lvl <= 5 && allSampled.length < 10; lvl++) {
+      const fallbackPool =
+        assessmentQuestions[`${ageGroup}_level_${lvl}`] || assessmentQuestions["child_level_1"];
+      for (const q of (fallbackPool?.questions || [])) {
+        if (allSampled.length >= 10) break;
+        if (!usedIds.has(q.id)) {
+          allSampled.push(q);
+          usedIds.add(q.id);
         }
       }
     }
   }
 
-  const sampled = levelQuestions;
+  // Tag questions with block membership for adaptive scoring
+  const blockAIds = new Set(blockA.map((q) => q.id));
+  const blockBIds = new Set(blockB.map((q) => q.id));
 
-  const comprehensionQuestions = sampled.map((q, idx) => {
-    const rawOptionsEnglish = Array.isArray(q.options) ? q.options : ((q.options && q.options["English"]) || []);
+  const comprehensionQuestions = allSampled.map((q, idx) => {
+    const rawOptionsEnglish = Array.isArray(q.options)
+      ? q.options
+      : (q.options && q.options["English"]) || [];
     const correctIdx = typeof q.correctIndex === "number" ? q.correctIndex : 0;
     const indices = rawOptionsEnglish.map((_, i) => i);
     const shuffledIndices = [...indices].sort(() => 0.5 - Math.random());
     const newCorrectIndex = shuffledIndices.indexOf(correctIdx);
-    const skill = inferSkillFromQuestion(q, idx, sampled.length);
+    const skill = inferSkillFromQuestion(q, idx, allSampled.length);
+
+    // Tag each question with its adaptive block
+    const adaptiveBlock = blockAIds.has(q.id) ? "A" : blockBIds.has(q.id) ? "B" : "C";
+    const blockLevel = adaptiveBlock === "C" ? blockCLevel : startLevel;
 
     return {
       id: q.id,
@@ -813,12 +845,15 @@ export const getRandomAssessment = (age, educationLevel, language = "English") =
       rawQuestion: q,
       shuffledIndices,
       correctIndex: newCorrectIndex,
+      adaptiveBlock,
+      blockLevel,
     };
   });
 
-  // Reading + Writing from assessmentReadingWriting
+  // Reading + Writing — use startLevel key for appropriate difficulty
+  const rwKey = `${ageGroup}_level_${startLevel}`;
   const rwPool =
-    rwSource[key] ||
+    rwSource[rwKey] ||
     rwSource[`${ageGroup}_level_1`] ||
     rwSource["child_level_1"] ||
     assessmentReadingWriting["child_level_1"];
@@ -827,7 +862,7 @@ export const getRandomAssessment = (age, educationLevel, language = "English") =
   const writings = Array.isArray(rwPool?.writings) ? rwPool.writings : [];
 
   const readingQuestions = readings.slice(0, 3).map((text, i) => ({
-    id: `${key}_reading_${i + 1}`,
+    id: `${rwKey}_reading_${i + 1}`,
     type: "reading",
     skill: "reading_ability",
     rawQuestion: { reading: text },
@@ -836,12 +871,13 @@ export const getRandomAssessment = (age, educationLevel, language = "English") =
   const writingQuestions = writings.slice(0, 3).map((w, i) => {
     const dictation = (w?.dictation || "").trim();
     return {
-      id: `${key}_writing_${i + 1}`,
+      id: `${rwKey}_writing_${i + 1}`,
       type: "writing",
       skill: "writing_ability",
       rawQuestion: { writing: w?.prompt || "Listen to the sentence and write exactly what you hear.", dictation },
       evaluator: (text) => {
-        const cleanWord = (wordStr) => wordStr.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g, "").toLowerCase().trim();
+        const cleanWord = (wordStr) =>
+          wordStr.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g, "").toLowerCase().trim();
         const targetWords = dictation.split(/\s+/).filter(Boolean).map(cleanWord);
         const userWords = text.trim().split(/\s+/).filter(Boolean).map(cleanWord);
         if (userWords.length === 0) return { score: 0, feedback: "Please write the sentence you heard." };
@@ -860,9 +896,56 @@ export const getRandomAssessment = (age, educationLevel, language = "English") =
   });
 
   return {
-    tier: key,
+    tier: rwKey,
+    startLevel,
     questions: [...comprehensionQuestions, ...readingQuestions, ...writingQuestions],
   };
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ADAPTIVE BLOCK SCORING
+// Given comprehension answers and the question list, compute the effective
+// diagnosed level using the 3/3-correct → advance rule per block.
+// Block A (3 Qs): 3/3 → advance to blockLevel+1 for Block B scoring
+// Block B (3 Qs): 3/3 → advance further
+// Block C (4 Qs): scored at its tagged blockLevel
+// Returns the highest level the learner demonstrated mastery at.
+// ─────────────────────────────────────────────────────────────────────────────
+export const computeAdaptiveDiagnosedLevel = (questions, selectedAnswers, startLevel) => {
+  const compQuestions = questions.filter((q) => q.type === "comprehension");
+
+  const blockA = compQuestions.filter((q) => q.adaptiveBlock === "A");
+  const blockB = compQuestions.filter((q) => q.adaptiveBlock === "B");
+  const blockC = compQuestions.filter((q) => q.adaptiveBlock === "C");
+
+  const scoreBlock = (block) => {
+    const questionIndices = block.map((bq) => questions.findIndex((q) => q.id === bq.id));
+    return questionIndices.filter((i) => i !== -1 && selectedAnswers[i] === questions[i].correctIndex).length;
+  };
+
+  const scoreA = scoreBlock(blockA);
+  const scoreB = scoreBlock(blockB);
+  const scoreC = scoreBlock(blockC);
+
+  // Adaptive level climbing
+  let level = startLevel || 1;
+
+  // Block A: 3/3 → jump to next level
+  if (blockA.length > 0 && scoreA === blockA.length) {
+    level = Math.min(level + 1, 5);
+  }
+
+  // Block B: 3/3 → jump to next level again
+  if (blockB.length > 0 && scoreB === blockB.length) {
+    level = Math.min(level + 1, 5);
+  }
+
+  // Block C: 4/4 → jump to next level (bonus)
+  if (blockC.length > 0 && scoreC === blockC.length) {
+    level = Math.min(level + 1, 5);
+  }
+
+  return Math.max(1, Math.min(level, 5));
 };
 
 // ─────────────────────────────────────────────────────────────────────────────

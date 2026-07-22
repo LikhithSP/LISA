@@ -136,5 +136,13 @@
   "learningLanguage": "கற்கும் மொழி",
   "selectInterfaceLanguage": "இடைமுக மொழியைத் தேர்ந்தெடுக்கவும்",
   "selectLearningLanguage": "கற்கும் மொழியைத் தேர்ந்தெடுக்கவும்",
-  "whatDoYouWantToLearn": "நீங்கள் எந்த மொழியைக் கற்க விரும்புகிறீர்கள்?"
+  "whatDoYouWantToLearn": "நீங்கள் எந்த மொழியைக் கற்க விரும்புகிறீர்கள்?",
+  "experienceInTargetLanguage": "இலக்கு மொழியில் அனுபவம்",
+  "selectExperienceLevel": "உங்கள் அனுபவ நிலையைத் தேர்ந்தெடுக்கவும்",
+  "profileExperienceStatus": "இலக்கு மொழி அனுபவம்",
+  "completelyNewOption": "I am completely new to this language",
+  "recognizeLettersOption": "I can recognize some letters and words",
+  "readSentencesOption": "I can read simple sentences",
+  "readParagraphsOption": "I can read paragraphs and understand basic content",
+  "improveVocabOption": "I want to improve my vocabulary and communication skills"
 }
