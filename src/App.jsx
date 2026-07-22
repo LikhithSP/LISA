@@ -1154,12 +1154,22 @@ function App() {
 
         const selectedWordObj = words[currentIndex];
         
-        // Map word and example in learningLanguage, meaning translated to interfaceLanguage (or UI language)
-        // If the meaning stored in DB needs translation, we can use it or fallback, but the table contains meanings.
+        // Map word and example in learningLanguage, meaning resolved to the selected interfaceLanguage (UI language)
         if (active && selectedWordObj) {
+          let resolvedMeaning = selectedWordObj.meaning;
+          if (interfaceLang === "Hindi" && selectedWordObj.meaning_hi) {
+            resolvedMeaning = selectedWordObj.meaning_hi;
+          } else if (interfaceLang === "Kannada" && selectedWordObj.meaning_kn) {
+            resolvedMeaning = selectedWordObj.meaning_kn;
+          } else if (interfaceLang === "Telugu" && selectedWordObj.meaning_te) {
+            resolvedMeaning = selectedWordObj.meaning_te;
+          } else if (interfaceLang === "Tamil" && selectedWordObj.meaning_ta) {
+            resolvedMeaning = selectedWordObj.meaning_ta;
+          }
+
           setWordOfDay({
             word: selectedWordObj.word,
-            meaning: selectedWordObj.meaning,
+            meaning: resolvedMeaning,
             example: selectedWordObj.example
           });
         }

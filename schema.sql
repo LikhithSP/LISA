@@ -88,9 +88,18 @@ CREATE TABLE IF NOT EXISTS public.word_of_day (
   language text NOT NULL,
   word text NOT NULL,
   meaning text NOT NULL,
+  meaning_hi text,
+  meaning_kn text,
+  meaning_ta text,
+  meaning_te text,
   example text NOT NULL,
   UNIQUE (language, word)
 );
+
+ALTER TABLE public.word_of_day ADD COLUMN IF NOT EXISTS meaning_hi text;
+ALTER TABLE public.word_of_day ADD COLUMN IF NOT EXISTS meaning_kn text;
+ALTER TABLE public.word_of_day ADD COLUMN IF NOT EXISTS meaning_ta text;
+ALTER TABLE public.word_of_day ADD COLUMN IF NOT EXISTS meaning_te text;
 
 -- Enable RLS and insert policies
 ALTER TABLE public.word_of_day ENABLE ROW LEVEL SECURITY;
