@@ -144,5 +144,12 @@
   "recognizeLettersOption": "I can recognize some letters and words",
   "readSentencesOption": "I can read simple sentences",
   "readParagraphsOption": "I can read paragraphs and understand basic content",
-  "improveVocabOption": "I want to improve my vocabulary and communication skills"
+  "improveVocabOption": "I want to improve my vocabulary and communication skills",
+  "xpEarned": "+{xp} XP Earned",
+  "noImprovementNeeded": "Congratulations! No critical areas need immediate improvement. Recommend advanced practice!",
+  "summaryTitle": "Summary",
+  "summaryLevel4": "Fantastic work! You demonstrated highly advanced literacy skills, scoring {percent}% overall. You have near-perfect mastery of basic alphabet, vocabulary, and grammar rules. Your learning path is optimized to target communication refinement and real-life functional application to polish your fluency.",
+  "summaryLevel3": "Great job! You achieved a solid score of {percent}% overall. You possess strong foundational skills in letter and word recognition, but can benefit from expanding your sentence structures and reading longer paragraphs. Your learning path focuses on bridges to reading comprehension and advanced expression.",
+  "summaryLevel2": "Good effort! You scored {percent}% overall. While you show comfortable familiarity with letters and simple vocabulary, you face challenges with complex sentence structures and writing. Your learning path is customized with stepped modules to build reading confidence and sentence composition.",
+  "summaryLevel1": "Welcome to LISA! You scored {percent}% on this assessment. This indicates you are at the early stages of your literacy journey. We have personalized a learning path starting with step-by-step phonics, basic letter recognition, and simple word building to establish a strong, confident foundation."
 }
