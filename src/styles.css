@@ -1782,6 +1782,127 @@ select:focus {
   font-weight: 600;
 }
 
+/* Sentence Workspace Container */
+.sentence-workspace {
+  min-height: 72px;
+  border: 2px dashed var(--line);
+  border-radius: 14px;
+  padding: 14px 18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  background-color: rgba(24, 32, 43, 0.02);
+  margin-bottom: 24px;
+  transition: all 0.2s ease;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.02);
+}
+
+[data-theme="dark"] .sentence-workspace {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+/* Active Arranged Word Block */
+.word-block.active-block {
+  padding: 8px 16px;
+  border-radius: 10px;
+  border: 1.5px solid var(--accent);
+  background-color: var(--accent-soft);
+  color: var(--text);
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 3px 8px rgba(198, 95, 45, 0.15);
+  font-family: inherit;
+  font-size: 1rem;
+  user-select: none;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.word-block.active-block:hover {
+  transform: scale(1.03) translateY(-1px);
+  box-shadow: 0 5px 12px rgba(198, 95, 45, 0.25);
+  background-color: var(--accent-soft);
+  filter: brightness(0.96);
+}
+
+.word-block.active-block:active {
+  transform: scale(0.98);
+}
+
+/* Close cross inside active block */
+.word-block.active-block .remove-x {
+  font-size: 0.9rem;
+  opacity: 0.6;
+  font-weight: bold;
+  transition: opacity 0.2s, transform 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.word-block.active-block:hover .remove-x {
+  opacity: 0.9;
+  transform: scale(1.1);
+}
+
+/* Word Bank Container */
+.word-bank {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 20px;
+  background-color: var(--panel-strong);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  margin-bottom: 24px;
+  min-height: 88px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03), inset 0 2px 4px rgba(0, 0, 0, 0.01);
+}
+
+/* Choice Buttons in Word Bank */
+.word-block-choice {
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background-color: var(--panel-strong);
+  color: var(--text);
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  font-family: inherit;
+  font-size: 1rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.word-block-choice:hover:not(:disabled) {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+  box-shadow: 0 6px 14px rgba(198, 95, 45, 0.16);
+  background-color: var(--panel-strong);
+}
+
+.word-block-choice:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+/* When the choice is used/placed in the workspace */
+.word-block-choice:disabled,
+.word-block-choice.used {
+  border: 1.5px dashed var(--line);
+  background-color: var(--bg);
+  color: transparent !important;
+  opacity: 0.35;
+  box-shadow: none;
+  cursor: default;
+  pointer-events: none;
+  transform: none;
+}
+
+
 .assessment-nav-bar {
   margin-top: 28px;
   display: flex;

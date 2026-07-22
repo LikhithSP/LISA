@@ -6136,23 +6136,12 @@ function App() {
                               </div>
 
                               {/* Arranged Sentence Workspace */}
-                              <div className="sentence-workspace-label" style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '8px', color: 'var(--text-secondary)' }}>
+                              <div className="sentence-workspace-label" style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '8px', color: 'var(--muted)' }}>
                                 Your Answer:
                               </div>
-                              <div className="sentence-workspace" style={{
-                                minHeight: '60px',
-                                border: '2px dashed var(--border-color)',
-                                borderRadius: '12px',
-                                padding: '12px',
-                                display: 'flex',
-                                flexWrap: 'wrap',
-                                gap: '8px',
-                                alignItems: 'center',
-                                backgroundColor: 'var(--bg-card-hover)',
-                                marginBottom: '20px'
-                              }}>
+                              <div className="sentence-workspace">
                                 {arrangedBlockIndices.length === 0 ? (
-                                  <span style={{ color: 'gray', fontSize: '0.95rem', fontStyle: 'italic' }}>
+                                  <span style={{ color: 'var(--muted)', fontSize: '0.95rem', fontStyle: 'italic' }}>
                                     Click the word blocks below in the correct order to arrange the sentence...
                                   </span>
                                 ) : (
@@ -6163,20 +6152,6 @@ function App() {
                                         key={pos}
                                         type="button"
                                         className="word-block active-block"
-                                        style={{
-                                          padding: '8px 14px',
-                                          borderRadius: '8px',
-                                          border: '1px solid var(--primary-color)',
-                                          backgroundColor: 'var(--primary-light)',
-                                          color: 'var(--primary-color)',
-                                          fontWeight: '600',
-                                          cursor: 'pointer',
-                                          display: 'flex',
-                                          alignItems: 'center',
-                                          gap: '6px',
-                                          boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
-                                          transition: 'transform 0.1s'
-                                        }}
                                         onClick={() => {
                                           const newArranged = [...arrangedBlockIndices];
                                           newArranged.splice(pos, 1);
@@ -6185,7 +6160,7 @@ function App() {
                                           setWritingAnswers({ ...writingAnswers, [currentStep]: text });
                                         }}
                                       >
-                                        {word} <span style={{ fontSize: '0.8rem', opacity: 0.6 }}>×</span>
+                                        {word} <span className="remove-x">×</span>
                                       </button>
                                     );
                                   })
@@ -6193,20 +6168,10 @@ function App() {
                               </div>
 
                               {/* Word Bank Pool */}
-                              <div className="word-bank-label" style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '8px', color: 'var(--text-secondary)' }}>
+                              <div className="word-bank-label" style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '8px', color: 'var(--muted)' }}>
                                 Word Bank:
                               </div>
-                              <div className="word-bank" style={{
-                                display: 'flex',
-                                flexWrap: 'wrap',
-                                gap: '10px',
-                                padding: '16px',
-                                backgroundColor: 'var(--bg-card)',
-                                border: '1px solid var(--border-color)',
-                                borderRadius: '12px',
-                                marginBottom: '24px',
-                                minHeight: '80px'
-                              }}>
+                              <div className="word-bank">
                                 {shuffledWordBlocks.map((word, idx) => {
                                   const isUsed = arrangedBlockIndices.includes(idx);
                                   return (
@@ -6215,20 +6180,6 @@ function App() {
                                       type="button"
                                       disabled={isUsed}
                                       className={`word-block-choice ${isUsed ? 'used' : ''}`}
-                                      style={{
-                                        padding: '10px 16px',
-                                        borderRadius: '8px',
-                                        border: isUsed ? '1px solid transparent' : '1px solid var(--border-color)',
-                                        backgroundColor: isUsed ? 'var(--bg-card-hover)' : 'var(--bg-card)',
-                                        color: isUsed ? 'transparent' : 'var(--text-primary)',
-                                        fontWeight: '600',
-                                        cursor: isUsed ? 'default' : 'pointer',
-                                        opacity: isUsed ? 0.2 : 1,
-                                        boxShadow: isUsed ? 'none' : '0 2px 4px rgba(0,0,0,0.05)',
-                                        userSelect: 'none',
-                                        transform: isUsed ? 'none' : 'translateY(0)',
-                                        transition: 'all 0.15s'
-                                      }}
                                       onClick={() => {
                                         if (isUsed) return;
                                         const newArranged = [...arrangedBlockIndices, idx];
