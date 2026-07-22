@@ -77,5 +77,34 @@ ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS weekly_start date;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS avatar_emoji text;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS shop_data jsonb;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS notif_data jsonb;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS word_of_day_date date;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS word_of_day_index integer DEFAULT 0;
+
+-- Create the word of the day table
+CREATE TABLE IF NOT EXISTS public.word_of_day (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  language text NOT NULL,
+  word text NOT NULL,
+  meaning text NOT NULL,
+  example text NOT NULL,
+  UNIQUE (language, word)
+);
+
+-- Enable RLS and insert policies
+ALTER TABLE public.word_of_day ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Anyone can view word of the day" ON public.word_of_day;
+CREATE POLICY "Anyone can view word of the day" ON public.word_of_day
+  FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Anyone can insert word of the day" ON public.word_of_day;
+CREATE POLICY "Anyone can insert word of the day" ON public.word_of_day
+  FOR INSERT WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Anyone can update word of the day" ON public.word_of_day;
+CREATE POLICY "Anyone can update word of the day" ON public.word_of_day
+  FOR UPDATE USING (true);
+
+
 
 
