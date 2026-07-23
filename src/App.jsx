@@ -7920,6 +7920,7 @@ function App() {
             <div className="practice-grid-layout">
               <div className="practice-content-column">
                 <XPShop
+                  t={t}
                   onPurchaseItem={(item, newXp, newOwned) => {
                     setUserXp(newXp);
                     const userId = session?.user?.id;
