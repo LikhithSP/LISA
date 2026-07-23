@@ -183,7 +183,7 @@ const AVATAR_BG_COLORS = [
 ];
 const AVATAR_SHAPES = ["circle", "square", "rounded"];
 
-function AvatarBuilder({ currentAvatar, onSave, ownedAvatars, onClose }) {
+function AvatarBuilder({ t = (key) => key, currentAvatar, onSave, ownedAvatars, onClose }) {
   const [selectedEmoji, setSelectedEmoji] = useState(() => {
     if (currentAvatar?.type === "builder") return currentAvatar.emoji || "😊";
     return "😊";
@@ -219,7 +219,7 @@ function AvatarBuilder({ currentAvatar, onSave, ownedAvatars, onClose }) {
   return (
     <div className="avatar-builder">
       <div className="avatar-builder-header">
-        <h3 className="avatar-builder-title">🎨 Custom Avatar Builder</h3>
+        <h3 className="avatar-builder-title">🎨 {t("customAvatarBuilder")}</h3>
         <button className="avatar-builder-close" onClick={onClose}>✕</button>
       </div>
 
@@ -231,12 +231,12 @@ function AvatarBuilder({ currentAvatar, onSave, ownedAvatars, onClose }) {
         >
           <span style={{ fontSize: "3.5rem" }}>{selectedEmoji}</span>
         </div>
-        <p className="avatar-builder-preview-label">Your Avatar</p>
+        <p className="avatar-builder-preview-label">{t("yourAvatarLabel")}</p>
       </div>
 
       {/* Emoji Picker */}
       <div className="avatar-builder-section">
-        <label className="avatar-builder-label">Choose Emoji</label>
+        <label className="avatar-builder-label">{t("chooseEmoji")}</label>
         <div className="avatar-emoji-grid">
           {EMOJI_OPTIONS.map((em) => (
             <button
@@ -253,7 +253,7 @@ function AvatarBuilder({ currentAvatar, onSave, ownedAvatars, onClose }) {
       {/* Owned avatar emojis */}
       {ownedAvatars.length > 0 && (
         <div className="avatar-builder-section">
-          <label className="avatar-builder-label">Your Unlocked Avatars</label>
+          <label className="avatar-builder-label">{t("unlockedAvatars")}</label>
           <div className="avatar-emoji-grid">
             {ownedAvatars.map((id) => {
               const av = SHOP_CATALOG.avatars.find(a => a.id === id);
@@ -274,7 +274,7 @@ function AvatarBuilder({ currentAvatar, onSave, ownedAvatars, onClose }) {
 
       {/* Background Color */}
       <div className="avatar-builder-section">
-        <label className="avatar-builder-label">Background Color</label>
+        <label className="avatar-builder-label">{t("backgroundColor")}</label>
         <div className="avatar-color-grid">
           {AVATAR_BG_COLORS.map((c) => (
             <button
@@ -289,7 +289,7 @@ function AvatarBuilder({ currentAvatar, onSave, ownedAvatars, onClose }) {
 
       {/* Shape */}
       <div className="avatar-builder-section">
-        <label className="avatar-builder-label">Shape</label>
+        <label className="avatar-builder-label">{t("shape")}</label>
         <div className="avatar-shape-row">
           {AVATAR_SHAPES.map((s) => (
             <button
@@ -299,14 +299,14 @@ function AvatarBuilder({ currentAvatar, onSave, ownedAvatars, onClose }) {
               style={{ borderRadius: shapeStyle[s].borderRadius }}
             >
               <span style={{ background: bgColor, ...shapeStyle[s], display: "inline-flex", alignItems: "center", justifyContent: "center", width: 36, height: 36, fontSize: "1.2rem" }}>{selectedEmoji}</span>
-              <span style={{ fontSize: "0.75rem", marginTop: 4, display: "block" }}>{s.charAt(0).toUpperCase() + s.slice(1)}</span>
+              <span style={{ fontSize: "0.75rem", marginTop: 4, display: "block" }}>{t(s + "Shape")}</span>
             </button>
           ))}
         </div>
       </div>
 
       <button className="avatar-builder-save-btn" onClick={() => onSave(preview)}>
-        ✓ Apply Avatar
+        {t("applyAvatar")}
       </button>
     </div>
   );
@@ -314,6 +314,7 @@ function AvatarBuilder({ currentAvatar, onSave, ownedAvatars, onClose }) {
 
 // ─── Main XP Shop ──────────────────────────────────────────────────────────────
 export default function XPShop({
+  t = (key) => key,
   userXp,
   onSpendXp,
   session,
@@ -353,7 +354,7 @@ export default function XPShop({
       return;
     }
     if (userXp < item.cost) {
-      showToast(`Not enough XP! You need ${item.cost - userXp} more XP.`, "error");
+      showToast(t("notEnoughXpError").replace("{need}", item.cost - userXp), "error");
       return;
     }
     setConfirmItem(item);
@@ -370,7 +371,7 @@ export default function XPShop({
       onOwnedItemsChange(newOwned);
       handleEquip(confirmItem, newOwned);
     }
-    showToast(`🎉 "${confirmItem.name}" unlocked!`, "success");
+    showToast(t("itemUnlockedToast").replace("{name}", t(confirmItem.id + "_name") || confirmItem.name), "success");
     setConfirmItem(null);
   };
 
@@ -397,17 +398,17 @@ export default function XPShop({
       } else if (current.length < 3) {
         onBadgesChange([...current, item.id]);
       } else {
-        showToast("Max 3 badges active. Tap an active badge to remove it first.", "error");
+        showToast(t("maxBadgesError"), "error");
       }
     }
   };
 
   const categories = [
-    { id: "themes", label: "Themes", icon: "🎨" },
-    { id: "fonts", label: "Fonts", icon: "🔤" },
-    { id: "banners", label: "Banners", icon: "🖼️" },
-    { id: "avatars", label: "Avatars", icon: "🪄" },
-    { id: "badges", label: "Badges", icon: "🏅" },
+    { id: "themes", label: t("themesTab"), icon: "🎨" },
+    { id: "fonts", label: t("fontsTab"), icon: "🔤" },
+    { id: "banners", label: t("bannersTab"), icon: "🖼️" },
+    { id: "avatars", label: t("avatarsTab"), icon: "🪄" },
+    { id: "badges", label: t("badgesTab"), icon: "🏅" },
   ];
 
   const renderThemesGrid = () => (
@@ -427,8 +428,8 @@ export default function XPShop({
               setPreviewTheme(null);
             }}
           >
-            {active && <div className="shop-active-badge">✓ Active</div>}
-            {owned_flag && !active && <div className="shop-owned-badge">Owned</div>}
+            {active && <div className="shop-active-badge">✓ {t("activeLabel")}</div>}
+            {owned_flag && !active && <div className="shop-owned-badge">{t("ownedLabel")}</div>}
             <div className="shop-theme-preview">
               {[theme.preview.accent, theme.preview.accentDark, theme.preview.accentSoft].map((c, i) => (
                 <div key={i} style={{ background: c, flex: 1, height: "100%" }} />
@@ -437,19 +438,19 @@ export default function XPShop({
             <div className="shop-item-info">
               <span className="shop-item-icon">{theme.icon}</span>
               <div>
-                <div className="shop-item-name">{theme.name}</div>
-                <div className="shop-item-desc">{theme.desc}</div>
+                <div className="shop-item-name">{t(theme.id + "_name") || theme.name}</div>
+                <div className="shop-item-desc">{t(theme.id + "_desc") || theme.desc}</div>
               </div>
             </div>
             <div className="shop-item-footer">
               <span className="shop-item-cost">
-                {theme.cost === 0 ? "Free" : `⭐ ${theme.cost} XP`}
+                {theme.cost === 0 ? t("freeLabel") : `⭐ ${theme.cost} XP`}
               </span>
               <button
                 className={`shop-buy-btn ${active ? "shop-btn-active" : owned_flag ? "shop-btn-equip" : userXp >= theme.cost ? "" : "shop-btn-disabled"}`}
                 onClick={() => handlePurchase(theme)}
               >
-                {active ? "✓ Equipped" : owned_flag ? "Equip" : `Buy`}
+                {active ? t("equippedLabel") : owned_flag ? t("equipBtn") : t("buyBtn")}
               </button>
             </div>
           </div>
@@ -468,8 +469,8 @@ export default function XPShop({
             key={font.id}
             className={`shop-item-card ${active ? "shop-item-active" : ""} ${owned_flag ? "shop-item-owned" : ""}`}
           >
-            {active && <div className="shop-active-badge">✓ Active</div>}
-            {owned_flag && !active && <div className="shop-owned-badge">{font.cost === 0 ? "Default" : "Owned"}</div>}
+            {active && <div className="shop-active-badge">✓ {t("activeLabel")}</div>}
+            {owned_flag && !active && <div className="shop-owned-badge">{font.cost === 0 ? t("defaultLabel") : t("ownedLabel")}</div>}
             <div className="shop-font-preview" style={{ fontFamily: font.family }}>
               <span className="shop-font-sample">Aa Bb Cc</span>
               <span className="shop-font-phrase" style={{ fontFamily: font.family }}>Hello World! 123</span>
@@ -477,17 +478,17 @@ export default function XPShop({
             <div className="shop-item-info">
               <span className="shop-item-icon" style={{ fontFamily: font.family, fontWeight: 900 }}>{font.icon}</span>
               <div>
-                <div className="shop-item-name" style={{ fontFamily: font.family }}>{font.name}</div>
-                <div className="shop-item-desc">{font.desc}</div>
+                <div className="shop-item-name" style={{ fontFamily: font.family }}>{t(font.id + "_name") || font.name}</div>
+                <div className="shop-item-desc">{t(font.id + "_desc") || font.desc}</div>
               </div>
             </div>
             <div className="shop-item-footer">
-              <span className="shop-item-cost">{font.cost === 0 ? "Free" : `⭐ ${font.cost} XP`}</span>
+              <span className="shop-item-cost">{font.cost === 0 ? t("freeLabel") : `⭐ ${font.cost} XP`}</span>
               <button
                 className={`shop-buy-btn ${active ? "shop-btn-active" : owned_flag ? "shop-btn-equip" : userXp >= font.cost ? "" : "shop-btn-disabled"}`}
                 onClick={() => handlePurchase(font)}
               >
-                {active ? "✓ Equipped" : owned_flag ? "Equip" : "Buy"}
+                {active ? t("equippedLabel") : owned_flag ? t("equipBtn") : t("buyBtn")}
               </button>
             </div>
           </div>
@@ -506,16 +507,16 @@ export default function XPShop({
             key={banner.id}
             className={`shop-item-card ${active ? "shop-item-active" : ""} ${owned_flag ? "shop-item-owned" : ""}`}
           >
-            {active && <div className="shop-active-badge">✓ Active</div>}
-            {owned_flag && !active && <div className="shop-owned-badge">Owned</div>}
+            {active && <div className="shop-active-badge">✓ {t("activeLabel")}</div>}
+            {owned_flag && !active && <div className="shop-owned-badge">{t("ownedLabel")}</div>}
             <div className="shop-banner-preview" style={{ background: banner.gradient }}>
               <span className="shop-banner-icon">{banner.icon}</span>
             </div>
             <div className="shop-item-info">
               <span className="shop-item-icon">{banner.icon}</span>
               <div>
-                <div className="shop-item-name">{banner.name}</div>
-                <div className="shop-item-desc">{banner.desc}</div>
+                <div className="shop-item-name">{t(banner.id + "_name") || banner.name}</div>
+                <div className="shop-item-desc">{t(banner.id + "_desc") || banner.desc}</div>
               </div>
             </div>
             <div className="shop-item-footer">
@@ -524,7 +525,7 @@ export default function XPShop({
                 className={`shop-buy-btn ${active ? "shop-btn-active" : owned_flag ? "shop-btn-equip" : userXp >= banner.cost ? "" : "shop-btn-disabled"}`}
                 onClick={() => handlePurchase(banner)}
               >
-                {active ? "✓ Equipped" : owned_flag ? "Equip" : "Buy"}
+                {active ? t("equippedLabel") : owned_flag ? t("equipBtn") : t("buyBtn")}
               </button>
             </div>
           </div>
@@ -539,10 +540,10 @@ export default function XPShop({
       <div className="shop-avatar-builder-cta" onClick={() => setShowAvatarBuilder(true)}>
         <div className="shop-avatar-builder-icon">🎨</div>
         <div>
-          <div className="shop-avatar-builder-title">Custom Avatar Builder</div>
-          <div className="shop-avatar-builder-desc">Mix emojis, colors & shapes — always free!</div>
+          <div className="shop-avatar-builder-title">{t("customAvatarBuilder")}</div>
+          <div className="shop-avatar-builder-desc">{t("customAvatarBuilderDesc")}</div>
         </div>
-        <button className="shop-avatar-builder-btn">Open Builder →</button>
+        <button className="shop-avatar-builder-btn">{t("openBuilderBtn")}</button>
       </div>
 
       <div className="shop-grid shop-grid-3" style={{ marginTop: 16 }}>
@@ -555,16 +556,16 @@ export default function XPShop({
               className={`shop-item-card shop-avatar-card ${active ? "shop-item-active" : ""} ${owned_flag ? "shop-item-owned" : ""}`}
             >
               {active && <div className="shop-active-badge">✓</div>}
-              {owned_flag && !active && <div className="shop-owned-badge">Owned</div>}
+              {owned_flag && !active && <div className="shop-owned-badge">{t("ownedLabel")}</div>}
               <div className="shop-avatar-preview">{av.emoji}</div>
-              <div className="shop-item-name" style={{ textAlign: "center" }}>{av.name}</div>
+              <div className="shop-item-name" style={{ textAlign: "center" }}>{t(av.id + "_name") || av.name}</div>
               <div className="shop-item-footer" style={{ justifyContent: "center" }}>
                 <span className="shop-item-cost">⭐ {av.cost}</span>
                 <button
                   className={`shop-buy-btn ${active ? "shop-btn-active" : owned_flag ? "shop-btn-equip" : userXp >= av.cost ? "" : "shop-btn-disabled"}`}
                   onClick={() => handlePurchase(av)}
                 >
-                  {active ? "✓" : owned_flag ? "Use" : "Buy"}
+                  {active ? "✓" : owned_flag ? t("useBtn") : t("buyBtn")}
                 </button>
               </div>
             </div>
@@ -578,7 +579,7 @@ export default function XPShop({
     const activeBadges = activeProfileBadges || [];
     return (
       <>
-        <p className="shop-badge-hint">Up to 3 badges can be active on your profile. Tap to toggle.</p>
+        <p className="shop-badge-hint">{t("badgeHint")}</p>
         <div className="shop-grid shop-grid-3">
           {SHOP_CATALOG.badges.map((badge) => {
             const owned_flag = isOwned(badge.id);
@@ -590,19 +591,19 @@ export default function XPShop({
                 className={`shop-item-card shop-badge-card ${active ? "shop-item-active" : ""} ${owned_flag ? "shop-item-owned" : ""}`}
               >
                 <div className="shop-badge-rarity" style={{ color: rarityColors[badge.rarity] }}>
-                  {badge.rarity.toUpperCase()}
+                  {t(badge.rarity)}
                 </div>
                 {active && <div className="shop-active-badge">✓</div>}
                 <div className="shop-badge-preview">{badge.icon}</div>
-                <div className="shop-item-name" style={{ textAlign: "center" }}>{badge.name}</div>
-                <div className="shop-item-desc" style={{ textAlign: "center", fontSize: "0.78rem" }}>{badge.desc}</div>
+                <div className="shop-item-name" style={{ textAlign: "center" }}>{t(badge.id + "_name") || badge.name}</div>
+                <div className="shop-item-desc" style={{ textAlign: "center", fontSize: "0.78rem" }}>{t(badge.id + "_desc") || badge.desc}</div>
                 <div className="shop-item-footer" style={{ justifyContent: "center" }}>
                   <span className="shop-item-cost">⭐ {badge.cost}</span>
                   <button
                     className={`shop-buy-btn ${active ? "shop-btn-active" : owned_flag ? "shop-btn-equip" : userXp >= badge.cost ? "" : "shop-btn-disabled"}`}
                     onClick={() => handlePurchase(badge)}
                   >
-                    {active ? "✓ Active" : owned_flag ? "Equip" : "Buy"}
+                    {active ? `✓ ${t("activeLabel")}` : owned_flag ? t("equipBtn") : t("buyBtn")}
                   </button>
                 </div>
               </div>
@@ -627,14 +628,18 @@ export default function XPShop({
         <div className="shop-confirm-overlay">
           <div className="shop-confirm-modal">
             <div className="shop-confirm-icon">{confirmItem.icon}</div>
-            <h3 className="shop-confirm-title">Unlock "{confirmItem.name}"?</h3>
-            <p className="shop-confirm-desc">This will cost <strong>⭐ {confirmItem.cost} XP</strong>.<br />You have <strong>{userXp} XP</strong>.</p>
+            <h3 className="shop-confirm-title">{t("unlockConfirmTitle").replace("{name}", t(confirmItem.id + "_name") || confirmItem.name)}</h3>
+            <p className="shop-confirm-desc" dangerouslySetInnerHTML={{
+              __html: t("unlockConfirmDesc")
+                .replace("{cost}", confirmItem.cost)
+                .replace("{userXp}", userXp)
+            }} />
             <div className="shop-confirm-actions">
               <button className="shop-confirm-yes" onClick={confirmPurchase}>
-                Yes, Unlock!
+                {t("yesUnlockBtn")}
               </button>
               <button className="shop-confirm-no" onClick={() => setConfirmItem(null)}>
-                Cancel
+                {t("cancelBtn")}
               </button>
             </div>
           </div>
@@ -646,9 +651,10 @@ export default function XPShop({
         <div className="shop-confirm-overlay">
           <div className="shop-avatar-builder-modal">
             <AvatarBuilder
+              t={t}
               currentAvatar={currentAvatar}
               ownedAvatars={owned.filter(id => id.startsWith("avatar_"))}
-              onSave={(avatar) => { onAvatarChange(avatar); setShowAvatarBuilder(false); showToast("Avatar updated! ✨"); }}
+              onSave={(avatar) => { onAvatarChange(avatar); setShowAvatarBuilder(false); showToast(t("avatarUpdatedToast") || "Avatar updated! ✨"); }}
               onClose={() => setShowAvatarBuilder(false)}
             />
           </div>
@@ -658,15 +664,15 @@ export default function XPShop({
       {/* Header */}
       <div className="shop-header">
         <div>
-          <div className="shop-header-badge">🛒 XP Shop</div>
-          <h2 className="shop-title">Customize Your LISA</h2>
-          <p className="shop-subtitle">Spend your XP to unlock themes, avatars, banners & more!</p>
+          <div className="shop-header-badge">{t("xpShopTitle")}</div>
+          <h2 className="shop-title">{t("customizeLisa")}</h2>
+          <p className="shop-subtitle">{t("shopSubtitle")}</p>
         </div>
         <div className="shop-xp-display">
           <div className="shop-xp-icon">⭐</div>
           <div>
             <div className="shop-xp-value">{userXp}</div>
-            <div className="shop-xp-label">XP Available</div>
+            <div className="shop-xp-label">{t("xpAvailable")}</div>
           </div>
         </div>
       </div>
