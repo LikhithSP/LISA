@@ -1087,7 +1087,7 @@ function App() {
       // Get the user's target learning language (learningLanguage or profile.learning_language)
       const learnLang = profile?.learning_language || learningLanguage || "English";
       const interfaceLang = selectedLanguage || "English";
-      
+
       // Fallback word in case of failures or fallback mode
       const getFallback = () => {
         if (interfaceLang === "Hindi") {
@@ -1103,7 +1103,7 @@ function App() {
       };
 
       // If AI is disabled, we still attempt to fetch the word of the day from the database.
-// Fallback will be used only if fetching fails.
+      // Fallback will be used only if fetching fails.
 
 
       if (!userId) {
@@ -1113,7 +1113,7 @@ function App() {
 
       try {
         const today = new Date().toLocaleDateString("en-CA");
-        
+
         // 1. Fetch all words for this target learning language
         const { data: words, error: fetchErr } = await supabase
           .from("word_of_day")
@@ -1153,7 +1153,7 @@ function App() {
         }
 
         const selectedWordObj = words[currentIndex];
-        
+
         // Map word and example in learningLanguage, meaning resolved to the selected interfaceLanguage (UI language)
         if (active && selectedWordObj) {
           let resolvedMeaning = selectedWordObj.meaning;
@@ -1203,7 +1203,7 @@ function App() {
       const localDict = localDashboardTranslations[lang];
       if (localDict) {
         const lvlMsg = localDict.levels[lvl] || getLevelEncouragementMessage(lvl);
-        
+
         let strMsg = "";
         if (streakCount === 0) strMsg = localDict.streaks[0];
         else if (streakCount === 1) strMsg = localDict.streaks[1];
@@ -2701,10 +2701,10 @@ function App() {
                         setLessonListeningFeedback({
                           isCorrect: correct,
                           correctAnswer: audioText
-                                   });
-                                   if (correct) recordDailyCorrect();
-                                   recordLessonAnswer(correct);
-                                 }}
+                        });
+                        if (correct) recordDailyCorrect();
+                        recordLessonAnswer(correct);
+                      }}
                       disabled={lessonListeningSelected.length === 0}
                     >
                       Check Answer
@@ -2831,12 +2831,12 @@ function App() {
                               explanation: currentQuestion.explanation || ""
                             });
                           }
-                           setLessonMeaningFeedback({
-                             isCorrect: correct,
-                             correctAnswer: options[currentQuestion.correctIndex]
-                           });
-                           if (correct) recordDailyCorrect();
-                           recordLessonAnswer(correct);
+                          setLessonMeaningFeedback({
+                            isCorrect: correct,
+                            correctAnswer: options[currentQuestion.correctIndex]
+                          });
+                          if (correct) recordDailyCorrect();
+                          recordLessonAnswer(correct);
                         }}
                       >
                         Check Answer
@@ -2931,12 +2931,12 @@ function App() {
                               hint: hint
                             });
                           }
-                           setLessonFillFeedback({
-                             isCorrect: correct,
-                             correctAnswer: answer
-                           });
-                           if (correct) recordDailyCorrect();
-                           recordLessonAnswer(correct);
+                          setLessonFillFeedback({
+                            isCorrect: correct,
+                            correctAnswer: answer
+                          });
+                          if (correct) recordDailyCorrect();
+                          recordLessonAnswer(correct);
                         }}
                       >
                         Check Answer
@@ -3066,12 +3066,12 @@ function App() {
                               tiles: tiles
                             });
                           }
-                           setLessonUnscrambleFeedback({
-                             isCorrect: correct,
-                             correctAnswer: answer
-                           });
-                           if (correct) recordDailyCorrect();
-                           recordLessonAnswer(correct);
+                          setLessonUnscrambleFeedback({
+                            isCorrect: correct,
+                            correctAnswer: answer
+                          });
+                          if (correct) recordDailyCorrect();
+                          recordLessonAnswer(correct);
                         }}
                         disabled={lessonUnscrambleSelected.length === 0}>Check Answer</button>
                     </div>
@@ -3501,7 +3501,7 @@ function App() {
     if (!questionText || !questionText.includes("/")) return questionText;
     const parts = questionText.split("/").map(s => s.trim());
     if (parts.length < 5) return questionText;
-    
+
     const lang = interfaceLang || "English";
     if (lang === "English") return parts[0];
     if (lang === "Kannada") return parts[1];
@@ -3935,7 +3935,7 @@ function App() {
       s12u1_title: "पैसा और बैंकिंग",
       s12u2_title: "स्वास्थ्य और सुरक्षा",
       s12u3_title: "यात्रा और सार्वजनिक सेवाएं",
-            meaning: "अर्थ",
+      meaning: "अर्थ",
       example: "उदाहरण",
       profileAge: "आयु",
       profileEducation: "शिक्षा",
@@ -4067,7 +4067,7 @@ function App() {
       s12u1_title: "ಹಣ ಮತ್ತು ಬ್ಯಾಂಕಿಂಗ್",
       s12u2_title: "ಆರೋಗ್ಯ ಮತ್ತು ಸುರಕ್ಷತೆ",
       s12u3_title: "ಪ್ರಯಾಣ ಮತ್ತು ಸಾರ್ವಜನಿಕ ಸೇವೆಗಳು",
-            meaning: "ಅರ್ಥ",
+      meaning: "ಅರ್ಥ",
       example: "ಉದಾಹರಣೆ",
       profileAge: "ವಯಸ್ಸು",
       profileEducation: "ಶಿಕ್ಷಣ",
@@ -4199,7 +4199,7 @@ function App() {
       s12u1_title: "డబ్బు & బ్యాంకింగ్",
       s12u2_title: "ఆరోగ్యం & భద్రత",
       s12u3_title: "ప్రయాణం & ప్రజా సేవలు",
-            meaning: "అర్థం",
+      meaning: "అర్థం",
       example: "ఉదాహరణ",
       profileAge: "వయస్సు",
       profileEducation: "విద్య",
@@ -4331,7 +4331,7 @@ function App() {
       s12u1_title: "பணம் & வங்கி",
       s12u2_title: "சுகாதாரம் & பாதுகாப்பு",
       s12u3_title: "பயணம் & பொது சேவைகள்",
-            meaning: "பொருள்",
+      meaning: "பொருள்",
       example: "உதாரணம்",
       profileAge: "வயது",
       profileEducation: "கல்வி",
@@ -5045,7 +5045,7 @@ function App() {
   // into a normalized shape for rendering: { type, emoji, bg, shape, isPhoto }.
   const resolveProfileAvatar = (av) => {
     if (av && typeof av === "string" && av.startsWith("{")) {
-      try { av = JSON.parse(av); } catch (e) {}
+      try { av = JSON.parse(av); } catch (e) { }
     }
     if (av && typeof av === "string" && av.startsWith("http")) {
       return { type: "photo", value: av, isPhoto: true };
@@ -5182,7 +5182,7 @@ function App() {
         const scoreA = [0, 1, 2].filter(
           (i) => selectedAnswers[i] === assessmentQuestionsList[i].correctIndex
         ).length;
-        
+
         const startLevel = assessmentQuestionsList[0]?.blockLevel || 1;
         const desiredLevelForB = scoreA === 3 ? Math.min(startLevel + 1, 5) : startLevel;
         const currentLevelForB = assessmentQuestionsList[3]?.blockLevel;
@@ -5222,6 +5222,7 @@ function App() {
             usedIds,
             "C"
           );
+          // updated newBlockC
           if (newBlockC.length === 4) {
             updatedList.splice(6, 4, ...newBlockC);
             questionsChanged = true;
@@ -5969,7 +5970,7 @@ function App() {
     const activeItem = (showPersonalizedPath && flatPersonalizedLessons.length > 0)
       ? (flatPersonalizedLessons.find(item => !completedLessons.includes(item.lesson.id)) || flatPersonalizedLessons[0])
       : (flatLessonsWithLocation.slice(0).find(item => !completedLessons.includes(item.lesson.id))
-         || flatLessonsWithLocation[0]);
+        || flatLessonsWithLocation[0]);
 
     const currentUnit = activeItem?.lesson;
     const currentUnitPos = {
@@ -6105,7 +6106,7 @@ function App() {
                   ? (activeQ?.question || "")
                   : "";
 
-                const resolvedOptions = activeQ?.options 
+                const resolvedOptions = activeQ?.options
                   ? (Array.isArray(activeQ.options) ? activeQ.options : (activeQ.options[lang] || activeQ.options["English"] || []))
                   : [];
                 const compOptions = isCompMCQ && resolvedOptions.length > 0
@@ -6139,24 +6140,24 @@ function App() {
                           {isWriting && t("writingSecTitle")}
                         </h2>
                         {isCompMCQ && compIdx.length > 0 && (
-                          
-                    
-                    
+
+
+
                           <p className="section-sub-progress">
 
-                          
-                                                      {t("questionOf").replace("{current}", compIdx.indexOf(currentStep) + 1).replace("{total}", compIdx.length)}
+
+                            {t("questionOf").replace("{current}", compIdx.indexOf(currentStep) + 1).replace("{total}", compIdx.length)}
                           </p>
 
-                            
-
-                        
-                          
 
 
-                      
-                    
-                  
+
+
+
+
+
+
+
                         )}
                       </div>
                       <div className="section-stepper">
@@ -6175,233 +6176,233 @@ function App() {
 
                     <div className="question-content-box">
                       <>
-                          {/* READING VOICE TO TEXT WITH MONKEYTYPE UI */}
-                          {isVoiceReading && (
-                            <div className="reading-q-container">
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-                                <p className="helper-text" style={{ margin: 0 }}>{t("monkeyTypeTip")}</p>
-                                <button
-                                  type="button"
-                                  className="tts-btn"
-                                  onClick={() => speakText(readingTargetText)}
-                                  title="Listen to pronunciation"
-                                >
-                                  🔊 {t("listenBtn") || "Listen"}
-                                </button>
-                              </div>
+                        {/* READING VOICE TO TEXT WITH MONKEYTYPE UI */}
+                        {isVoiceReading && (
+                          <div className="reading-q-container">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                              <p className="helper-text" style={{ margin: 0 }}>{t("monkeyTypeTip")}</p>
+                              <button
+                                type="button"
+                                className="tts-btn"
+                                onClick={() => speakText(readingTargetText)}
+                                title="Listen to pronunciation"
+                              >
+                                🔊 {t("listenBtn") || "Listen"}
+                              </button>
+                            </div>
 
-                              <div className="monkeytype-text-block">
-                                {readingTargetText.split(/\s+/).map((word, idx) => {
-                                  const cleaned = cleanWord(word);
-                                  const attempt = readingAttempts[currentStep];
-                                  let wordClass = "unspoken";
-                                  if (attempt && attempt.scores) {
-                                    const targetWordsCleaned = readingTargetText.split(/\s+/).map(cleanWord);
-                                    const cleanIdx = targetWordsCleaned.indexOf(cleaned);
-                                    if (cleanIdx !== -1 && attempt.scores[cleanIdx]) {
-                                      wordClass = "correct";
-                                    } else if (!isListening) {
-                                      wordClass = "incorrect";
-                                    }
+                            <div className="monkeytype-text-block">
+                              {readingTargetText.split(/\s+/).map((word, idx) => {
+                                const cleaned = cleanWord(word);
+                                const attempt = readingAttempts[currentStep];
+                                let wordClass = "unspoken";
+                                if (attempt && attempt.scores) {
+                                  const targetWordsCleaned = readingTargetText.split(/\s+/).map(cleanWord);
+                                  const cleanIdx = targetWordsCleaned.indexOf(cleaned);
+                                  if (cleanIdx !== -1 && attempt.scores[cleanIdx]) {
+                                    wordClass = "correct";
+                                  } else if (!isListening) {
+                                    wordClass = "incorrect";
                                   }
-                                  return (
-                                    <span key={idx} className={`mt-word ${wordClass}`}>
-                                      {word}{" "}
-                                    </span>
-                                  );
-                                })}
-                              </div>
+                                }
+                                return (
+                                  <span key={idx} className={`mt-word ${wordClass}`}>
+                                    {word}{" "}
+                                  </span>
+                                );
+                              })}
+                            </div>
 
-                              <div className="voice-mic-controls">
-                                {!isListening ? (
-                                  <div className="mic-outer-container">
-                                    <button
-                                      type="button"
-                                      className="mic-btn"
-                                      onClick={() => startListening(readingTargetText)}
-                                    >
-                                      <svg className="mic-icon" width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                                        <path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3z" />
-                                        <path d="M17 11a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z" />
-                                      </svg>
-                                      <span className="mic-btn-text">CLICK TO SPEAK</span>
-                                    </button>
-                                  </div>
-                                ) : (
-                                  <div className="mic-outer-container">
-                                    <button
-                                      type="button"
-                                      className="mic-btn"
-                                      onClick={stopListening}
-                                    >
-                                      <span className="voice-wave" aria-hidden="true">
-                                        <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
-                                      </span>
-                                    </button>
-                                  </div>
-                                )}
-                              </div>
-
-                              {spokenTranscript && (
-                                <div className="voice-transcript-log">
-                                  <strong>Spoken:</strong> "{spokenTranscript}"
-                                </div>
-                              )}
-
-                              {micError && <p className="mic-error-text">{micError}</p>}
-
-                              {/* Manual fallback input */}
-                              <div className="voice-fallback-area">
-                                <label className="fallback-label">{t("skipVoicePrompt")}</label>
-                                <div className="fallback-input-row">
-                                  <input
-                                    type="text"
-                                    placeholder="Type sentence here if mic fails..."
-                                    value={manualTextFallback}
-                                    onChange={(e) => setManualTextFallback(e.target.value)}
-                                  />
+                            <div className="voice-mic-controls">
+                              {!isListening ? (
+                                <div className="mic-outer-container">
                                   <button
                                     type="button"
-                                    className="secondary-btn"
-                                    onClick={() => handleManualTextSubmit(readingTargetText)}
+                                    className="mic-btn"
+                                    onClick={() => startListening(readingTargetText)}
                                   >
-                                    {t("skipVoiceBtn")}
+                                    <svg className="mic-icon" width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                      <path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3z" />
+                                      <path d="M17 11a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z" />
+                                    </svg>
+                                    <span className="mic-btn-text">CLICK TO SPEAK</span>
                                   </button>
                                 </div>
-                              </div>
-                            </div>
-                          )}
-
-                          {/* COMPREHENSION SHUFFLED MCQS */}
-                          {isCompMCQ && (
-                            <div className="comprehension-q-container">
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
-                                <p className="comprehension-question" style={{ margin: 0, flex: 1, fontWeight: 700, fontSize: "1.2rem" }}>{compQuestionText}</p>
-                                <button
-                                  type="button"
-                                  className="tts-btn"
-                                  onClick={() => speakText(compQuestionText)}
-                                  title="Listen to question"
-                                >
-                                  🔊 {t("listenBtn") || "Listen"}
-                                </button>
-                              </div>
-                              <div className="options-grid">
-                                {compOptions.map((opt, idx) => {
-                                  const isSelected = selectedAnswers[currentStep] === idx;
-                                  return (
-                                    <button
-                                      key={idx}
-                                      type="button"
-                                      className={`option-btn ${isSelected ? "selected" : ""}`}
-                                      onClick={() => setSelectedAnswers({ ...selectedAnswers, [currentStep]: idx })}
-                                    >
-                                      <span className="option-indicator">{String.fromCharCode(65 + idx)}</span>
-                                      <span className="option-label">{opt}</span>
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          )}
-
-                          {/* WRITING DICTATION SECTION */}
-                          {isWriting && (
-                            <div className="writing-q-container">
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px', justifyContent: 'space-between', width: '100%' }}>
-                                <div style={{ flex: 1 }}>
-                                  <p className="writing-prompt" style={{ margin: 0, fontWeight: 700, fontSize: "1.2rem" }}>{writingPromptText}</p>
-                                  <p className="helper-text" style={{ margin: '8px 0 0' }}>{t("dictationTip") || "Press play and arrange the word blocks to form the sentence you hear."}</p>
+                              ) : (
+                                <div className="mic-outer-container">
+                                  <button
+                                    type="button"
+                                    className="mic-btn"
+                                    onClick={stopListening}
+                                  >
+                                    <span className="voice-wave" aria-hidden="true">
+                                      <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+                                    </span>
+                                  </button>
                                 </div>
+                              )}
+                            </div>
+
+                            {spokenTranscript && (
+                              <div className="voice-transcript-log">
+                                <strong>Spoken:</strong> "{spokenTranscript}"
+                              </div>
+                            )}
+
+                            {micError && <p className="mic-error-text">{micError}</p>}
+
+                            {/* Manual fallback input */}
+                            <div className="voice-fallback-area">
+                              <label className="fallback-label">{t("skipVoicePrompt")}</label>
+                              <div className="fallback-input-row">
+                                <input
+                                  type="text"
+                                  placeholder="Type sentence here if mic fails..."
+                                  value={manualTextFallback}
+                                  onChange={(e) => setManualTextFallback(e.target.value)}
+                                />
                                 <button
                                   type="button"
-                                  className="tts-btn dictation-play"
-                                  onClick={() => speakText(dictationText)}
-                                  title="Listen to the sentence"
+                                  className="secondary-btn"
+                                  onClick={() => handleManualTextSubmit(readingTargetText)}
                                 >
-                                  🔊 {t("listenBtn") || "Listen"}
+                                  {t("skipVoiceBtn")}
                                 </button>
                               </div>
+                            </div>
+                          </div>
+                        )}
 
-                              {/* Arranged Sentence Workspace */}
-                              <div className="sentence-workspace-label" style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '8px', color: 'var(--muted)' }}>
-                                Your Answer:
-                              </div>
-                              <div className="sentence-workspace">
-                                {arrangedBlockIndices.length === 0 ? (
-                                  <span style={{ color: 'var(--muted)', fontSize: '0.95rem', fontStyle: 'italic' }}>
-                                    Click the word blocks below in the correct order to arrange the sentence...
-                                  </span>
-                                ) : (
-                                  arrangedBlockIndices.map((blockIdx, pos) => {
-                                    const word = shuffledWordBlocks[blockIdx];
-                                    return (
-                                      <button
-                                        key={pos}
-                                        type="button"
-                                        className="word-block active-block"
-                                        onClick={() => {
-                                          const newArranged = [...arrangedBlockIndices];
-                                          newArranged.splice(pos, 1);
-                                          setArrangedBlockIndices(newArranged);
-                                          const text = newArranged.map(i => shuffledWordBlocks[i]).join(" ");
-                                          setWritingAnswers({ ...writingAnswers, [currentStep]: text });
-                                        }}
-                                      >
-                                        {word} <span className="remove-x">×</span>
-                                      </button>
-                                    );
-                                  })
-                                )}
-                              </div>
+                        {/* COMPREHENSION SHUFFLED MCQS */}
+                        {isCompMCQ && (
+                          <div className="comprehension-q-container">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
+                              <p className="comprehension-question" style={{ margin: 0, flex: 1, fontWeight: 700, fontSize: "1.2rem" }}>{compQuestionText}</p>
+                              <button
+                                type="button"
+                                className="tts-btn"
+                                onClick={() => speakText(compQuestionText)}
+                                title="Listen to question"
+                              >
+                                🔊 {t("listenBtn") || "Listen"}
+                              </button>
+                            </div>
+                            <div className="options-grid">
+                              {compOptions.map((opt, idx) => {
+                                const isSelected = selectedAnswers[currentStep] === idx;
+                                return (
+                                  <button
+                                    key={idx}
+                                    type="button"
+                                    className={`option-btn ${isSelected ? "selected" : ""}`}
+                                    onClick={() => setSelectedAnswers({ ...selectedAnswers, [currentStep]: idx })}
+                                  >
+                                    <span className="option-indicator">{String.fromCharCode(65 + idx)}</span>
+                                    <span className="option-label">{opt}</span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
 
-                              {/* Word Bank Pool */}
-                              <div className="word-bank-label" style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '8px', color: 'var(--muted)' }}>
-                                Word Bank:
+                        {/* WRITING DICTATION SECTION */}
+                        {isWriting && (
+                          <div className="writing-q-container">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px', justifyContent: 'space-between', width: '100%' }}>
+                              <div style={{ flex: 1 }}>
+                                <p className="writing-prompt" style={{ margin: 0, fontWeight: 700, fontSize: "1.2rem" }}>{writingPromptText}</p>
+                                <p className="helper-text" style={{ margin: '8px 0 0' }}>{t("dictationTip") || "Press play and arrange the word blocks to form the sentence you hear."}</p>
                               </div>
-                              <div className="word-bank">
-                                {shuffledWordBlocks.map((word, idx) => {
-                                  const isUsed = arrangedBlockIndices.includes(idx);
+                              <button
+                                type="button"
+                                className="tts-btn dictation-play"
+                                onClick={() => speakText(dictationText)}
+                                title="Listen to the sentence"
+                              >
+                                🔊 {t("listenBtn") || "Listen"}
+                              </button>
+                            </div>
+
+                            {/* Arranged Sentence Workspace */}
+                            <div className="sentence-workspace-label" style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '8px', color: 'var(--muted)' }}>
+                              Your Answer:
+                            </div>
+                            <div className="sentence-workspace">
+                              {arrangedBlockIndices.length === 0 ? (
+                                <span style={{ color: 'var(--muted)', fontSize: '0.95rem', fontStyle: 'italic' }}>
+                                  Click the word blocks below in the correct order to arrange the sentence...
+                                </span>
+                              ) : (
+                                arrangedBlockIndices.map((blockIdx, pos) => {
+                                  const word = shuffledWordBlocks[blockIdx];
                                   return (
                                     <button
-                                      key={idx}
+                                      key={pos}
                                       type="button"
-                                      disabled={isUsed}
-                                      className={`word-block-choice ${isUsed ? 'used' : ''}`}
+                                      className="word-block active-block"
                                       onClick={() => {
-                                        if (isUsed) return;
-                                        const newArranged = [...arrangedBlockIndices, idx];
+                                        const newArranged = [...arrangedBlockIndices];
+                                        newArranged.splice(pos, 1);
                                         setArrangedBlockIndices(newArranged);
                                         const text = newArranged.map(i => shuffledWordBlocks[i]).join(" ");
                                         setWritingAnswers({ ...writingAnswers, [currentStep]: text });
                                       }}
                                     >
-                                      {word}
+                                      {word} <span className="remove-x">×</span>
                                     </button>
                                   );
-                                })}
-                              </div>
-
-                              {/* Manual Fallback Option */}
-                              <details style={{ marginTop: '16px', cursor: 'pointer' }}>
-                                <summary style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', userSelect: 'none' }}>
-                                  Type manually instead
-                                </summary>
-                                <div style={{ marginTop: '8px' }}>
-                                  <textarea
-                                    className="writing-textarea"
-                                    placeholder="Type the sentence manually here..."
-                                    rows={4}
-                                    style={{ width: '100%', marginTop: '8px', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)' }}
-                                    value={writingAnswers[currentStep] || ""}
-                                    onChange={(e) => setWritingAnswers({ ...writingAnswers, [currentStep]: e.target.value })}
-                                  />
-                                </div>
-                              </details>
+                                })
+                              )}
                             </div>
-                          )}
-                        </>
-                      </div>
+
+                            {/* Word Bank Pool */}
+                            <div className="word-bank-label" style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '8px', color: 'var(--muted)' }}>
+                              Word Bank:
+                            </div>
+                            <div className="word-bank">
+                              {shuffledWordBlocks.map((word, idx) => {
+                                const isUsed = arrangedBlockIndices.includes(idx);
+                                return (
+                                  <button
+                                    key={idx}
+                                    type="button"
+                                    disabled={isUsed}
+                                    className={`word-block-choice ${isUsed ? 'used' : ''}`}
+                                    onClick={() => {
+                                      if (isUsed) return;
+                                      const newArranged = [...arrangedBlockIndices, idx];
+                                      setArrangedBlockIndices(newArranged);
+                                      const text = newArranged.map(i => shuffledWordBlocks[i]).join(" ");
+                                      setWritingAnswers({ ...writingAnswers, [currentStep]: text });
+                                    }}
+                                  >
+                                    {word}
+                                  </button>
+                                );
+                              })}
+                            </div>
+
+                            {/* Manual Fallback Option */}
+                            <details style={{ marginTop: '16px', cursor: 'pointer' }}>
+                              <summary style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', userSelect: 'none' }}>
+                                Type manually instead
+                              </summary>
+                              <div style={{ marginTop: '8px' }}>
+                                <textarea
+                                  className="writing-textarea"
+                                  placeholder="Type the sentence manually here..."
+                                  rows={4}
+                                  style={{ width: '100%', marginTop: '8px', padding: '12px', borderRadius: '8px', border: '1px solid var(--border-color)' }}
+                                  value={writingAnswers[currentStep] || ""}
+                                  onChange={(e) => setWritingAnswers({ ...writingAnswers, [currentStep]: e.target.value })}
+                                />
+                              </div>
+                            </details>
+                          </div>
+                        )}
+                      </>
+                    </div>
 
                     <div className="assessment-nav-bar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', gap: '12px' }}>
                       <div>
@@ -6498,9 +6499,9 @@ function App() {
 
                       <div className="results-hero-right">
                         <img
-                           src="/as3.png"
-                           alt="LISA mascot"
-                           className="assessment-mascot results-mascot-medium"
+                          src="/as3.png"
+                          alt="LISA mascot"
+                          className="assessment-mascot results-mascot-medium"
                         />
                       </div>
                     </div>
@@ -6600,10 +6601,10 @@ function App() {
                       </div>
                     </div>
 
-                     {/* Diagnostic Summary Analysis */}
-                     <div className="diagnostic-recommendation-box">
-                       <h4>{t("summaryTitle")}</h4>
-                       <p>
+                    {/* Diagnostic Summary Analysis */}
+                    <div className="diagnostic-recommendation-box">
+                      <h4>{t("summaryTitle")}</h4>
+                      <p>
                         {(() => {
                           if (overallPercent >= 85) {
                             return t("summaryLevel4").replace("{percent}", overallPercent);
@@ -6735,9 +6736,9 @@ function App() {
                 style={{ background: '#f59e0b15', color: '#f59e0b', padding: '6px 10px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
               >
                 <svg style={{ marginRight: 0, width: 18, height: 18, verticalAlign: "middle" }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
-                  <line x1="3" x2="21" y1="6" y2="6"/>
-                  <path d="M16 10a4 4 0 0 1-8 0"/>
+                  <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
+                  <line x1="3" x2="21" y1="6" y2="6" />
+                  <path d="M16 10a4 4 0 0 1-8 0" />
                 </svg>
               </button>
               <button
@@ -6932,725 +6933,725 @@ function App() {
 
         {/* Main View Area */}
         <main className="dashboard-main-view">
-            {/* Dashboard / Home - overview widgets */}
-            {dashboardTab === "dashboard" && (
-              <div className="dashboard-overview">
-                <div className="dashboard-col dashboard-col-left">
-                  <div className="dashboard-greeting">
-                    <h1>{t("dashboardHello").replace("{name}", profile?.full_name || "Learner")}</h1>
-                    <p>{t("dashboardWelcomeBack")}</p>
-                  </div>
+          {/* Dashboard / Home - overview widgets */}
+          {dashboardTab === "dashboard" && (
+            <div className="dashboard-overview">
+              <div className="dashboard-col dashboard-col-left">
+                <div className="dashboard-greeting">
+                  <h1>{t("dashboardHello").replace("{name}", profile?.full_name || "Learner")}</h1>
+                  <p>{t("dashboardWelcomeBack")}</p>
+                </div>
 
-                  <div className="resume-card">
-                    <div className="resume-card-info">
-                      <span className="resume-card-label">{t("dashboardContinueLearning")}</span>
-                        <h3 className="resume-card-title">{t(`${activeDashboardSections[currentUnitPos.sectionIdx]?.units[currentUnitPos.unitIdx]?.id}_title`) || activeDashboardSections[currentUnitPos.sectionIdx]?.units[currentUnitPos.unitIdx]?.title || t("dashboardStartLearning")}</h3>
-                        <div className="resume-card-sub" style={{ display: 'flex', flexDirection: 'column' }}>
-                          <span style={{ fontSize: '0.85rem' }}>
-                            {t("dashboardSection")}: {t(`${activeDashboardSections[currentUnitPos.sectionIdx]?.id}_title`) || activeDashboardSections[currentUnitPos.sectionIdx]?.title || `${t("dashboardSection")} ${currentUnitPos.sectionIdx + 1}`}
-                          </span>
-                          <span style={{
-                            fontSize: '0.78rem',
-                            marginTop: '10px',
-                            whiteSpace: 'nowrap'
-                          }}>
-                            {t("dashboardLesson")}: {currentUnit?.title || `${t("dashboardLesson")} ${currentUnitPos.lessonIdx + 1}`}
-                          </span>
-                      </div>
+                <div className="resume-card">
+                  <div className="resume-card-info">
+                    <span className="resume-card-label">{t("dashboardContinueLearning")}</span>
+                    <h3 className="resume-card-title">{t(`${activeDashboardSections[currentUnitPos.sectionIdx]?.units[currentUnitPos.unitIdx]?.id}_title`) || activeDashboardSections[currentUnitPos.sectionIdx]?.units[currentUnitPos.unitIdx]?.title || t("dashboardStartLearning")}</h3>
+                    <div className="resume-card-sub" style={{ display: 'flex', flexDirection: 'column' }}>
+                      <span style={{ fontSize: '0.85rem' }}>
+                        {t("dashboardSection")}: {t(`${activeDashboardSections[currentUnitPos.sectionIdx]?.id}_title`) || activeDashboardSections[currentUnitPos.sectionIdx]?.title || `${t("dashboardSection")} ${currentUnitPos.sectionIdx + 1}`}
+                      </span>
+                      <span style={{
+                        fontSize: '0.78rem',
+                        marginTop: '10px',
+                        whiteSpace: 'nowrap'
+                      }}>
+                        {t("dashboardLesson")}: {currentUnit?.title || `${t("dashboardLesson")} ${currentUnitPos.lessonIdx + 1}`}
+                      </span>
                     </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="resume-btn"
+                    onClick={() => {
+                      setDashboardTab("learn");
+                    }}
+                  >
+                    ▶ {t("dashboardResume")}
+                  </button>
+                </div>
+
+                <div className="word-of-day-card">
+                  <div className="word-of-day-head">
+                    <span className="word-of-day-label">{t("dashboardWordOfDay")}</span>
                     <button
                       type="button"
-                      className="resume-btn"
-                      onClick={() => {
-                        setDashboardTab("learn");
-                      }}
+                      className="word-of-day-speak"
+                      onClick={() => speakWord(wordOfDay.word)}
+                      aria-label="Listen to word"
                     >
-                      ▶ {t("dashboardResume")}
+                      🔊
                     </button>
                   </div>
-
-                  <div className="word-of-day-card">
-                    <div className="word-of-day-head">
-                      <span className="word-of-day-label">{t("dashboardWordOfDay")}</span>
+                  <h3 className="word-of-day-word">{wordOfDay.word}</h3>
+                  <div className="word-of-day-block">
+                    <span className="word-of-day-heading">{t("meaning")}</span>
+                    <p className="word-of-day-meaning">
+                      {wordOfDay.meaning}
                       <button
                         type="button"
-                        className="word-of-day-speak"
-                        onClick={() => speakWord(wordOfDay.word)}
-                        aria-label="Listen to word"
+                        className="word-of-day-speak word-of-day-speak-inline"
+                        onClick={() => speakText(wordOfDay.meaning || "")}
+                        aria-label="Listen to meaning"
                       >
                         🔊
                       </button>
-                    </div>
-                    <h3 className="word-of-day-word">{wordOfDay.word}</h3>
-                    <div className="word-of-day-block">
-                      <span className="word-of-day-heading">{t("meaning")}</span>
-                      <p className="word-of-day-meaning">
-                        {wordOfDay.meaning}
-                        <button
-                          type="button"
-                          className="word-of-day-speak word-of-day-speak-inline"
-                          onClick={() => speakText(wordOfDay.meaning || "")}
-                          aria-label="Listen to meaning"
-                        >
-                          🔊
-                        </button>
-                      </p>
-                    </div>
-                    <div className="word-of-day-block">
-                      <span className="word-of-day-heading">{t("example")}</span>
-                      <p className="word-of-day-example">
-                        "{wordOfDay.example}"
-                        <button
-                          type="button"
-                          className="word-of-day-speak word-of-day-speak-inline"
-                          onClick={() => speakText(wordOfDay.example || "")}
-                          aria-label="Listen to example"
-                        >
-                          🔊
-                        </button>
-                      </p>
-                    </div>
+                    </p>
                   </div>
-                </div>
-
-                <div className="dashboard-col dashboard-col-right">
-                  <div className="current-level-card" style={{
-                    margin: 0,
-                    background: `linear-gradient(135deg, ${levelBadgeColor(currentLevelNum)} 0%, ${darkenHex(levelBadgeColor(currentLevelNum), 0.88)} 100%)`,
-                    border: `2px solid ${levelBadgeColor(currentLevelNum)}88`,
-                    boxShadow: `0 8px 32px ${levelBadgeColor(currentLevelNum)}40`,
-                    color: '#ffffff',
-                    position: 'relative',
-                    overflow: 'hidden'
-                  }}>
-                    {/* Premium abstract background glow */}
-                    <div style={{
-                      position: 'absolute',
-                      top: '-20px',
-                      right: '-20px',
-                      width: '120px',
-                      height: '120px',
-                      borderRadius: '50%',
-                      background: 'rgba(255, 255, 255, 0.12)',
-                      filter: 'blur(20px)',
-                      pointerEvents: 'none'
-                    }} />
-                    <div className="current-level-header">
-                      <h3 className="current-level-title" style={{ color: '#ffffff', textShadow: '0 2px 4px rgba(0,0,0,0.15)' }}>{t("dashboardCurrentLevel")}</h3>
-                    </div>
-                    <div className="current-level-body">
-                      <div className="current-level-badge" style={{ background: 'rgba(255, 255, 255, 0.25)', border: '2px solid rgba(255, 255, 255, 0.4)' }}>
-                        <span className="current-level-badge-icon">{levelBadgeIcon(currentLevelNum)}</span>
-                        <span className="current-level-badge-level" style={{ color: '#ffffff', fontWeight: '900' }}>{t("level").toUpperCase()} {currentLevelNum}</span>
-                      </div>
-                      <div className="current-level-info">
-                        <p className="current-level-name" style={{ color: '#ffffff', textShadow: '0 2px 4px rgba(0,0,0,0.15)' }}>{getLevelCategoryAndDescription(currentLevelNum, selectedLanguage).category}</p>
-                        <p className="current-level-msg" style={{ color: 'rgba(255, 255, 255, 0.9)', fontWeight: '500' }}>{translatedLevelMsg}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="stars-answers-card" style={{ margin: 0 }}>
-                    <div className="sa-metric">
-                      <div className="sa-icon sa-icon-stars"><StarIcon style={{ marginRight: 0, width: "22px", height: "22px" }} /></div>
-                      <div className="sa-metric-text">
-                        <span className="sa-value">{dailyXp}</span>
-                        <span className="sa-label">{t("dashboardStarsToday")}</span>
-                      </div>
-                    </div>
-                    <div className="sa-divider" />
-                    <div className="sa-metric">
-                      <div className="sa-icon sa-icon-answers">✓</div>
-                      <div className="sa-metric-text">
-                        <span className="sa-value">{dailyCorrectAnswers}</span>
-                        <span className="sa-label">{t("dashboardRightAnswersToday")}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="dashboard-overview-row">
-                    <div className="streak-widget-card streak-society-card" style={{ margin: 0 }}>
-                      <div className="streak-society-header">
-                        <span className="streak-society-badge">{t("dashboardStreakSociety").toUpperCase()}</span>
-                        <div className="streak-society-icon"><FlameIcon style={{ width: "36px", height: "36px", color: '#ff4d00', marginRight: 0 }} /></div>
-                      </div>
-                      <h4 className="streak-society-title" style={{ fontSize: '2.4rem', fontWeight: '900', letterSpacing: '-0.5px', lineHeight: 1.1 }}>
-                        {streakCount} <span style={{ fontSize: '1.2rem', fontWeight: '700', opacity: 0.9 }}>{t("dashboardDayStreak")}</span>
-                      </h4>
-                      <p className="streak-society-message">{translatedStreakMsg}</p>
-                    </div>
-
-                    <div className="daily-quests-card" style={{ margin: 0 }}>
-                      <div className="daily-quests-header">
-                        <h3>{t("dashboardDailyQuests")}</h3>
-                        {activeQuests.length > 0 && activeQuests.every(q => getQuestProgress(q).completed) ? (
-                          <span className="daily-quests-timer" style={{ background: '#d1fae5', color: '#10b981' }}>✓ ALL COMPLETED</span>
-                        ) : (
-                          <span className="daily-quests-timer">{timeLeftStr.toUpperCase()} LEFT</span>
-                        )}
-                      </div>
-                      <div className="quest-list" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                        {activeQuests.map((quest) => {
-                          const prog = getQuestProgress(quest);
-                          return (
-                            <div key={quest.id} className="quest-item" style={{
-                              gap: '10px',
-                              padding: '12px',
-                              opacity: prog.completed ? 0.65 : 1,
-                              background: prog.completed ? 'var(--line)' : 'var(--bg)',
-                              borderColor: prog.completed ? 'transparent' : 'var(--line)'
-                            }}>
-                              <div className="quest-icon" style={{ width: '32px', height: '32px', borderRadius: '8px' }}>
-                                {quest.type === 'xp' && (
-                                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: 'middle' }}>
-                                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-                                  </svg>
-                                )}
-                                {quest.type === 'time' && (
-                                  <ClockIcon style={{ color: '#3b82f6', marginRight: 0, width: '20px', height: '20px' }} />
-                                )}
-                                {quest.type === 'lessons' && (
-                                  <BookIcon style={{ color: '#10b981', marginRight: 0, width: '20px', height: '20px' }} />
-                                )}
-                              </div>
-                              <div className="quest-content">
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
-                                  <span style={{ fontWeight: '700', fontSize: '0.85rem', color: 'var(--text)', whiteSpace: 'nowrap', textDecoration: prog.completed ? 'line-through' : 'none' }}>
-                                    {translatedQuestTitles[quest.id] || quest.title}
-                                  </span>
-                                  <span style={{ fontWeight: '800', fontSize: '0.85rem', color: 'var(--accent)', whiteSpace: 'nowrap' }}>
-                                    {prog.displayProgress}
-                                  </span>
-                                </div>
-                                <div className="quest-progress-bg">
-                                  <div className="quest-progress-fill" style={{
-                                    width: `${prog.percent}%`,
-                                    background: prog.completed ? '#9ca3af' : '#f59e0b'
-                                  }}></div>
-                                </div>
-                              </div>
-                              <div className="quest-reward" style={{ display: 'grid', placeItems: 'center' }}>
-                                {prog.completed ? (
-                                  <div style={{
-                                    width: '22px',
-                                    height: '22px',
-                                    borderRadius: '50%',
-                                    background: '#10b981',
-                                    color: 'white',
-                                    display: 'grid',
-                                    placeItems: 'center',
-                                    fontWeight: 'bold',
-                                    fontSize: '0.8rem'
-                                  }}>✓</div>
-                                ) : (
-                                  <TrophyIcon style={{ color: '#8b8d96', marginRight: 0, width: '20px', height: '20px' }} />
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="achievements-card" style={{ margin: 0 }}>
-                    <div className="achievements-card-header">
-                      <h4>{t("badgesEarned")}</h4>
-                      <button className="achievements-view-all" onClick={() => setShowAllAchievementsModal(true)}>{t("dashboardViewAll")}</button>
-                    </div>
-                    <div className="achievements-list">
-                      {(() => {
-                        const achievementsList = ACHIEVEMENT_DEFS.map((a) => {
-                          let earned = false;
-                          let progress = 0;
-                          switch (a.id) {
-                            case 1:
-                              earned = true; progress = 100; break;
-                            case 2:
-                              earned = calculateSkillProficiency("reading") >= 75;
-                              progress = Math.min(100, Math.round(calculateSkillProficiency("reading"))); break;
-                            case 3:
-                              earned = calculateSkillProficiency("reading_comprehension") >= 75;
-                              progress = Math.min(100, Math.round(calculateSkillProficiency("reading_comprehension"))); break;
-                            case 4:
-                              earned = calculateSkillProficiency("writing") >= 75;
-                              progress = Math.min(100, Math.round(calculateSkillProficiency("writing"))); break;
-                            case 5:
-                              earned = userXp >= 100;
-                              progress = Math.min(100, Math.round((userXp / 100) * 100)); break;
-                            case 6:
-                              earned = completedLessons.filter(id => !id.startsWith("ach_")).length >= 3;
-                              progress = Math.min(100, Math.round((completedLessons.filter(id => !id.startsWith("ach_")).length / 3) * 100)); break;
-                            case 7:
-                              earned = calculateSkillProficiency("reading_ability") >= 75;
-                              progress = Math.min(100, Math.round(calculateSkillProficiency("reading_ability"))); break;
-                            case 8:
-                              earned = currentLevelNum >= 8;
-                              progress = Math.min(100, Math.round((currentLevelNum / 8) * 100)); break;
-                            case 9:
-                              earned = currentLevelNum >= 12;
-                              progress = Math.min(100, Math.round((currentLevelNum / 12) * 100)); break;
-                            default: break;
-                          }
-                          return { ...a, earned, progress };
-                        });
-
-                        // Find chronologically earned achievements from completed_lessons order
-                        const earnedAchievementIds = completedLessons
-                          .filter(id => id.startsWith("ach_"))
-                          .map(id => parseInt(id.replace("ach_", ""), 10));
-
-                        // Find corresponding badge definitions
-                        const earnedList = earnedAchievementIds
-                          .map(id => achievementsList.find(a => a.id === id))
-                          .filter(Boolean);
-
-                        // Display only the last 2 recently earned badges, or the first two items in general if none earned yet
-                        const displayedList = earnedList.length > 0
-                          ? earnedList.slice(-2)
-                          : achievementsList.slice(0, 2);
-
-                        return displayedList.map((a) => (
-                          <div key={a.id} className={`achievement-row ${a.earned ? "earned" : ""}`}>
-                            <div className="achievement-badge-box" style={{ background: a.earned ? a.color : 'var(--line)' }}>
-                              <span className="achievement-badge-icon">{a.earned ? a.icon : '🔒'}</span>
-                            </div>
-                            <div className="achievement-info">
-                              <div className="achievement-info-header">
-                                <span className="achievement-title">{translatedAchievements[a.id]?.title || a.title}</span>
-                              </div>
-                              <p className="achievement-desc">{translatedAchievements[a.id]?.desc || a.desc}</p>
-                              <div className="achievement-progress-track">
-                                <div className="achievement-progress-fill" style={{ width: `${a.progress}%`, background: '#facc15' }}></div>
-                              </div>
-                            </div>
-                          </div>
-                        ));
-                      })()}
-                    </div>
+                  <div className="word-of-day-block">
+                    <span className="word-of-day-heading">{t("example")}</span>
+                    <p className="word-of-day-example">
+                      "{wordOfDay.example}"
+                      <button
+                        type="button"
+                        className="word-of-day-speak word-of-day-speak-inline"
+                        onClick={() => speakText(wordOfDay.example || "")}
+                        aria-label="Listen to example"
+                      >
+                        🔊
+                      </button>
+                    </p>
                   </div>
                 </div>
               </div>
-            )}
 
-            {/* 3.1. Learn Tab — Duolingo-style Continuous Curriculum Path */}
-            {dashboardTab === "learn" && (() => {
-              const storedSkills = (() => { try { const s = getStoredAssessmentState(session?.user?.id); return s?.skill_scores || profile?.skill_scores || {}; } catch { return {}; } })();
-              const weakSkillLabels = getWeakSkills(storedSkills);
-
-              const hasDiagnosed = hasCompletedAssessment(profile, session?.user?.id);
-              const pathRecommendations = generateLearningPath(storedSkills);
-              const recommendedSectionIds = pathRecommendations.map(p => p.sectionId);
-              const recommendedSections = CURRICULUM_SECTIONS.filter(section =>
-                recommendedSectionIds.includes(section.id)
-              );
-
-              // Render recommended sections if personalized path is enabled and custom path exists, otherwise standard curriculum
-              const activeSections = (showPersonalizedPath && recommendedSections.length > 0)
-                ? recommendedSections
-                : CURRICULUM_SECTIONS;
-
-              // Build a flat ordered list of all lessons in the curriculum for chain unlocking
-              const allLessonsList = [];
-              CURRICULUM_SECTIONS.forEach((sec) => {
-                sec.units.forEach((uni) => {
-                  uni.lessons.forEach((les) => {
-                    allLessonsList.push(les.id);
-                  });
-                });
-              });
-
-              // Build a flat list of lessons in the personalized path
-              const personalizedLessonsList = [];
-              recommendedSections.forEach((sec) => {
-                sec.units.forEach((uni) => {
-                  uni.lessons.forEach((les) => {
-                    personalizedLessonsList.push(les.id);
-                  });
-                });
-              });
-
-              // Determine starting lesson index based on diagnosed literacy level (per Spec mapping 1-5 levels)
-                  let unitCounter = 0;
-              let renderedUnitCounter = 0;
-
-              return (
-                <div className="duo-learn-container" ref={learnJourneyRef}>
-                  {/* Path mode toggle — only shown when a personalized path is available */}
-                  {hasDiagnosed && recommendedSections.length > 0 && (
-                    <div className="path-mode-toggle-wrapper">
-                      <span className="path-mode-toggle-label">{t("learningMode")}</span>
-                      <select
-                        className="path-mode-select"
-                        value={showPersonalizedPath ? "personalized" : "full"}
-                        onChange={(e) => setShowPersonalizedPath(e.target.value === "personalized")}
-                      >
-                        <option value="personalized">{t("pathPersonalized")}</option>
-                        <option value="full">{t("pathFull")}</option>
-                      </select>
+              <div className="dashboard-col dashboard-col-right">
+                <div className="current-level-card" style={{
+                  margin: 0,
+                  background: `linear-gradient(135deg, ${levelBadgeColor(currentLevelNum)} 0%, ${darkenHex(levelBadgeColor(currentLevelNum), 0.88)} 100%)`,
+                  border: `2px solid ${levelBadgeColor(currentLevelNum)}88`,
+                  boxShadow: `0 8px 32px ${levelBadgeColor(currentLevelNum)}40`,
+                  color: '#ffffff',
+                  position: 'relative',
+                  overflow: 'hidden'
+                }}>
+                  {/* Premium abstract background glow */}
+                  <div style={{
+                    position: 'absolute',
+                    top: '-20px',
+                    right: '-20px',
+                    width: '120px',
+                    height: '120px',
+                    borderRadius: '50%',
+                    background: 'rgba(255, 255, 255, 0.12)',
+                    filter: 'blur(20px)',
+                    pointerEvents: 'none'
+                  }} />
+                  <div className="current-level-header">
+                    <h3 className="current-level-title" style={{ color: '#ffffff', textShadow: '0 2px 4px rgba(0,0,0,0.15)' }}>{t("dashboardCurrentLevel")}</h3>
+                  </div>
+                  <div className="current-level-body">
+                    <div className="current-level-badge" style={{ background: 'rgba(255, 255, 255, 0.25)', border: '2px solid rgba(255, 255, 255, 0.4)' }}>
+                      <span className="current-level-badge-icon">{levelBadgeIcon(currentLevelNum)}</span>
+                      <span className="current-level-badge-level" style={{ color: '#ffffff', fontWeight: '900' }}>{t("level").toUpperCase()} {currentLevelNum}</span>
                     </div>
-                  )}
-
-                  {activeSections.map((section, secIdx) => {
-                    const isSectionRecommended = weakSkillLabels.some(w => w.toLowerCase().includes(section.skillTarget?.replace("_", " ") || ""));
-                    const sectionDisplayNum = showPersonalizedPath ? (secIdx + 1) : section.num;
-                    const totalSectionsDisplay = activeSections.length;
-
-                    return (
-                      <div key={section.id} className="duo-section-block">
-                        {/* Section Checkpoint Header */}
-                        <div className="duo-section-banner" style={{ background: `linear-gradient(135deg, ${section.color} 0%, ${section.color}cc 100%)`, boxShadow: `0 8px 24px ${section.color}33` }}>
-                          <span className="duo-section-banner-icon">{section.icon}</span>
-                          <div className="duo-section-banner-text">
-                            <span className="duo-section-banner-meta">{t("learnSectionOf").replace("{current}", sectionDisplayNum).replace("{total}", totalSectionsDisplay)}</span>
-                            <h2 className="duo-section-banner-title">{t(`${section.id}_title`) || section.title}</h2>
-                          </div>
-                          {isSectionRecommended && showPersonalizedPath && (
-                            <span className="duo-section-badge">⭐</span>
-                          )}
-                        </div>
-
-                        {section.units.map((unit) => {
-                          renderedUnitCounter++;
-                          const unitLessons = unit.lessons;
-                          const completedInUnit = unitLessons.filter(l => completedLessons.includes(l.id)).length;
-                          const currentUnitIndex = unitCounter++;
-                          const mascotNum = (currentUnitIndex % 4) + 1;
-                          const sideClass = currentUnitIndex % 2 === 0 ? "mascot-left" : "mascot-right";
-
-                          return (
-                            <div key={unit.id} className="duo-unit-block">
-                              <div className="duo-unit-header">
-                                <h3 className="duo-unit-title">{t("learnUnit")} {showPersonalizedPath ? renderedUnitCounter : unit.num}</h3>
-                                <span className="duo-unit-topic">{t(`${unit.id}_title`) || unit.title}</span>
-                                <span className="duo-unit-progress">{completedInUnit}/{unitLessons.length} {t("learnDone") || "Done"}</span>
-                              </div>
-
-                              {/* Centered Snaking Lesson Path */}
-                              <div className="duo-lessons-path" style={{ position: 'relative' }}>
-                                <div className="duo-path-line"></div>
-
-                                {/* Mascot on alternating sides per unit */}
-                                <div className={`duo-path-mascot ${sideClass}`}>
-                                  <img
-                                    src={`/as${mascotNum}.png`}
-                                    alt="LISA Mascot"
-                                    style={{ width: '130px', height: '130px', objectFit: 'contain' }}
-                                  />
-                                </div>
-
-                                {unitLessons.map((lesson, lIdx) => {
-                                  const isCompleted = completedLessons.includes(lesson.id);
-                                  const isUnlocked = (() => {
-                                    // Personalized path: first lesson is open so the learner can start the flow,
-                                    // then sequential unlock as previous lessons are completed.
-                                    if (showPersonalizedPath && personalizedLessonsList.length > 0) {
-                                      const idx = personalizedLessonsList.indexOf(lesson.id);
-                                      if (idx === 0) return true;
-                                      if (idx > 0) {
-                                        return completedLessons.includes(personalizedLessonsList[idx - 1]);
-                                      }
-                                    }
-                                    // Full Path: a locked sequential path for learners who want to start from the
-                                    // beginning. The first lesson is open; each lesson unlocks once the prior one is
-                                    // completed. Any lesson already unlocked via the personalized path stays unlocked.
-                                    const lessonIndexInCurriculum = allLessonsList.indexOf(lesson.id);
-                                    if (lessonIndexInCurriculum === 0) return true;
-                                    const prevCompleted = lessonIndexInCurriculum > 0 && completedLessons.includes(allLessonsList[lessonIndexInCurriculum - 1]);
-                                    const personalizedIdx = personalizedLessonsList.indexOf(lesson.id);
-                                    const personalizedUnlocked = personalizedIdx === 0
-                                      || (personalizedIdx > 0 && completedLessons.includes(personalizedLessonsList[personalizedIdx - 1]));
-                                    return prevCompleted || personalizedUnlocked;
-                                  })();
-                                  const status = isCompleted ? "completed" : isUnlocked ? "unlocked" : "locked";
-                                  const lessonXp = lIdx === 4 ? 60 : 15;
-
-                                  // Calculate snaking offset class
-                                  // Path: Center -> Right -> Center -> Left -> Repeat
-                                  const snakePositions = ["snake-center", "snake-right", "snake-center", "snake-left"];
-                                  const snakeClass = snakePositions[lIdx % 4];
-
-                                  const isPopupOpen = activeLessonPopup === lesson.id;
-
-                                  // Find the active resumed lesson ID.
-                                  // Personalized Path: the first uncompleted lesson within the personalized list
-                                  // (so we scroll to the last unlocked lesson in the custom path).
-                                  // Full Path: start from the very first lesson (learn from the beginning).
-                                  const currentActiveLessonId = showPersonalizedPath && personalizedLessonsList.length > 0
-                                    ? (personalizedLessonsList.find(id => !completedLessons.includes(id)) || personalizedLessonsList[personalizedLessonsList.length - 1] || allLessonsList[0])
-                                    : (allLessonsList.slice(0).find(id => !completedLessons.includes(id)) || allLessonsList[0]);
-                                  const isActiveNode = lesson.id === currentActiveLessonId;
-
-                                  return (
-                                    <div
-                                      key={lesson.id}
-                                      className={`duo-node-container ${snakeClass} ${status}`}
-                                      style={{ zIndex: isPopupOpen ? 1100 : 2 }}
-                                      ref={isActiveNode ? activeNodeRef : null}
-                                    >
-                                      {/* Circular Checkpoint Node */}
-                                      <button
-                                        type="button"
-                                        className={`duo-node-circle ${status}`}
-                                        style={{
-                                          background: isCompleted ? '#10b981' : isUnlocked ? section.color : undefined
-                                        }}
-                                        onClick={() => {
-                                          if (activeLessonPopup === lesson.id) {
-                                            setActiveLessonPopup(null);
-                                          } else {
-                                            setActiveLessonPopup(lesson.id);
-                                          }
-                                        }}
-                                      >
-                                        <span className="duo-node-icon" style={{ color: isCompleted || isUnlocked ? 'white' : 'var(--muted)' }}>
-                                          {isCompleted ? '✓' : lesson.icon || '📚'}
-                                        </span>
-                                      </button>
-
-                                      {/* Duolingo Info Popover */}
-                                      {isPopupOpen && (
-                                        <div className="duo-popover-card">
-                                          <div className="duo-popover-header">
-                                            <span className="duo-popover-badge" style={{
-                                              background: isCompleted ? 'rgba(16, 185, 129, 0.15)' : isUnlocked ? `${section.color}22` : 'rgba(120, 120, 120, 0.15)',
-                                              color: isCompleted ? '#0f9d6b' : isUnlocked ? section.color : '#8a8f98'
-                                            }}>
-                                              {status === "completed" ? `✓ ${t("learnDone") || "Done"}` : status === "unlocked" ? (t("learnReady") || "Ready") : `🔒 ${t("learnLocked") || "Locked"}`}
-                                            </span>
-                                            <span className="duo-popover-xp">+{lessonXp} XP</span>
-                                          </div>
-                                          <h4 className="duo-popover-title">{(t(`${unit.id}_title`) || unit.title)} — {lIdx === 4 ? (t("learnUnitExam") || "Unit Exam") : (t("learnLesson").replace("{num}", lIdx + 1))}</h4>
-                                          <p className="duo-popover-desc">
-                                            {lIdx === 4
-                                              ? (t("learnUnitExamDesc") || "A comprehensive unit exam testing skills from the first 4 lessons.")
-                                              : (t("learnLessonDesc") || "Personalized AI lesson targeting your curriculum goals.")}
-                                          </p>
-
-                                          <button
-                                            type="button"
-                                            className="duo-popover-btn"
-                                            disabled={status === "locked" || lessonLoading}
-                                            onClick={() => {
-                                              setActiveLessonPopup(null);
-                                              startLessonSession(lesson, section, unit);
-                                            }}
-                                            style={{
-                                              background: isCompleted ? '#10b981' : isUnlocked ? section.color : '#6b7280',
-                                              boxShadow: isCompleted ? '0 4px 12px rgba(16, 185, 129, 0.3)' : isUnlocked ? `0 4px 12px ${section.color}55` : 'none'
-                                            }}
-                                          >
-                                            {lIdx === 4
-                                              ? (status === "completed" ? (t("learnReviewExam") || "Review Exam") : (t("learnStartExam") || "Start Exam"))
-                                              : (status === "completed" ? (t("learnReviewLesson") || "Review Lesson") : (t("learnStartLesson") || "Start Lesson"))}
-                                          </button>
-                                        </div>
-                                      )}
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    );
-                  })}
-
-                  {/* Floating Scroll to Top button */}
-                  <button
-                    type="button"
-                    className="scroll-top-btn"
-                    onClick={() => {
-                      window.scrollTo({ top: 0, behavior: 'smooth' });
-                      learnJourneyRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }}
-                    title="Scroll to Top"
-                    aria-label="Scroll to top of learning path"
-                  >
-                    ↑
-                  </button>
-                </div>
-              );
-            })()}
-
-
-            {/* 3.2. Practice Tab */}
-            {dashboardTab === "practice" && (
-              practiceCollectionPage === "mistakes" ? (
-                <div className="duo-practice-page">
-                  <button type="button" className="duo-practice-back" onClick={() => setPracticeCollectionPage(null)} aria-label="Back to practice">
-                    <span>←</span>
-                    <span>Practice</span>
-                  </button>
-
-                  <section className="duo-practice-hero">
-                    <div className="duo-hero-icon duo-hero-mistakes" aria-hidden="true">
-                      <span>💔</span>
+                    <div className="current-level-info">
+                      <p className="current-level-name" style={{ color: '#ffffff', textShadow: '0 2px 4px rgba(0,0,0,0.15)' }}>{getLevelCategoryAndDescription(currentLevelNum, selectedLanguage).category}</p>
+                      <p className="current-level-msg" style={{ color: 'rgba(255, 255, 255, 0.9)', fontWeight: '500' }}>{translatedLevelMsg}</p>
                     </div>
-                    <h1>Review your recent mistakes</h1>
-                    <button type="button" className="primary-btn duo-start-btn" onClick={() => startCollectionPractice("mistakes")}>START +20 XP</button>
-                  </section>
-
-                  <div className="duo-practice-divider" />
-
-                  <section className="duo-collection-section">
-                    <h2>{recentMistakes.length} mistakes</h2>
-                    <div className="duo-mistake-list">
-                      {recentMistakes.map((mistake, idx) => (
-                        <button
-                          type="button"
-                          className="duo-mistake-row"
-                          key={mistake.id || idx}
-                          onClick={() => startCollectionPractice("mistakes")}
-                        >
-                          <span className="duo-broken-heart" aria-hidden="true">💔</span>
-                          <span className="duo-mistake-copy">
-                            <span className="duo-row-kicker">{mistake.prompt || mistake.type}</span>
-                            <span className="duo-row-main">{mistake.text}</span>
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  </section>
-                </div>
-              ) : practiceCollectionPage === "words" ? (
-                <div className="duo-practice-page">
-                  <button type="button" className="duo-practice-back" onClick={() => setPracticeCollectionPage(null)} aria-label="Back to practice">
-                    <span>←</span>
-                    <span>Practice</span>
-                  </button>
-
-                  <section className="duo-practice-hero">
-                    <div className="duo-hero-icon duo-hero-words" aria-hidden="true">
-                      <span>📚</span>
-                    </div>
-                    <h1>Practice your {selectedLanguage || "English"} words</h1>
-                    <button type="button" className="primary-btn duo-start-btn" onClick={() => startCollectionPractice("words")}>START +10 XP</button>
-                  </section>
-
-                  <div className="duo-practice-divider" />
-
-                  <section className="duo-collection-section">
-                    <div className="duo-collection-head">
-                      <h2>{practiceWords.length} words</h2>
-                      <button type="button" className="duo-sort-btn">RECENTLY LEARNED <span>▼</span></button>
-                    </div>
-                    <div className="duo-word-list">
-                      {practiceWords.map((item, idx) => (
-                        <button type="button" className="duo-word-row" key={`word_${item.word}_${idx}`} onClick={() => speakWord(item.word)}>
-                          <span className="duo-audio-icon" aria-hidden="true">🔊</span>
-                          <span className="duo-word-copy">
-                            <span className="duo-word-term">{item.word}</span>
-                            <span className="duo-word-meaning">{item.meaning}</span>
-                          </span>
-                          {item.isNew && <span className="duo-new-dot" aria-label="Recently learned" />}
-                        </button>
-                      ))}
-                    </div>
-                  </section>
-                </div>
-              ) : (
-                <div className="practice-grid-layout">
-                  <div className="practice-content-column">
-                    <div className="practice-section">
-                      <h2 className="practice-section-title">{t("practiceTodaysReview")}</h2>
-                      <div className="perfect-pronunciation-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_read_practice`, title: "Perfect Pronunciation", desc: "Speak out sentences aloud" })}>
-                        <div className="perfect-pronunciation-info">
-                          <h3 className="perfect-pronunciation-title">{t("practicePerfectPronunciation")}</h3>
-                          <p className="perfect-pronunciation-desc">{t("practicePerfectPronunciationDesc")}</p>
-                          <button type="button" className="perfect-pronunciation-btn">{t("practiceStart")}</button>
-                        </div>
-                        <img src="/as4.png" alt="Mascot" className="perfect-pronunciation-mascot" />
-                      </div>
-                    </div>
-
-                    <div className="practice-section">
-                      <h2 className="practice-section-title">{t("practiceConversation")}</h2>
-                      <div className="practice-row-cards">
-                        <div className="practice-row-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_read_practice`, title: "Speak Practice", desc: "Improve your speaking skills with these phrases" })}>
-                          <div className="practice-row-card-content">
-                            <h3 className="practice-row-card-title">{t("practiceSpeak") || "Speak"}</h3>
-                            <p className="practice-row-card-desc">{t("practiceSpeakDesc")}</p>
-                          </div>
-                          <div className="practice-row-card-icon speak-icon">🗣️</div>
-                        </div>
-                        <div className="practice-row-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_read_practice`, title: "Read Practice", desc: "Improve your reading comprehension and vocabulary" })}>
-                          <div className="practice-row-card-content">
-                            <h3 className="practice-row-card-title">{t("practiceRead") || "Read"}</h3>
-                            <p className="practice-row-card-desc">{t("practiceReadDesc") || "Improve your reading comprehension and vocabulary"}</p>
-                          </div>
-                          <div className="practice-row-card-icon read-icon">📖</div>
-                        </div>
-                        <div className="practice-row-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_write_practice`, title: "Write Practice", desc: "Enhance your writing skills with interactive exercises" })}>
-                          <div className="practice-row-card-content">
-                            <h3 className="practice-row-card-title">{t("practiceWrite") || "Write"}</h3>
-                            <p className="practice-row-card-desc">{t("practiceWriteDesc") || "Enhance your writing skills with interactive exercises"}</p>
-                          </div>
-                          <div className="practice-row-card-icon write-icon">✍️</div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="practice-section">
-                      <h2 className="practice-section-title">{t("practiceYourCollections")}</h2>
-                      <div className="practice-row-cards">
-                        <div className="practice-row-card" onClick={() => openPracticeCollection("mistakes")}>
-                          <div className="practice-row-card-content">
-                            <h3 className="practice-row-card-title">
-                              {t("practiceMistakes")}
-                              <span className="practice-badge">{recentMistakes.length}</span>
-                            </h3>
-                            <p className="practice-row-card-desc">{t("practiceMistakesDesc")}</p>
-                          </div>
-                          <div className="practice-row-card-icon mistakes-icon">💔</div>
-                        </div>
-
-                        <div className="practice-row-card" onClick={() => openPracticeCollection("words")}>
-                          <div className="practice-row-card-content">
-                            <h3 className="practice-row-card-title">
-                              {t("practiceWords")}
-                              <span className="practice-badge">{practiceWords.length}</span>
-                            </h3>
-                            <p className="practice-row-card-desc">{t("practiceWordsDesc")}</p>
-                          </div>
-                          <div className="practice-row-card-icon words-icon">📚</div>
-                        </div>
-
-                        <div className="practice-row-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_comp_practice`, title: "Stories Practice", desc: "Reread a story to review words in context" })}>
-                          <div className="practice-row-card-content">
-                            <h3 className="practice-row-card-title">{t("practiceStories")}</h3>
-                            <p className="practice-row-card-desc">{t("practiceStoriesDesc")}</p>
-                          </div>
-                          <div className="practice-row-card-icon stories-icon">📖</div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <FunLearnZone
-                      onXpEarned={(amount) => {
-                        const newXp = userXp + amount;
-                        setUserXp(newXp);
-                        if (session?.user?.id) {
-                          const userId = session.user.id;
-                          const todayStr = new Date().toLocaleDateString("en-CA");
-                          const storedDailyXp = localStorage.getItem(`lisa_daily_xp_${userId}_${todayStr}`);
-                          const nextDailyXp = (storedDailyXp ? parseInt(storedDailyXp, 10) : 0) + amount;
-                          setDailyXp(nextDailyXp);
-                          localStorage.setItem(`lisa_daily_xp_${userId}_${todayStr}`, nextDailyXp);
-                          supabase.from("profiles").update({ xp: newXp }).eq("id", userId);
-                          recordWeeklyXp(amount);
-                        }
-                      }}
-                    />
                   </div>
                 </div>
-              )
-            )}
 
-            {/* 3.3. Profile Tab */}
-            {dashboardTab === "profile" && (
-              <div className="profile-view-container">
+                <div className="stars-answers-card" style={{ margin: 0 }}>
+                  <div className="sa-metric">
+                    <div className="sa-icon sa-icon-stars"><StarIcon style={{ marginRight: 0, width: "22px", height: "22px" }} /></div>
+                    <div className="sa-metric-text">
+                      <span className="sa-value">{dailyXp}</span>
+                      <span className="sa-label">{t("dashboardStarsToday")}</span>
+                    </div>
+                  </div>
+                  <div className="sa-divider" />
+                  <div className="sa-metric">
+                    <div className="sa-icon sa-icon-answers">✓</div>
+                    <div className="sa-metric-text">
+                      <span className="sa-value">{dailyCorrectAnswers}</span>
+                      <span className="sa-label">{t("dashboardRightAnswersToday")}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="dashboard-overview-row">
+                  <div className="streak-widget-card streak-society-card" style={{ margin: 0 }}>
+                    <div className="streak-society-header">
+                      <span className="streak-society-badge">{t("dashboardStreakSociety").toUpperCase()}</span>
+                      <div className="streak-society-icon"><FlameIcon style={{ width: "36px", height: "36px", color: '#ff4d00', marginRight: 0 }} /></div>
+                    </div>
+                    <h4 className="streak-society-title" style={{ fontSize: '2.4rem', fontWeight: '900', letterSpacing: '-0.5px', lineHeight: 1.1 }}>
+                      {streakCount} <span style={{ fontSize: '1.2rem', fontWeight: '700', opacity: 0.9 }}>{t("dashboardDayStreak")}</span>
+                    </h4>
+                    <p className="streak-society-message">{translatedStreakMsg}</p>
+                  </div>
+
+                  <div className="daily-quests-card" style={{ margin: 0 }}>
+                    <div className="daily-quests-header">
+                      <h3>{t("dashboardDailyQuests")}</h3>
+                      {activeQuests.length > 0 && activeQuests.every(q => getQuestProgress(q).completed) ? (
+                        <span className="daily-quests-timer" style={{ background: '#d1fae5', color: '#10b981' }}>✓ ALL COMPLETED</span>
+                      ) : (
+                        <span className="daily-quests-timer">{timeLeftStr.toUpperCase()} LEFT</span>
+                      )}
+                    </div>
+                    <div className="quest-list" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                      {activeQuests.map((quest) => {
+                        const prog = getQuestProgress(quest);
+                        return (
+                          <div key={quest.id} className="quest-item" style={{
+                            gap: '10px',
+                            padding: '12px',
+                            opacity: prog.completed ? 0.65 : 1,
+                            background: prog.completed ? 'var(--line)' : 'var(--bg)',
+                            borderColor: prog.completed ? 'transparent' : 'var(--line)'
+                          }}>
+                            <div className="quest-icon" style={{ width: '32px', height: '32px', borderRadius: '8px' }}>
+                              {quest.type === 'xp' && (
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: 'middle' }}>
+                                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                                </svg>
+                              )}
+                              {quest.type === 'time' && (
+                                <ClockIcon style={{ color: '#3b82f6', marginRight: 0, width: '20px', height: '20px' }} />
+                              )}
+                              {quest.type === 'lessons' && (
+                                <BookIcon style={{ color: '#10b981', marginRight: 0, width: '20px', height: '20px' }} />
+                              )}
+                            </div>
+                            <div className="quest-content">
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                                <span style={{ fontWeight: '700', fontSize: '0.85rem', color: 'var(--text)', whiteSpace: 'nowrap', textDecoration: prog.completed ? 'line-through' : 'none' }}>
+                                  {translatedQuestTitles[quest.id] || quest.title}
+                                </span>
+                                <span style={{ fontWeight: '800', fontSize: '0.85rem', color: 'var(--accent)', whiteSpace: 'nowrap' }}>
+                                  {prog.displayProgress}
+                                </span>
+                              </div>
+                              <div className="quest-progress-bg">
+                                <div className="quest-progress-fill" style={{
+                                  width: `${prog.percent}%`,
+                                  background: prog.completed ? '#9ca3af' : '#f59e0b'
+                                }}></div>
+                              </div>
+                            </div>
+                            <div className="quest-reward" style={{ display: 'grid', placeItems: 'center' }}>
+                              {prog.completed ? (
+                                <div style={{
+                                  width: '22px',
+                                  height: '22px',
+                                  borderRadius: '50%',
+                                  background: '#10b981',
+                                  color: 'white',
+                                  display: 'grid',
+                                  placeItems: 'center',
+                                  fontWeight: 'bold',
+                                  fontSize: '0.8rem'
+                                }}>✓</div>
+                              ) : (
+                                <TrophyIcon style={{ color: '#8b8d96', marginRight: 0, width: '20px', height: '20px' }} />
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="achievements-card" style={{ margin: 0 }}>
+                  <div className="achievements-card-header">
+                    <h4>{t("badgesEarned")}</h4>
+                    <button className="achievements-view-all" onClick={() => setShowAllAchievementsModal(true)}>{t("dashboardViewAll")}</button>
+                  </div>
+                  <div className="achievements-list">
+                    {(() => {
+                      const achievementsList = ACHIEVEMENT_DEFS.map((a) => {
+                        let earned = false;
+                        let progress = 0;
+                        switch (a.id) {
+                          case 1:
+                            earned = true; progress = 100; break;
+                          case 2:
+                            earned = calculateSkillProficiency("reading") >= 75;
+                            progress = Math.min(100, Math.round(calculateSkillProficiency("reading"))); break;
+                          case 3:
+                            earned = calculateSkillProficiency("reading_comprehension") >= 75;
+                            progress = Math.min(100, Math.round(calculateSkillProficiency("reading_comprehension"))); break;
+                          case 4:
+                            earned = calculateSkillProficiency("writing") >= 75;
+                            progress = Math.min(100, Math.round(calculateSkillProficiency("writing"))); break;
+                          case 5:
+                            earned = userXp >= 100;
+                            progress = Math.min(100, Math.round((userXp / 100) * 100)); break;
+                          case 6:
+                            earned = completedLessons.filter(id => !id.startsWith("ach_")).length >= 3;
+                            progress = Math.min(100, Math.round((completedLessons.filter(id => !id.startsWith("ach_")).length / 3) * 100)); break;
+                          case 7:
+                            earned = calculateSkillProficiency("reading_ability") >= 75;
+                            progress = Math.min(100, Math.round(calculateSkillProficiency("reading_ability"))); break;
+                          case 8:
+                            earned = currentLevelNum >= 8;
+                            progress = Math.min(100, Math.round((currentLevelNum / 8) * 100)); break;
+                          case 9:
+                            earned = currentLevelNum >= 12;
+                            progress = Math.min(100, Math.round((currentLevelNum / 12) * 100)); break;
+                          default: break;
+                        }
+                        return { ...a, earned, progress };
+                      });
+
+                      // Find chronologically earned achievements from completed_lessons order
+                      const earnedAchievementIds = completedLessons
+                        .filter(id => id.startsWith("ach_"))
+                        .map(id => parseInt(id.replace("ach_", ""), 10));
+
+                      // Find corresponding badge definitions
+                      const earnedList = earnedAchievementIds
+                        .map(id => achievementsList.find(a => a.id === id))
+                        .filter(Boolean);
+
+                      // Display only the last 2 recently earned badges, or the first two items in general if none earned yet
+                      const displayedList = earnedList.length > 0
+                        ? earnedList.slice(-2)
+                        : achievementsList.slice(0, 2);
+
+                      return displayedList.map((a) => (
+                        <div key={a.id} className={`achievement-row ${a.earned ? "earned" : ""}`}>
+                          <div className="achievement-badge-box" style={{ background: a.earned ? a.color : 'var(--line)' }}>
+                            <span className="achievement-badge-icon">{a.earned ? a.icon : '🔒'}</span>
+                          </div>
+                          <div className="achievement-info">
+                            <div className="achievement-info-header">
+                              <span className="achievement-title">{translatedAchievements[a.id]?.title || a.title}</span>
+                            </div>
+                            <p className="achievement-desc">{translatedAchievements[a.id]?.desc || a.desc}</p>
+                            <div className="achievement-progress-track">
+                              <div className="achievement-progress-fill" style={{ width: `${a.progress}%`, background: '#facc15' }}></div>
+                            </div>
+                          </div>
+                        </div>
+                      ));
+                    })()}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 3.1. Learn Tab — Duolingo-style Continuous Curriculum Path */}
+          {dashboardTab === "learn" && (() => {
+            const storedSkills = (() => { try { const s = getStoredAssessmentState(session?.user?.id); return s?.skill_scores || profile?.skill_scores || {}; } catch { return {}; } })();
+            const weakSkillLabels = getWeakSkills(storedSkills);
+
+            const hasDiagnosed = hasCompletedAssessment(profile, session?.user?.id);
+            const pathRecommendations = generateLearningPath(storedSkills);
+            const recommendedSectionIds = pathRecommendations.map(p => p.sectionId);
+            const recommendedSections = CURRICULUM_SECTIONS.filter(section =>
+              recommendedSectionIds.includes(section.id)
+            );
+
+            // Render recommended sections if personalized path is enabled and custom path exists, otherwise standard curriculum
+            const activeSections = (showPersonalizedPath && recommendedSections.length > 0)
+              ? recommendedSections
+              : CURRICULUM_SECTIONS;
+
+            // Build a flat ordered list of all lessons in the curriculum for chain unlocking
+            const allLessonsList = [];
+            CURRICULUM_SECTIONS.forEach((sec) => {
+              sec.units.forEach((uni) => {
+                uni.lessons.forEach((les) => {
+                  allLessonsList.push(les.id);
+                });
+              });
+            });
+
+            // Build a flat list of lessons in the personalized path
+            const personalizedLessonsList = [];
+            recommendedSections.forEach((sec) => {
+              sec.units.forEach((uni) => {
+                uni.lessons.forEach((les) => {
+                  personalizedLessonsList.push(les.id);
+                });
+              });
+            });
+
+            // Determine starting lesson index based on diagnosed literacy level (per Spec mapping 1-5 levels)
+            let unitCounter = 0;
+            let renderedUnitCounter = 0;
+
+            return (
+              <div className="duo-learn-container" ref={learnJourneyRef}>
+                {/* Path mode toggle — only shown when a personalized path is available */}
+                {hasDiagnosed && recommendedSections.length > 0 && (
+                  <div className="path-mode-toggle-wrapper">
+                    <span className="path-mode-toggle-label">{t("learningMode")}</span>
+                    <select
+                      className="path-mode-select"
+                      value={showPersonalizedPath ? "personalized" : "full"}
+                      onChange={(e) => setShowPersonalizedPath(e.target.value === "personalized")}
+                    >
+                      <option value="personalized">{t("pathPersonalized")}</option>
+                      <option value="full">{t("pathFull")}</option>
+                    </select>
+                  </div>
+                )}
+
+                {activeSections.map((section, secIdx) => {
+                  const isSectionRecommended = weakSkillLabels.some(w => w.toLowerCase().includes(section.skillTarget?.replace("_", " ") || ""));
+                  const sectionDisplayNum = showPersonalizedPath ? (secIdx + 1) : section.num;
+                  const totalSectionsDisplay = activeSections.length;
+
+                  return (
+                    <div key={section.id} className="duo-section-block">
+                      {/* Section Checkpoint Header */}
+                      <div className="duo-section-banner" style={{ background: `linear-gradient(135deg, ${section.color} 0%, ${section.color}cc 100%)`, boxShadow: `0 8px 24px ${section.color}33` }}>
+                        <span className="duo-section-banner-icon">{section.icon}</span>
+                        <div className="duo-section-banner-text">
+                          <span className="duo-section-banner-meta">{t("learnSectionOf").replace("{current}", sectionDisplayNum).replace("{total}", totalSectionsDisplay)}</span>
+                          <h2 className="duo-section-banner-title">{t(`${section.id}_title`) || section.title}</h2>
+                        </div>
+                        {isSectionRecommended && showPersonalizedPath && (
+                          <span className="duo-section-badge">⭐</span>
+                        )}
+                      </div>
+
+                      {section.units.map((unit) => {
+                        renderedUnitCounter++;
+                        const unitLessons = unit.lessons;
+                        const completedInUnit = unitLessons.filter(l => completedLessons.includes(l.id)).length;
+                        const currentUnitIndex = unitCounter++;
+                        const mascotNum = (currentUnitIndex % 4) + 1;
+                        const sideClass = currentUnitIndex % 2 === 0 ? "mascot-left" : "mascot-right";
+
+                        return (
+                          <div key={unit.id} className="duo-unit-block">
+                            <div className="duo-unit-header">
+                              <h3 className="duo-unit-title">{t("learnUnit")} {showPersonalizedPath ? renderedUnitCounter : unit.num}</h3>
+                              <span className="duo-unit-topic">{t(`${unit.id}_title`) || unit.title}</span>
+                              <span className="duo-unit-progress">{completedInUnit}/{unitLessons.length} {t("learnDone") || "Done"}</span>
+                            </div>
+
+                            {/* Centered Snaking Lesson Path */}
+                            <div className="duo-lessons-path" style={{ position: 'relative' }}>
+                              <div className="duo-path-line"></div>
+
+                              {/* Mascot on alternating sides per unit */}
+                              <div className={`duo-path-mascot ${sideClass}`}>
+                                <img
+                                  src={`/as${mascotNum}.png`}
+                                  alt="LISA Mascot"
+                                  style={{ width: '130px', height: '130px', objectFit: 'contain' }}
+                                />
+                              </div>
+
+                              {unitLessons.map((lesson, lIdx) => {
+                                const isCompleted = completedLessons.includes(lesson.id);
+                                const isUnlocked = (() => {
+                                  // Personalized path: first lesson is open so the learner can start the flow,
+                                  // then sequential unlock as previous lessons are completed.
+                                  if (showPersonalizedPath && personalizedLessonsList.length > 0) {
+                                    const idx = personalizedLessonsList.indexOf(lesson.id);
+                                    if (idx === 0) return true;
+                                    if (idx > 0) {
+                                      return completedLessons.includes(personalizedLessonsList[idx - 1]);
+                                    }
+                                  }
+                                  // Full Path: a locked sequential path for learners who want to start from the
+                                  // beginning. The first lesson is open; each lesson unlocks once the prior one is
+                                  // completed. Any lesson already unlocked via the personalized path stays unlocked.
+                                  const lessonIndexInCurriculum = allLessonsList.indexOf(lesson.id);
+                                  if (lessonIndexInCurriculum === 0) return true;
+                                  const prevCompleted = lessonIndexInCurriculum > 0 && completedLessons.includes(allLessonsList[lessonIndexInCurriculum - 1]);
+                                  const personalizedIdx = personalizedLessonsList.indexOf(lesson.id);
+                                  const personalizedUnlocked = personalizedIdx === 0
+                                    || (personalizedIdx > 0 && completedLessons.includes(personalizedLessonsList[personalizedIdx - 1]));
+                                  return prevCompleted || personalizedUnlocked;
+                                })();
+                                const status = isCompleted ? "completed" : isUnlocked ? "unlocked" : "locked";
+                                const lessonXp = lIdx === 4 ? 60 : 15;
+
+                                // Calculate snaking offset class
+                                // Path: Center -> Right -> Center -> Left -> Repeat
+                                const snakePositions = ["snake-center", "snake-right", "snake-center", "snake-left"];
+                                const snakeClass = snakePositions[lIdx % 4];
+
+                                const isPopupOpen = activeLessonPopup === lesson.id;
+
+                                // Find the active resumed lesson ID.
+                                // Personalized Path: the first uncompleted lesson within the personalized list
+                                // (so we scroll to the last unlocked lesson in the custom path).
+                                // Full Path: start from the very first lesson (learn from the beginning).
+                                const currentActiveLessonId = showPersonalizedPath && personalizedLessonsList.length > 0
+                                  ? (personalizedLessonsList.find(id => !completedLessons.includes(id)) || personalizedLessonsList[personalizedLessonsList.length - 1] || allLessonsList[0])
+                                  : (allLessonsList.slice(0).find(id => !completedLessons.includes(id)) || allLessonsList[0]);
+                                const isActiveNode = lesson.id === currentActiveLessonId;
+
+                                return (
+                                  <div
+                                    key={lesson.id}
+                                    className={`duo-node-container ${snakeClass} ${status}`}
+                                    style={{ zIndex: isPopupOpen ? 1100 : 2 }}
+                                    ref={isActiveNode ? activeNodeRef : null}
+                                  >
+                                    {/* Circular Checkpoint Node */}
+                                    <button
+                                      type="button"
+                                      className={`duo-node-circle ${status}`}
+                                      style={{
+                                        background: isCompleted ? '#10b981' : isUnlocked ? section.color : undefined
+                                      }}
+                                      onClick={() => {
+                                        if (activeLessonPopup === lesson.id) {
+                                          setActiveLessonPopup(null);
+                                        } else {
+                                          setActiveLessonPopup(lesson.id);
+                                        }
+                                      }}
+                                    >
+                                      <span className="duo-node-icon" style={{ color: isCompleted || isUnlocked ? 'white' : 'var(--muted)' }}>
+                                        {isCompleted ? '✓' : lesson.icon || '📚'}
+                                      </span>
+                                    </button>
+
+                                    {/* Duolingo Info Popover */}
+                                    {isPopupOpen && (
+                                      <div className="duo-popover-card">
+                                        <div className="duo-popover-header">
+                                          <span className="duo-popover-badge" style={{
+                                            background: isCompleted ? 'rgba(16, 185, 129, 0.15)' : isUnlocked ? `${section.color}22` : 'rgba(120, 120, 120, 0.15)',
+                                            color: isCompleted ? '#0f9d6b' : isUnlocked ? section.color : '#8a8f98'
+                                          }}>
+                                            {status === "completed" ? `✓ ${t("learnDone") || "Done"}` : status === "unlocked" ? (t("learnReady") || "Ready") : `🔒 ${t("learnLocked") || "Locked"}`}
+                                          </span>
+                                          <span className="duo-popover-xp">+{lessonXp} XP</span>
+                                        </div>
+                                        <h4 className="duo-popover-title">{(t(`${unit.id}_title`) || unit.title)} — {lIdx === 4 ? (t("learnUnitExam") || "Unit Exam") : (t("learnLesson").replace("{num}", lIdx + 1))}</h4>
+                                        <p className="duo-popover-desc">
+                                          {lIdx === 4
+                                            ? (t("learnUnitExamDesc") || "A comprehensive unit exam testing skills from the first 4 lessons.")
+                                            : (t("learnLessonDesc") || "Personalized AI lesson targeting your curriculum goals.")}
+                                        </p>
+
+                                        <button
+                                          type="button"
+                                          className="duo-popover-btn"
+                                          disabled={status === "locked" || lessonLoading}
+                                          onClick={() => {
+                                            setActiveLessonPopup(null);
+                                            startLessonSession(lesson, section, unit);
+                                          }}
+                                          style={{
+                                            background: isCompleted ? '#10b981' : isUnlocked ? section.color : '#6b7280',
+                                            boxShadow: isCompleted ? '0 4px 12px rgba(16, 185, 129, 0.3)' : isUnlocked ? `0 4px 12px ${section.color}55` : 'none'
+                                          }}
+                                        >
+                                          {lIdx === 4
+                                            ? (status === "completed" ? (t("learnReviewExam") || "Review Exam") : (t("learnStartExam") || "Start Exam"))
+                                            : (status === "completed" ? (t("learnReviewLesson") || "Review Lesson") : (t("learnStartLesson") || "Start Lesson"))}
+                                        </button>
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+
+                {/* Floating Scroll to Top button */}
+                <button
+                  type="button"
+                  className="scroll-top-btn"
+                  onClick={() => {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    learnJourneyRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }}
+                  title="Scroll to Top"
+                  aria-label="Scroll to top of learning path"
+                >
+                  ↑
+                </button>
+              </div>
+            );
+          })()}
+
+
+          {/* 3.2. Practice Tab */}
+          {dashboardTab === "practice" && (
+            practiceCollectionPage === "mistakes" ? (
+              <div className="duo-practice-page">
+                <button type="button" className="duo-practice-back" onClick={() => setPracticeCollectionPage(null)} aria-label="Back to practice">
+                  <span>←</span>
+                  <span>Practice</span>
+                </button>
+
+                <section className="duo-practice-hero">
+                  <div className="duo-hero-icon duo-hero-mistakes" aria-hidden="true">
+                    <span>💔</span>
+                  </div>
+                  <h1>Review your recent mistakes</h1>
+                  <button type="button" className="primary-btn duo-start-btn" onClick={() => startCollectionPractice("mistakes")}>START +20 XP</button>
+                </section>
+
+                <div className="duo-practice-divider" />
+
+                <section className="duo-collection-section">
+                  <h2>{recentMistakes.length} mistakes</h2>
+                  <div className="duo-mistake-list">
+                    {recentMistakes.map((mistake, idx) => (
+                      <button
+                        type="button"
+                        className="duo-mistake-row"
+                        key={mistake.id || idx}
+                        onClick={() => startCollectionPractice("mistakes")}
+                      >
+                        <span className="duo-broken-heart" aria-hidden="true">💔</span>
+                        <span className="duo-mistake-copy">
+                          <span className="duo-row-kicker">{mistake.prompt || mistake.type}</span>
+                          <span className="duo-row-main">{mistake.text}</span>
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </section>
+              </div>
+            ) : practiceCollectionPage === "words" ? (
+              <div className="duo-practice-page">
+                <button type="button" className="duo-practice-back" onClick={() => setPracticeCollectionPage(null)} aria-label="Back to practice">
+                  <span>←</span>
+                  <span>Practice</span>
+                </button>
+
+                <section className="duo-practice-hero">
+                  <div className="duo-hero-icon duo-hero-words" aria-hidden="true">
+                    <span>📚</span>
+                  </div>
+                  <h1>Practice your {selectedLanguage || "English"} words</h1>
+                  <button type="button" className="primary-btn duo-start-btn" onClick={() => startCollectionPractice("words")}>START +10 XP</button>
+                </section>
+
+                <div className="duo-practice-divider" />
+
+                <section className="duo-collection-section">
+                  <div className="duo-collection-head">
+                    <h2>{practiceWords.length} words</h2>
+                    <button type="button" className="duo-sort-btn">RECENTLY LEARNED <span>▼</span></button>
+                  </div>
+                  <div className="duo-word-list">
+                    {practiceWords.map((item, idx) => (
+                      <button type="button" className="duo-word-row" key={`word_${item.word}_${idx}`} onClick={() => speakWord(item.word)}>
+                        <span className="duo-audio-icon" aria-hidden="true">🔊</span>
+                        <span className="duo-word-copy">
+                          <span className="duo-word-term">{item.word}</span>
+                          <span className="duo-word-meaning">{item.meaning}</span>
+                        </span>
+                        {item.isNew && <span className="duo-new-dot" aria-label="Recently learned" />}
+                      </button>
+                    ))}
+                  </div>
+                </section>
+              </div>
+            ) : (
+              <div className="practice-grid-layout">
+                <div className="practice-content-column">
+                  <div className="practice-section">
+                    <h2 className="practice-section-title">{t("practiceTodaysReview")}</h2>
+                    <div className="perfect-pronunciation-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_read_practice`, title: "Perfect Pronunciation", desc: "Speak out sentences aloud" })}>
+                      <div className="perfect-pronunciation-info">
+                        <h3 className="perfect-pronunciation-title">{t("practicePerfectPronunciation")}</h3>
+                        <p className="perfect-pronunciation-desc">{t("practicePerfectPronunciationDesc")}</p>
+                        <button type="button" className="perfect-pronunciation-btn">{t("practiceStart")}</button>
+                      </div>
+                      <img src="/as4.png" alt="Mascot" className="perfect-pronunciation-mascot" />
+                    </div>
+                  </div>
+
+                  <div className="practice-section">
+                    <h2 className="practice-section-title">{t("practiceConversation")}</h2>
+                    <div className="practice-row-cards">
+                      <div className="practice-row-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_read_practice`, title: "Speak Practice", desc: "Improve your speaking skills with these phrases" })}>
+                        <div className="practice-row-card-content">
+                          <h3 className="practice-row-card-title">{t("practiceSpeak") || "Speak"}</h3>
+                          <p className="practice-row-card-desc">{t("practiceSpeakDesc")}</p>
+                        </div>
+                        <div className="practice-row-card-icon speak-icon">🗣️</div>
+                      </div>
+                      <div className="practice-row-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_read_practice`, title: "Read Practice", desc: "Improve your reading comprehension and vocabulary" })}>
+                        <div className="practice-row-card-content">
+                          <h3 className="practice-row-card-title">{t("practiceRead") || "Read"}</h3>
+                          <p className="practice-row-card-desc">{t("practiceReadDesc") || "Improve your reading comprehension and vocabulary"}</p>
+                        </div>
+                        <div className="practice-row-card-icon read-icon">📖</div>
+                      </div>
+                      <div className="practice-row-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_write_practice`, title: "Write Practice", desc: "Enhance your writing skills with interactive exercises" })}>
+                        <div className="practice-row-card-content">
+                          <h3 className="practice-row-card-title">{t("practiceWrite") || "Write"}</h3>
+                          <p className="practice-row-card-desc">{t("practiceWriteDesc") || "Enhance your writing skills with interactive exercises"}</p>
+                        </div>
+                        <div className="practice-row-card-icon write-icon">✍️</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="practice-section">
+                    <h2 className="practice-section-title">{t("practiceYourCollections")}</h2>
+                    <div className="practice-row-cards">
+                      <div className="practice-row-card" onClick={() => openPracticeCollection("mistakes")}>
+                        <div className="practice-row-card-content">
+                          <h3 className="practice-row-card-title">
+                            {t("practiceMistakes")}
+                            <span className="practice-badge">{recentMistakes.length}</span>
+                          </h3>
+                          <p className="practice-row-card-desc">{t("practiceMistakesDesc")}</p>
+                        </div>
+                        <div className="practice-row-card-icon mistakes-icon">💔</div>
+                      </div>
+
+                      <div className="practice-row-card" onClick={() => openPracticeCollection("words")}>
+                        <div className="practice-row-card-content">
+                          <h3 className="practice-row-card-title">
+                            {t("practiceWords")}
+                            <span className="practice-badge">{practiceWords.length}</span>
+                          </h3>
+                          <p className="practice-row-card-desc">{t("practiceWordsDesc")}</p>
+                        </div>
+                        <div className="practice-row-card-icon words-icon">📚</div>
+                      </div>
+
+                      <div className="practice-row-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_comp_practice`, title: "Stories Practice", desc: "Reread a story to review words in context" })}>
+                        <div className="practice-row-card-content">
+                          <h3 className="practice-row-card-title">{t("practiceStories")}</h3>
+                          <p className="practice-row-card-desc">{t("practiceStoriesDesc")}</p>
+                        </div>
+                        <div className="practice-row-card-icon stories-icon">📖</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <FunLearnZone
+                    onXpEarned={(amount) => {
+                      const newXp = userXp + amount;
+                      setUserXp(newXp);
+                      if (session?.user?.id) {
+                        const userId = session.user.id;
+                        const todayStr = new Date().toLocaleDateString("en-CA");
+                        const storedDailyXp = localStorage.getItem(`lisa_daily_xp_${userId}_${todayStr}`);
+                        const nextDailyXp = (storedDailyXp ? parseInt(storedDailyXp, 10) : 0) + amount;
+                        setDailyXp(nextDailyXp);
+                        localStorage.setItem(`lisa_daily_xp_${userId}_${todayStr}`, nextDailyXp);
+                        supabase.from("profiles").update({ xp: newXp }).eq("id", userId);
+                        recordWeeklyXp(amount);
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+            )
+          )}
+
+          {/* 3.3. Profile Tab */}
+          {dashboardTab === "profile" && (
+            <div className="profile-view-container">
               <div className="profile-card-large">
                 <div
                   className="profile-cover"
@@ -7776,300 +7777,300 @@ function App() {
                     </div>
                   </div>
                 </div>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px" }}>
+                <div className="achievements-card" style={{ margin: 0, padding: "24px" }}>
+                  <h3 style={{ fontSize: "1.2rem", fontWeight: 800, marginBottom: "20px" }}>{t("profileUpdateSettings")}</h3>
+                  <form onSubmit={handleSaveProfileEdit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                    <label className="profile-dropdown-label">
+                      {t("profileFullName")}
+                      <input
+                        type="text"
+                        required
+                        value={editFullName}
+                        onChange={(e) => setEditFullName(e.target.value)}
+                        style={{ width: "100%", boxSizing: "border-box" }}
+                      />
+                    </label>
+                    <label className="profile-dropdown-label">
+                      {t("profileAge")}
+                      <input
+                        type="number"
+                        min="5"
+                        max="120"
+                        required
+                        value={editAge}
+                        onChange={(e) => setEditAge(e.target.value)}
+                        style={{ width: "100%", boxSizing: "border-box" }}
+                      />
+                    </label>
+                    <label className="profile-dropdown-label">
+                      {t("interfaceLanguage")}
+                      <select
+                        required
+                        value={editPreferredLang}
+                        onChange={(e) => setEditPreferredLang(e.target.value)}
+                        style={{ width: "100%", boxSizing: "border-box" }}
+                      >
+                        {languages.map((l) => (
+                          <option key={l} value={l}>{t(l + "Option")}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="profile-dropdown-label">
+                      {t("learningLanguage")}
+                      <select
+                        required
+                        value={editLearningLang}
+                        onChange={(e) => setEditLearningLang(e.target.value)}
+                        style={{ width: "100%", boxSizing: "border-box" }}
+                      >
+                        {languages.map((l) => (
+                          <option key={l} value={l}>{t(l + "Option")}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="profile-dropdown-label">
+                      {t("profileEducationStatus")}
+                      <select
+                        required
+                        value={editEdLevel}
+                        onChange={(e) => setEditEdLevel(e.target.value)}
+                        style={{ width: "100%", boxSizing: "border-box" }}
+                      >
+                        {educationLevels.map((ed) => (
+                          <option key={ed} value={ed}>{t(ed + "Option")}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="profile-dropdown-label">
+                      {t("profileExperienceStatus")}
+                      <select
+                        required
+                        value={editExpLevel}
+                        onChange={(e) => setEditExpLevel(e.target.value)}
+                        style={{ width: "100%", boxSizing: "border-box" }}
+                      >
+                        {experienceLevels.map((exp) => (
+                          <option key={exp} value={exp}>{exp}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <button type="submit" className="primary-btn" disabled={submitting}>
+                      {submitting ? t("profileSaving") : t("profileSaveChanges")}
+                    </button>
+                  </form>
                 </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px" }}>
-                  <div className="achievements-card" style={{ margin: 0, padding: "24px" }}>
-                    <h3 style={{ fontSize: "1.2rem", fontWeight: 800, marginBottom: "20px" }}>{t("profileUpdateSettings")}</h3>
-                    <form onSubmit={handleSaveProfileEdit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                      <label className="profile-dropdown-label">
-                        {t("profileFullName")}
-                        <input
-                          type="text"
-                          required
-                          value={editFullName}
-                          onChange={(e) => setEditFullName(e.target.value)}
-                          style={{ width: "100%", boxSizing: "border-box" }}
-                        />
-                      </label>
-                      <label className="profile-dropdown-label">
-                        {t("profileAge")}
-                        <input
-                          type="number"
-                          min="5"
-                          max="120"
-                          required
-                          value={editAge}
-                          onChange={(e) => setEditAge(e.target.value)}
-                          style={{ width: "100%", boxSizing: "border-box" }}
-                        />
-                      </label>
-                      <label className="profile-dropdown-label">
-                        {t("interfaceLanguage")}
-                        <select
-                          required
-                          value={editPreferredLang}
-                          onChange={(e) => setEditPreferredLang(e.target.value)}
-                          style={{ width: "100%", boxSizing: "border-box" }}
-                        >
-                          {languages.map((l) => (
-                            <option key={l} value={l}>{t(l + "Option")}</option>
-                          ))}
-                        </select>
-                      </label>
-                      <label className="profile-dropdown-label">
-                        {t("learningLanguage")}
-                        <select
-                          required
-                          value={editLearningLang}
-                          onChange={(e) => setEditLearningLang(e.target.value)}
-                          style={{ width: "100%", boxSizing: "border-box" }}
-                        >
-                          {languages.map((l) => (
-                            <option key={l} value={l}>{t(l + "Option")}</option>
-                          ))}
-                        </select>
-                      </label>
-                      <label className="profile-dropdown-label">
-                        {t("profileEducationStatus")}
-                        <select
-                          required
-                          value={editEdLevel}
-                          onChange={(e) => setEditEdLevel(e.target.value)}
-                          style={{ width: "100%", boxSizing: "border-box" }}
-                        >
-                          {educationLevels.map((ed) => (
-                            <option key={ed} value={ed}>{t(ed + "Option")}</option>
-                          ))}
-                        </select>
-                      </label>
-                      <label className="profile-dropdown-label">
-                        {t("profileExperienceStatus")}
-                        <select
-                          required
-                          value={editExpLevel}
-                          onChange={(e) => setEditExpLevel(e.target.value)}
-                          style={{ width: "100%", boxSizing: "border-box" }}
-                        >
-                          {experienceLevels.map((exp) => (
-                            <option key={exp} value={exp}>{exp}</option>
-                          ))}
-                        </select>
-                      </label>
-                      <button type="submit" className="primary-btn" disabled={submitting}>
-                        {submitting ? t("profileSaving") : t("profileSaveChanges")}
-                      </button>
-                    </form>
-                  </div>
-
-                   <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-                     <div className="current-level-card" style={{ margin: 0, padding: "24px", background: '#5e4a87' }}>
-                       <h3 className="current-level-title">{t("profileDevControl")}</h3>
-                       <p style={{ fontSize: "0.85rem", color: "#ffffff", marginBottom: "16px" }}>{t("profileDevControlDesc")}</p>
-                       <div className="ai-toggle-container" style={{ marginBottom: "16px" }} title={aiEnabled ? "AI ON — lessons & word of day use AI" : "AI OFF — lessons & word of day use fallback"}>
-                         <button
-                           type="button"
-                           className={`ai-toggle-btn ${aiEnabled ? "ai-on" : "ai-off"}`}
-                           onClick={toggleAiMode}
-                           aria-pressed={aiEnabled}
-                           aria-label={aiEnabled ? "Turn AI off (development mode)" : "Turn AI on"}
-                           style={{ width: "100%" }}
-                         >
-                           <span className="ai-toggle-dot" />
-                           <span className="ai-toggle-label">{aiEnabled ? "AI ON" : "AI OFF"}</span>
-                         </button>
-                       </div>
-                       <button
-                         type="button"
-                         className="secondary-btn"
-                         style={{ borderColor: "#ff1a1a", color: "#ff1a1a", width: "100%", marginBottom: "12px" }}
-                         onClick={() => handleResetAssessmentStatus()}
-                       >
-                         {t("profileResetAssessment")}
-                       </button>
-                       <button
-                         type="button"
-                         className="secondary-btn"
-                         style={{ borderColor: "#e67e22", color: "#e67e22", width: "100%" }}
-                         onClick={() => handleResetLessons()}
-                       >
-                         {t("profileResetLessons")}
-                       </button>
-                     </div>
-
-                    <div className="current-level-card" style={{ margin: 0, padding: "24px", background: '#7a1f1f', border: '1px solid #ff4d4d' }}>
-                      <h3 className="current-level-title" style={{ color: '#ff8a8a' }}>{t("profileDangerZone")}</h3>
-                      <p style={{ fontSize: "0.85rem", color: "#ffd9d9", marginBottom: "16px" }}>{t("profileDeleteAccountDesc")}</p>
+                <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+                  <div className="current-level-card" style={{ margin: 0, padding: "24px", background: '#5e4a87' }}>
+                    <h3 className="current-level-title">{t("profileDevControl")}</h3>
+                    <p style={{ fontSize: "0.85rem", color: "#ffffff", marginBottom: "16px" }}>{t("profileDevControlDesc")}</p>
+                    <div className="ai-toggle-container" style={{ marginBottom: "16px" }} title={aiEnabled ? "AI ON — lessons & word of day use AI" : "AI OFF — lessons & word of day use fallback"}>
                       <button
                         type="button"
-                        className="primary-btn"
-                        style={{ background: "#ff1a1a", borderColor: "#ff1a1a", color: "#ffffff", width: "100%" }}
-                        onClick={() => { setDeleteConfirmText(""); setDeleteError(""); setDeleteModalOpen(true); }}
+                        className={`ai-toggle-btn ${aiEnabled ? "ai-on" : "ai-off"}`}
+                        onClick={toggleAiMode}
+                        aria-pressed={aiEnabled}
+                        aria-label={aiEnabled ? "Turn AI off (development mode)" : "Turn AI on"}
+                        style={{ width: "100%" }}
                       >
-                        {t("profileDeleteAccount")}
+                        <span className="ai-toggle-dot" />
+                        <span className="ai-toggle-label">{aiEnabled ? "AI ON" : "AI OFF"}</span>
                       </button>
                     </div>
+                    <button
+                      type="button"
+                      className="secondary-btn"
+                      style={{ borderColor: "#ff1a1a", color: "#ff1a1a", width: "100%", marginBottom: "12px" }}
+                      onClick={() => handleResetAssessmentStatus()}
+                    >
+                      {t("profileResetAssessment")}
+                    </button>
+                    <button
+                      type="button"
+                      className="secondary-btn"
+                      style={{ borderColor: "#e67e22", color: "#e67e22", width: "100%" }}
+                      onClick={() => handleResetLessons()}
+                    >
+                      {t("profileResetLessons")}
+                    </button>
+                  </div>
+
+                  <div className="current-level-card" style={{ margin: 0, padding: "24px", background: '#7a1f1f', border: '1px solid #ff4d4d' }}>
+                    <h3 className="current-level-title" style={{ color: '#ff8a8a' }}>{t("profileDangerZone")}</h3>
+                    <p style={{ fontSize: "0.85rem", color: "#ffd9d9", marginBottom: "16px" }}>{t("profileDeleteAccountDesc")}</p>
+                    <button
+                      type="button"
+                      className="primary-btn"
+                      style={{ background: "#ff1a1a", borderColor: "#ff1a1a", color: "#ffffff", width: "100%" }}
+                      onClick={() => { setDeleteConfirmText(""); setDeleteError(""); setDeleteModalOpen(true); }}
+                    >
+                      {t("profileDeleteAccount")}
+                    </button>
                   </div>
                 </div>
               </div>
-            )}
+            </div>
+          )}
 
-            {/* 3.4. Shop Tab */}
-            {dashboardTab === "shop" && (
-              <div className="practice-grid-layout">
-                <div className="practice-content-column">
-                  <XPShop
-                    onPurchaseItem={(item, newXp, newOwned) => {
-                      setUserXp(newXp);
-                      const userId = session?.user?.id;
-                      if (userId) {
-                        localStorage.setItem(`lisa_user_xp_${userId}`, newXp);
-                        setShopOwnedItems(newOwned);
+          {/* 3.4. Shop Tab */}
+          {dashboardTab === "shop" && (
+            <div className="practice-grid-layout">
+              <div className="practice-content-column">
+                <XPShop
+                  onPurchaseItem={(item, newXp, newOwned) => {
+                    setUserXp(newXp);
+                    const userId = session?.user?.id;
+                    if (userId) {
+                      localStorage.setItem(`lisa_user_xp_${userId}`, newXp);
+                      setShopOwnedItems(newOwned);
 
-                        let updatedTheme = shopTheme;
-                        let updatedFont = shopFont;
-                        let updatedBanner = shopBanner;
-                        let updatedAvatar = shopCustomAvatar;
-                        let updatedBadges = profileBadges;
+                      let updatedTheme = shopTheme;
+                      let updatedFont = shopFont;
+                      let updatedBanner = shopBanner;
+                      let updatedAvatar = shopCustomAvatar;
+                      let updatedBadges = profileBadges;
 
-                        if (item.id.startsWith("theme_")) {
-                          setShopTheme(item.id);
-                          updatedTheme = item.id;
-                        } else if (item.id.startsWith("font_")) {
-                          setShopFont(item.id);
-                          updatedFont = item.id;
-                        } else if (item.id.startsWith("banner_")) {
-                          setShopBanner(item.id);
-                          updatedBanner = item.id;
-                        } else if (item.id.startsWith("avatar_")) {
-                          const av = SHOP_CATALOG.avatars.find(a => a.id === item.id);
-                          if (av) {
-                            const avObj = { type: "emoji", emoji: av.emoji, id: item.id };
-                            setShopCustomAvatar(avObj);
-                            setProfileAvatar(avObj);
-                            const avStr = JSON.stringify(avObj);
-                            localStorage.setItem(`lisa_profile_avatar_${userId}`, avStr);
-                            updatedAvatar = avObj;
-                          }
-                        } else if (item.id.startsWith("badge_")) {
-                          const current = profileBadges || [];
-                          if (!current.includes(item.id) && current.length < 3) {
-                            const nextBadges = [...current, item.id];
-                            setProfileBadges(nextBadges);
-                            updatedBadges = nextBadges;
-                          }
+                      if (item.id.startsWith("theme_")) {
+                        setShopTheme(item.id);
+                        updatedTheme = item.id;
+                      } else if (item.id.startsWith("font_")) {
+                        setShopFont(item.id);
+                        updatedFont = item.id;
+                      } else if (item.id.startsWith("banner_")) {
+                        setShopBanner(item.id);
+                        updatedBanner = item.id;
+                      } else if (item.id.startsWith("avatar_")) {
+                        const av = SHOP_CATALOG.avatars.find(a => a.id === item.id);
+                        if (av) {
+                          const avObj = { type: "emoji", emoji: av.emoji, id: item.id };
+                          setShopCustomAvatar(avObj);
+                          setProfileAvatar(avObj);
+                          const avStr = JSON.stringify(avObj);
+                          localStorage.setItem(`lisa_profile_avatar_${userId}`, avStr);
+                          updatedAvatar = avObj;
                         }
-
-                        const payload = {
-                          ownedItems: newOwned,
-                          theme: updatedTheme,
-                          font: updatedFont,
-                          banner: updatedBanner,
-                          avatar: updatedAvatar,
-                          badges: updatedBadges,
-                        };
-                        const avatarEmoji = updatedAvatar && typeof updatedAvatar === "object" && updatedAvatar.type === "emoji" ? updatedAvatar.emoji : null;
-                        const avatarUrl = typeof updatedAvatar === "string" && updatedAvatar.startsWith("http") ? updatedAvatar : null;
-
-                        supabase
-                          .from("profiles")
-                          .update({
-                            xp: newXp,
-                            shop_data: payload,
-                            avatar_emoji: avatarEmoji,
-                            avatar_url: avatarUrl
-                          })
-                          .eq("id", userId)
-                          .then(({ error }) => {
-                            if (error) {
-                              console.error("Failed to update profile shop data in Supabase:", error.message);
-                            } else {
-                              console.log("Profile shop data successfully saved in Supabase.");
-                            }
-                          });
+                      } else if (item.id.startsWith("badge_")) {
+                        const current = profileBadges || [];
+                        if (!current.includes(item.id) && current.length < 3) {
+                          const nextBadges = [...current, item.id];
+                          setProfileBadges(nextBadges);
+                          updatedBadges = nextBadges;
+                        }
                       }
-                    }}
-                    userXp={userXp}
-                    onSpendXp={(newXp) => {
-                      setUserXp(newXp);
+
+                      const payload = {
+                        ownedItems: newOwned,
+                        theme: updatedTheme,
+                        font: updatedFont,
+                        banner: updatedBanner,
+                        avatar: updatedAvatar,
+                        badges: updatedBadges,
+                      };
+                      const avatarEmoji = updatedAvatar && typeof updatedAvatar === "object" && updatedAvatar.type === "emoji" ? updatedAvatar.emoji : null;
+                      const avatarUrl = typeof updatedAvatar === "string" && updatedAvatar.startsWith("http") ? updatedAvatar : null;
+
+                      supabase
+                        .from("profiles")
+                        .update({
+                          xp: newXp,
+                          shop_data: payload,
+                          avatar_emoji: avatarEmoji,
+                          avatar_url: avatarUrl
+                        })
+                        .eq("id", userId)
+                        .then(({ error }) => {
+                          if (error) {
+                            console.error("Failed to update profile shop data in Supabase:", error.message);
+                          } else {
+                            console.log("Profile shop data successfully saved in Supabase.");
+                          }
+                        });
+                    }
+                  }}
+                  userXp={userXp}
+                  onSpendXp={(newXp) => {
+                    setUserXp(newXp);
+                    const userId = session?.user?.id;
+                    if (userId) {
+                      supabase.from("profiles").update({ xp: newXp }).eq("id", userId);
+                    }
+                  }}
+                  session={session}
+                  ownedItems={shopOwnedItems}
+                  onOwnedItemsChange={(items) => {
+                    setShopOwnedItems(items);
+                    saveShopData({ ownedItems: items });
+                  }}
+                  currentTheme={shopTheme}
+                  onThemeChange={(id) => {
+                    setShopTheme(id);
+                    saveShopData({ theme: id });
+                  }}
+                  currentFont={shopFont}
+                  onFontChange={(id) => {
+                    setShopFont(id);
+                    saveShopData({ font: id });
+                  }}
+                  currentBanner={shopBanner}
+                  onBannerChange={(id) => {
+                    setShopBanner(id);
+                    saveShopData({ banner: id });
+                  }}
+                  currentAvatar={shopCustomAvatar}
+                  onAvatarChange={(av) => {
+                    setShopCustomAvatar(av);
+                    // Persist the chosen avatar (emoji or builder) to the database
+                    // so it shows on the profile and leaderboard for this account.
+                    try {
                       const userId = session?.user?.id;
-                      if (userId) {
-                        supabase.from("profiles").update({ xp: newXp }).eq("id", userId);
-                      }
-                    }}
-                    session={session}
-                    ownedItems={shopOwnedItems}
-                    onOwnedItemsChange={(items) => {
-                      setShopOwnedItems(items);
-                      saveShopData({ ownedItems: items });
-                    }}
-                    currentTheme={shopTheme}
-                    onThemeChange={(id) => {
-                      setShopTheme(id);
-                      saveShopData({ theme: id });
-                    }}
-                    currentFont={shopFont}
-                    onFontChange={(id) => {
-                      setShopFont(id);
-                      saveShopData({ font: id });
-                    }}
-                    currentBanner={shopBanner}
-                    onBannerChange={(id) => {
-                      setShopBanner(id);
-                      saveShopData({ banner: id });
-                    }}
-                    currentAvatar={shopCustomAvatar}
-                    onAvatarChange={(av) => {
-                      setShopCustomAvatar(av);
-                      // Persist the chosen avatar (emoji or builder) to the database
-                      // so it shows on the profile and leaderboard for this account.
-                      try {
-                        const userId = session?.user?.id;
-                        if (!userId) throw new Error("No user id");
-                        const avStr = typeof av === "string" ? av : JSON.stringify(av);
-                        localStorage.setItem(`lisa_profile_avatar_${userId}`, avStr);
-                        setProfileAvatar(av);
-                        supabase
-                          .from("profiles")
-                          .update({
-                            avatar_emoji: av && typeof av === "object" && av.type === "emoji" ? av.emoji : null,
-                            avatar_url: typeof av === "string" && av.startsWith("http") ? av : null,
-                            shop_data: {
-                              ownedItems: shopOwnedItems,
-                              theme: shopTheme,
-                              font: shopFont,
-                              banner: shopBanner,
-                              avatar: av,
-                              badges: profileBadges,
-                            },
-                          })
-                          .eq("id", userId);
-                      } catch (e) {
-                        console.warn("Could not save avatar:", e);
-                      }
-                    }}
-                    activeProfileBadges={profileBadges}
-                    onBadgesChange={(badges) => {
-                      setProfileBadges(badges);
-                      saveShopData({ badges: badges });
-                    }}
-                  />
-                </div>
+                      if (!userId) throw new Error("No user id");
+                      const avStr = typeof av === "string" ? av : JSON.stringify(av);
+                      localStorage.setItem(`lisa_profile_avatar_${userId}`, avStr);
+                      setProfileAvatar(av);
+                      supabase
+                        .from("profiles")
+                        .update({
+                          avatar_emoji: av && typeof av === "object" && av.type === "emoji" ? av.emoji : null,
+                          avatar_url: typeof av === "string" && av.startsWith("http") ? av : null,
+                          shop_data: {
+                            ownedItems: shopOwnedItems,
+                            theme: shopTheme,
+                            font: shopFont,
+                            banner: shopBanner,
+                            avatar: av,
+                            badges: profileBadges,
+                          },
+                        })
+                        .eq("id", userId);
+                    } catch (e) {
+                      console.warn("Could not save avatar:", e);
+                    }
+                  }}
+                  activeProfileBadges={profileBadges}
+                  onBadgesChange={(badges) => {
+                    setProfileBadges(badges);
+                    saveShopData({ badges: badges });
+                  }}
+                />
               </div>
-            )}
+            </div>
+          )}
 
-            {/* 3.5. Leaderboard Tab */}
-            {dashboardTab === "leaderboard" && (
-              <WeeklyLeaderboard
-                session={session}
-                profile={profile}
-                weeklyXp={weeklyXp}
-                canUsePhoto={currentLevelNum >= 10}
-              />
-            )}
-          </main>
+          {/* 3.5. Leaderboard Tab */}
+          {dashboardTab === "leaderboard" && (
+            <WeeklyLeaderboard
+              session={session}
+              profile={profile}
+              weeklyXp={weeklyXp}
+              canUsePhoto={currentLevelNum >= 10}
+            />
+          )}
+        </main>
 
-          {/* 4. AI Lesson Session Overlay */}
+        {/* 4. AI Lesson Session Overlay */}
         {(lessonLoading || lessonSession) && (
           <div className="lesson-overlay-screen">
             <div className="lesson-overlay-header">
@@ -8438,8 +8439,8 @@ function App() {
                                         title: correct ? "Excellent!" : "Incorrect",
                                         explanation: q.explanation
                                       });
-                         if (correct) recordDailyCorrect();
-                         recordLessonAnswer(correct);
+                                      if (correct) recordDailyCorrect();
+                                      recordLessonAnswer(correct);
                                     }
                                   }}
                                   disabled={isAnswered}
@@ -8676,16 +8677,16 @@ function App() {
                                 type="button"
                                 className="primary-btn"
                                 style={{ padding: '12px 40px', borderRadius: '12px' }}
-                                 onClick={() => {
-                                   const correct = userAnswer.trim().toLowerCase() === fb.answer.toLowerCase();
-                                   setLessonFillFeedback({
-                                     isCorrect: correct,
-                                     title: correct ? "Excellent!" : "Incorrect",
-                                     correctAnswer: fb.answer
-                                   });
-                                   if (correct) recordDailyCorrect();
-                                   recordLessonAnswer(correct);
-                                 }}
+                                onClick={() => {
+                                  const correct = userAnswer.trim().toLowerCase() === fb.answer.toLowerCase();
+                                  setLessonFillFeedback({
+                                    isCorrect: correct,
+                                    title: correct ? "Excellent!" : "Incorrect",
+                                    correctAnswer: fb.answer
+                                  });
+                                  if (correct) recordDailyCorrect();
+                                  recordLessonAnswer(correct);
+                                }}
                                 disabled={!userAnswer.trim()}
                               >
                                 Check Answer
@@ -9054,8 +9055,8 @@ function App() {
                               percent: Math.round(percent)
                             });
 
-                             if (isCorrect) recordDailyCorrect();
-                             recordLessonAnswer(isCorrect);
+                            if (isCorrect) recordDailyCorrect();
+                            recordLessonAnswer(isCorrect);
 
                           };
 
@@ -9293,15 +9294,15 @@ function App() {
                                 type="button"
                                 className="primary-btn"
                                 style={{ padding: '12px 40px', borderRadius: '12px' }}
-                                 onClick={() => {
-                                   const correct = lessonMeaningAnswer === mq.correctIndex;
-                                   setLessonMeaningFeedback({
-                                     isCorrect: correct,
-                                     correctAnswer: mq.options[mq.correctIndex]
-                                   });
-                                   if (correct) recordDailyCorrect();
-                                   recordLessonAnswer(correct);
-                                 }}
+                                onClick={() => {
+                                  const correct = lessonMeaningAnswer === mq.correctIndex;
+                                  setLessonMeaningFeedback({
+                                    isCorrect: correct,
+                                    correctAnswer: mq.options[mq.correctIndex]
+                                  });
+                                  if (correct) recordDailyCorrect();
+                                  recordLessonAnswer(correct);
+                                }}
                                 disabled={lessonMeaningAnswer === null}
                               >
                                 Check Answer
@@ -9367,7 +9368,7 @@ function App() {
                     })()}
 
                     {/* Step 7: Write this in English (word tiles) */}
-                     {lessonStep === 7 && (() => {
+                    {lessonStep === 7 && (() => {
                       const tt = ai.translationTask || { sentence: "My name is Ravi", prompt: "Arrange the words to form a sentence", englishTranslation: "My name is Ravi", tiles: ["My", "name", "is", "Ravi", "book", "red", "the"] };
                       const isChecked = lessonTranslationFeedback !== null;
 
@@ -9448,9 +9449,9 @@ function App() {
                                 {word}
                               </button>
                             ))}
-                              {lessonTranslationSelected.length === 0 && (
-                                <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Tap words below to arrange...</span>
-                              )}
+                            {lessonTranslationSelected.length === 0 && (
+                              <span style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Tap words below to arrange...</span>
+                            )}
                           </div>
 
                           <div style={{
@@ -9590,12 +9591,12 @@ function App() {
                         if (lessonMatchCompleted.includes(item)) return;
                         setLessonMatchSelectedLeft(item);
                         if (lessonMatchSelectedRight) {
-                           const pair = pairs.find(p => p.left === item && p.right === lessonMatchSelectedRight);
-                            if (pair) {
-                              setLessonMatchCompleted(prev => [...prev, item]);
-                              recordDailyCorrect();
-                              recordLessonAnswer(true);
-                           } else {
+                          const pair = pairs.find(p => p.left === item && p.right === lessonMatchSelectedRight);
+                          if (pair) {
+                            setLessonMatchCompleted(prev => [...prev, item]);
+                            recordDailyCorrect();
+                            recordLessonAnswer(true);
+                          } else {
                             setLessonMatchFeedback("Incorrect pair!");
                             setTimeout(() => setLessonMatchFeedback(null), 1000);
                           }
@@ -9610,11 +9611,11 @@ function App() {
 
                         setLessonMatchSelectedRight(item);
                         if (lessonMatchSelectedLeft) {
-                           const pObj = pairs.find(p => p.left === lessonMatchSelectedLeft && p.right === item);
-                           if (pObj) {
-                             setLessonMatchCompleted(prev => [...prev, lessonMatchSelectedLeft]);
-                             recordDailyCorrect();
-                           } else {
+                          const pObj = pairs.find(p => p.left === lessonMatchSelectedLeft && p.right === item);
+                          if (pObj) {
+                            setLessonMatchCompleted(prev => [...prev, lessonMatchSelectedLeft]);
+                            recordDailyCorrect();
+                          } else {
                             setLessonMatchFeedback("Incorrect pair!");
                             setTimeout(() => setLessonMatchFeedback(null), 1000);
                           }
@@ -9919,13 +9920,13 @@ function App() {
                                   const clean = (s) => s.replace(/[.,\/#!$%\^&\*;:{}=\-_\u0060()?]/g, "").toLowerCase().trim();
                                   const correct = clean(userSentence) === clean(lt.audioText);
 
-                                   setLessonListeningFeedback({
-                                     isCorrect: correct,
-                                     correctAnswer: lt.audioText
-                                   });
-                                   if (correct) recordDailyCorrect();
-                                   recordLessonAnswer(correct);
-                                 }}
+                                  setLessonListeningFeedback({
+                                    isCorrect: correct,
+                                    correctAnswer: lt.audioText
+                                  });
+                                  if (correct) recordDailyCorrect();
+                                  recordLessonAnswer(correct);
+                                }}
                                 disabled={lessonListeningSelected.length === 0}
                               >
                                 Check Answer
@@ -10061,12 +10062,12 @@ function App() {
                           {!isChecked && (
                             <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
                               <button type="button" className="primary-btn" style={{ padding: '12px 40px', borderRadius: '12px' }}
-                                 onClick={() => {
-                                   const correct = built.trim().toUpperCase() === item.answer.trim().toUpperCase();
-                                   setLessonUnscrambleFeedback({ isCorrect: correct, correctAnswer: item.answer });
-                                   if (correct) recordDailyCorrect();
-                                   recordLessonAnswer(correct);
-                                 }}
+                                onClick={() => {
+                                  const correct = built.trim().toUpperCase() === item.answer.trim().toUpperCase();
+                                  setLessonUnscrambleFeedback({ isCorrect: correct, correctAnswer: item.answer });
+                                  if (correct) recordDailyCorrect();
+                                  recordLessonAnswer(correct);
+                                }}
                                 disabled={lessonUnscrambleSelected.length === 0}>
                                 Check Answer
                               </button>
@@ -10140,12 +10141,12 @@ function App() {
                           {!isChecked && (
                             <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
                               <button type="button" className="primary-btn" style={{ padding: '12px 40px', borderRadius: '12px' }}
-                                 onClick={() => {
-                                   const correct = lessonImageChoiceSel === item.correctIndex;
-                                   setLessonImageChoiceFeedback({ isCorrect: correct });
-                                   if (correct) recordDailyCorrect();
-                                   recordLessonAnswer(correct);
-                                 }}
+                                onClick={() => {
+                                  const correct = lessonImageChoiceSel === item.correctIndex;
+                                  setLessonImageChoiceFeedback({ isCorrect: correct });
+                                  if (correct) recordDailyCorrect();
+                                  recordLessonAnswer(correct);
+                                }}
                                 disabled={lessonImageChoiceSel === null}>Check Answer</button>
                             </div>
                           )}
