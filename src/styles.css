@@ -8912,6 +8912,41 @@ select:focus {
   box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
+.flz-sprint-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.flz-sprint-option-btn {
+  background: var(--panel-strong);
+  border: 2px solid var(--line);
+  border-radius: 14px;
+  padding: 16px 20px;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  text-align: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+}
+
+.flz-sprint-option-btn:not(:disabled):hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+}
+
+.flz-sprint-option-btn:disabled {
+  opacity: 0.8;
+  cursor: not-allowed;
+}
+
 .flz-submit-btn {
   background: var(--accent);
   color: #fff;
