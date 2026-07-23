@@ -771,7 +771,8 @@ export const assessmentTranslations = {
     "Call the bank if you see a wrong charge.": "अगर आपको कोई गलत चार्ज दिखे तो बैंक को कॉल करें।",
     "Pension Office Notice: Senior citizens must submit a Life Certificate (Jeevan Pramaan) every November to continue receiving pension. Visit your nearest bank branch with Aadhaar and fingerprint.": "पेंशन कार्यालय नोटिस: वरिष्ठ नागरिकों को पेंशन प्राप्त करना जारी रखने के लिए हर नवंबर में एक जीवन प्रमाण पत्र (जीवन प्रमाण) जमा करना होगा। आधार और फिंगरप्रिंट के साथ अपनी नजदीकी बैंक शाखा में जाएँ।",
     "Mobile Banking Alert: A transaction of 5,000 has been debited from your account ending in 4321. If you did not authorise this, please call our helpline at 1800 XXXX XXXX immediately.": "मोबाइल बैंकिंग अलर्ट: आपके खाते से 4321 पर समाप्त होने वाले 5,000 का लेनदेन डेबिट किया गया है। यदि आपने इसे अधिकृत नहीं किया है, तो कृपया तुरंत हमारी हेल्पलाइन 1800 XXXX XXXX पर कॉल करें।",
-    "Health Camp Notice: A free health checkup camp will be held at the Community Hall on Sunday, 20th. All senior citizens above 60 years are welcome. Bring your Aadhaar card.": "स्वास्थ्य शिविर सूचना: 20 तारीख रविवार को सामुदायिक भवन में निःशुल्क स्वास्थ्य जांच शिविर लगाया जायेगा। 60 वर्ष से ऊपर के सभी वरिष्ठ नागरिकों का स्वागत है। अपना आधार कार्ड लाओ."
+    "Health Camp Notice: A free health checkup camp will be held at the Community Hall on Sunday, 20th. All senior citizens above 60 years are welcome. Bring your Aadhaar card.": "स्वास्थ्य शिविर सूचना: 20 तारीख रविवार को सामुदायिक भवन में निःशुल्क स्वास्थ्य जांच शिविर लगाया जायेगा। 60 वर्ष से ऊपर के सभी वरिष्ठ नागरिकों का स्वागत है। अपना आधार कार्ड लाओ.",
+    "Listen to the sentence and arrange the word blocks:": "वाक्य को सुनें और शब्द ब्लॉकों को व्यवस्थित करें:"
   },
   "Kannada": {
     "10": "10",
@@ -989,6 +990,7 @@ export const assessmentTranslations = {
     "Which letter starts the sound of the word 'Game'?": "ಯಾವ ಅಕ್ಷರವು 'Game' ಪದದ ಧ್ವನಿಯನ್ನು ಪ್ರಾರಂಭಿಸುತ್ತದೆ?",
     "Find the capital letter 'Z'.": "ದೊಡ್ಡ ಅಕ್ಷರ 'Z' ಅನ್ನು ಹುಡುಕಿ.",
     "Test checking capability at Level 2 for teen learners.": "ಹದಿಹರೆಯದ ಕಲಿಯುವವರಿಗೆ ಹಂತ 2 ರಲ್ಲಿ ಪರೀಕ್ಷಾ ಸಾಮರ್ಥ್ಯವನ್ನು ಪರೀಕ್ಷಿಸಿ.",
+    "Listen to the sentence and arrange the word blocks:": "ವಾಕ್ಯವನ್ನು ಆಲಿಸಿ ಮತ್ತು ಪದ ಬ್ಲಾಕ್ಗಳನ್ನು ಜೋಡಿಸಿ:",
     "Bill": "ಬಿಲ್",
     "Bull": "ಬುಲ್",
     "Bat": "ಬ್ಯಾಟ್",
@@ -2317,7 +2319,8 @@ export const assessmentTranslations = {
     "Submit your life certificate every year.": "ప్రతి సంవత్సరం మీ లైఫ్ సర్టిఫికేట్ సమర్పించండి.",
     "Pension Office Notice: Senior citizens must submit a Life Certificate (Jeevan Pramaan) every November to continue receiving pension. Visit your nearest bank branch with Aadhaar and fingerprint.": "పెన్షన్ ఆఫీస్ నోటీసు: సీనియర్ సిటిజన్లు పెన్షన్ పొందడం కొనసాగించడానికి ప్రతి నవంబర్‌లో తప్పనిసరిగా లైఫ్ సర్టిఫికేట్ (జీవన్ ప్రమాణ్) సమర్పించాలి. ఆధార్ మరియు వేలిముద్రతో మీ సమీపంలోని బ్యాంక్ శాఖను సందర్శించండి.",
     "Health Camp Notice: A free health checkup camp will be held at the Community Hall on Sunday, 20th. All senior citizens above 60 years are welcome. Bring your Aadhaar card.": "ఆరోగ్య శిబిరం నోటీసు: 20వ తేదీ ఆదివారం కమ్యూనిటీ హాలులో ఉచిత ఆరోగ్య పరీక్ష శిబిరం నిర్వహించనున్నారు. 60 ఏళ్లు పైబడిన వృద్ధులందరికీ స్వాగతం. మీ ఆధార్ కార్డు తీసుకురండి.",
-    "Mobile Banking Alert: A transaction of 5,000 has been debited from your account ending in 4321. If you did not authorise this, please call our helpline at 1800 XXXX XXXX immediately.": "మొబైల్ బ్యాంకింగ్ అలర్ట్: 4321తో ముగిసే మీ ఖాతా నుండి 5,000 లావాదేవీ డెబిట్ చేయబడింది. మీరు దీన్ని ప్రామాణీకరించకపోతే, దయచేసి మా హెల్ప్‌లైన్‌కి 1800 XXXX XXXXకి వెంటనే కాల్ చేయండి."
+    "Mobile Banking Alert: A transaction of 5,000 has been debited from your account ending in 4321. If you did not authorise this, please call our helpline at 1800 XXXX XXXX immediately.": "మొబైల్ బ్యాంకింగ్ అలర్ట్: 4321తో ముగిసే మీ ఖాతా నుండి 5,000 లావాదేవీ డెబిట్ చేయబడింది. మీరు దీన్ని ప్రామాణీకరించకపోతే, దయచేసి మా హెల్ప్‌లైన్‌కి 1800 XXXX XXXXకి వెంటనే కాల్ చేయండి.",
+    "Listen to the sentence and arrange the word blocks:": "వాక్యాన్ని వినండి మరియు పద బ్లాక్‌లను అమర్చండి:"
   },
   "Tamil": {
     "10": "10",
@@ -3090,6 +3093,7 @@ export const assessmentTranslations = {
     "Health Camp Notice: A free health checkup camp will be held at the Community Hall on Sunday, 20th. All senior citizens above 60 years are welcome. Bring your Aadhaar card.": "சுகாதார முகாம் அறிவிப்பு: ஞாயிற்றுக்கிழமை 20-ஆம் தேதி சமுதாயக் கூடத்தில் இலவச சுகாதாரப் பரிசோதனை முகாம் நடைபெறுகிறது. 60 வயதுக்கு மேற்பட்ட மூத்த குடிமக்கள் அனைவரும் வரவேற்கப்படுகிறார்கள். உங்கள் ஆதார் அட்டையை கொண்டு வாருங்கள்.",
     "Submit your life certificate every year.": "ஒவ்வொரு ஆண்டும் உங்கள் வாழ்க்கைச் சான்றிதழைச் சமர்ப்பிக்கவும்.",
     "The health camp is on Sunday.": "ஞாயிற்றுக்கிழமை சுகாதார முகாம் நடைபெறுகிறது.",
-    "Pension Office Notice: Senior citizens must submit a Life Certificate (Jeevan Pramaan) every November to continue receiving pension. Visit your nearest bank branch with Aadhaar and fingerprint.": "ஓய்வூதிய அலுவலக அறிவிப்பு: மூத்த குடிமக்கள் ஓய்வூதியத்தைப் பெறுவதற்கு ஒவ்வொரு நவம்பரில் வாழ்க்கைச் சான்றிதழை (ஜீவன் பிரமான்) சமர்ப்பிக்க வேண்டும். ஆதார் மற்றும் கைரேகையுடன் உங்கள் அருகிலுள்ள வங்கிக் கிளைக்குச் செல்லவும்."
+    "Pension Office Notice: Senior citizens must submit a Life Certificate (Jeevan Pramaan) every November to continue receiving pension. Visit your nearest bank branch with Aadhaar and fingerprint.": "ஓய்வூதிய அலுவலக அறிவிப்பு: மூத்த குடிமக்கள் ஓய்வூதியத்தைப் பெறுவதற்கு ஒவ்வொரு நவம்பரில் வாழ்க்கைச் சான்றிதழை (ஜீவன் பிரமான்) சமர்ப்பிக்க வேண்டும். ஆதார் மற்றும் கைரேகையுடன் உங்கள் அருகிலுள்ள வங்கிக் கிளைக்குச் செல்லவும்.",
+    "Listen to the sentence and arrange the word blocks:": "வாக்கியத்தைக் கேட்டு வார்த்தைத் தொகுதிகளை வரிசைப்படுத்தவும்:"
   }
 };

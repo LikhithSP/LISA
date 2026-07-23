@@ -3412,7 +3412,7 @@ function App() {
   const [isDark, setIsDark] = useState(() => {
     const stored = localStorage.getItem("lisa_theme");
     if (stored) return stored === "dark";
-    return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    return false;
   });
 
   useEffect(() => {
@@ -5658,28 +5658,6 @@ function App() {
               {lang.native}
             </button>
           ))}
-
-          <div style={{ fontSize: "0.75rem", fontWeight: "700", textTransform: "uppercase", color: "var(--muted)", marginTop: "12px", marginBottom: "6px" }}>
-            {t("learningLanguage")}
-          </div>
-          {[
-            { key: "English", native: "English" },
-            { key: "Hindi", native: "हिन्दी" },
-            { key: "Kannada", native: "ಕನ್ನಡ" },
-            { key: "Telugu", native: "తెలుగు" },
-            { key: "Tamil", native: "தமிழ்" },
-          ].map((lang) => (
-            <button
-              key={`learn_${lang.key}`}
-              className={`lang-dropdown-item ${learningLanguage === lang.key ? "active" : ""}`}
-              onClick={() => {
-                handleLearningLanguageSelect(lang.key);
-                setLangDropdownOpen(false);
-              }}
-            >
-              {lang.native}
-            </button>
-          ))}
         </div>
       )}
     </div>
@@ -6326,12 +6304,12 @@ function App() {
 
                             {/* Arranged Sentence Workspace */}
                             <div className="sentence-workspace-label" style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '8px', color: 'var(--muted)' }}>
-                              Your Answer:
+                              {t("yourAnswer")}
                             </div>
                             <div className="sentence-workspace">
                               {arrangedBlockIndices.length === 0 ? (
                                 <span style={{ color: 'var(--muted)', fontSize: '0.95rem', fontStyle: 'italic' }}>
-                                  Click the word blocks below in the correct order to arrange the sentence...
+                                  {t("clickWordBlocksTip")}
                                 </span>
                               ) : (
                                 arrangedBlockIndices.map((blockIdx, pos) => {
@@ -6358,7 +6336,7 @@ function App() {
 
                             {/* Word Bank Pool */}
                             <div className="word-bank-label" style={{ fontWeight: 600, fontSize: '0.9rem', marginBottom: '8px', color: 'var(--muted)' }}>
-                              Word Bank:
+                              {t("wordBank")}
                             </div>
                             <div className="word-bank">
                               {shuffledWordBlocks.map((word, idx) => {
@@ -6386,7 +6364,7 @@ function App() {
                             {/* Manual Fallback Option */}
                             <details style={{ marginTop: '16px', cursor: 'pointer' }}>
                               <summary style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', userSelect: 'none' }}>
-                                Type manually instead
+                                {t("typeManuallyInstead")}
                               </summary>
                               <div style={{ marginTop: '8px' }}>
                                 <textarea
@@ -6406,7 +6384,7 @@ function App() {
 
                     <div className="assessment-nav-bar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', gap: '12px' }}>
                       <div>
-                        {currentStep > 0 && (
+                        {currentStep > 0 ? (
                           <button
                             type="button"
                             className="secondary-btn nav-btn"
@@ -6418,6 +6396,19 @@ function App() {
                             }}
                           >
                             <span style={{ display: 'inline-block', transform: 'scaleX(-1)' }}>➜</span> {t("prevBtn")}
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            className="secondary-btn nav-btn"
+                            onClick={() => {
+                              setAssessmentState("not_started");
+                              setSpokenTranscript("");
+                              setMicError("");
+                              setManualTextFallback("");
+                            }}
+                          >
+                            <span style={{ display: 'inline-block', transform: 'scaleX(-1)' }}>➜</span> {t("backBtn")}
                           </button>
                         )}
                       </div>
