@@ -3441,6 +3441,18 @@ function App() {
   const [assessmentState, setAssessmentState] = useState("not_started"); // "not_started" | "answering" | "results"
   const [assessmentQuestionsList, setAssessmentQuestionsList] = useState([]);
 
+  // Reset assessment when Learning Language changes to prevent stale questions
+  // from a previously selected language from being displayed.
+  useEffect(() => {
+    setAssessmentQuestionsList([]);
+    setAssessmentState("not_started");
+    setCurrentStep(0);
+    setSelectedAnswers({});
+    setWritingAnswers({});
+    setReadingAttempts({});
+    setTranslatedQ(null);
+  }, [learningLanguage]);
+
   // Only count practice time while the learner is actively in a lesson, practice, or assessment.
   useEffect(() => {
     isActiveLearningRef.current =
