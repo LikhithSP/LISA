@@ -1,30 +1,121 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 
 // ─── Word Sprint Game ──────────────────────────────────────────────────────────
-const WORD_SPRINT_WORDS = [
-  { word: "apple", emoji: "🍎", hint: "A red or green fruit" },
-  { word: "bridge", emoji: "🌉", hint: "You cross water on it" },
-  { word: "cloud", emoji: "☁️", hint: "Found in the sky" },
-  { word: "dream", emoji: "💭", hint: "What you see when sleeping" },
-  { word: "earth", emoji: "🌍", hint: "Our home planet" },
-  { word: "fire", emoji: "🔥", hint: "Hot and bright" },
-  { word: "garden", emoji: "🌷", hint: "Where flowers grow" },
-  { word: "happy", emoji: "😊", hint: "A joyful feeling" },
-  { word: "island", emoji: "🏝️", hint: "Land surrounded by water" },
-  { word: "jungle", emoji: "🌿", hint: "A dense tropical forest" },
-  { word: "kite", emoji: "🪁", hint: "Flies in the wind" },
-  { word: "light", emoji: "💡", hint: "Helps you see in the dark" },
-  { word: "moon", emoji: "🌙", hint: "Glows at night" },
-  { word: "nest", emoji: "🪺", hint: "A bird's home" },
-  { word: "ocean", emoji: "🌊", hint: "A vast body of water" },
-  { word: "pencil", emoji: "✏️", hint: "Used for writing" },
-  { word: "queen", emoji: "👑", hint: "A royal ruler" },
-  { word: "river", emoji: "🏞️", hint: "Flows to the sea" },
-  { word: "smile", emoji: "😄", hint: "Show it when happy" },
-  { word: "train", emoji: "🚂", hint: "Travels on rails" },
-];
+// ─── Word Sprint Game ──────────────────────────────────────────────────────────
+const WORD_SPRINT_WORDS_BY_LANG = {
+  English: [
+    { word: "apple", emoji: "🍎", hint: "A red or green fruit" },
+    { word: "bridge", emoji: "🌉", hint: "You cross water on it" },
+    { word: "cloud", emoji: "☁️", hint: "Found in the sky" },
+    { word: "dream", emoji: "💭", hint: "What you see when sleeping" },
+    { word: "earth", emoji: "🌍", hint: "Our home planet" },
+    { word: "fire", emoji: "🔥", hint: "Hot and bright" },
+    { word: "garden", emoji: "🌷", hint: "Where flowers grow" },
+    { word: "happy", emoji: "😊", hint: "A joyful feeling" },
+    { word: "island", emoji: "🏝️", hint: "Land surrounded by water" },
+    { word: "jungle", emoji: "🌿", hint: "A dense tropical forest" },
+    { word: "kite", emoji: "🪁", hint: "Flies in the wind" },
+    { word: "light", emoji: "💡", hint: "Helps you see in the dark" },
+    { word: "moon", emoji: "🌙", hint: "Glows at night" },
+    { word: "nest", emoji: "🪺", hint: "A bird's home" },
+    { word: "ocean", emoji: "🌊", hint: "A vast body of water" },
+    { word: "pencil", emoji: "✏️", hint: "Used for writing" },
+    { word: "queen", emoji: "👑", hint: "A royal ruler" },
+    { word: "river", emoji: "🏞️", hint: "Flows to the sea" },
+    { word: "smile", emoji: "😄", hint: "Show it when happy" },
+    { word: "train", emoji: "🚂", hint: "Travels on rails" },
+  ],
+  Hindi: [
+    { word: "सेब", emoji: "🍎", hint: "एक लाल या हरा फल" },
+    { word: "पुल", emoji: "🌉", hint: "आप इससे पानी पार करते हैं" },
+    { word: "बादल", emoji: "☁️", hint: "आसमान में पाया जाता है" },
+    { word: "सपना", emoji: "💭", hint: "सोते समय जो आप देखते हैं" },
+    { word: "पृथ्वी", emoji: "🌍", hint: "हमारा गृह ग्रह" },
+    { word: "आग", emoji: "🔥", hint: "गर्म और चमकदार" },
+    { word: "बगीचा", emoji: "🌷", hint: "जहाँ फूल उगते हैं" },
+    { word: "खुश", emoji: "😊", hint: "एक आनंदमय भावना" },
+    { word: "द्वीप", emoji: "🏝️", hint: "पानी से घिरी भूमि" },
+    { word: "जंगल", emoji: "🌿", hint: "एक घना उष्णकटिबंधीय वन" },
+    { word: "पतंग", emoji: "🪁", hint: "हवा में उड़ती है" },
+    { word: "रोशनी", emoji: "💡", hint: "अंधेरे में देखने में मदद करती है" },
+    { word: "चाँद", emoji: "🌙", hint: "रात को चमकता है" },
+    { word: "घोंसला", emoji: "🪺", hint: "एक पक्षी का घर" },
+    { word: "महासागर", emoji: "🌊", hint: "पानी का एक विशाल निकाय" },
+    { word: "पेंसिल", emoji: "✏️", hint: "लिखने के लिए इस्तेमाल की जाती है" },
+    { word: "रानी", emoji: "👑", hint: "एक शाही शासक" },
+    { word: "नदी", emoji: "🏞️", hint: "समुद्र की ओर बहती है" },
+    { word: "मुस्कान", emoji: "😄", hint: "खुश होने पर दिखाएं" },
+    { word: "ट्रेन", emoji: "🚂", hint: "पटरी पर चलती है" },
+  ],
+  Kannada: [
+    { word: "ಸೇಬು", emoji: "🍎", hint: "ಒಂದು ಕೆಂಪು ಅಥವಾ ಹಸಿರು ಹಣ್ಣು" },
+    { word: "ಸೇತುವೆ", emoji: "🌉", hint: "ನೀವು ಇದರ ಮೇಲೆ ನೀರನ್ನು ದಾಟುತ್ತೀರಿ" },
+    { word: "ಮೋಡ", emoji: "☁️", hint: "ಆಕಾಶದಲ್ಲಿ ಕಂಡುಬರುತ್ತದೆ" },
+    { word: "ಕನಸು", emoji: "💭", hint: "ನಿದ್ರಿಸುವಾಗ ನೀವು ಕಾಣುವ ದೃಶ್ಯ" },
+    { word: "ಭೂಮಿ", emoji: "🌍", hint: "ನಮ್ಮ ವಾಸಸ್ಥಾನ ಗ್ರಹ" },
+    { word: "ಬೆಂಕಿ", emoji: "🔥", hint: "ಬಿಸಿ ಮತ್ತು ಪ್ರಕಾಶಮಾನ" },
+    { word: "ತೋಟ", emoji: "🌷", hint: "ಹೂವುಗಳು ಬೆಳೆಯುವ ಸ್ಥಳ" },
+    { word: "ಸಂತೋಷ", emoji: "😊", hint: "ಆನಂದದಾಯಕ ಭಾವನೆ" },
+    { word: "ದ್ವೀಪ", emoji: "🏝️", hint: "ನೀರಿನಿಂದ ಆವೃತವಾದ ಭೂಮಿ" },
+    { word: "ಅರಣ್ಯ", emoji: "🌿", hint: "ದಟ್ಟವಾದ ಉಷ್ಣವಲಯದ ಕಾಡು" },
+    { word: "ಗಾಳಿಪಟ", emoji: "🪁", hint: "ಗಾಳಿಯಲ್ಲಿ ಹಾರುತ್ತದೆ" },
+    { word: "ಬೆಳಕು", emoji: "💡", hint: "ಕತ್ತಲಲ್ಲಿ ನೋಡಲು ಸಹಾಯ ಮಾಡುತ್ತದೆ" },
+    { word: "ಚಂದ್ರ", emoji: "🌙", hint: "ರಾತ್ರಿಯಲ್ಲಿ ಹೊಳೆಯುತ್ತದೆ" },
+    { word: "ಗೂಡು", emoji: "🪺", hint: "ಹಕ್ಕಿಯ ಮನೆ" },
+    { word: "ಸಾಗರ", emoji: "🌊", hint: "ಬೃಹತ್ ಜಲರಾಶಿ" },
+    { word: "ಪೆನ್ಸಿಲ್", emoji: "✏️", hint: "ಬರೆಯಲು ಬಳಸಲಾಗುತ್ತದೆ" },
+    { word: "ರಾಣಿ", emoji: "👑", hint: "ರಾಜಮನೆತನದ ಆಡಳಿತಗಾರ್ತಿ" },
+    { word: "ನದಿ", emoji: "🏞️", hint: "ಸಮುದ್ರಕ್ಕೆ ಹರಿಯುತ್ತದೆ" },
+    { word: "ನಗು", emoji: "😄", hint: "ಖುಷಿಯಾದಾಗ ತೋರಿಸಿ" },
+    { word: "ರೈಲು", emoji: "🚂", hint: "ಹಳಿಗಳ ಮೇಲೆ ಚಲಿಸುತ್ತದೆ" },
+  ],
+  Telugu: [
+    { word: "ఆపిల్", emoji: "🍎", hint: "ఒక ఎరుపు లేదా ఆకుపచ్చ పండు" },
+    { word: "వంతెన", emoji: "🌉", hint: "దీనిపై నీటిని దాటుతాము" },
+    { word: "మేఘం", emoji: "☁️", hint: "ఆకాశంలో కనిపిస్తుంది" },
+    { word: "కల", emoji: "💭", hint: "నిద్రపోతున్నప్పుడు వచ్చేది" },
+    { word: "భూమి", emoji: "🌍", hint: "మన నివాస గ్రహం" },
+    { word: "నిప్పు", emoji: "🔥", hint: "వేడిగా మరియు ప్రకాశవంతంగా ఉంటుంది" },
+    { word: "తోట", emoji: "🌷", hint: "పువ్వులు పెరిగే స్థలం" },
+    { word: "సంతోషం", emoji: "😊", hint: "ఒక ఆనందకరమైన అనుభూతి" },
+    { word: "ద్వీపం", emoji: "🏝️", hint: "నీటితో చుట్టబడిన భూమి" },
+    { word: "అడవి", emoji: "🌿", hint: "దట్టమైన ఉష్ణమండల అరణ్యం" },
+    { word: "గాలిపటం", emoji: "🪁", hint: "గాలిలో ఎగురుతుంది" },
+    { word: "వెలుగు", emoji: "💡", hint: "చీకటిలో చూడటానికి సహాయపడుతుంది" },
+    { word: "చంద్రుడు", emoji: "🌙", hint: "రాత్రి వేళ ప్రకాశిస్తాడు" },
+    { word: "గూడు", emoji: "🪺", hint: "పక్షి నివాసం" },
+    { word: "సముద్రం", emoji: "🌊", hint: "భారీ జలరాశి" },
+    { word: "పెన్సిల్", emoji: "✏️", hint: "రాయడానికి ఉపయోగిస్తాము" },
+    { word: "రాణి", emoji: "👑", hint: "ఒక రాజ కుటుంబ పాలకురాలు" },
+    { word: "నది", emoji: "🏞️", hint: "సముద్రం వైపు ప్రవహిస్తుంది" },
+    { word: "నవ్వు", emoji: "😄", hint: "ఆనందంగా ఉన్నప్పుడు చూపించేది" },
+    { word: "రైలు", emoji: "🚂", hint: "పట్టాలపై నడుస్తుంది" },
+  ],
+  Tamil: [
+    { word: "ஆப்பிள்", emoji: "🍎", hint: "ஒரு சிவப்பு அல்லது பச்சை பழம்" },
+    { word: "பாலம்", emoji: "🌉", hint: "இதன் மூலம் நீங்கள் நீரை கடக்கலாம்" },
+    { word: "மேகம்", emoji: "☁️", hint: "வானத்தில் காணப்படும்" },
+    { word: "கனவு", emoji: "💭", hint: "தூங்கும் போது நீங்கள் காண்பது" },
+    { word: "பூமி", emoji: "🌍", hint: "நமது தாய் கிரகம்" },
+    { word: "நெருப்பு", emoji: "🔥", hint: "வெப்பமான மற்றும் பிரகாசமானது" },
+    { word: "தோட்டம்", emoji: "🌷", hint: "பூக்கள் வளரும் இடம்" },
+    { word: "மகிழ்ச்சி", emoji: "😊", hint: "ஒரு மகிழ்ச்சியான உணர்வு" },
+    { word: "தீவு", emoji: "🏝️", hint: "நீரால் சூழப்பட்ட நிலப்பகுதி" },
+    { word: "காடு", emoji: "🌿", hint: "அடர்ந்த வெப்பமண்டல காடு" },
+    { word: "பட்டம்", emoji: "🪁", hint: "காற்றில் பறக்கும்" },
+    { word: "வெளிச்சம்", emoji: "💡", hint: "இருட்டில் பார்க்க உதவும்" },
+    { word: "நிலா", emoji: "🌙", hint: "இரவில் ஒளிரும்" },
+    { word: "கூடு", emoji: "🪺", hint: "ஒரு பறவையின் இல்லம்" },
+    { word: "பெருங்கடல்", emoji: "🌊", hint: "ஒரு பரந்த நீர்நிலை" },
+    { word: "பென்சில்", emoji: "✏️", hint: "எழுதுவதற்குப் பயன்படும்" },
+    { word: "ராணி", emoji: "👑", hint: "ஒரு அரச ஆட்சியாளர்" },
+    { word: "ஆறு", emoji: "🏞️", hint: "கடலை நோக்கி பாய்கிறது" },
+    { word: "புன்னகை", emoji: "😄", hint: "மகிழ்ச்சியாக இருக்கும்போது காட்டுங்கள்" },
+    { word: "ரயில்", emoji: "🚂", hint: "தண்டவாளத்தில் செல்லும்" },
+  ]
+};
 
-function WordSprintGame({ t = (key) => key, onXpEarned, onClose }) {
+function WordSprintGame({ t = (key) => key, learningLanguage = "English", onXpEarned, onClose }) {
   const [phase, setPhase] = useState("intro");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [input, setInput] = useState("");
@@ -35,11 +126,15 @@ function WordSprintGame({ t = (key) => key, onXpEarned, onClose }) {
   const [feedback, setFeedback] = useState(null);
   const [words, setWords] = useState([]);
   const [skipped, setSkipped] = useState(0);
+  const [currentOptions, setCurrentOptions] = useState([]);
   const inputRef = useRef(null);
   const timerRef = useRef(null);
 
+  const currentWord = words[currentIndex];
+
   const startGame = () => {
-    const shuffled = [...WORD_SPRINT_WORDS].sort(() => Math.random() - 0.5);
+    const list = WORD_SPRINT_WORDS_BY_LANG[learningLanguage] || WORD_SPRINT_WORDS_BY_LANG["English"];
+    const shuffled = [...list].sort(() => Math.random() - 0.5);
     setWords(shuffled);
     setCurrentIndex(0);
     setInput("");
@@ -67,11 +162,21 @@ function WordSprintGame({ t = (key) => key, onXpEarned, onClose }) {
     return () => clearInterval(timerRef.current);
   }, [phase]);
 
-  const currentWord = words[currentIndex];
+  // Generate 3 blocks of options for non-English target languages
+  useEffect(() => {
+    if (phase === "playing" && currentWord && learningLanguage !== "English") {
+      const correct = currentWord.word;
+      const otherWords = words.filter(w => w.word !== correct).map(w => w.word);
+      const shuffledOthers = [...otherWords].sort(() => Math.random() - 0.5);
+      const options = [correct, shuffledOthers[0], shuffledOthers[1]].filter(Boolean);
+      const shuffledOptions = options.sort(() => Math.random() - 0.5);
+      setCurrentOptions(shuffledOptions);
+    }
+  }, [currentIndex, words, phase, learningLanguage, currentWord]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!currentWord) return;
+    if (!currentWord || feedback) return;
     const trimmed = input.trim().toLowerCase();
     if (trimmed === currentWord.word.toLowerCase()) {
       const newCombo = combo + 1;
@@ -80,22 +185,49 @@ function WordSprintGame({ t = (key) => key, onXpEarned, onClose }) {
       const points = newCombo >= 3 ? 3 : newCombo >= 2 ? 2 : 1;
       setScore((s) => s + points);
       setFeedback("correct");
-      setTimeout(() => setFeedback(null), 400);
     } else {
       setCombo(0);
       setFeedback("wrong");
-      setTimeout(() => setFeedback(null), 400);
     }
     setInput("");
-    setCurrentIndex((i) => {
-      if (i + 1 >= words.length) {
-        clearInterval(timerRef.current);
-        setPhase("result");
-        return i;
-      }
-      return i + 1;
-    });
-    inputRef.current?.focus();
+    setTimeout(() => {
+      setFeedback(null);
+      setCurrentIndex((i) => {
+        if (i + 1 >= words.length) {
+          clearInterval(timerRef.current);
+          setPhase("result");
+          return i;
+        }
+        return i + 1;
+      });
+      inputRef.current?.focus();
+    }, 500);
+  };
+
+  const handleOptionSelect = (selectedWord) => {
+    if (!currentWord || feedback) return;
+    if (selectedWord === currentWord.word) {
+      const newCombo = combo + 1;
+      setCombo(newCombo);
+      setMaxCombo((m) => Math.max(m, newCombo));
+      const points = newCombo >= 3 ? 3 : newCombo >= 2 ? 2 : 1;
+      setScore((s) => s + points);
+      setFeedback("correct");
+    } else {
+      setCombo(0);
+      setFeedback("wrong");
+    }
+    setTimeout(() => {
+      setFeedback(null);
+      setCurrentIndex((i) => {
+        if (i + 1 >= words.length) {
+          clearInterval(timerRef.current);
+          setPhase("result");
+          return i;
+        }
+        return i + 1;
+      });
+    }, 500);
   };
 
   const handleSkip = () => {
@@ -191,55 +323,129 @@ function WordSprintGame({ t = (key) => key, onXpEarned, onClose }) {
           {feedback === "wrong" && <div className="flz-feedback wrong">{t("tryAgainFeedback")}</div>}
         </div>
       )}
-      <form onSubmit={handleSubmit} className="flz-sprint-form">
-        <input
-          ref={inputRef}
-          className="flz-sprint-input"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder={t("typeWordPlaceholder")}
-          autoComplete="off"
-          autoCorrect="off"
-          autoCapitalize="off"
-          spellCheck="false"
-        />
-        <button type="submit" className="flz-submit-btn">→</button>
-      </form>
+
+      {learningLanguage === "English" ? (
+        <form onSubmit={handleSubmit} className="flz-sprint-form">
+          <input
+            ref={inputRef}
+            className="flz-sprint-input"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder={t("typeWordPlaceholder")}
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="off"
+            spellCheck="false"
+          />
+          <button type="submit" className="flz-submit-btn">→</button>
+        </form>
+      ) : (
+        <div className="flz-sprint-options">
+          {currentOptions.map((opt) => (
+            <button
+              key={opt}
+              className="flz-sprint-option-btn"
+              onClick={() => handleOptionSelect(opt)}
+              disabled={feedback !== null}
+            >
+              {opt}
+            </button>
+          ))}
+        </div>
+      )}
+
       <button className="flz-skip-btn" onClick={handleSkip}>{t("skipBtn")}</button>
     </div>
   );
 }
 
 // ─── Word Scramble Game ───────────────────────────────────────────────────────
-const SCRAMBLE_WORDS = [
-  { word: "LEARN", category: "Education", emoji: "📚" },
-  { word: "SPEAK", category: "Skills", emoji: "🗣️" },
-  { word: "WRITE", category: "Skills", emoji: "✍️" },
-  { word: "STORY", category: "Language", emoji: "📖" },
-  { word: "BRAVE", category: "Traits", emoji: "🦁" },
-  { word: "SMILE", category: "Emotions", emoji: "😊" },
-  { word: "CLEAN", category: "Adjectives", emoji: "✨" },
-  { word: "BREAD", category: "Food", emoji: "🍞" },
-  { word: "PLANT", category: "Nature", emoji: "🌱" },
-  { word: "GLOBE", category: "World", emoji: "🌍" },
-  { word: "MUSIC", category: "Arts", emoji: "🎵" },
-  { word: "LIGHT", category: "Science", emoji: "💡" },
-  { word: "HAPPY", category: "Emotions", emoji: "😄" },
-  { word: "RIVER", category: "Nature", emoji: "🏞️" },
-  { word: "DREAM", category: "Concepts", emoji: "💭" },
-];
+const SCRAMBLE_WORDS_BY_LANG = {
+  English: [
+    { word: "LEARN", tiles: ["L", "E", "A", "R", "N"], category: "Education", emoji: "📚" },
+    { word: "SPEAK", tiles: ["S", "P", "E", "A", "K"], category: "Skills", emoji: "🗣️" },
+    { word: "WRITE", tiles: ["W", "R", "I", "T", "E"], category: "Skills", emoji: "✍️" },
+    { word: "STORY", tiles: ["S", "T", "O", "R", "Y"], category: "Language", emoji: "📖" },
+    { word: "BRAVE", tiles: ["B", "R", "A", "V", "E"], category: "Traits", emoji: "🦁" },
+    { word: "SMILE", tiles: ["S", "M", "I", "L", "E"], category: "Emotions", emoji: "😊" },
+    { word: "CLEAN", tiles: ["C", "L", "E", "A", "N"], category: "Adjectives", emoji: "✨" },
+    { word: "BREAD", tiles: ["B", "R", "E", "A", "D"], category: "Food", emoji: "🍞" },
+    { word: "PLANT", tiles: ["P", "L", "A", "N", "T"], category: "Nature", emoji: "🌱" },
+    { word: "GLOBE", tiles: ["G", "L", "O", "B", "E"], category: "World", emoji: "🌍" },
+    { word: "MUSIC", tiles: ["M", "U", "S", "I", "C"], category: "Arts", emoji: "🎵" },
+    { word: "LIGHT", tiles: ["L", "I", "G", "H", "T"], category: "Science", emoji: "💡" },
+    { word: "HAPPY", tiles: ["H", "A", "P", "P", "Y"], category: "Emotions", emoji: "😄" },
+    { word: "RIVER", tiles: ["R", "I", "V", "E", "R"], category: "Nature", emoji: "🏞️" },
+    { word: "DREAM", tiles: ["D", "R", "E", "A", "M"], category: "Concepts", emoji: "💭" },
+  ],
+  Hindi: [
+    { word: "मुस्कान", tiles: ["मु", "स्का", "न"], category: "Emotions", emoji: "😊" },
+    { word: "साफ़", tiles: ["सा", "फ़"], category: "Adjectives", emoji: "✨" },
+    { word: "रोटी", tiles: ["रो", "टी"], category: "Food", emoji: "🍞" },
+    { word: "पौधा", tiles: ["पौ", "धा"], category: "Nature", emoji: "🌱" },
+    { word: "ग्लोब", tiles: ["ग्लो", "ब"], category: "World", emoji: "🌍" },
+    { word: "संगीत", tiles: ["सं", "गी", "त"], category: "Arts", emoji: "🎵" },
+    { word: "प्रकाश", tiles: ["प्र", "का", "श"], category: "Science", emoji: "💡" },
+    { word: "खुश", tiles: ["खु", "श"], category: "Emotions", emoji: "😄" },
+    { word: "नदी", tiles: ["न", "दी"], category: "Nature", emoji: "🏞️" },
+    { word: "सपना", tiles: ["स", "प", "ना"], category: "Concepts", emoji: "💭" },
+  ],
+  Kannada: [
+    { word: "ನಗು", tiles: ["ನ", "ಗು"], category: "Emotions", emoji: "😊" },
+    { word: "ಸ್ವಚ್ಛ", tiles: ["ಸ್ವ", "ಚ್ಛ"], category: "Adjectives", emoji: "✨" },
+    { word: "ರೊಟ್ಟಿ", tiles: ["ರೊ", "ಟ್ಟಿ"], category: "Food", emoji: "🍞" },
+    { word: "ಗಿಡ", tiles: ["ಗಿ", "ಡ"], category: "Nature", emoji: "🌱" },
+    { word: "ಭೂಗೋಳ", tiles: ["ಭೂ", "ಗೋ", "ಳ"], category: "World", emoji: "🌍" },
+    { word: "ಸಂಗೀತ", tiles: ["ಸಂ", "ಗೀ", "ತ"], category: "Arts", emoji: "🎵" },
+    { word: "ಬೆಳಕು", tiles: ["ಬೆ", "ಳ", "ಕು"], category: "Science", emoji: "💡" },
+    { word: "ಖುಷಿ", tiles: ["ಖು", "ಷಿ"], category: "Emotions", emoji: "😄" },
+    { word: "ನದಿ", tiles: ["ನ", "ದಿ"], category: "Nature", emoji: "🏞️" },
+    { word: "ಕನಸು", tiles: ["ಕ", "ನ", "ಸು"], category: "Concepts", emoji: "💭" },
+  ],
+  Telugu: [
+    { word: "నవ్వు", tiles: ["న", "వ్వు"], category: "Emotions", emoji: "😊" },
+    { word: "శుభ్రం", tiles: ["శు", "భ్రం"], category: "Adjectives", emoji: "✨" },
+    { word: "రొట్టె", tiles: ["రొ", "ట్టె"], category: "Food", emoji: "🍞" },
+    { word: "మొక్క", tiles: ["మొ", "క్క"], category: "Nature", emoji: "🌱" },
+    { word: "గ్లోబ్", tiles: ["గ్లో", "బ్"], category: "World", emoji: "🌍" },
+    { word: "సంగీతం", tiles: ["సం", "గీ", "తం"], category: "Arts", emoji: "🎵" },
+    { word: "వెలుగు", tiles: ["వె", "లు", "గు"], category: "Science", emoji: "💡" },
+    { word: "సంతోషం", tiles: ["సం", "తో", "షం"], category: "Emotions", emoji: "😄" },
+    { word: "నది", tiles: ["న", "ది"], category: "Nature", emoji: "🏞️" },
+    { word: "కల", tiles: ["క", "ల"], category: "Concepts", emoji: "💭" },
+  ],
+  Tamil: [
+    { word: "புன்னகை", tiles: ["புன்", "ன", "கை"], category: "Emotions", emoji: "😊" },
+    { word: "சுத்தம்", tiles: ["சுத்", "த", "ம்"], category: "Adjectives", emoji: "✨" },
+    { word: "ரொட்டி", tiles: ["ரொ", "ட்டி"], category: "Food", emoji: "🍞" },
+    { word: "செடி", tiles: ["செ", "டி"], category: "Nature", emoji: "🌱" },
+    { word: "உலகம்", tiles: ["உ", "ல", "க", "ம்"], category: "World", emoji: "🌍" },
+    { word: "இசை", tiles: ["இ", "சை"], category: "Arts", emoji: "🎵" },
+    { word: "ஒளி", tiles: ["ஒ", "ளி"], category: "Science", emoji: "💡" },
+    { word: "மகிழ்ச்சி", tiles: ["ம", "கிழ்", "ச்சி"], category: "Emotions", emoji: "😄" },
+    { word: "ஆறு", tiles: ["ஆ", "று"], category: "Nature", emoji: "🏞️" },
+    { word: "கனவு", tiles: ["க", "ன", "வு"], category: "Concepts", emoji: "💭" },
+  ]
+};
 
-function scrambleWord(word) {
-  const arr = word.split("");
+function scrambleTiles(tiles) {
+  const arr = [...tiles];
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
-  if (arr.join("") === word) return scrambleWord(word);
-  return arr.join("");
+  let isIdentical = true;
+  for (let i = 0; i < tiles.length; i++) {
+    if (tiles[i] !== arr[i]) {
+      isIdentical = false;
+      break;
+    }
+  }
+  if (isIdentical && tiles.length > 1) return scrambleTiles(tiles);
+  return arr;
 }
 
-function WordScrambleGame({ t = (key) => key, onXpEarned, onClose }) {
+function WordScrambleGame({ t = (key) => key, learningLanguage = "English", onXpEarned, onClose }) {
   const [phase, setPhase] = useState("intro");
   const [wordIdx, setWordIdx] = useState(0);
   const [words, setWords] = useState([]);
@@ -255,15 +461,40 @@ function WordScrambleGame({ t = (key) => key, onXpEarned, onClose }) {
   const loadWord = useCallback((wordList, idx) => {
     const wordObj = wordList[idx];
     if (!wordObj) return;
-    const sc = scrambleWord(wordObj.word);
+
+    // Pick 2 random extra tiles from other words in the list to confuse the user
+    const otherWords = wordList.filter(w => w.word !== wordObj.word);
+    const allOtherTiles = otherWords.flatMap(w => w.tiles);
+    const extraTiles = [];
+    let attempts = 0;
+    while (extraTiles.length < 2 && allOtherTiles.length > 0 && attempts < 100) {
+      attempts++;
+      const randTile = allOtherTiles[Math.floor(Math.random() * allOtherTiles.length)];
+      if (!wordObj.tiles.includes(randTile) && !extraTiles.includes(randTile)) {
+        extraTiles.push(randTile);
+      }
+      // Safeguard / fallback if no distinct other tiles exist
+      if (extraTiles.length < 2 && allOtherTiles.every(t => wordObj.tiles.includes(t) || extraTiles.includes(t))) {
+        const fallbackList = learningLanguage === "English" ? ["A", "E", "I", "O", "U", "S", "T"] : ["अ", "क", "म", "न", "ರ", "ಕ", "త", "న", "ப", "ம"];
+        const randFallback = fallbackList[Math.floor(Math.random() * fallbackList.length)];
+        if (!extraTiles.includes(randFallback)) {
+          extraTiles.push(randFallback);
+        }
+      }
+    }
+
+    const combinedTiles = [...wordObj.tiles, ...extraTiles];
+    const scTiles = scrambleTiles(combinedTiles);
+
     setSelected([]);
-    setRemaining(sc.split("").map((l, i) => ({ letter: l, id: i, used: false })));
+    setRemaining(scTiles.map((tile, i) => ({ letter: tile, id: i, used: false })));
     setFeedback(null);
     setTimeLeft(30);
-  }, []);
+  }, [learningLanguage]);
 
   const startGame = () => {
-    const shuffled = [...SCRAMBLE_WORDS].sort(() => Math.random() - 0.5).slice(0, 8);
+    const list = SCRAMBLE_WORDS_BY_LANG[learningLanguage] || SCRAMBLE_WORDS_BY_LANG["English"];
+    const shuffled = [...list].sort(() => Math.random() - 0.5).slice(0, 8);
     wordsRef.current = shuffled;
     setWords(shuffled);
     setWordIdx(0);
@@ -309,10 +540,11 @@ function WordScrambleGame({ t = (key) => key, onXpEarned, onClose }) {
     const newRem = remaining.map((l) => l.id === item.id ? { ...l, used: true } : l);
     setSelected(newSel);
     setRemaining(newRem);
-    const currentWord = wordsRef.current[wordIdx]?.word;
-    if (newSel.length === currentWord?.length) {
-      const formed = newSel.join("");
-      if (formed === currentWord) {
+    const currentWordObj = wordsRef.current[wordIdx];
+    const correctTiles = currentWordObj?.tiles || [];
+    if (newSel.length === correctTiles.length) {
+      const isCorrect = newSel.every((val, i) => val === correctTiles[i]);
+      if (isCorrect) {
         setFeedback("correct");
         setTimeout(() => goNext(true), 700);
       } else {
@@ -433,18 +665,60 @@ function WordScrambleGame({ t = (key) => key, onXpEarned, onClose }) {
 }
 
 // ─── Memory Match Game ─────────────────────────────────────────────────────────
-const MEMORY_PAIRS = [
-  { id: "apple", emoji: "🍎", word: "APPLE" },
-  { id: "book", emoji: "📚", word: "BOOK" },
-  { id: "cat", emoji: "🐱", word: "CAT" },
-  { id: "door", emoji: "🚪", word: "DOOR" },
-  { id: "eye", emoji: "👁️", word: "EYE" },
-  { id: "fire", emoji: "🔥", word: "FIRE" },
-  { id: "gift", emoji: "🎁", word: "GIFT" },
-  { id: "heart", emoji: "❤️", word: "HEART" },
-];
+const MEMORY_PAIRS_BY_LANG = {
+  English: [
+    { id: "apple", emoji: "🍎", word: "APPLE" },
+    { id: "book", emoji: "📚", word: "BOOK" },
+    { id: "cat", emoji: "🐱", word: "CAT" },
+    { id: "door", emoji: "🚪", word: "DOOR" },
+    { id: "eye", emoji: "👁️", word: "EYE" },
+    { id: "fire", emoji: "🔥", word: "FIRE" },
+    { id: "gift", emoji: "🎁", word: "GIFT" },
+    { id: "heart", emoji: "❤️", word: "HEART" },
+  ],
+  Hindi: [
+    { id: "apple", emoji: "🍎", word: "सेब" },
+    { id: "book", emoji: "📚", word: "किताब" },
+    { id: "cat", emoji: "🐱", word: "बिल्ली" },
+    { id: "door", emoji: "🚪", word: "दरवाजा" },
+    { id: "eye", emoji: "👁️", word: "आँख" },
+    { id: "fire", emoji: "🔥", word: "आग" },
+    { id: "gift", emoji: "🎁", word: "उपहार" },
+    { id: "heart", emoji: "❤️", word: "दिल" },
+  ],
+  Kannada: [
+    { id: "apple", emoji: "🍎", word: "ಸೇಬು" },
+    { id: "book", emoji: "📚", word: "ಪುಸ್ತಕ" },
+    { id: "cat", emoji: "🐱", word: "ಬೆಕ್ಕು" },
+    { id: "door", emoji: "🚪", word: "ಬಾಗಿಲು" },
+    { id: "eye", emoji: "👁️", word: "ಕಣ್ಣು" },
+    { id: "fire", emoji: "🔥", word: "ಬೆಂಕಿ" },
+    { id: "gift", emoji: "🎁", word: "ಉಡುಗೊರೆ" },
+    { id: "heart", emoji: "❤️", word: "ಹೃದಯ" },
+  ],
+  Telugu: [
+    { id: "apple", emoji: "🍎", word: "ఆపిల్" },
+    { id: "book", emoji: "📚", word: "పుస్తకం" },
+    { id: "cat", emoji: "🐱", word: "పిల్లి" },
+    { id: "door", emoji: "🚪", word: "తలుపు" },
+    { id: "eye", emoji: "👁️", word: "కన్ను" },
+    { id: "fire", emoji: "🔥", word: "నిప్పు" },
+    { id: "gift", emoji: "🎁", word: "బహుమతి" },
+    { id: "heart", emoji: "❤️", word: "గుండె" },
+  ],
+  Tamil: [
+    { id: "apple", emoji: "🍎", word: "ஆப்பிள்" },
+    { id: "book", emoji: "📚", word: "புத்தகம்" },
+    { id: "cat", emoji: "🐱", word: "பூனை" },
+    { id: "door", emoji: "🚪", word: "கதவு" },
+    { id: "eye", emoji: "👁️", word: "கண்" },
+    { id: "fire", emoji: "🔥", word: "நெருப்பு" },
+    { id: "gift", emoji: "🎁", word: "பரிசு" },
+    { id: "heart", emoji: "❤️", word: "இதயம்" },
+  ]
+};
 
-function MemoryMatchGame({ t = (key) => key, onXpEarned, onClose }) {
+function MemoryMatchGame({ t = (key) => key, learningLanguage = "English", onXpEarned, onClose }) {
   const [phase, setPhase] = useState("intro");
   const [cards, setCards] = useState([]);
   const [flipped, setFlipped] = useState([]);
@@ -454,8 +728,10 @@ function MemoryMatchGame({ t = (key) => key, onXpEarned, onClose }) {
   const [canFlip, setCanFlip] = useState(true);
   const timerRef = useRef(null);
 
+  const list = MEMORY_PAIRS_BY_LANG[learningLanguage] || MEMORY_PAIRS_BY_LANG["English"];
+
   const startGame = () => {
-    const pairs = MEMORY_PAIRS.flatMap((p) => [
+    const pairs = list.flatMap((p) => [
       { ...p, type: "emoji", cardId: `${p.id}-emoji` },
       { ...p, type: "word", cardId: `${p.id}-word` },
     ]);
@@ -485,11 +761,11 @@ function MemoryMatchGame({ t = (key) => key, onXpEarned, onClose }) {
   }, [phase]);
 
   useEffect(() => {
-    if (matched.length === MEMORY_PAIRS.length && phase === "playing") {
+    if (matched.length === list.length && phase === "playing") {
       clearInterval(timerRef.current);
       setTimeout(() => setPhase("result"), 600);
     }
-  }, [matched, phase]);
+  }, [matched, phase, list.length]);
 
   const handleCardClick = (card) => {
     if (!canFlip) return;
@@ -544,13 +820,13 @@ function MemoryMatchGame({ t = (key) => key, onXpEarned, onClose }) {
   if (phase === "result") {
     return (
       <div className="flz-result">
-        <div className="flz-result-emoji">{matched.length === MEMORY_PAIRS.length ? "🏆" : "⏰"}</div>
+        <div className="flz-result-emoji">{matched.length === list.length ? "🏆" : "⏰"}</div>
         <h2 className="flz-result-title">
-          {matched.length === MEMORY_PAIRS.length ? t("perfectMatchTitle") : t("timesUpTitle")}
+          {matched.length === list.length ? t("perfectMatchTitle") : t("timesUpTitle")}
         </h2>
         <div className="flz-result-stats">
           <div className="flz-stat-box">
-            <div className="flz-stat-val">{matched.length}/{MEMORY_PAIRS.length}</div>
+            <div className="flz-stat-val">{matched.length}/{list.length}</div>
             <div className="flz-stat-label">{t("matchedLabel")}</div>
           </div>
           <div className="flz-stat-box flz-stat-xp">
@@ -583,7 +859,7 @@ function MemoryMatchGame({ t = (key) => key, onXpEarned, onClose }) {
         <span className="flz-timer-num" style={{ color: timerColor }}>{timeLeft}s</span>
       </div>
       <div className="flz-sprint-top">
-        <div className="flz-score-chip">🃏 {matched.length}/{MEMORY_PAIRS.length}</div>
+        <div className="flz-score-chip">🃏 {matched.length}/{list.length}</div>
         <div className="flz-word-count">🎯 {moves} {t("movesLabel")}</div>
       </div>
       <div className="flz-memory-grid">
@@ -615,7 +891,7 @@ function MemoryMatchGame({ t = (key) => key, onXpEarned, onClose }) {
 }
 
 // ─── Fun & Learn Zone Shell ────────────────────────────────────────────────────
-export default function FunLearnZone({ t = (key) => key, onXpEarned }) {
+export default function FunLearnZone({ t = (key) => key, learningLanguage = "English", onXpEarned }) {
   const [activeGame, setActiveGame] = useState(null);
   const [xpToast, setXpToast] = useState(null);
 
@@ -706,13 +982,13 @@ export default function FunLearnZone({ t = (key) => key, onXpEarned }) {
       {activeGame && (
         <div className="flz-active-game-panel">
           {activeGame === "sprint" && (
-            <WordSprintGame t={t} onXpEarned={handleXpEarned} onClose={() => setActiveGame(null)} />
+            <WordSprintGame t={t} learningLanguage={learningLanguage} onXpEarned={handleXpEarned} onClose={() => setActiveGame(null)} />
           )}
           {activeGame === "scramble" && (
-            <WordScrambleGame t={t} onXpEarned={handleXpEarned} onClose={() => setActiveGame(null)} />
+            <WordScrambleGame t={t} learningLanguage={learningLanguage} onXpEarned={handleXpEarned} onClose={() => setActiveGame(null)} />
           )}
           {activeGame === "memory" && (
-            <MemoryMatchGame t={t} onXpEarned={handleXpEarned} onClose={() => setActiveGame(null)} />
+            <MemoryMatchGame t={t} learningLanguage={learningLanguage} onXpEarned={handleXpEarned} onClose={() => setActiveGame(null)} />
           )}
         </div>
       )}

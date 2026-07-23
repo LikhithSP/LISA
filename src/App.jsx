@@ -7629,6 +7629,7 @@ function App() {
 
                   <FunLearnZone
                     t={t}
+                    learningLanguage={learningLanguage}
                     onXpEarned={(amount) => {
                       const newXp = userXp + amount;
                       setUserXp(newXp);
