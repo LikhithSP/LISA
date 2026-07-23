@@ -24,7 +24,7 @@ const WORD_SPRINT_WORDS = [
   { word: "train", emoji: "🚂", hint: "Travels on rails" },
 ];
 
-function WordSprintGame({ onXpEarned, onClose }) {
+function WordSprintGame({ t = (key) => key, onXpEarned, onClose }) {
   const [phase, setPhase] = useState("intro");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [input, setInput] = useState("");
@@ -123,16 +123,15 @@ function WordSprintGame({ onXpEarned, onClose }) {
         <div className="flz-intro-icon">⚡</div>
         <h2 className="flz-intro-title">Word Sprint</h2>
         <p className="flz-intro-desc">
-          Type the word shown as fast as you can! You have <strong>60 seconds</strong>.
-          Build combos for bonus points!
+          {t("wordSprintIntroDesc").replace("{time}", 60)}
         </p>
         <div className="flz-intro-rules">
-          <div className="flz-rule">🎯 Each word = <strong>1 point</strong></div>
-          <div className="flz-rule">🔥 3+ combo = <strong>3 points</strong> each</div>
-          <div className="flz-rule">⭐ Max <strong>30 XP</strong> per round</div>
+          <div className="flz-rule">{t("wordSprintRule1")}</div>
+          <div className="flz-rule">{t("wordSprintRule2")}</div>
+          <div className="flz-rule">{t("wordSprintRule3")}</div>
         </div>
         <button className="flz-start-btn" onClick={startGame}>
-          Start Sprint!
+          {t("startSprintBtn")}
         </button>
       </div>
     );
@@ -142,27 +141,27 @@ function WordSprintGame({ onXpEarned, onClose }) {
     return (
       <div className="flz-result">
         <div className="flz-result-emoji">🏆</div>
-        <h2 className="flz-result-title">Sprint Complete!</h2>
+        <h2 className="flz-result-title">{t("sprintCompleteTitle")}</h2>
         <div className="flz-result-stats">
           <div className="flz-stat-box">
             <div className="flz-stat-val">{score}</div>
-            <div className="flz-stat-label">Score</div>
+            <div className="flz-stat-label">{t("scoreLabel")}</div>
           </div>
           <div className="flz-stat-box flz-stat-xp">
             <div className="flz-stat-val">+{xpEarned}</div>
-            <div className="flz-stat-label">XP Earned</div>
+            <div className="flz-stat-label">{t("xpEarnedLabel")}</div>
           </div>
           <div className="flz-stat-box">
             <div className="flz-stat-val">🔥{maxCombo}x</div>
-            <div className="flz-stat-label">Best Combo</div>
+            <div className="flz-stat-label">{t("bestComboLabel")}</div>
           </div>
         </div>
         <div className="flz-result-actions">
           <button className="flz-start-btn" onClick={() => { onXpEarned(xpEarned); startGame(); }}>
-            Play Again
+            {t("playAgainBtn")}
           </button>
           <button className="flz-secondary-btn" onClick={() => { onXpEarned(xpEarned); onClose(); }}>
-            Collect XP & Exit
+            {t("collectXpExitBtn")}
           </button>
         </div>
       </div>
@@ -178,7 +177,7 @@ function WordSprintGame({ onXpEarned, onClose }) {
         <span className="flz-timer-num" style={{ color: timerColor }}>{timeLeft}s</span>
       </div>
       <div className="flz-sprint-top">
-        <div className="flz-score-chip">⭐ {score} pts</div>
+        <div className="flz-score-chip">⭐ {score} {t("scoreLabel")}</div>
         {combo >= 2 && (
           <div className="flz-combo-chip">🔥 x{combo} Combo!</div>
         )}
@@ -188,8 +187,8 @@ function WordSprintGame({ onXpEarned, onClose }) {
         <div className={`flz-word-card ${feedback || ""}`}>
           <div className="flz-word-emoji">{currentWord.emoji}</div>
           <p className="flz-word-hint">{currentWord.hint}</p>
-          {feedback === "correct" && <div className="flz-feedback correct">✓ Correct!</div>}
-          {feedback === "wrong" && <div className="flz-feedback wrong">✗ Try Again</div>}
+          {feedback === "correct" && <div className="flz-feedback correct">{t("correctFeedback")}</div>}
+          {feedback === "wrong" && <div className="flz-feedback wrong">{t("tryAgainFeedback")}</div>}
         </div>
       )}
       <form onSubmit={handleSubmit} className="flz-sprint-form">
@@ -198,7 +197,7 @@ function WordSprintGame({ onXpEarned, onClose }) {
           className="flz-sprint-input"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Type the word..."
+          placeholder={t("typeWordPlaceholder")}
           autoComplete="off"
           autoCorrect="off"
           autoCapitalize="off"
@@ -206,7 +205,7 @@ function WordSprintGame({ onXpEarned, onClose }) {
         />
         <button type="submit" className="flz-submit-btn">→</button>
       </form>
-      <button className="flz-skip-btn" onClick={handleSkip}>Skip ⏭</button>
+      <button className="flz-skip-btn" onClick={handleSkip}>{t("skipBtn")}</button>
     </div>
   );
 }
@@ -240,7 +239,7 @@ function scrambleWord(word) {
   return arr.join("");
 }
 
-function WordScrambleGame({ onXpEarned, onClose }) {
+function WordScrambleGame({ t = (key) => key, onXpEarned, onClose }) {
   const [phase, setPhase] = useState("intro");
   const [wordIdx, setWordIdx] = useState(0);
   const [words, setWords] = useState([]);
@@ -348,14 +347,14 @@ function WordScrambleGame({ onXpEarned, onClose }) {
         <div className="flz-intro-icon">🔀</div>
         <h2 className="flz-intro-title">Word Scramble</h2>
         <p className="flz-intro-desc">
-          Tap the letters in the correct order to form the word before time runs out!
+          {t("wordScrambleIntroDesc")}
         </p>
         <div className="flz-intro-rules">
-          <div className="flz-rule">⏱ <strong>30 seconds</strong> per word</div>
-          <div className="flz-rule">✅ Each correct word = <strong>5 XP</strong></div>
-          <div className="flz-rule">⭐ Max <strong>40 XP</strong> per round</div>
+          <div className="flz-rule">{t("wordScrambleRule1")}</div>
+          <div className="flz-rule">{t("wordScrambleRule2")}</div>
+          <div className="flz-rule">{t("wordScrambleRule3")}</div>
         </div>
-        <button className="flz-start-btn" onClick={startGame}>Unscramble!</button>
+        <button className="flz-start-btn" onClick={startGame}>{t("unscrambleBtn")}</button>
       </div>
     );
   }
@@ -364,23 +363,23 @@ function WordScrambleGame({ onXpEarned, onClose }) {
     return (
       <div className="flz-result">
         <div className="flz-result-emoji">🎉</div>
-        <h2 className="flz-result-title">Scramble Done!</h2>
+        <h2 className="flz-result-title">{t("scrambleDoneTitle")}</h2>
         <div className="flz-result-stats">
           <div className="flz-stat-box">
             <div className="flz-stat-val">{score}/{words.length}</div>
-            <div className="flz-stat-label">Correct</div>
+            <div className="flz-stat-label">{t("correctLabel")}</div>
           </div>
           <div className="flz-stat-box flz-stat-xp">
             <div className="flz-stat-val">+{xpEarned}</div>
-            <div className="flz-stat-label">XP Earned</div>
+            <div className="flz-stat-label">{t("xpEarnedLabel")}</div>
           </div>
         </div>
         <div className="flz-result-actions">
           <button className="flz-start-btn" onClick={() => { onXpEarned(xpEarned); startGame(); }}>
-            Play Again
+            {t("playAgainBtn")}
           </button>
           <button className="flz-secondary-btn" onClick={() => { onXpEarned(xpEarned); onClose(); }}>
-            Collect XP & Exit
+            {t("collectXpExitBtn")}
           </button>
         </div>
       </div>
@@ -428,7 +427,7 @@ function WordScrambleGame({ onXpEarned, onClose }) {
           </button>
         ))}
       </div>
-      <button className="flz-skip-btn" onClick={() => goNext(false)}>Skip ⏭</button>
+      <button className="flz-skip-btn" onClick={() => goNext(false)}>{t("skipBtn")}</button>
     </div>
   );
 }
@@ -445,7 +444,7 @@ const MEMORY_PAIRS = [
   { id: "heart", emoji: "❤️", word: "HEART" },
 ];
 
-function MemoryMatchGame({ onXpEarned, onClose }) {
+function MemoryMatchGame({ t = (key) => key, onXpEarned, onClose }) {
   const [phase, setPhase] = useState("intro");
   const [cards, setCards] = useState([]);
   const [flipped, setFlipped] = useState([]);
@@ -530,14 +529,14 @@ function MemoryMatchGame({ onXpEarned, onClose }) {
         <div className="flz-intro-icon">🧠</div>
         <h2 className="flz-intro-title">Memory Match</h2>
         <p className="flz-intro-desc">
-          Flip cards to match each emoji with its English word. Train your memory and vocabulary!
+          {t("memoryMatchIntroDesc")}
         </p>
         <div className="flz-intro-rules">
-          <div className="flz-rule">🃏 Match <strong>emoji ↔ word</strong> pairs</div>
-          <div className="flz-rule">⏱ <strong>90 seconds</strong> to match all</div>
-          <div className="flz-rule">⭐ Up to <strong>40 XP</strong> per game</div>
+          <div className="flz-rule">{t("memoryMatchRule1")}</div>
+          <div className="flz-rule">{t("memoryMatchRule2")}</div>
+          <div className="flz-rule">{t("memoryMatchRule3")}</div>
         </div>
-        <button className="flz-start-btn" onClick={startGame}>Start Matching!</button>
+        <button className="flz-start-btn" onClick={startGame}>{t("startMatchingBtn")}</button>
       </div>
     );
   }
@@ -547,28 +546,28 @@ function MemoryMatchGame({ onXpEarned, onClose }) {
       <div className="flz-result">
         <div className="flz-result-emoji">{matched.length === MEMORY_PAIRS.length ? "🏆" : "⏰"}</div>
         <h2 className="flz-result-title">
-          {matched.length === MEMORY_PAIRS.length ? "Perfect Match!" : "Time's Up!"}
+          {matched.length === MEMORY_PAIRS.length ? t("perfectMatchTitle") : t("timesUpTitle")}
         </h2>
         <div className="flz-result-stats">
           <div className="flz-stat-box">
             <div className="flz-stat-val">{matched.length}/{MEMORY_PAIRS.length}</div>
-            <div className="flz-stat-label">Matched</div>
+            <div className="flz-stat-label">{t("matchedLabel")}</div>
           </div>
           <div className="flz-stat-box flz-stat-xp">
             <div className="flz-stat-val">+{xpEarned}</div>
-            <div className="flz-stat-label">XP Earned</div>
+            <div className="flz-stat-label">{t("xpEarnedLabel")}</div>
           </div>
           <div className="flz-stat-box">
             <div className="flz-stat-val">{accuracy}%</div>
-            <div className="flz-stat-label">Accuracy</div>
+            <div className="flz-stat-label">{t("accuracyLabel")}</div>
           </div>
         </div>
         <div className="flz-result-actions">
           <button className="flz-start-btn" onClick={() => { onXpEarned(xpEarned); startGame(); }}>
-            Play Again
+            {t("playAgainBtn")}
           </button>
           <button className="flz-secondary-btn" onClick={() => { onXpEarned(xpEarned); onClose(); }}>
-            Collect XP & Exit
+            {t("collectXpExitBtn")}
           </button>
         </div>
       </div>
@@ -585,7 +584,7 @@ function MemoryMatchGame({ onXpEarned, onClose }) {
       </div>
       <div className="flz-sprint-top">
         <div className="flz-score-chip">🃏 {matched.length}/{MEMORY_PAIRS.length}</div>
-        <div className="flz-word-count">🎯 {moves} moves</div>
+        <div className="flz-word-count">🎯 {moves} {t("movesLabel")}</div>
       </div>
       <div className="flz-memory-grid">
         {cards.map((card) => {
@@ -616,7 +615,7 @@ function MemoryMatchGame({ onXpEarned, onClose }) {
 }
 
 // ─── Fun & Learn Zone Shell ────────────────────────────────────────────────────
-export default function FunLearnZone({ onXpEarned }) {
+export default function FunLearnZone({ t = (key) => key, onXpEarned }) {
   const [activeGame, setActiveGame] = useState(null);
   const [xpToast, setXpToast] = useState(null);
 
@@ -633,28 +632,28 @@ export default function FunLearnZone({ onXpEarned }) {
       id: "sprint",
       icon: "⚡",
       title: "Word Sprint",
-      desc: "Type words as fast as you can in 60 seconds!",
+      desc: t("wordSprintMenuDesc"),
       accent: "var(--flz-accent-1, #c65f2d)",
-      xp: "Up to 30 XP",
-      tag: "Speed",
+      xp: t("upTo30Xp"),
+      tag: t("speedTag"),
     },
     {
       id: "scramble",
       icon: "🔀",
       title: "Word Scramble",
-      desc: "Tap letters to unscramble the hidden word!",
+      desc: t("wordScrambleMenuDesc"),
       accent: "var(--flz-accent-2, #b5732a)",
-      xp: "Up to 40 XP",
-      tag: "Puzzle",
+      xp: t("upTo40Xp"),
+      tag: t("puzzleTag"),
     },
     {
       id: "memory",
       icon: "🧠",
       title: "Memory Match",
-      desc: "Match emojis with their English words!",
+      desc: t("memoryMatchMenuDesc"),
       accent: "var(--flz-accent-3, #a23b5c)",
-      xp: "Up to 40 XP",
-      tag: "Memory",
+      xp: t("upTo40Xp"),
+      tag: t("memoryTag"),
     },
   ];
 
@@ -667,13 +666,13 @@ export default function FunLearnZone({ onXpEarned }) {
       )}
       <div className="flz-zone-header">
         <div className="flz-zone-header-left">
-          <div className="flz-zone-badge">🎮 Game For You</div>
-          <h2 className="flz-zone-title">Fun &amp; Learn Zone</h2>
-          <p className="flz-zone-subtitle">Play games, build vocabulary, earn XP!</p>
+          <div className="flz-zone-badge">{t("gameForYou")}</div>
+          <h2 className="flz-zone-title">{t("funLearnZoneTitle")}</h2>
+          <p className="flz-zone-subtitle">{t("funLearnZoneSubtitle")}</p>
         </div>
         {activeGame && (
           <button className="flz-back-btn" onClick={() => setActiveGame(null)}>
-            ← All Games
+            ← {t("allGamesBtn")}
           </button>
         )}
       </div>
@@ -707,13 +706,13 @@ export default function FunLearnZone({ onXpEarned }) {
       {activeGame && (
         <div className="flz-active-game-panel">
           {activeGame === "sprint" && (
-            <WordSprintGame onXpEarned={handleXpEarned} onClose={() => setActiveGame(null)} />
+            <WordSprintGame t={t} onXpEarned={handleXpEarned} onClose={() => setActiveGame(null)} />
           )}
           {activeGame === "scramble" && (
-            <WordScrambleGame onXpEarned={handleXpEarned} onClose={() => setActiveGame(null)} />
+            <WordScrambleGame t={t} onXpEarned={handleXpEarned} onClose={() => setActiveGame(null)} />
           )}
           {activeGame === "memory" && (
-            <MemoryMatchGame onXpEarned={handleXpEarned} onClose={() => setActiveGame(null)} />
+            <MemoryMatchGame t={t} onXpEarned={handleXpEarned} onClose={() => setActiveGame(null)} />
           )}
         </div>
       )}
