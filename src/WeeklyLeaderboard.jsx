@@ -101,7 +101,7 @@ const resolveAvatar = (u, canUsePhoto) => {
   return fallbackAvatar(u.full_name);
 };
 
-export default function WeeklyLeaderboard({ session, profile, weeklyXp, canUsePhoto }) {
+export default function WeeklyLeaderboard({ t = (key) => key, session, profile, weeklyXp, canUsePhoto }) {
   const [allProfiles, setAllProfiles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentUserAvatar, setCurrentUserAvatar] = useState(null);
@@ -285,8 +285,8 @@ export default function WeeklyLeaderboard({ session, profile, weeklyXp, canUsePh
   return (
     <div className="weekly-leaderboard-container">
       <div className="weekly-leaderboard-header">
-        <h2 className="weekly-leaderboard-title">🏆 Weekly Leaderboard</h2>
-        <p className="weekly-leaderboard-subtitle">See who earned the most XP this week!</p>
+        <h2 className="weekly-leaderboard-title">{t("weeklyLeaderboardTitle")}</h2>
+        <p className="weekly-leaderboard-subtitle">{t("weeklyLeaderboardSubtitle")}</p>
         <div className="weekly-leaderboard-week-range">
           {formatDate(weekDates[0])} — {formatDate(weekDates[6])}
         </div>
@@ -295,11 +295,11 @@ export default function WeeklyLeaderboard({ session, profile, weeklyXp, canUsePh
       {loading ? (
         <div className="weekly-leaderboard-loading">
           <div className="leaderboard-spinner" />
-          <p>Loading learners…</p>
+          <p>{t("loadingLearners")}</p>
         </div>
       ) : leaderboardData.sorted.length === 0 ? (
         <div className="weekly-leaderboard-empty">
-          <p>No XP earned this week yet. Be the first on the board! 🚀</p>
+          <p>{t("leaderboardEmpty")}</p>
         </div>
       ) : (
         <>
@@ -317,7 +317,7 @@ export default function WeeklyLeaderboard({ session, profile, weeklyXp, canUsePh
                   <div className="podium-rank-badge">{getRankBadge(rank)}</div>
                   <div className="podium-name">
                     {user.name}
-                    {user.isCurrentUser && <span className="you-badge">YOU</span>}
+                    {user.isCurrentUser && <span className="you-badge">{t("youBadge")}</span>}
                   </div>
                   <div className="podium-xp" style={{ color: getRankColor(rank) }}>
                     {user.weeklyXp.toLocaleString()} XP
@@ -342,7 +342,7 @@ export default function WeeklyLeaderboard({ session, profile, weeklyXp, canUsePh
                   <div className="leaderboard-info">
                     <div className="leaderboard-name">
                       {user.name}
-                      {user.isCurrentUser && <span className="you-badge">YOU</span>}
+                      {user.isCurrentUser && <span className="you-badge">{t("youBadge")}</span>}
                     </div>
                   </div>
                   <div className="leaderboard-xp">{user.weeklyXp.toLocaleString()} XP</div>
@@ -364,7 +364,7 @@ export default function WeeklyLeaderboard({ session, profile, weeklyXp, canUsePh
                 <div className="leaderboard-info">
                   <div className="leaderboard-name">
                     {currentUserName}
-                    <span className="you-badge">YOU</span>
+                    <span className="you-badge">{t("youBadge")}</span>
                   </div>
                 </div>
                 <div className="leaderboard-xp" style={{ color: "var(--accent)", fontWeight: 800 }}>
@@ -378,7 +378,7 @@ export default function WeeklyLeaderboard({ session, profile, weeklyXp, canUsePh
 
       <div className="weekly-leaderboard-footer">
         <p className="weekly-leaderboard-footer-text">
-          Top learners this week earn bonus rewards!
+          {t("leaderboardFooter")}
         </p>
       </div>
     </div>

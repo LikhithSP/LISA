@@ -26,6 +26,14 @@ const experienceLevels = [
   "I want to improve my vocabulary and communication skills"
 ];
 
+export const experienceLevelOptionKeys = {
+  "I am completely new to this language": "completelyNewOption",
+  "I can recognize some letters and words": "recognizeLettersOption",
+  "I can read simple sentences": "readSentencesOption",
+  "I can read paragraphs and understand basic content": "readParagraphsOption",
+  "I want to improve my vocabulary and communication skills": "improveVocabOption"
+};
+
 const FALLBACK_PRACTICE_MISTAKES = [
   {
     id: "fallback_m1",
@@ -5808,7 +5816,7 @@ function App() {
                   style={{ width: "100%", boxSizing: "border-box" }}
                 >
                   {experienceLevels.map((exp) => (
-                    <option key={exp} value={exp}>{exp}</option>
+                    <option key={exp} value={exp}>{t(experienceLevelOptionKeys[exp] || exp)}</option>
                   ))}
                 </select>
               </label>
@@ -7620,6 +7628,7 @@ function App() {
                   </div>
 
                   <FunLearnZone
+                    t={t}
                     onXpEarned={(amount) => {
                       const newXp = userXp + amount;
                       setUserXp(newXp);
@@ -7761,9 +7770,9 @@ function App() {
                     <p>{session.user.email}</p>
                     <div style={{ display: "flex", gap: "16px", marginTop: "12px", flexWrap: "wrap" }}>
                       <span style={{ fontWeight: 700 }}>{t("profileAge")}: {profile?.age || t("naText")}</span>
-                      <span style={{ fontWeight: 700 }}>{t("profileEducation")}: {profile?.education_level || t("naText")}</span>
+                      <span style={{ fontWeight: 700 }}>{t("profileEducation")}: {profile?.education_level ? t(profile.education_level + "Option") : t("naText")}</span>
                       {profile?.experience_level && (
-                        <span style={{ fontWeight: 700 }}>{t("profileExperienceStatus")}: {profile.experience_level}</span>
+                        <span style={{ fontWeight: 700 }}>{t("profileExperienceStatus")}: {t(experienceLevelOptionKeys[profile.experience_level] || profile.experience_level)}</span>
                       )}
                     </div>
                   </div>
@@ -7844,7 +7853,7 @@ function App() {
                         style={{ width: "100%", boxSizing: "border-box" }}
                       >
                         {experienceLevels.map((exp) => (
-                          <option key={exp} value={exp}>{exp}</option>
+                          <option key={exp} value={exp}>{t(experienceLevelOptionKeys[exp] || exp)}</option>
                         ))}
                       </select>
                     </label>
@@ -8053,6 +8062,7 @@ function App() {
           {/* 3.5. Leaderboard Tab */}
           {dashboardTab === "leaderboard" && (
             <WeeklyLeaderboard
+              t={t}
               session={session}
               profile={profile}
               weeklyXp={weeklyXp}
@@ -10727,7 +10737,7 @@ function App() {
                 {t("experienceInTargetLanguage")}
                 <select name="experienceLevel" required defaultValue="I am completely new to this language" disabled={submitting}>
                   {experienceLevels.map((exp) => (
-                    <option key={exp} value={exp}>{exp}</option>
+                    <option key={exp} value={exp}>{t(experienceLevelOptionKeys[exp] || exp)}</option>
                   ))}
                 </select>
               </label>
