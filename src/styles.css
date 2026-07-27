@@ -3609,9 +3609,15 @@ select:focus {
   border-radius: 24px;
   padding: 18px 22px;
   display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
+}
+
+.stars-answers-card .sa-metrics-row {
+  display: flex;
   align-items: center;
   gap: 18px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
 }
 
 .stars-answers-card .sa-metric {
@@ -3675,6 +3681,10 @@ select:focus {
   .stars-answers-card {
     gap: 12px;
     padding: 16px;
+  }
+
+  .stars-answers-card .sa-metrics-row {
+    gap: 12px;
   }
 
   .stars-answers-card .sa-icon {
@@ -5991,8 +6001,7 @@ select:focus {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-top: 12px;
-  border-top: 1px solid var(--line);
+  padding-top: 10px;
 }
 
 .progress-dashboard-summary {
