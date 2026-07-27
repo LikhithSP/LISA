@@ -15,6 +15,7 @@ import { assessmentTranslations } from "./assessmentTranslations";
 import FunLearnZone from "./FunLearnZone";
 import XPShop, { applyTheme, applyFont, SHOP_CATALOG } from "./XPShop";
 import WeeklyLeaderboard from "./WeeklyLeaderboard";
+import AnalyticsReport from "./AnalyticsReport";
 
 const languages = ["English", "Hindi", "Kannada", "Telugu", "Tamil"];
 const educationLevels = ["No Formal Education", "Primary", "Middle School", "Secondary & Above"];
@@ -174,6 +175,13 @@ const ClockIcon = ({ className, style }) => (
   <svg className={className} style={{ verticalAlign: "middle", ...style }} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="12" cy="12" r="10" />
     <polyline points="12 6 12 12 16 14" />
+  </svg>
+);
+
+const AnalyticsIcon = ({ className, style }) => (
+  <svg className={className} style={{ marginRight: "10px", verticalAlign: "middle", ...style }} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 3v18h18" />
+    <path d="M7 16l4-8 4 4 4-6" />
   </svg>
 );
 
@@ -655,7 +663,7 @@ function App() {
   const [profileAvatar, setProfileAvatar] = useState("/as1.png");
   const [isEditingCover, setIsEditingCover] = useState(false);
   const [activeTab, setActiveTab] = useState("login"); // "login", "register", "forgot"
-  const [dashboardTab, setDashboardTab] = useState("dashboard"); // "dashboard", "learn", "practice", "profile", "shop"
+  const [dashboardTab, setDashboardTab] = useState("dashboard"); // "dashboard", "learn", "practice", "profile", "shop", "leaderboard", "analytics"
   const [practiceCollectionPage, setPracticeCollectionPage] = useState(null); // null, "mistakes", "words"
   const [showPersonalizedPath, setShowPersonalizedPath] = useState(true);
 
@@ -4199,6 +4207,7 @@ function App() {
       sidebarLearn: "Learn",
       sidebarPractice: "Practice",
       sidebarProfile: "Profile",
+      sidebarAnalytics: "Analytics",
       dashboardHello: "Hello, {name} 👋🏻",
       dashboardWelcomeBack: "Welcome back! Pick up right where you left off.",
       dashboardContinueLearning: "Continue learning",
@@ -4331,6 +4340,7 @@ function App() {
       sidebarLearn: "सीखें",
       sidebarPractice: "अभ्यास",
       sidebarProfile: "प्रोफ़ाइल",
+      sidebarAnalytics: "एनालिटिक्स",
       dashboardHello: "नमस्ते, {name} 👋🏻",
       dashboardWelcomeBack: "वापस स्वागत है! वहीं से शुरू करें जहां आपने छोड़ा था।",
       dashboardContinueLearning: "सीखना जारी रखें",
@@ -4463,6 +4473,7 @@ function App() {
       sidebarLearn: "ಕಲಿ",
       sidebarPractice: "ಅಭ್ಯಾಸ",
       sidebarProfile: "ಪ್ರೊಫೈಲ್",
+      sidebarAnalytics: "ವಿಶ್ಲೇಷಣೆ",
       dashboardHello: "ನಮಸ್ಕಾರ, {name} 👋🏻",
       dashboardWelcomeBack: "ಮರಳಿ ಸುಸ್ವಾಗತ! ನೀವು ಎಲ್ಲಿ ನಿಲ್ಲಿಸಿದ್ದೀರೋ ಅಲ್ಲಿಂದ ಮುಂದುವರಿಸಿ.",
       dashboardContinueLearning: "ಕಲಿಕೆಯನ್ನು ಮುಂದುವರಿಸಿ",
@@ -4595,6 +4606,7 @@ function App() {
       sidebarLearn: "నేర్చుకోండి",
       sidebarPractice: "అభ్యాసం",
       sidebarProfile: "ప్రొఫైల్",
+      sidebarAnalytics: "విశ్లేషణలు",
       dashboardHello: "నమస్కారం, {name} 👋🏻",
       dashboardWelcomeBack: "మరలా సుస్వాగతం! మీరు ఎక్కడ ఆపివేసారో అక్కడి నుండి ప్రారంభించండి.",
       dashboardContinueLearning: "నేర్చుకోవడం కొనసాగించండి",
@@ -4727,6 +4739,7 @@ function App() {
       sidebarLearn: "கற்றுக்கொள்",
       sidebarPractice: "பயிற்சி",
       sidebarProfile: "சுயவிவரம்",
+      sidebarAnalytics: "புள்ளிவிவரங்கள்",
       dashboardHello: "வணக்கம், {name} 👋🏻",
       dashboardWelcomeBack: "நல்வரவு! நீங்கள் விட்ட இடத்திலிருந்து தொடங்குங்கள்.",
       dashboardContinueLearning: "கற்றலைத் தொடரவும்",
@@ -7333,13 +7346,14 @@ function App() {
                 })()}
                 {t("sidebarProfile")}
               </button>
-
-
-
-
-
-
-
+              <span className="sidebar-separator" aria-hidden="true" />
+              <button
+                type="button"
+                className={`sidebar-item ${dashboardTab === "analytics" ? "active" : ""}`}
+                onClick={() => setDashboardTab("analytics")}
+              >
+                <AnalyticsIcon style={{ marginRight: 0, width: 18, height: 18 }} /> {t("sidebarAnalytics")}
+              </button>
 
 
             </div>
@@ -8601,6 +8615,30 @@ function App() {
               profile={profile}
               weeklyXp={weeklyXp}
               canUsePhoto={currentLevelNum >= 10}
+            />
+          )}
+
+          {/* 3.6. Analytics Tab */}
+          {dashboardTab === "analytics" && (
+            <AnalyticsReport
+              t={t}
+              session={session}
+              profile={profile}
+              skillScores={(() => {
+                try {
+                  const stored = getStoredAssessmentState(session?.user?.id);
+                  return stored?.skill_scores || profile?.skill_scores || {};
+                } catch {
+                  return {};
+                }
+              })()}
+              userXp={userXp}
+              completedLessons={completedLessons}
+              streakCount={streakCount}
+              dailyCorrectAnswers={dailyCorrectAnswers}
+              dailyXp={dailyXp}
+              weeklyXp={weeklyXp}
+              selectedLanguage={selectedLanguage}
             />
           )}
         </main>
@@ -11388,3 +11426,4 @@ function App() {
 }
 
 export default App;
+
