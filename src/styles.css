@@ -9701,6 +9701,9 @@ select:focus {
   align-items: center;
   justify-content: center;
   border: 1.5px solid rgba(255, 255, 255, 0.1);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 .shop-banner-icon {
