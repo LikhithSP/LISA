@@ -8176,12 +8176,12 @@ function App() {
               <div className="profile-card-large">
                 <div
                   className="profile-cover"
-                  style={(() => {
-                    const bannerObj = SHOP_CATALOG.banners.find(b => b.id === shopBanner);
-                    return bannerObj
-                      ? { background: bannerObj.gradient }
-                      : { backgroundImage: "url('https://static.vecteezy.com/system/resources/thumbnails/006/033/288/small_2x/bookshelf-shelf-for-books-with-plants-in-pot-illustration-in-flat-cartoon-style-vector.jpg')" };
-                  })()}
+style={(() => {
+                      const bannerObj = SHOP_CATALOG.banners.find(b => b.id === shopBanner);
+                      return bannerObj
+                        ? { backgroundImage: `url(${bannerObj.image})` }
+                        : { backgroundImage: "url('https://media.globaldev.tech/images/header_kids_learning.format-jpeg.jpg')" };
+                    })()}
                 />
                 <div className="profile-card-body">
                   <div

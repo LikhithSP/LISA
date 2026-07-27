@@ -62,68 +62,28 @@ export const SHOP_CATALOG = {
   ],
   banners: [
     {
-      id: "banner_cosmos",
-      name: "Cosmos",
-      desc: "Starfield header",
-      cost: 120,
-      icon: "🌌",
-      gradient: "linear-gradient(135deg, #0f0c29, #302b63, #24243e)",
-    },
-    {
-      id: "banner_aurora",
-      name: "Aurora",
-      desc: "Northern lights",
-      cost: 120,
-      icon: "🌈",
-      gradient: "linear-gradient(135deg, #43e97b, #38f9d7, #667eea)",
-    },
-    {
-      id: "banner_fire",
-      name: "Blaze",
-      desc: "Fiery and bold",
+      id: "banner_kids_learning",
+      name: "Kids Learning",
+      desc: "Colorful kids learning header",
       cost: 100,
-      icon: "🔥",
-      gradient: "linear-gradient(135deg, #f83600, #f9d423)",
+      icon: "📚",
+      image: "https://media.globaldev.tech/images/header_kids_learning.format-jpeg.jpg",
     },
     {
-      id: "banner_ocean",
-      name: "Deep Ocean",
-      desc: "Underwater calm",
+      id: "banner_bookshelf",
+      name: "Bookshelf",
+      desc: "Cozy bookshelf with plants",
       cost: 100,
-      icon: "🐋",
-      gradient: "linear-gradient(135deg, #2980b9, #6dd5fa, #ffffff)",
+      icon: "🌿",
+      image: "https://static.vecteezy.com/system/resources/thumbnails/006/033/288/small_2x/bookshelf-shelf-for-books-with-plants-in-pot-illustration-in-flat-cartoon-style-vector.jpg",
     },
     {
-      id: "banner_sakura",
-      name: "Sakura",
-      desc: "Cherry blossom",
-      cost: 130,
-      icon: "🌸",
-      gradient: "linear-gradient(135deg, #ff9a9e, #fad0c4, #ffecd2)",
-    },
-    {
-      id: "banner_forest",
-      name: "Enchanted Forest",
-      desc: "Mystical woods",
-      cost: 130,
-      icon: "🌲",
-      gradient: "linear-gradient(135deg, #134e5e, #71b280)",
-    },
-    {
-      id: "banner_galaxy",
-      name: "Galaxy",
-      desc: "Swirling nebula",
-      cost: 200,
-      icon: "🪐",
-      gradient: "linear-gradient(135deg, #0d0d0d, #5c258d, #4389a2)",
-    },
-    {
-      id: "banner_royal",
-      name: "Royal Gold",
-      desc: "Majestic & premium",
-      cost: 200,
-      icon: "👑",
-      gradient: "linear-gradient(135deg, #c6a855, #f7e98e, #c6a855)",
+      id: "banner_confidence",
+      name: "Confidence",
+      desc: "Branded learning confidence",
+      cost: 120,
+      icon: "💪",
+      image: "https://cdn.prod.website-files.com/6744bdb342b0a7660e7b7c7d/67df66d85cbde22c48b44303_f5a1cc83-4ba9-4052-8e67-57c3c3a3285b_Branded%2BBlog%2BHeader%2B-%2BA%2BLook%2Bat%2BConfidence%2Bin%2BLearning.jpeg",
     },
   ],
   avatars: [
@@ -198,9 +158,9 @@ function AvatarBuilder({ t = (key) => key, currentAvatar, onSave, ownedAvatars, 
   });
 
   const EMOJI_OPTIONS = [
-    "😊","😎","🤩","🥳","😄","😁","🤓","🧐","😇","🥰",
-    "😏","🤔","🤗","😤","😌","🥸","😝","🤑","😈","👽",
-    "🤖","💀","👻","🎭","🦸","🦹","🧛","🧟","🧜","🧚",
+    "😊", "😎", "🤩", "🥳", "😄", "😁", "🤓", "🧐", "😇", "🥰",
+    "😏", "🤔", "🤗", "😤", "😌", "🥸", "😝", "🤑", "😈", "👽",
+    "🤖", "💀", "👻", "🎭", "🦸", "🦹", "🧛", "🧟", "🧜", "🧚",
   ];
 
   const shapeStyle = {
@@ -509,7 +469,7 @@ export default function XPShop({
           >
             {active && <div className="shop-active-badge">✓ {t("activeLabel")}</div>}
             {owned_flag && !active && <div className="shop-owned-badge">{t("ownedLabel")}</div>}
-            <div className="shop-banner-preview" style={{ background: banner.gradient }}>
+            <div className="shop-banner-preview" style={{ backgroundImage: `url(${banner.image})` }}>
               <span className="shop-banner-icon">{banner.icon}</span>
             </div>
             <div className="shop-item-info">
