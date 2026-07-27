@@ -7503,103 +7503,7 @@ function App() {
                   </div>
                 </div>
 
-                {/* Learner Progress Dashboard Widget */}
-                <div className="progress-dashboard-widget">
-                  <div className="progress-dashboard-header">
-                    <h4 className="progress-dashboard-title">{t("dashboardProgressTitle")}</h4>
-                    <button
-                      type="button"
-                      className="progress-view-btn"
-                      onClick={() => setDashboardTab("analytics")}
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: 'middle' }}>
-                        <path d="M3 3v18h18" />
-                        <path d="M7 16l4-8 4 4 4-6" />
-                      </svg>
-                      {t("dashboardViewReport")}
-                    </button>
-                  </div>
 
-                  <div className="progress-metrics-grid">
-                    {/* XP Metric */}
-                    <div className="progress-metric-card">
-                      <div className="progress-metric-icon xp">⭐</div>
-                      <div className="progress-metric-info">
-                        <span className="progress-metric-value">{dailyXp}</span>
-                        <span className="progress-metric-label">{t("dashboardStarsToday")}</span>
-                        <div className="progress-skill-mini-bar">
-                          <div
-                            className="progress-skill-mini-fill"
-                            style={{
-                              width: `${Math.min((dailyXp / 100) * 100, 100)}%`,
-                              background: '#f59e0b'
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Lessons Metric */}
-                    <div className="progress-metric-card">
-                      <div className="progress-metric-icon lessons">📖</div>
-                      <div className="progress-metric-info">
-                        <span className="progress-metric-value">{completedLessons.filter(id => !id.startsWith("ach_")).length}</span>
-                        <span className="progress-metric-label">{t("dashboardLessonsCompleted")}</span>
-                        <div className="progress-skill-mini-bar">
-                          <div
-                            className="progress-skill-mini-fill"
-                            style={{
-                              width: `${Math.min((completedLessons.filter(id => !id.startsWith("ach_")).length / 20) * 100, 100)}%`,
-                              background: '#10b981'
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Streak Metric */}
-                    <div className="progress-metric-card">
-                      <div className="progress-metric-icon streak">🔥</div>
-                      <div className="progress-metric-info">
-                        <span className="progress-metric-value">{streakCount}</span>
-                        <span className="progress-metric-label">{t("dashboardDayStreak")}</span>
-                        <div className="progress-skill-mini-bar">
-                          <div
-                            className="progress-skill-mini-fill"
-                            style={{
-                              width: `${Math.min((streakCount / 30) * 100, 100)}%`,
-                              background: '#ef4444'
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Accuracy Metric */}
-                    <div className="progress-metric-card">
-                      <div className="progress-metric-icon accuracy">🎯</div>
-                      <div className="progress-metric-info">
-                        <span className="progress-metric-value">{dailyCorrectAnswers}</span>
-                        <span className="progress-metric-label">{t("dashboardRightAnswersToday")}</span>
-                        <div className="progress-skill-mini-bar">
-                          <div
-                            className="progress-skill-mini-fill"
-                            style={{
-                              width: `${dailyCorrectAnswers > 0 ? Math.min((dailyCorrectAnswers / 10) * 100, 100) : 0}%`,
-                              background: '#3b82f6'
-                            }}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="progress-dashboard-footer">
-                    <span className="progress-dashboard-summary">
-                      {t("dashboardProgressSummary").replace("{lessons}", completedLessons.filter(id => !id.startsWith("ach_")).length).replace("{xp}", dailyXp).replace("{streak}", streakCount)}
-                    </span>
-                  </div>
-                </div>
               </div>
 
               <div className="dashboard-col dashboard-col-right">
@@ -7640,20 +7544,43 @@ function App() {
                 </div>
 
                 <div className="stars-answers-card" style={{ margin: 0 }}>
-                  <div className="sa-metric">
-                    <div className="sa-icon sa-icon-stars"><StarIcon style={{ marginRight: 0, width: "22px", height: "22px" }} /></div>
-                    <div className="sa-metric-text">
-                      <span className="sa-value">{dailyXp}</span>
-                      <span className="sa-label">{t("dashboardStarsToday")}</span>
+                  <div className="progress-dashboard-header" style={{ paddingTop: 0, borderTop: 'none', borderBottom: '1px solid #e5e7eb', paddingBottom: '12px', marginBottom: '4px' }}>
+                    <h4 className="progress-dashboard-title">{t("dashboardProgressTitle")}</h4>
+                    <button
+                      type="button"
+                      className="progress-view-btn"
+                      onClick={() => setDashboardTab("analytics")}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: 'middle' }}>
+                        <path d="M3 3v18h18" />
+                        <path d="M7 16l4-8 4 4 4-6" />
+                      </svg>
+                      {t("dashboardViewReport")}
+                    </button>
+                  </div>
+
+                  <div className="sa-metrics-row">
+                    <div className="sa-metric">
+                      <div className="sa-icon sa-icon-stars"><StarIcon style={{ marginRight: 0, width: "22px", height: "22px" }} /></div>
+                      <div className="sa-metric-text">
+                        <span className="sa-value">{dailyXp}</span>
+                        <span className="sa-label">{t("dashboardStarsToday")}</span>
+                      </div>
+                    </div>
+                    <div className="sa-divider" />
+                    <div className="sa-metric">
+                      <div className="sa-icon sa-icon-answers">✓</div>
+                      <div className="sa-metric-text">
+                        <span className="sa-value">{dailyCorrectAnswers}</span>
+                        <span className="sa-label">{t("dashboardRightAnswersToday")}</span>
+                      </div>
                     </div>
                   </div>
-                  <div className="sa-divider" />
-                  <div className="sa-metric">
-                    <div className="sa-icon sa-icon-answers">✓</div>
-                    <div className="sa-metric-text">
-                      <span className="sa-value">{dailyCorrectAnswers}</span>
-                      <span className="sa-label">{t("dashboardRightAnswersToday")}</span>
-                    </div>
+
+                  <div className="progress-dashboard-footer">
+                    <span className="progress-dashboard-summary">
+                      {t("dashboardProgressSummary").replace("{lessons}", completedLessons.filter(id => !id.startsWith("ach_")).length).replace("{xp}", dailyXp).replace("{streak}", streakCount)}
+                    </span>
                   </div>
                 </div>
 
