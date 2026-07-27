@@ -119,6 +119,10 @@
   "daily25min": "25 Minutes/Day",
   "dashboardStarsToday": "XP Earned Today",
   "dashboardRightAnswersToday": "Right Answers Today",
+  "dashboardProgressTitle": "Learner Progress",
+  "dashboardViewReport": "View Report",
+  "dashboardLessonsCompleted": "Lessons Completed",
+  "dashboardProgressSummary": "You've completed {lessons} lessons, earned {xp} XP, and maintained a {streak}-day streak.",
   "viewLearningPath": "View Learning Path",
   "No Formal EducationOption": "No Formal Education (Never attended school)",
   "Middle SchoolOption": "Middle School (Classes 6–8)",
@@ -341,5 +345,6 @@
   "analyticsStreakTitle": "Streak Master",
   "analyticsStreakDesc": "You have maintained a {days}-day streak. Keep the momentum going!",
   "analyticsXpTitle": "XP Milestone",
-  "analyticsXpDesc": "You have earned {xp} XP. You are making fantastic progress!"
+  "analyticsXpDesc": "You have earned {xp} XP. You are making fantastic progress!",
+  "analyticsBack": "Back to Dashboard"
 }
