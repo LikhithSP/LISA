@@ -693,6 +693,13 @@ function App() {
   };
   const [completedLessons, setCompletedLessons] = useState([]);
   const [lessonSession, setLessonSession] = useState(null);
+  const [mistakeAttemptsCount, setMistakeAttemptsCount] = useState(0);
+  const [showMistakeHint, setShowMistakeHint] = useState(false);
+  const [flashcardFlipped, setFlashcardFlipped] = useState(false);
+  const [storyLineIndex, setStoryLineIndex] = useState(0);
+  const [storyQuestionIdx, setStoryQuestionIdx] = useState(null);
+  const [storyQuestionAnswered, setStoryQuestionAnswered] = useState(false);
+  const [storyQuestionFeedback, setStoryQuestionFeedback] = useState(null);
   const [streakCount, setStreakCount] = useState(0);
   const [wordOfDay, setWordOfDay] = useState(null);
   const [userMistakes, setUserMistakes] = useState([]);
@@ -1507,6 +1514,16 @@ function App() {
     }
   }, [lessonStep, lessonTracingIndex, lessonAiContent, lessonSession]);
 
+  // Play the first line of dialogue automatically when Stories Practice starts
+  useEffect(() => {
+    if (lessonSession && (lessonSession.practiceType === "Stories Practice" || lessonSession.practiceType === "Stories") && storyLineIndex === 0 && lessonAiContent?.dialogue?.[0]) {
+      const firstLine = lessonAiContent.dialogue[0];
+      if (firstLine?.audioText) {
+        speakText(firstLine.audioText, 1.0);
+      }
+    }
+  }, [lessonSession, storyLineIndex, lessonAiContent]);
+
   const renderPracticeSession = (ai) => {
     const currentQuestion = ai.questions?.[lessonStep] || {};
     const practiceType = lessonSession.practiceType;
@@ -1560,6 +1577,235 @@ function App() {
       setLessonTranslationSelected([]);
       advanceLessonStep();
     };
+
+    // OVERRIDE: Words Practice (Flashcards)
+    if (practiceType === "Words Practice") {
+      const card = currentQuestion;
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', paddingBottom: '140px' }}>
+          <div className="ai-lesson-step-header" style={{ marginBottom: '10px', textAlign: 'center', width: '100%' }}>
+            <span className="ai-step-badge">🔤 Flashcards - Tap to Flip</span>
+          </div>
+
+          <div
+            className={`flashcard-perspective ${flashcardFlipped ? "flipped" : ""}`}
+            onClick={() => setFlashcardFlipped(!flashcardFlipped)}
+          >
+            <div className="flashcard-inner">
+              {/* Side A: Raw Word & Audio Play Button */}
+              <div className="flashcard-side flashcard-front">
+                <h2 style={{ fontSize: '3rem', fontWeight: '900', color: 'var(--accent)', margin: 0 }}>{card.word}</h2>
+                <button
+                  type="button"
+                  className="flashcard-audio-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    speakText(card.word, 1.0);
+                  }}
+                  title="Play Sound"
+                >
+                  🔊
+                </button>
+                <p style={{ marginTop: '30px', color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 600 }}>TAP TO REVEAL MEANING</p>
+              </div>
+
+              {/* Side B: Cartoon illustration (emoji), Example sentence, Translation */}
+              <div className="flashcard-side flashcard-back">
+                <div className="flashcard-illustration">{card.emoji}</div>
+                <h3 style={{ fontSize: '1.8rem', fontWeight: '800', margin: '0 0 8px', color: 'var(--text)' }}>{card.word}</h3>
+                <p style={{ fontSize: '1.25rem', fontWeight: '700', color: 'var(--accent)', margin: '0 0 16px' }}>{card.translation}</p>
+                <div className="flashcard-example-box">
+                  <p style={{ margin: 0, fontWeight: 600, color: 'var(--text)' }}>"{card.sentence}"</p>
+                </div>
+                <p style={{ marginTop: '20px', color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 600 }}>TAP TO FLIP BACK</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Action Sheet: green "GOT IT" button */}
+          <div style={{
+            position: 'absolute',
+            bottom: 0, left: 0, right: 0,
+            background: 'var(--panel)',
+            borderTop: '2px solid var(--line)',
+            padding: '24px 40px',
+            zIndex: 100,
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center'
+          }}>
+            <button
+              type="button"
+              className="primary-btn"
+              style={{ background: '#10b981', borderColor: '#10b981', color: 'white', padding: '14px 60px', borderRadius: '16px', fontSize: '1.2rem', fontWeight: '800', width: '100%', maxWidth: '320px' }}
+              onClick={handleNext}
+            >
+              GOT IT
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // OVERRIDE: Stories Practice (Interactive Split Screen Reading)
+    if (practiceType === "Stories Practice" || practiceType === "Stories") {
+      const dialogue = ai.dialogue || [];
+      const activeLine = dialogue[storyLineIndex];
+      const isQuestion = activeLine?.type === "question";
+
+      const handleStoryContinue = () => {
+        if (isQuestion || storyQuestionIdx !== null) return;
+        
+        if (storyLineIndex < dialogue.length - 1) {
+          const nextIndex = storyLineIndex + 1;
+          setStoryLineIndex(nextIndex);
+          
+          const nextLine = dialogue[nextIndex];
+          if (nextLine?.audioText) {
+            speakText(nextLine.audioText, 1.0);
+          }
+
+          if (nextLine?.type === "question") {
+            setStoryQuestionIdx(nextIndex);
+            setStoryQuestionAnswered(false);
+            setStoryQuestionFeedback(null);
+          }
+          setTimeout(() => {
+            const chatLog = document.getElementById("stories-chat-log");
+            if (chatLog) chatLog.scrollTop = chatLog.scrollHeight;
+          }, 100);
+        } else {
+          // Finished story session!
+          completeLesson(lessonSession.lessonId, 15);
+          setLessonSession(prev => prev ? { ...prev, status: "completed" } : null);
+        }
+      };
+
+      const handlePredictorAnswer = (optionIdx) => {
+        const q = dialogue[storyQuestionIdx];
+        const correct = optionIdx === q.correctIndex;
+        setStoryQuestionAnswered(true);
+        setStoryQuestionFeedback({
+          selected: optionIdx,
+          isCorrect: correct
+        });
+
+        if (correct) {
+          recordDailyCorrect();
+          recordLessonAnswer(true);
+          setTimeout(() => {
+            setStoryQuestionIdx(null);
+            const nextIdx = storyLineIndex + 1;
+            setStoryLineIndex(nextIdx);
+            
+            const nextLine = dialogue[nextIdx];
+            if (nextLine?.audioText) {
+              speakText(nextLine.audioText, 1.0);
+            }
+
+            setTimeout(() => {
+              const chatLog = document.getElementById("stories-chat-log");
+              if (chatLog) chatLog.scrollTop = chatLog.scrollHeight;
+            }, 100);
+          }, 1500);
+        } else {
+          recordLessonAnswer(false);
+        }
+      };
+
+      const visibleBubbles = dialogue.slice(0, storyLineIndex + 1).filter(d => d.type !== "question");
+
+      return (
+        <div style={{ paddingBottom: '20px' }}>
+          <div className="stories-split-container">
+            {/* Top Half: Illustrated Scene with Two Characters */}
+            <div className="stories-top-scene">
+              <div className={`stories-character-node ${activeLine?.speaker === "Ana" || activeLine?.speaker === "अना" ? "speaking" : ""}`}>
+                <div className="stories-character-avatar">👩‍🦰</div>
+                <div className="stories-character-name">Ana</div>
+              </div>
+
+              <div style={{ fontSize: '2.5rem', opacity: 0.8 }}>🌲🏡🌲</div>
+
+              <div className={`stories-character-node ${activeLine?.speaker === "Ravi" || activeLine?.speaker === "रवि" ? "speaking" : ""}`}>
+                <div className="stories-character-avatar">🧑</div>
+                <div className="stories-character-name">Ravi</div>
+              </div>
+            </div>
+
+            {/* Bottom Half: Conversation Chat bubbles */}
+            <div className="stories-bottom-chat">
+              <div 
+                id="stories-chat-log" 
+                className={`stories-chat-log ${storyQuestionIdx !== null && !storyQuestionAnswered ? "story-blur-overlay" : ""}`}
+              >
+                {visibleBubbles.map((bubble, idx) => {
+                  const isLeft = bubble.speaker === "Ana" || bubble.speaker === "अना";
+                  return (
+                    <div 
+                      key={idx} 
+                      className={`story-chat-bubble ${isLeft ? "left" : "right"}`}
+                    >
+                      <span className="story-bubble-speaker">{bubble.speaker}</span>
+                      <span>{bubble.text}</span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* MCQ Predictor overlay when paused */}
+              {storyQuestionIdx !== null && (
+                <div className="story-predictor-box">
+                  <div className="story-predictor-title">
+                    ❓ {dialogue[storyQuestionIdx].question}
+                  </div>
+                  <div className="story-predictor-options">
+                    {dialogue[storyQuestionIdx].options.map((opt, oIdx) => {
+                      const feedback = storyQuestionFeedback;
+                      const isSelected = feedback?.selected === oIdx;
+                      const wasWrong = isSelected && !feedback?.isCorrect;
+                      const isCorrect = oIdx === dialogue[storyQuestionIdx].correctIndex;
+                      const showSuccess = feedback?.isCorrect && isCorrect;
+                      const btnClass = showSuccess 
+                        ? "story-predictor-opt-btn correct" 
+                        : wasWrong 
+                          ? "story-predictor-opt-btn wrong" 
+                          : "story-predictor-opt-btn";
+                      return (
+                        <button
+                          key={oIdx}
+                          type="button"
+                          className={btnClass}
+                          disabled={storyQuestionAnswered && feedback?.isCorrect}
+                          onClick={() => handlePredictorAnswer(oIdx)}
+                        >
+                          {opt} {showSuccess && " ✅"} {wasWrong && " ❌"}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {storyQuestionFeedback && !storyQuestionFeedback.isCorrect && (
+                    <p style={{ color: '#ef4444', fontWeight: 'bold', marginTop: '12px' }}>Choose the correct option to continue!</p>
+                  )}
+                </div>
+              )}
+
+              {/* Action Footer */}
+              <div className="stories-action-footer">
+                <button
+                  type="button"
+                  className="story-continue-btn"
+                  disabled={storyQuestionIdx !== null}
+                  onClick={handleStoryContinue}
+                >
+                  {storyLineIndex === dialogue.length - 1 ? "FINISH STORY" : "Tap to Continue →"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
 
     return (
       <div className="ai-lesson-content">
@@ -2900,6 +3146,25 @@ function App() {
                   }}>
                     <p style={{ fontSize: '1.5rem', fontWeight: '800', margin: '0 0 10px' }}>{sentence}</p>
                     {hint && <p style={{ fontSize: '1rem', color: '#b45309', margin: 0 }}>💡 Hint: {hint}</p>}
+                    
+                    {/* Flashing Mistakes Clue/Hint Button */}
+                    {lessonSession?.title === "Mistakes Practice" && mistakeAttemptsCount >= 1 && (
+                      <div style={{ marginTop: '14px' }}>
+                        <button
+                          type="button"
+                          className="mistake-hint-btn-flash"
+                          onClick={() => setShowMistakeHint(!showMistakeHint)}
+                          style={{ padding: '8px 18px', borderRadius: '20px', fontSize: '0.9rem' }}
+                        >
+                          💡 Hint
+                        </button>
+                        {showMistakeHint && (
+                          <div style={{ marginTop: '10px', padding: '12px', background: 'var(--bg)', borderRadius: '12px', border: '1px dashed var(--accent)', color: 'var(--accent-dark)', fontWeight: 700, fontSize: '0.95rem' }}>
+                            {currentQuestion.clue || `The answer starts with "${answer[0].toUpperCase()}" and has ${answer.length} letters.`}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   <div style={{ display: 'flex', justifyContent: 'center', margin: '20px 0' }}>
@@ -2932,6 +3197,7 @@ function App() {
                         onClick={() => {
                           const correct = userAnswer.trim().toLowerCase() === answer.toLowerCase();
                           if (!correct) {
+                            setMistakeAttemptsCount(prev => prev + 1);
                             recordUserMistake({
                               type: currentQuestion.type || "fillBlank",
                               sentence: sentence,
@@ -3037,6 +3303,25 @@ function App() {
                     <div style={{ flexGrow: 1, background: 'var(--panel)', border: '2px solid var(--line)', borderRadius: '20px', padding: '16px 24px', position: 'relative' }}>
                       <div style={{ position: 'absolute', left: '-9px', top: '32px', width: '14px', height: '14px', background: 'var(--panel)', borderLeft: '2px solid var(--line)', borderBottom: '2px solid var(--line)', transform: 'rotate(45deg)' }}></div>
                       <p style={{ margin: 0, fontSize: '1.1rem', fontWeight: '700' }}>{emoji} {hint}</p>
+                      
+                      {/* Flashing Mistakes Clue/Hint Button */}
+                      {lessonSession?.title === "Mistakes Practice" && mistakeAttemptsCount >= 1 && (
+                        <div style={{ marginTop: '10px' }}>
+                          <button
+                            type="button"
+                            className="mistake-hint-btn-flash"
+                            onClick={() => setShowMistakeHint(!showMistakeHint)}
+                            style={{ padding: '6px 12px', borderRadius: '16px', fontSize: '0.85rem' }}
+                          >
+                            💡 Hint
+                          </button>
+                          {showMistakeHint && (
+                            <div style={{ marginTop: '8px', padding: '8px', background: 'var(--bg)', borderRadius: '10px', border: '1px dashed var(--accent)', color: 'var(--accent-dark)', fontWeight: 600, fontSize: '0.9rem' }}>
+                              {currentQuestion.clue || `Starts with "${answer[0].toUpperCase()}" and has ${answer.length} letters.`}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -3066,6 +3351,7 @@ function App() {
                         onClick={() => {
                           const correct = currentBuiltWord.trim().toUpperCase() === answer.trim().toUpperCase();
                           if (!correct) {
+                            setMistakeAttemptsCount(prev => prev + 1);
                             recordUserMistake({
                               type: "unscramble",
                               hint: hint,
@@ -3212,7 +3498,8 @@ function App() {
   const startCollectionPractice = (type) => {
     const title = type === "mistakes" ? "Mistakes Practice" : "Words Practice";
     const desc = type === "mistakes" ? "Review your recent mistakes" : "Practice your saved words";
-    startLessonSession({ id: `l${currentLevelNum}_${type}_practice`, title, desc });
+    const lvl = calculateProgressiveLevel(profile, completedLessons);
+    startLessonSession({ id: `l${lvl}_${type}_practice`, title, desc });
   };
 
   const completeLesson = async (lessonId, xpAwarded) => {
@@ -3316,6 +3603,13 @@ function App() {
     setLessonReadingStep(1);
     setLessonReadingFeedback(null);
     setLessonReadingAnswer("");
+    setMistakeAttemptsCount(0);
+    setShowMistakeHint(false);
+    setFlashcardFlipped(false);
+    setStoryLineIndex(0);
+    setStoryQuestionIdx(null);
+    setStoryQuestionAnswered(false);
+    setStoryQuestionFeedback(null);
     lessonTotalAnsweredRef.current = 0;
     lessonCorrectAnsweredRef.current = 0;
     setLessonAccuracy(null);
@@ -3388,6 +3682,9 @@ function App() {
   const advanceLessonStep = () => {
     const isPractice = lessonSession?.isPractice;
     const totalSteps = isPractice ? 10 : 5;
+    setMistakeAttemptsCount(0);
+    setShowMistakeHint(false);
+    setFlashcardFlipped(false);
     if (lessonStep < totalSteps - 1) {
       setLessonStep(prev => prev + 1);
     } else {
@@ -7610,7 +7907,7 @@ function App() {
                   <div className="practice-section">
                     <h2 className="practice-section-title">{t("practiceYourCollections")}</h2>
                     <div className="practice-row-cards">
-                      <div className="practice-row-card" onClick={() => openPracticeCollection("mistakes")}>
+                      <div className="practice-row-card" onClick={() => startCollectionPractice("mistakes")}>
                         <div className="practice-row-card-content">
                           <h3 className="practice-row-card-title">
                             {t("practiceMistakes")}
@@ -7621,7 +7918,7 @@ function App() {
                         <div className="practice-row-card-icon mistakes-icon">💔</div>
                       </div>
 
-                      <div className="practice-row-card" onClick={() => openPracticeCollection("words")}>
+                      <div className="practice-row-card" onClick={() => startCollectionPractice("words")}>
                         <div className="practice-row-card-content">
                           <h3 className="practice-row-card-title">
                             {t("practiceWords")}
@@ -8121,6 +8418,9 @@ function App() {
               <div className="lesson-overlay-header-content">
                 <button className="lesson-overlay-close" onClick={() => { setLessonSession(null); setLessonAiContent(null); setLessonLoading(false); setLessonStep(0); }}>✕</button>
                 <div className="lesson-progress-container">
+                  {lessonSession?.title === "Mistakes Practice" && (
+                    <span className="fixing-mistakes-pulse" style={{ fontSize: '1.3rem', marginRight: '8px' }}>🩹</span>
+                  )}
                   <div className="lesson-progress-bar" style={{ width: lessonSession?.status === "completed" ? "100%" : `${(lessonStep / (lessonSession?.isPractice ? 9 : 12)) * 100}%` }}></div>
                 </div>
                 <div className="lesson-overlay-controls">

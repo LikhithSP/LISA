@@ -745,34 +745,150 @@ const getFallbackPractice = (params) => {
   }
 
   if (practiceType === "Mistakes Practice") {
-    return {
-      questions: Array.from({ length: 10 }, (_, i) => ({
+    let list = (params.mistakesList && params.mistakesList.length > 0) ? [...params.mistakesList] : [];
+    if (list.length === 0) {
+      list = [
+        { id: 1, type: "fillBlank", sentence: "The sun rises in the ___.", answer: "east", hint: "A direction", clue: "Opposite of west" },
+        { id: 2, type: "unscramble", hint: "Where we study", emoji: "🏫", answer: "SCHOOL", tiles: ["L","O","C","S","H","O"], clue: "An educational institution" },
+        { id: 3, type: "fillBlank", sentence: "We should drink clean ___ every day.", answer: "water", hint: "Essential liquid", clue: "H2O" },
+        { id: 4, type: "unscramble", hint: "A sweet red fruit", emoji: "🍎", answer: "APPLE", tiles: ["P","L","A","P","E"], clue: "Keep the doctor away" }
+      ];
+    }
+    const finalQuestions = [];
+    for (let i = 0; i < 10; i++) {
+      const original = list[i % list.length];
+      
+      let mappedType = original.type || "fillBlank";
+      if (mappedType !== "fillBlank" && mappedType !== "unscramble") {
+        mappedType = i % 2 === 0 ? "fillBlank" : "unscramble";
+      }
+
+      let sentence = original.sentence || original.text || "";
+      let answer = original.answer || "";
+      let tiles = original.tiles || [];
+      let hint = original.hint || "";
+
+      if (mappedType === "fillBlank") {
+        if (!sentence.includes("___")) {
+          if (answer && sentence.toLowerCase().includes(answer.toLowerCase())) {
+            const regex = new RegExp(`\\b${answer}\\b`, 'i');
+            sentence = sentence.replace(regex, "___");
+          } else {
+            const words = sentence.split(/\s+/).filter(Boolean);
+            if (words.length > 0) {
+              const targetIdx = Math.floor(words.length / 2);
+              answer = words[targetIdx].replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g, "");
+              words[targetIdx] = "___";
+              sentence = words.join(" ");
+            } else {
+              sentence = "We should learn ___ every day.";
+              answer = "words";
+            }
+          }
+        }
+      }
+
+      if (mappedType === "unscramble") {
+        if (!answer) {
+          const words = sentence.split(/\s+/).filter(Boolean);
+          answer = (words[0] || "LEARN").replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g, "");
+        }
+        if (!tiles || tiles.length === 0) {
+          tiles = answer.toUpperCase().split("");
+          for (let k = tiles.length - 1; k > 0; k--) {
+            const j = Math.floor(Math.random() * (k + 1));
+            [tiles[k], tiles[j]] = [tiles[j], tiles[k]];
+          }
+        }
+      }
+
+      finalQuestions.push({
         id: i + 1,
-        type: i % 2 === 0 ? "mcq" : "fillBlank",
-        question: `Review Question ${i + 1}: Select the grammatically correct option.`,
-        options: ["He goes to school.", "He go to school.", "He going to school.", "He gone to school."],
-        correctIndex: 0,
-        explanation: "Subject-verb agreement requires 'goes' with 'He'.",
-        sentence: `The children are playing with ___ toys.`,
-        answer: "their",
-        hint: "Possessive pronoun for they"
-      }))
-    };
+        type: mappedType,
+        sentence: sentence,
+        answer: answer,
+        tiles: tiles,
+        hint: hint || "Recent mistake review",
+        clue: original.clue || original.hint || (answer ? `Starts with "${answer[0].toUpperCase()}"` : "Review your mistake")
+      });
+    }
+    return { questions: finalQuestions };
   }
 
   if (practiceType === "Words Practice") {
-    return {
-      questions: Array.from({ length: 10 }, (_, i) => ({
-        id: i + 1,
-        type: i % 2 === 0 ? "meaning" : "spelling",
-        phrase: language === "Hindi" ? "पुस्तकालय" : language === "Kannada" ? "ಗ್ರಂಥಾಲಯ" : language === "Telugu" ? "గ్రంథాలయం" : language === "Tamil" ? "நூலகம்" : "Library",
-        options: ["A place with books to read or borrow", "A place where students study", "A place to buy things"],
-        correctIndex: 0,
-        sentence: "Please open the do___ to let air in.",
-        answer: "or",
-        hint: "The entrance barrier"
-      }))
-    };
+    const list = language === "Hindi" ? [
+      { id: 1, word: "किताब", emoji: "📚", translation: "Book", sentence: "यह एक अच्छी किताब है। (This is a good book.)" },
+      { id: 2, word: "स्कूल", emoji: "🏫", translation: "School", sentence: "बच्चे स्कूल जा रहे हैं। (Children are going to school.)" },
+      { id: 3, word: "सेब", emoji: "🍎", translation: "Apple", sentence: "सेब लाल और मीठा है। (The apple is red and sweet.)" },
+      { id: 4, word: "पानी", emoji: "💧", translation: "Water", sentence: "साफ पानी पीना स्वास्थ्य के लिए अच्छा है। (Drinking clean water is good for health.)" },
+      { id: 5, word: "सूरज", emoji: "☀️", translation: "Sun", sentence: "सूरज पूर्व से उगता है। (The sun rises in the east.)" },
+      { id: 6, word: "दोस्त", emoji: "🧑‍🤝‍🧑", translation: "Friend", sentence: "वह मेरा सबसे अच्छा दोस्त है। (He is my best friend.)" },
+      { id: 7, word: "घर", emoji: "🏠", translation: "House", sentence: "हमारा घर बहुत सुंदर है। (Our house is very beautiful.)" },
+      { id: 8, word: "पेड़", emoji: "🌳", translation: "Tree", sentence: "पेड़ हमें छाया देता है। (The tree gives us shade.)" },
+      { id: 9, word: "फल", emoji: "🍌", translation: "Fruit", sentence: "ताजे फल खाएं। (Eat fresh fruits.)" },
+      { id: 10, word: "खुश", emoji: "😊", translation: "Happy", sentence: "वह आज बहुत खुश है। (He is very happy today.)" },
+    ] : [
+      { id: 1, word: "Book", emoji: "📚", translation: "किताब / ಪುಸ್ತಕ", sentence: "This is a good book." },
+      { id: 2, word: "School", emoji: "🏫", translation: "स्कूल / ಶಾಲೆ", sentence: "Children are going to school." },
+      { id: 3, word: "Apple", emoji: "🍎", translation: "सेब / ಸೇಬು", sentence: "The apple is red and sweet." },
+      { id: 4, word: "Water", emoji: "💧", translation: "पानी / ನೀರು", sentence: "We should drink clean water." },
+      { id: 5, word: "Sun", emoji: "☀️", translation: "सूरज / ಸೂರ್ಯ", sentence: "The sun is very bright today." },
+      { id: 6, word: "Friend", emoji: "🧑‍🤝‍🧑", translation: "मित्र / ಸ್ನೇಹಿತ", sentence: "He is my best friend." },
+      { id: 7, word: "House", emoji: "🏠", translation: "घर / ಮನೆ", sentence: "They live in a big house." },
+      { id: 8, word: "Tree", emoji: "🌳", translation: "पेड़ / ಮರ", sentence: "The birds are on the tree." },
+      { id: 9, word: "Fruit", emoji: "🍌", translation: "फल / ಹಣ್ಣು", sentence: "I love eating fresh fruit." },
+      { id: 10, word: "Happy", emoji: "😊", translation: "खुश / ಸಂತೋಷ", sentence: "She has a happy family." },
+    ];
+    return { questions: list };
+  }
+
+  if (practiceType === "Stories Practice" || practiceType === "Stories") {
+    const dialogue = language === "Hindi" ? [
+      { speaker: "अना", text: "नमस्ते! मेरा नाम अना है।", audioText: "नमस्ते! मेरा नाम अना है।" },
+      { speaker: "रवि", text: "नमस्ते अना! मैं रवि हूँ। हमारे गाँव में आपका स्वागत है।", audioText: "नमस्ते अना! मैं रवि हूँ। हमारे गाँव में आपका स्वागत है।" },
+      { speaker: "अना", text: "यहाँ बहुत सुंदर है। मुझे एक किताब पढ़नी है।", audioText: "यहाँ बहुत सुंदर है। मुझे एक किताब पढ़नी है।" },
+      {
+        type: "question",
+        question: "अना क्या चाहती है?",
+        options: ["एक किताब (A book)", "पानी (Water)", "एक खिलौना (A toy)"],
+        correctIndex: 0
+      },
+      { speaker: "रवि", text: "हमारे पास पास ही एक पुस्तकालय है। चलो वहाँ चलते हैं!", audioText: "हमारे पास पास ही एक पुस्तकालय है। चलो वहाँ चलते हैं!" },
+      { speaker: "अना", text: "उस पेड़ को देखो! उस पर बड़े लाल सेब हैं।", audioText: "उस पेड़ को देखो! उस पर बड़े लाल सेब हैं।" },
+      { speaker: "रवि", text: "हाँ, वे मीठे हैं। क्या तुम्हें एक चाहिए?", audioText: "हाँ, वे मीठे हैं। क्या तुम्हें एक चाहिए।" },
+      {
+        type: "question",
+        question: "पेड़ पर कौन सा फल है?",
+        options: ["आम (Mango)", "सेब (Apple)", "केला (Banana)"],
+        correctIndex: 1
+      },
+      { speaker: "अना", text: "हाँ, कृपया! मुझे मीठे सेब बहुत पसंद हैं।", audioText: "हाँ, कृपया! मुझे मीठे सेब बहुत पसंद हैं।" },
+      { speaker: "रवि", text: "यह लो। अब, चलो वह किताब ढूंढते हैं।", audioText: "यह लो। अब, चलो वह किताब ढूंढते हैं।" },
+      { speaker: "अना", text: "धन्यवाद, रवि! तुम बहुत अच्छे दोस्त हो।", audioText: "धन्यवाद, रवि! तुम बहुत अच्छे दोस्त हो।" }
+    ] : [
+      { speaker: "Ana", text: "Hello! My name is Ana.", audioText: "Hello! My name is Ana." },
+      { speaker: "Ravi", text: "Hi Ana! I am Ravi. Welcome to our village.", audioText: "Hi Ana! I am Ravi. Welcome to our village." },
+      { speaker: "Ana", text: "It is very beautiful here. I want to read a book.", audioText: "It is very beautiful here. I want to read a book." },
+      {
+        type: "question",
+        question: "What does Ana want?",
+        options: ["A book", "Water", "A toy"],
+        correctIndex: 0
+      },
+      { speaker: "Ravi", text: "We have a library nearby. Let's go there!", audioText: "We have a library nearby. Let's go there!" },
+      { speaker: "Ana", text: "Look at that tree! It has big red apples.", audioText: "Look at that tree! It has big red apples." },
+      { speaker: "Ravi", text: "Yes, they are sweet. Do you want one?", audioText: "Yes, they are sweet. Do you want one." },
+      {
+        type: "question",
+        question: "What fruit is on the tree?",
+        options: ["Mango", "Apple", "Banana"],
+        correctIndex: 1
+      },
+      { speaker: "Ana", text: "Oh yes, please! I love sweet apples.", audioText: "Oh yes, please! I love sweet apples." },
+      { speaker: "Ravi", text: "Here you go. Now, let's find that book.", audioText: "Here you go. Now, let's find that book." },
+      { speaker: "Ana", text: "Thank you, Ravi! You are a great friend.", audioText: "Thank you, Ravi! You are a great friend." }
+    ];
+    return { story: "Ana and Ravi's Adventure", dialogue };
   }
 
   if (practiceType === "Write Practice") {
