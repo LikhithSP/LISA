@@ -9,8 +9,8 @@
   --accent: #c65f2d;
   --accent-dark: #9f4620;
   --accent-soft: #f7d8c8;
-  --shadow: 0 28px 80px rgba(24, 32, 43, 0.14);
-  font-family: "Inter", sans-serif;
+  --font-family: "Inter", sans-serif;
+  font-family: var(--font-family);
   --transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
   /* Fun & Learn Zone shared tokens */
   --flz-ok: #10b981;
@@ -601,13 +601,13 @@ select:focus {
   top: 24px;
   right: 96px;
   z-index: 2000;
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-family);
 }
 
 .lang-selector-relative {
   position: relative;
   z-index: 2000;
-  font-family: "Inter", sans-serif;
+  font-family: var(--font-family);
 }
 
 .brand-logo-top {
@@ -4707,7 +4707,7 @@ select:focus {
   width: 100%;
   background: var(--bg);
   color: var(--text);
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-family);
 }
 
 .dashboard-sidebar {

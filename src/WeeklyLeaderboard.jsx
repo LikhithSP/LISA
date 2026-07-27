@@ -160,9 +160,6 @@ export default function WeeklyLeaderboard({ t = (key) => key, session, profile, 
       const weekStart = getWeekStartDate();
       const cleaned = (data || []).map((p) => {
         let wx = p.weekly_start && p.weekly_start !== weekStart ? 0 : (p.weekly_xp || 0);
-        if (wx === 0 && p.xp) {
-          wx = p.xp;
-        }
         return {
           ...p,
           weekly_xp: wx,

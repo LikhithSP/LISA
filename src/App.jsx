@@ -5092,6 +5092,7 @@ function App() {
       avatar: partial.avatar !== undefined ? partial.avatar : shopCustomAvatar,
       badges: partial.badges !== undefined ? partial.badges : profileBadges,
     };
+    setProfile(prev => prev ? { ...prev, shop_data: payload } : null);
     supabase
       .from("profiles")
       .update({ shop_data: payload })
@@ -7205,9 +7206,23 @@ function App() {
                         .map(id => achievementsList.find(a => a.id === id))
                         .filter(Boolean);
 
+                      // Include owned shop badges as achievements
+                      const shopBadgesDefs = SHOP_CATALOG.badges.map((b) => ({
+                        id: b.id,
+                        title: t(b.id + "_name") || b.name,
+                        desc: t(b.id + "_desc") || b.desc,
+                        icon: b.icon,
+                        color: b.rarity === "legendary" ? "#d97706" : b.rarity === "rare" ? "#3b82f6" : "#6b7280",
+                        earned: true,
+                        progress: 100
+                      }));
+                      const ownedShopBadges = shopBadgesDefs.filter(b => shopOwnedItems.includes(b.id));
+
+                      const combinedEarnedList = [...earnedList, ...ownedShopBadges];
+
                       // Display only the last 2 recently earned badges, or the first two items in general if none earned yet
-                      const displayedList = earnedList.length > 0
-                        ? earnedList.slice(-2)
+                      const displayedList = combinedEarnedList.length > 0
+                        ? combinedEarnedList.slice(-2)
                         : achievementsList.slice(0, 2);
 
                       return displayedList.map((a) => (
@@ -7217,9 +7232,9 @@ function App() {
                           </div>
                           <div className="achievement-info">
                             <div className="achievement-info-header">
-                              <span className="achievement-title">{translatedAchievements[a.id]?.title || a.title}</span>
+                              <span className="achievement-title">{a.id.toString().startsWith("badge_") ? a.title : (translatedAchievements[a.id]?.title || a.title)}</span>
                             </div>
-                            <p className="achievement-desc">{translatedAchievements[a.id]?.desc || a.desc}</p>
+                            <p className="achievement-desc">{a.id.toString().startsWith("badge_") ? a.desc : (translatedAchievements[a.id]?.desc || a.desc)}</p>
                             <div className="achievement-progress-track">
                               <div className="achievement-progress-fill" style={{ width: `${a.progress}%`, background: '#facc15' }}></div>
                             </div>
@@ -7656,9 +7671,12 @@ function App() {
               <div className="profile-card-large">
                 <div
                   className="profile-cover"
-                  style={{
-                    backgroundImage: "url('https://static.vecteezy.com/system/resources/thumbnails/006/033/288/small_2x/bookshelf-shelf-for-books-with-plants-in-pot-illustration-in-flat-cartoon-style-vector.jpg')"
-                  }}
+                  style={(() => {
+                    const bannerObj = SHOP_CATALOG.banners.find(b => b.id === shopBanner);
+                    return bannerObj
+                      ? { background: bannerObj.gradient }
+                      : { backgroundImage: "url('https://static.vecteezy.com/system/resources/thumbnails/006/033/288/small_2x/bookshelf-shelf-for-books-with-plants-in-pot-illustration-in-flat-cartoon-style-vector.jpg')" };
+                  })()}
                 />
                 <div className="profile-card-body">
                   <div
@@ -7974,6 +7992,14 @@ function App() {
                       const avatarEmoji = updatedAvatar && typeof updatedAvatar === "object" && updatedAvatar.type === "emoji" ? updatedAvatar.emoji : null;
                       const avatarUrl = typeof updatedAvatar === "string" && updatedAvatar.startsWith("http") ? updatedAvatar : null;
 
+                      setProfile(prev => prev ? {
+                        ...prev,
+                        xp: newXp,
+                        shop_data: payload,
+                        avatar_emoji: avatarEmoji,
+                        avatar_url: avatarUrl
+                      } : null);
+
                       supabase
                         .from("profiles")
                         .update({
@@ -7995,6 +8021,7 @@ function App() {
                   userXp={userXp}
                   onSpendXp={(newXp) => {
                     setUserXp(newXp);
+                    setProfile(prev => prev ? { ...prev, xp: newXp } : null);
                     const userId = session?.user?.id;
                     if (userId) {
                       supabase.from("profiles").update({ xp: newXp }).eq("id", userId);
@@ -8032,6 +8059,20 @@ function App() {
                       const avStr = typeof av === "string" ? av : JSON.stringify(av);
                       localStorage.setItem(`lisa_profile_avatar_${userId}`, avStr);
                       setProfileAvatar(av);
+                      setProfile(prev => prev ? {
+                        ...prev,
+                        avatar_emoji: av && typeof av === "object" && av.type === "emoji" ? av.emoji : null,
+                        avatar_url: typeof av === "string" && av.startsWith("http") ? av : null,
+                        shop_data: {
+                          ownedItems: shopOwnedItems,
+                          theme: shopTheme,
+                          font: shopFont,
+                          banner: shopBanner,
+                          avatar: av,
+                          badges: profileBadges,
+                        }
+                      } : null);
+
                       supabase
                         .from("profiles")
                         .update({
@@ -10310,7 +10351,11 @@ function App() {
                 }}
               >✕</button>
               <h3 style={{ margin: '0 0 20px', fontSize: '1.6rem', fontWeight: '800' }}>{t("profileAllAchievements")}</h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              
+              <h4 style={{ margin: '15px 0 10px', fontSize: '1.1rem', fontWeight: '800', color: 'var(--accent)' }}>
+                🏆 {t("dashboardAchievements") || "Curriculum Achievements"}
+              </h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '24px' }}>
                 {ACHIEVEMENT_DEFS.map((a) => {
                   let earned = false;
                   let progress = 0;
@@ -10358,6 +10403,30 @@ function App() {
                     </div>
                   </div>
                 ))}
+              </div>
+
+              <h4 style={{ margin: '15px 0 10px', fontSize: '1.1rem', fontWeight: '800', color: 'var(--accent)' }}>
+                🛒 {t("xpShopTitle") || "XP Shop Badges"}
+              </h4>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {SHOP_CATALOG.badges.map((b) => {
+                  const earned = shopOwnedItems.includes(b.id);
+                  const color = b.rarity === "legendary" ? "#d97706" : b.rarity === "rare" ? "#3b82f6" : "#6b7280";
+                  return (
+                    <div key={b.id} className={`achievement-row ${earned ? "earned" : ""}`} style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '12px', border: '2px solid var(--line)', borderRadius: '16px', background: 'var(--panel-strong)', opacity: earned ? 1 : 0.55 }}>
+                      <div className="achievement-badge-box" style={{ background: earned ? color : '#d1d5db', width: '50px', height: '50px', borderRadius: '12px', display: 'grid', placeItems: 'center', fontSize: '1.5rem', flexShrink: 0, filter: earned ? 'none' : 'grayscale(1)' }}>
+                        <span className="achievement-badge-icon">{earned ? b.icon : '🔒'}</span>
+                      </div>
+                      <div style={{ flexGrow: 1 }}>
+                        <div style={{ fontWeight: '800', color: earned ? 'var(--text)' : 'var(--muted)' }}>{t(b.id + "_name") || b.name}</div>
+                        <p style={{ margin: '4px 0 0', fontSize: '0.9rem', color: 'var(--text-muted)' }}>{t(b.id + "_desc") || b.desc}</p>
+                        <div className="achievement-progress-track" style={{ height: '8px', background: 'var(--line)', borderRadius: '4px', overflow: 'hidden', marginTop: '8px' }}>
+                          <div className="achievement-progress-fill" style={{ width: earned ? '100%' : '0%', height: '100%', background: '#facc15' }}></div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
