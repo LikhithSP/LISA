@@ -1,15 +1,321 @@
-// LISA — Gemini AI Lesson Generator
-// Uses Gemini 2.0 Flash REST API to generate personalized lesson content
+// LISA — AI Lesson Generator (OpenRouter primary, Gemini fallback)
 
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-const API_KEY = GEMINI_API_KEY || import.meta.env.VITE_OPENROUTER_API_KEY;
-const USE_GEMINI = !!GEMINI_API_KEY;
-const API_URL = USE_GEMINI 
-  ? "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"
-  : "https://openrouter.ai/api/v1/chat/completions";
-const MODEL_NAME = USE_GEMINI
-  ? (import.meta.env.VITE_GEMINI_MODEL || "gemini-3.5-flash")
-  : (import.meta.env.VITE_OPENROUTER_MODEL || "google/gemma-4-31b-it:free");
+// ─── API Configuration ───────────────────────────────────────────────────────
+// Always prefer OpenRouter for reliability; fall back to Gemini if needed.
+const OPENROUTER_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
+const GEMINI_KEY     = import.meta.env.VITE_GEMINI_API_KEY;
+
+const PRIMARY_URL    = "https://openrouter.ai/api/v1/chat/completions";
+const FALLBACK_URL   = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
+
+const PRIMARY_KEY    = OPENROUTER_KEY;
+const FALLBACK_KEY   = GEMINI_KEY;
+
+// Use a capable free instruction model on OpenRouter
+const PRIMARY_MODEL  = import.meta.env.VITE_OPENROUTER_MODEL || "mistralai/mistral-7b-instruct:free";
+const FALLBACK_MODEL = import.meta.env.VITE_GEMINI_MODEL     || "gemini-2.0-flash";
+
+// ─── Tier Definitions (Duolingo cognitive-load tiers) ────────────────────────
+// Tier 1 Receptive — tap/recognition only, zero typing
+const RECEPTIVE_TYPES = ["mcq", "meaning", "matchPairs", "imageChoice"];
+// Tier 2 Productive — assembly using tiles
+const PRODUCTIVE_TYPES = ["fillBlank", "arrangeWords", "listeningTask", "unscramble"];
+// Tier 3 Expressive — free-form creation
+const EXPRESSIVE_TYPES = ["passage", "writingActivity", "speak", "tracing"];
+
+// Pick N items randomly from array (no repeats)
+const pickRandom = (arr, n) => {
+  const copy = [...arr];
+  const result = [];
+  for (let i = 0; i < n && copy.length > 0; i++) {
+    const idx = Math.floor(Math.random() * copy.length);
+    result.push(copy.splice(idx, 1)[0]);
+  }
+  return result;
+};
+
+// Build the ordered 8-step sequence: Intro, E, E, M, E, M, M, H
+// For unit assessments (isAssessment=true) shift weighting toward harder types
+const buildQuestionSequence = (isAssessment = false) => {
+  const receptive  = pickRandom(RECEPTIVE_TYPES,  isAssessment ? 2 : 3);
+  const productive = pickRandom(PRODUCTIVE_TYPES, isAssessment ? 3 : 3);
+  const expressive = pickRandom(EXPRESSIVE_TYPES, 1);
+
+  // Slot order: Intro, E, E, M, E, M, M, H
+  return [
+    "intro",
+    receptive[0],
+    receptive[1] || receptive[0],
+    productive[0],
+    receptive[2] || receptive[0],
+    productive[1] || productive[0],
+    productive[2] || productive[0],
+    expressive[0]
+  ];
+};
+
+// ─── Age context helper ───────────────────────────────────────────────────────
+const getAgeContext = (age) => {
+  const a = parseInt(age, 10) || 25;
+  if (a <= 12) return { group: "child",  contextName: "a child",          contextExample: "Tom has a red ball." };
+  if (a <= 18) return { group: "teen",   contextName: "a teenager",        contextExample: "Sara reads her school textbook." };
+  if (a <= 59) return { group: "adult",  contextName: "an adult",          contextExample: "Ravi needs to submit a bank form." };
+  return       { group: "senior", contextName: "a senior citizen", contextExample: "Lakshmi visits the hospital for a check-up." };
+};
+
+// ─── Prompt builder ───────────────────────────────────────────────────────────
+const buildPrompt = (params) => {
+  const {
+    age, educationLevel, language, learningLanguage: paramLearningLang,
+    interfaceLanguage: paramInterfaceLang, literacyLevel, literacyLevelName,
+    weakAreas, sectionNum, sectionTitle, unitNum, unitTitle,
+    lessonNum, lessonTitle, difficulty, isAssessment
+  } = params;
+
+  const learningLanguage = paramLearningLang || language || "English";
+  const interfaceLanguage = paramInterfaceLang || language || "English";
+  const ageCtx = getAgeContext(age);
+  const weakList = (weakAreas || []).join(", ") || "general literacy";
+  const seq = buildQuestionSequence(!!isAssessment);
+
+  // Map each step type to a precise JSON block description
+  const typeToBlock = (type, idx) => {
+    switch (type) {
+      case "intro":
+        return `{
+  "type": "intro",
+  "lessonTitle": "Engaging title for Section ${sectionNum} › Unit ${unitNum} › Lesson ${lessonNum}: ${lessonTitle}",
+  "subtitle": "Section ${sectionNum}: ${sectionTitle} › Unit ${unitNum}: ${unitTitle} › Lesson ${lessonNum}: ${lessonTitle}",
+  "explanation": "2-3 engaging paragraphs in ${interfaceLanguage} explaining the concept. Use real-life examples relevant to ${learningLanguage}.",
+  "guidedTip": "One encouraging actionable tip in ${interfaceLanguage}"
+}`;
+      case "mcq":
+        return `{
+  "type": "mcq",
+  "question": "Curriculum-specific MCQ question about ${lessonTitle} in ${interfaceLanguage}",
+  "options": ["correct option in ${learningLanguage}", "distractor 2", "distractor 3", "distractor 4"],
+  "correctIndex": 0,
+  "explanation": "Short explanation of why the answer is correct in ${interfaceLanguage}"
+}`;
+      case "meaning":
+        return `{
+  "type": "meaning",
+  "phrase": "A key ${learningLanguage} word from ${lessonTitle}",
+  "options": ["correct meaning in ${interfaceLanguage}", "wrong meaning 2", "wrong meaning 3", "wrong meaning 4"],
+  "correctIndex": 0
+}`;
+      case "matchPairs":
+        return `{
+  "type": "matchPairs",
+  "pairs": [
+    {"left": "${learningLanguage} word 1", "right": "meaning or definition in ${interfaceLanguage}"},
+    {"left": "${learningLanguage} word 2", "right": "meaning in ${interfaceLanguage}"},
+    {"left": "${learningLanguage} word 3", "right": "meaning in ${interfaceLanguage}"},
+    {"left": "${learningLanguage} word 4", "right": "meaning in ${interfaceLanguage}"}
+  ]
+}`;
+      case "imageChoice":
+        return `{
+  "type": "imageChoice",
+  "word": "a ${learningLanguage} target word from ${lessonTitle}",
+  "prompt": "Tap the picture that means [word] in ${interfaceLanguage}",
+  "options": ["correct emoji", "wrong emoji 1", "wrong emoji 2"],
+  "correctIndex": 0
+}`;
+      case "fillBlank":
+        return `{
+  "type": "fillBlank",
+  "sentence": "A sentence related to ${lessonTitle} with ___ for the missing word, in ${learningLanguage}",
+  "answer": "the correct missing word",
+  "hint": "Short hint in ${interfaceLanguage}"
+}`;
+      case "arrangeWords":
+        return `{
+  "type": "arrangeWords",
+  "sentence": "A sentence in ${learningLanguage} related to ${lessonTitle}",
+  "prompt": "Arrange the word tiles to form a correct sentence in ${interfaceLanguage}. Do NOT reveal the sentence.",
+  "tiles": ["shuffled", "array", "of", "words", "from", "the", "sentence", "plus", "2", "distractors"]
+}`;
+      case "listeningTask":
+        return `{
+  "type": "listeningTask",
+  "audioText": "A short sentence or phrase in ${learningLanguage} relevant to ${lessonTitle}",
+  "tiles": ["word1", "word2", "word3", "plus", "2-3", "distractor", "words"]
+}`;
+      case "unscramble":
+        return `{
+  "type": "unscramble",
+  "hint": "A clue in ${interfaceLanguage} for the target word from ${lessonTitle}",
+  "emoji": "A single relevant emoji",
+  "answer": "TARGET_WORD_UPPERCASE",
+  "tiles": ["shuffled", "letter", "tiles", "of", "TARGET_WORD", "plus", "2", "extra", "letters"]
+}`;
+      case "passage":
+        return `{
+  "type": "passage",
+  "passage": "A 3-5 sentence reading passage in ${learningLanguage} about the topic of ${lessonTitle}",
+  "question": "One comprehension question about the passage in ${interfaceLanguage}",
+  "options": ["correct answer", "wrong option 2", "wrong option 3", "wrong option 4"],
+  "correctIndex": 0
+}`;
+      case "writingActivity":
+        return `{
+  "type": "writingActivity",
+  "prompt": "A clear short writing task in ${interfaceLanguage} related to ${lessonTitle}. Ask the learner to write 1-3 sentences in ${learningLanguage}."
+}`;
+      case "speak":
+        return `{
+  "type": "speak",
+  "sentence": "A meaningful sentence in ${learningLanguage} related to ${lessonTitle} for the learner to read aloud",
+  "tip": "Pronunciation tip in ${interfaceLanguage}"
+}`;
+      case "tracing":
+        return `{
+  "type": "tracing",
+  "question": "Short question in ${interfaceLanguage} asking the learner to write a word or letter related to ${lessonTitle}",
+  "kind": "the target letter or short word in ${learningLanguage}",
+  "sound": "the target word pronunciation text"
+}`;
+      default:
+        return `{"type": "${type}"}`;
+    }
+  };
+
+  const questionBlocks = seq.map((type, idx) =>
+    `    // Question ${idx + 1} — ${type.toUpperCase()}\n    ${typeToBlock(type, idx)}`
+  ).join(",\n");
+
+  return `You are LISA, a world-class AI literacy tutor. Generate a Duolingo-style lesson with exactly 8 questions following the cognitive-load tier formula.
+
+LEARNER PROFILE:
+- Age: ${age} (${ageCtx.contextName})
+- Education: ${educationLevel}
+- Interface Language: ${interfaceLanguage}
+- Learning Language: ${learningLanguage}
+- Literacy Level: Level ${literacyLevel} — ${literacyLevelName}
+- Weak Areas: ${weakList}
+- Difficulty: ${difficulty}${isAssessment ? " (UNIT ASSESSMENT — use harder vocabulary and more complex sentences)" : ""}
+
+LESSON CONTEXT:
+- Section ${sectionNum}: ${sectionTitle}
+- Unit ${unitNum}: ${unitTitle}
+- Lesson ${lessonNum}: ${lessonTitle}
+
+GOLDEN RULES:
+1. ALL question content (words, sentences, passages) MUST be directly about the lesson topic: "${lessonTitle}" in Section "${sectionTitle}".
+2. Target text MUST be in ${learningLanguage}. Instructions/hints MUST be in ${interfaceLanguage}.
+3. Age-appropriate examples (this learner: "${ageCtx.contextExample}").
+4. For "unscramble": tiles = shuffled letters of answer + 2 extra distractor letters.
+5. For "imageChoice": exactly 3 emoji options; correctIndex points to the matching one.
+6. For "arrangeWords": tiles = all sentence words shuffled + 2-3 distractor words that cannot form an alternate valid sentence.
+7. Every question must feel fresh — no repetition of words across questions.
+8. Return ONLY valid JSON — no markdown, no backticks, no comments.
+
+Return this EXACT JSON structure:
+{
+  "lessonTitle": "Engaging lesson title",
+  "lessonSubtitle": "Section ${sectionNum}: ${sectionTitle} › Unit ${unitNum}: ${unitTitle}",
+  "skillFocus": "Core skill being practiced",
+  "aiFeedbackPositive": "Encouraging message in ${interfaceLanguage}",
+  "aiFeedbackNegative": "Gentle corrective message in ${interfaceLanguage}",
+  "questions": [
+${questionBlocks}
+  ]
+}`;
+};
+
+// ─── Cache (keyed by lesson ID + language + level) ───────────────────────────
+const lessonCache = new Map();
+
+// ─── API fetch with primary → fallback cascade ────────────────────────────────
+const fetchAI = async (prompt, maxTokens = 4096) => {
+  // Try primary (OpenRouter)
+  try {
+    const resp = await fetch(PRIMARY_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type":  "application/json",
+        "Authorization": `Bearer ${PRIMARY_KEY}`,
+        "HTTP-Referer":  "https://lisalearn.app",
+        "X-Title":       "LISA Learning"
+      },
+      body: JSON.stringify({
+        model: PRIMARY_MODEL,
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.7,
+        max_tokens: maxTokens
+      })
+    });
+    if (resp.ok) {
+      const data = await resp.json();
+      const text = data?.choices?.[0]?.message?.content || "";
+      if (text) return text;
+    }
+    console.warn("OpenRouter non-OK:", resp.status, resp.statusText);
+  } catch (e) {
+    console.warn("OpenRouter request failed:", e.message);
+  }
+
+  // Fallback to Gemini
+  if (FALLBACK_KEY) {
+    try {
+      const resp = await fetch(FALLBACK_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type":  "application/json",
+          "Authorization": `Bearer ${FALLBACK_KEY}`
+        },
+        body: JSON.stringify({
+          model: FALLBACK_MODEL,
+          messages: [{ role: "user", content: prompt }],
+          temperature: 0.7,
+          max_tokens: maxTokens,
+          response_format: { type: "json_object" }
+        })
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        return data?.choices?.[0]?.message?.content || "";
+      }
+    } catch (e) {
+      console.warn("Gemini fallback failed:", e.message);
+    }
+  }
+
+  return null; // both failed
+};
+
+// ─── generateLessonContent ────────────────────────────────────────────────────
+export const generateLessonContent = async (params) => {
+  const cacheKey = `lesson_${params.sectionNum}_${params.unitNum}_${params.lessonNum}_${params.learningLanguage || params.language}_${params.literacyLevel}`;
+
+  if (params.useFallback) {
+    return getFallbackLesson(params);
+  }
+
+  if (lessonCache.has(cacheKey)) {
+    return lessonCache.get(cacheKey);
+  }
+
+  const isAssessment = (params.lessonNum === 5) || (params.lessonTitle || "").toLowerCase().includes("assessment");
+  const prompt = buildPrompt({ ...params, isAssessment });
+
+  try {
+    const text = await fetchAI(prompt, 4096);
+    if (!text) throw new Error("Empty AI response");
+    const lesson = extractJSON(text);
+    // Ensure questions array exists (some models omit it)
+    if (!lesson.questions || !Array.isArray(lesson.questions)) {
+      throw new Error("AI response missing questions array");
+    }
+    lessonCache.set(cacheKey, lesson);
+    return lesson;
+  } catch (err) {
+    console.error("Failed to generate lesson content:", err);
+    return getFallbackLesson(params);
+  }
+};
+
 
 const extractJSON = (text) => {
   if (!text) throw new Error("Empty text input for JSON parsing");
@@ -55,253 +361,77 @@ const extractJSON = (text) => {
   }
 };
 
-// Age group label for context adaptation
-const getAgeContext = (age) => {
-  const a = parseInt(age, 10) || 25;
-  if (a <= 12) return { group: "child", contextName: "a child", contextExample: "Tom has a red ball." };
-  if (a <= 18) return { group: "teen", contextName: "a teenager", contextExample: "Sara reads her school textbook." };
-  if (a <= 59) return { group: "adult", contextName: "an adult", contextExample: "Ravi needs to submit a bank form." };
-  return { group: "senior", contextName: "a senior citizen", contextExample: "Lakshmi visits the hospital for a check-up." };
-};
-
-const buildPrompt = (params) => {
-  const {
-    age, educationLevel, language, learningLanguage: paramLearningLang, interfaceLanguage: paramInterfaceLang,
-    literacyLevel, literacyLevelName, weakAreas, sectionNum, sectionTitle, unitNum, unitTitle,
-    lessonNum, lessonTitle, difficulty
-  } = params;
-
-  const learningLanguage = paramLearningLang || language || "English";
-  const interfaceLanguage = paramInterfaceLang || language || "English";
-
-  const ageCtx = getAgeContext(age);
-  const weakList = (weakAreas || []).join(", ") || "general literacy";
-
-  return `You are LISA, an expert AI literacy tutor. Generate a complete, structured lesson for a learner with the following profile:
-
-LEARNER PROFILE:
-- Age: ${age} (${ageCtx.contextName})
-- Education Level: ${educationLevel}
-- Interface Language (Site UI & Instructions): ${interfaceLanguage}
-- Learning Language (Target Language to Learn): ${learningLanguage}
-- Literacy Level: Level ${literacyLevel} — ${literacyLevelName}
-- Weak Areas: ${weakList}
-
-LESSON DETAILS:
-- Section ${sectionNum}: ${sectionTitle}
-- Unit ${unitNum}: ${unitTitle}
-- Lesson ${lessonNum}: ${lessonTitle}
-- Difficulty: ${difficulty}
-
-IMPORTANT RULES:
-1. Target literacy content (target words, letters, sentences, reading passages, dictation sentences, unscramble tiles) MUST be in ${learningLanguage}.
-2. Instructions, explanations, hints, guidance, and question prompts MUST be given in ${interfaceLanguage} so the learner understands what to do while learning ${learningLanguage}.
-3. Adapt ALL context examples to be age-appropriate. Example for this learner's age: "${ageCtx.contextExample}"
-4. Keep language simple and encouraging. Do not use jargon.
-5. The lesson must directly target the weak skill: ${weakList}.
-6. For "unscramble": "tiles" must be the individual letters of "answer" shuffled into a random order, written in the ${learningLanguage} script.
-7. For "imageChoice": provide exactly 3 emoji options where "correctIndex" points to the emoji that matches "word".
-8. For "tracing": provide a letter/word to practice writing in ${learningLanguage}, a short "info" fact in ${interfaceLanguage}, and the "sound" text in ${learningLanguage}.
-
-Return ONLY valid JSON with this exact structure (no markdown, no backticks):
-{
-  "lessonTitle": "string",
-  "skillFocus": "string",
-  "explanation": "string (2-3 paragraphs explaining the concept clearly in ${interfaceLanguage})",
-  "examples": [
-    {"text": "string", "translation": "string (English translation if not English)"},
-    {"text": "string", "translation": "string"},
-    {"text": "string", "translation": "string"}
-  ],
-  "guidedPractice": "string (step-by-step guided exercise description)",
-  "mcqs": [
-    {"question": "string", "options": ["A", "B", "C", "D"], "correctIndex": 0, "explanation": "string"},
-    {"question": "string", "options": ["A", "B", "C", "D"], "correctIndex": 0, "explanation": "string"},
-    {"question": "string", "options": ["A", "B", "C", "D"], "correctIndex": 0, "explanation": "string"},
-    {"question": "string", "options": ["A", "B", "C", "D"], "correctIndex": 0, "explanation": "string"},
-    {"question": "string", "options": ["A", "B", "C", "D"], "correctIndex": 0, "explanation": "string"}
-  ],
-  "fillBlanks": [
-    {"sentence": "string with ___ for blank", "answer": "string", "hint": "string"},
-    {"sentence": "string with ___ for blank", "answer": "string", "hint": "string"},
-    {"sentence": "string with ___ for blank", "answer": "string", "hint": "string"}
-  ],
-  "readingPassage": "string (short reading text of 3-5 sentences in ${language})",
-  "readingQuestion": "string (one comprehension question about the passage)",
-  "readingAnswer": "string (correct answer)",
-  "writingActivity": "string (clear writing prompt or task instruction in ${language})",
-  "pronunciationWords": ["word1", "word2", "word3", "word4", "word5"],
-  "pronunciationTip": "string (pronunciation guidance in ${language})",
-  "speakSentence": "string (a full sentence in ${language} for the user to practice speaking)",
-  "meaningQuestion": {
-    "phrase": "string (a simple common English word, e.g. 'Happy')",
-    "options": ["correct meaning as a short English sentence", "incorrect meaning sentence distractor 1", "incorrect meaning sentence distractor 2", "incorrect meaning sentence distractor 3"],
-    "correctIndex": 0
-  },
-  "translationTask": {
-    "sentence": "string (a sentence in ${language})",
-    "prompt": "string (a short instruction telling the learner to arrange the word tiles into a sentence, e.g. 'Arrange the words to form a sentence'. DO NOT reveal the answer or the exact sentence in the prompt)",
-    "englishTranslation": "string (correct English translation)",
-    "tiles": ["array of 6-8 English words containing all words from englishTranslation plus 2-3 distractor words, in any shuffled (non sentence) order. The distractors must NOT be able to form another valid/grammatical English sentence with the given words, so only one correct arrangement exists."]
-  },
-  "matchingPairs": [
-    {"left": "an English word 1", "right": "its simple English meaning or definition 1"},
-    {"left": "an English word 2", "right": "its simple English meaning or definition 2"},
-    {"left": "an English word 3", "right": "its simple English meaning or definition 3"},
-    {"left": "an English word 4", "right": "its simple English meaning or definition 4"},
-    {"left": "an English word 5", "right": "its simple English meaning or definition 5"}
-  ],
-  "listeningTask": {
-    "audioText": "string (a simple sentence or phrase in ${language} for the user to listen to)",
-    "tiles": ["array of 6-8 words in ${language} containing all words from audioText plus 2-3 distractor words"]
-  },
-  "unscramble": [
-    {"hint": "string (a clue in ${language}, e.g. 'A place with plants and flowers')", "emoji": "string (a single emoji hint, e.g. 🌳)", "answer": "GARDEN", "tiles": ["array of letter tiles for GARDEN in any shuffled (non answer) order, e.g. ['N','G','A','O','R','D','E','B']"]},
-    {"hint": "string (another clue in ${language})", "emoji": "string (an emoji hint)", "answer": "APPLE", "tiles": ["array of shuffled letter tiles for APPLE"]}
-  ],
-  "imageChoice": [
-    {"word": "string (the target word in ${language})", "prompt": "string (instruction in ${language}, e.g. 'Tap the picture that means school')", "options": ["🏫","🍎","🚗"], "correctIndex": 0},
-    {"word": "string (another target word in ${language})", "prompt": "string (instruction in ${language})", "options": ["🍎","🏫","🌞"], "correctIndex": 0}
-  ],
-  "tracing": [
-    {"kind": "playground", "question": "string (a simple question in ${language}, e.g. 'Where do children play?')", "sound": "playground"},
-    {"kind": "playground", "question": "string (another simple question in ${language})", "sound": "playground"}
-  ],
-  "aiFeedbackPositive": "string (encouraging message for correct answers in ${language})",
-  "aiFeedbackNegative": "string (gentle corrective message in ${language})"
-}`;
-};
-
-// Cache lesson content by lesson ID to avoid re-fetching
-const lessonCache = new Map();
-
-export const generateLessonContent = async (params) => {
-  const cacheKey = `${params.sectionNum}_${params.unitNum}_${params.lessonNum}_${params.language}_${params.literacyLevel}`;
-  
-  // Development mode OFF: skip the AI call and return the static fallback content.
-  if (params.useFallback) {
-    return getFallbackLesson(params);
-  }
-
-  if (lessonCache.has(cacheKey)) {
-    return lessonCache.get(cacheKey);
-  }
-
-  const prompt = buildPrompt(params);
-
-  try {
-    const response = await fetch(API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${API_KEY}`
-      },
-      body: JSON.stringify({
-        model: MODEL_NAME,
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0.7,
-        max_tokens: 4096,
-        response_format: { type: "json_object" }
-      })
-    });
-
-    if (!response.ok) {
-      const err = await response.text();
-      console.error("Gemini/OpenRouter API error:", err);
-      return getFallbackLesson(params);
-    }
-
-    const data = await response.json();
-    const text = data?.choices?.[0]?.message?.content || "";
-
-    const lesson = extractJSON(text);
-
-    lessonCache.set(cacheKey, lesson);
-    return lesson;
-  } catch (err) {
-    console.error("Failed to generate lesson:", err);
-    return getFallbackLesson(params);
-  }
-};
-
-// Fallback static lesson if Gemini is unavailable
+// ─── Fallback static lesson (returns unified questions[] format) ──────────────
 const getFallbackLesson = (params) => {
-  const { language, sectionTitle, unitTitle, lessonTitle } = params;
+  const { language, sectionTitle, unitTitle, lessonTitle, sectionNum, unitNum, lessonNum } = params;
+  const lang = language || "English";
+
   return {
     lessonTitle: lessonTitle || "Literacy Lesson",
+    lessonSubtitle: `Section ${sectionNum || 1}: ${sectionTitle || "Basics"} › Unit ${unitNum || 1}: ${unitTitle || "Foundations"}`,
     skillFocus: sectionTitle || "Reading & Writing",
-    explanation: language === "Hindi"
-      ? `यह पाठ ${unitTitle} के बारे में है। इसमें आप बुनियादी साक्षरता कौशल सीखेंगे।`
-      : language === "Kannada"
-      ? `ಈ ಪಾಠವು ${unitTitle} ಬಗ್ಗೆ ಇದೆ. ಇಲ್ಲಿ ನೀವು ಮೂಲ ಸಾಕ್ಷರತಾ ಕೌಶಲ್ಯಗಳನ್ನು ಕಲಿಯುವಿರಿ.`
-      : `This lesson covers ${unitTitle}. You will practice essential literacy skills related to ${sectionTitle}.`,
-    examples: [
-      { text: "Example 1: Read this sentence carefully.", translation: "" },
-      { text: "Example 2: Write what you see.", translation: "" },
-      { text: "Example 3: Listen and repeat.", translation: "" }
-    ],
-    mcqs: [
-      { question: "Which of the following is a complete sentence?", options: ["cat run", "The cat runs.", "run cat the", "cat the run"], correctIndex: 1, explanation: "A complete sentence has a subject and verb." },
-      { question: "What comes at the end of a sentence?", options: ["comma", "period", "apostrophe", "hyphen"], correctIndex: 1, explanation: "A period marks the end of a sentence." },
-      { question: "Choose the correct spelling:", options: ["recieve", "receive", "recive", "receve"], correctIndex: 1, explanation: "'Receive' is the correct spelling." },
-      { question: "Which word is a noun?", options: ["run", "quickly", "beautiful", "book"], correctIndex: 3, explanation: "A noun names a person, place, or thing." },
-      { question: "Which sentence is correct?", options: ["She go to school.", "She goes to school.", "She going to school.", "She gone to school."], correctIndex: 1, explanation: "The verb must agree with the subject." }
-    ],
-    fillBlanks: [
-      { sentence: "The ___ is reading a book.", answer: "child", hint: "A young person" },
-      { sentence: "She ___ to the market every day.", answer: "goes", hint: "Verb for she/he/it" },
-      { sentence: "Please ___ the door before you leave.", answer: "close", hint: "To shut" }
-    ],
-    readingPassage: "Ram goes to school everyday. He reads books and writes in his notebook. His teacher is very kind and helpful.",
-    readingQuestion: "Where does Ram go every day?",
-    readingAnswer: "Ram goes to school everyday.",
-    imagePrompt: "Look at the picture. A girl is painting. One boy is sitting under a tree and reading a book. A girl is playing on a swing tied to that tree. A boy is looking through a telescope above the tree. Two boys are playing football.",
-    writingActivity: "Write 2-3 sentences about the picture using simple words. Describe what the children are doing.",
-    pronunciationWords: ["school", "teacher", "notebook", "reading", "writing"],
-    pronunciationTip: "Speak each word clearly and slowly. Break it into syllables.",
-    speakSentence: language === "Hindi" ? "राम हर दिन स्कूल जाता है।" : language === "Kannada" ? "ರಾಮ್ ಪ್ರತಿ ದಿನ ಶಾಲೆಗೆ ಹೋಗುತ್ತಾನೆ." : "Ram goes to school everyday.",
-    meaningQuestion: {
-      phrase: "Happy",
-      options: ["Feeling good and cheerful", "Feeling sad and upset", "Feeling tired and sleepy", "Feeling hungry and thirsty"],
-      correctIndex: 0
-    },
-    translationTask: {
-      sentence: language === "Hindi" ? "मेरा नाम रवि है" : language === "Kannada" ? "ನನ್ನ ಹೆಸರು ರವಿ" : "My name is Ravi",
-      prompt: "Arrange the words to form a sentence",
-      englishTranslation: "My name is Ravi",
-      tiles: ["My", "name", "is", "Ravi", "book", "red", "the"]
-    },
-    matchingPairs: [
-      { left: "School", right: "A place where we learn" },
-      { left: "Book", right: "We read it to gain knowledge" },
-      { left: "Boy", right: "A young male child" },
-      { left: "Water", right: "A clear liquid we drink" }
-    ],
-    listeningTask: {
-      audioText: language === "Hindi" ? "वह जाता है" : language === "Kannada" ? "ಅವನು ಹೋಗುತ್ತಾನೆ" : "He goes",
-      tiles: language === "Hindi" ? ["वह", "जाता", "है", "तुम", "हम"] : language === "Kannada" ? ["ಅವನು", "ಹೋಗುತ್ತಾನೆ", "ಬರುತ್ತಾನೆ", "ನಾವು"] : ["He", "goes", "comes", "we"]
-    },
-    unscramble: [
-      { hint: "A place with plants and flowers", emoji: "🌳", answer: "GARDEN", tiles: ["G", "A", "R", "D", "E", "N", "B", "O"] },
-      { hint: "A red fruit", emoji: "🍎", answer: "APPLE", tiles: ["P", "L", "A", "P", "E"] },
-      { hint: "The bright star of the day", emoji: "🌞", answer: "SUN", tiles: ["N", "U", "S"] }
-    ],
-    imageChoice: [
-      { word: "car", prompt: "Tap the picture that means car", options: ["🚗", "🏫", "🍎"], correctIndex: 0 },
-      { word: "water", prompt: "Tap the picture that means water", options: ["🔥", "💧", "🌞"], correctIndex: 1 },
-      { word: "apple", prompt: "Tap the picture that means apple", options: ["🍎", "🏫", "🌞"], correctIndex: 0 }
-    ],
-    tracing: [
-      { kind: "playground", question: "Where do children play?", sound: "playground" },
-      { kind: "playground", question: "Where do children play?", sound: "playground" },
-      { kind: "playground", question: "Where do children play?", sound: "playground" }
-    ],
     aiFeedbackPositive: "Excellent work! You are making great progress.",
-    aiFeedbackNegative: "Good try! Review the lesson and attempt again. You can do it!"
+    aiFeedbackNegative: "Good try! Review the lesson and try again. You can do it!",
+    questions: [
+      {
+        type: "intro",
+        lessonTitle: lessonTitle || "Literacy Lesson",
+        subtitle: `Section ${sectionNum || 1}: ${sectionTitle || "Basics"} › Unit ${unitNum || 1}: ${unitTitle || "Foundations"} › Lesson ${lessonNum || 1}: ${lessonTitle || ""}`,
+        explanation: lang === "Hindi"
+          ? `यह पाठ "${lessonTitle}" के बारे में है। आप इसमें बुनियादी साक्षरता कौशल सीखेंगे जो ${sectionTitle} से संबंधित हैं।`
+          : lang === "Kannada"
+          ? `ಈ ಪಾಠವು "${lessonTitle}" ಬಗ್ಗೆ ಇದೆ. ನೀವು ${sectionTitle} ಗೆ ಸಂಬಂಧಿಸಿದ ಮೂಲ ಸಾಕ್ಷರತಾ ಕೌಶಲ್ಯಗಳನ್ನು ಕಲಿಯುವಿರಿ.`
+          : `Welcome to "${lessonTitle}"! In this lesson you will explore key concepts from ${sectionTitle} — ${unitTitle}. Read each question carefully and give it your best try!`,
+        guidedTip: "Take your time with each question. Tap the speaker button to hear any word read aloud."
+      },
+      {
+        type: "mcq",
+        question: `Which of the following best relates to "${lessonTitle}"?`,
+        options: ["The correct concept", "An incorrect option", "Another wrong option", "Yet another distractor"],
+        correctIndex: 0,
+        explanation: `This is directly related to the topic of ${lessonTitle} in ${sectionTitle}.`
+      },
+      {
+        type: "meaning",
+        phrase: "Learn",
+        options: ["To gain knowledge or skill", "To forget something", "To sleep deeply", "To run quickly"],
+        correctIndex: 0
+      },
+      {
+        type: "fillBlank",
+        sentence: lang === "Hindi" ? "राम हर दिन ___ जाता है।" : lang === "Kannada" ? "ರಾಮ ಪ್ರತಿ ದಿನ ___ ಹೋಗುತ್ತಾನೆ." : "Ram goes to ___ every day.",
+        answer: lang === "Hindi" ? "स्कूल" : lang === "Kannada" ? "ಶಾಲೆ" : "school",
+        hint: "A place where children learn"
+      },
+      {
+        type: "imageChoice",
+        word: lang === "Hindi" ? "किताब" : lang === "Kannada" ? "ಪುಸ್ತಕ" : "book",
+        prompt: `Tap the picture that means "${lang === "Hindi" ? "किताब" : lang === "Kannada" ? "ಪುಸ್ತಕ" : "book"}"`,
+        options: ["📚", "🚗", "🍎"],
+        correctIndex: 0
+      },
+      {
+        type: "listeningTask",
+        audioText: lang === "Hindi" ? "वह स्कूल जाता है" : lang === "Kannada" ? "ಅವನು ಶಾಲೆಗೆ ಹೋಗುತ್ತಾನೆ" : "He goes to school",
+        tiles: lang === "Hindi" ? ["वह", "स्कूल", "जाता", "है", "घर", "खाना"] : lang === "Kannada" ? ["ಅವನು", "ಶಾಲೆಗೆ", "ಹೋಗುತ್ತಾನೆ", "ಬರುತ್ತಾನೆ", "ನಾವು"] : ["He", "goes", "to", "school", "home", "eats"]
+      },
+      {
+        type: "unscramble",
+        hint: "A place where children study",
+        emoji: "🏫",
+        answer: "SCHOOL",
+        tiles: ["S", "C", "H", "O", "O", "L", "B", "T"]
+      },
+      {
+        type: "writingActivity",
+        prompt: `Write 1-2 sentences about "${lessonTitle}". Use simple words and try your best!`
+      }
+    ]
   };
 };
 
 export const clearLessonCache = () => lessonCache.clear();
+
 
 // Static Word of the Day used whenever AI is disabled (development mode OFF).
 const getFallbackWordOfDay = (language = "English") => {
@@ -370,27 +500,8 @@ export const fetchWordOfDay = async (language = "English", context = {}, useFall
       "example": "example sentence written in English"
     }`;
 
-    const response = await fetch(API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${API_KEY}`
-      },
-      body: JSON.stringify({
-        model: MODEL_NAME,
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0.8,
-        max_tokens: 256,
-        response_format: { type: "json_object" }
-      })
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to fetch from Gemini/OpenRouter API");
-    }
-
-    const data = await response.json();
-    const text = data?.choices?.[0]?.message?.content || "";
+    const text = await fetchAI(prompt, 256);
+    if (!text) throw new Error("Failed to fetch from OpenRouter/Gemini API");
     const parsed = extractJSON(text);
 
     if (!parsed || !parsed.word || !parsed.meaning || !parsed.example) {
@@ -1030,29 +1141,8 @@ export const generatePracticeContent = async (params) => {
   if (!prompt) return null;
 
   try {
-    const response = await fetch(API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${API_KEY}`
-      },
-      body: JSON.stringify({
-        model: MODEL_NAME,
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0.7,
-        max_tokens: 4096,
-        response_format: { type: "json_object" }
-      })
-    });
-
-    if (!response.ok) {
-      const err = await response.text();
-      console.error("Gemini/OpenRouter Practice API error:", err);
-      return getFallbackPractice(params);
-    }
-
-    const data = await response.json();
-    const text = data?.choices?.[0]?.message?.content || "";
+    const text = await fetchAI(prompt, 4096);
+    if (!text) throw new Error("Empty AI response");
     return extractJSON(text);
   } catch (err) {
     console.error("Failed to generate practice content:", err);
@@ -1091,27 +1181,8 @@ Return ONLY a JSON object with this exact structure:
 Input:
 "${text}"`;
 
-    const response = await fetch(API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${API_KEY}`
-      },
-      body: JSON.stringify({
-        model: MODEL_NAME,
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0.3,
-        max_tokens: 1024,
-        response_format: { type: "json_object" }
-      })
-    });
-
-    if (!response.ok) {
-      throw new Error("Translation request failed");
-    }
-
-    const data = await response.json();
-    const resultText = data?.choices?.[0]?.message?.content || "";
+    const resultText = await fetchAI(prompt, 1024);
+    if (!resultText) throw new Error("Translation request failed");
     const parsed = extractJSON(resultText);
     const translated = parsed?.translatedText || text;
 
@@ -1159,27 +1230,8 @@ Input:
 Question: "${questionText}"
 Options: ${JSON.stringify(optionsArray)}`;
 
-    const response = await fetch(API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${API_KEY}`
-      },
-      body: JSON.stringify({
-        model: MODEL_NAME,
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0.3,
-        max_tokens: 2048,
-        response_format: { type: "json_object" }
-      })
-    });
-
-    if (!response.ok) {
-      throw new Error("Translation request failed");
-    }
-
-    const data = await response.json();
-    const resultText = data?.choices?.[0]?.message?.content || "";
+    const resultText = await fetchAI(prompt, 2048);
+    if (!resultText) throw new Error("Translation request failed");
     const parsed = extractJSON(resultText);
     
     const result = {
