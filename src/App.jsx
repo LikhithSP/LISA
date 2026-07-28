@@ -1473,6 +1473,8 @@ function App() {
   const lessonUnscrambleShuffleRef = useRef({});
   const [lessonListeningFeedback, setLessonListeningFeedback] = useState(null);
   const [lessonListeningSelected, setLessonListeningSelected] = useState([]);
+  const [lessonListenWordMCQAnswer, setLessonListenWordMCQAnswer] = useState(null);
+  const [lessonListenWordMCQFeedback, setLessonListenWordMCQFeedback] = useState(null);
   const [lessonMatchFeedback, setLessonMatchFeedback] = useState(null);
   const [lessonMatchCompleted, setLessonMatchCompleted] = useState([]);
   const [lessonMatchSelectedLeft, setLessonMatchSelectedLeft] = useState(null);
@@ -1537,10 +1539,11 @@ function App() {
         ? (currentQuestion.type === "listeningTask" ? lessonListeningFeedback !== null : lessonSpeakFeedback !== null)
         : practiceType.includes("Listen")
           ? lessonListeningFeedback !== null
-          : currentQuestion.type === "mcq" || currentQuestion.type === "meaning" || currentQuestion.type === "passage"
+          : currentQuestion.type === "mcq" || currentQuestion.type === "meaning" || currentQuestion.type === "passage" || currentQuestion.type === "listenPassageMCQ" || currentQuestion.type === "chatComplete" || currentQuestion.type === "scenario"
             ? lessonMeaningFeedback !== null || lessonMcqFeedback !== null
-
-            : currentQuestion.type === "unscramble"
+            : currentQuestion.type === "listenWordMCQ"
+              ? lessonListenWordMCQFeedback !== null
+              : currentQuestion.type === "unscramble"
               ? lessonUnscrambleFeedback !== null
               : currentQuestion.type === "tracing"
                 ? lessonTracingDone
@@ -1564,6 +1567,8 @@ function App() {
       setLessonSpeakError("");
       setLessonListeningFeedback(null);
       setLessonListeningSelected([]);
+      setLessonListenWordMCQAnswer(null);
+      setLessonListenWordMCQFeedback(null);
       setLessonMeaningFeedback(null);
       setLessonMeaningAnswer(null);
       setLessonMcqFeedback(null);
@@ -3055,7 +3060,7 @@ function App() {
             }
 
             // 3. Mistakes, Words & Stories Practice Questions
-            if (currentQuestion.type === "mcq" || currentQuestion.type === "meaning" || practiceType === "Stories Practice") {
+            if (currentQuestion.type === "mcq" || currentQuestion.type === "meaning" || currentQuestion.type === "listenPassageMCQ" || currentQuestion.type === "chatComplete" || currentQuestion.type === "scenario" || practiceType === "Stories Practice") {
               const questionText = currentQuestion.question || `Select the correct translation/meaning of "${currentQuestion.phrase}"`;
               const options = currentQuestion.options || [];
               const selectedAnswer = lessonMeaningAnswer;
@@ -3648,6 +3653,623 @@ function App() {
               );
             }
 
+            // listenWordMCQ — Listen to a word and choose the correct one from 4 options
+            if (currentQuestion.type === "listenWordMCQ") {
+              const audioText = currentQuestion.audioText || "";
+              const questionText = currentQuestion.question || "Which word did you hear?";
+              const options = currentQuestion.options || [];
+              const selectedAnswer = lessonListenWordMCQAnswer;
+              const isChecked = lessonListenWordMCQFeedback !== null;
+
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '120px' }}>
+                  <div style={{ marginBottom: '16px', textAlign: 'center' }}>
+                    <span className="ai-step-badge">🎧 Listen & Choose the Word</span>
+                  </div>
+
+                  <div style={{ textAlign: 'center', margin: '20px 0' }}>
+                    <p style={{ fontSize: '1.2rem', fontWeight: '700', margin: '0 0 16px' }}>{questionText}</p>
+                    <button
+                      type="button"
+                      onClick={() => speakText(audioText, 1.0)}
+                      style={{
+                        width: '80px',
+                        height: '80px',
+                        borderRadius: '24px',
+                        background: '#38bdf8',
+                        border: 'none',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                      }}
+                    >
+                      <span style={{ fontSize: '2.5rem' }}>🔊</span>
+                    </button>
+                    <p style={{ marginTop: '10px', color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 600 }}>Tap to listen</p>
+                  </div>
+
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(2, 1fr)',
+                    gap: '16px',
+                    margin: '20px 0'
+                  }}>
+                    {options.map((opt, oIdx) => {
+                      const isSelected = selectedAnswer === oIdx;
+                      let btnBg = 'var(--panel)';
+                      let btnBorder = '2px solid var(--line)';
+                      let btnColor = 'var(--text)';
+
+                      if (isChecked) {
+                        if (oIdx === currentQuestion.correctIndex) {
+                          btnBg = 'rgba(16, 185, 129, 0.1)';
+                          btnBorder = '2px solid #10b981';
+                          btnColor = '#065f46';
+                        } else if (isSelected) {
+                          btnBg = 'rgba(239, 68, 68, 0.1)';
+                          btnBorder = '2px solid #ef4444';
+                          btnColor = '#991b1b';
+                        }
+                      } else if (isSelected) {
+                        btnBorder = '2px solid var(--accent)';
+                        btnColor = 'var(--accent-dark)';
+                      }
+
+                      return (
+                        <button
+                          key={oIdx}
+                          type="button"
+                          onClick={() => { if (!isChecked) setLessonListenWordMCQAnswer(oIdx); }}
+                          style={{
+                            background: btnBg,
+                            border: btnBorder,
+                            color: btnColor,
+                            borderRadius: '16px',
+                            padding: '20px',
+                            fontSize: '1.1rem',
+                            fontWeight: '600',
+                            cursor: isChecked ? 'default' : 'pointer',
+                            textAlign: 'center',
+                            transition: 'all 0.2s ease'
+                          }}
+                          disabled={isChecked}
+                        >
+                          {opt}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {!isChecked && (
+                    <div style={{ display: 'flex', justifyContent: 'center' }}>
+                      <button
+                        type="button"
+                        className="primary-btn"
+                        style={{ padding: '12px 40px', borderRadius: '12px' }}
+                        disabled={selectedAnswer === null}
+                        onClick={() => {
+                          const correct = selectedAnswer === currentQuestion.correctIndex;
+                          if (!correct) {
+                            recordUserMistake({
+                              type: "listenWordMCQ",
+                              question: questionText,
+                              audioText: audioText,
+                              options: options,
+                              correctIndex: currentQuestion.correctIndex
+                            });
+                          }
+                          setLessonListenWordMCQFeedback({
+                            isCorrect: correct,
+                            correctAnswer: options[currentQuestion.correctIndex]
+                          });
+                          if (correct) recordDailyCorrect();
+                          recordLessonAnswer(correct);
+                        }}
+                      >
+                        Check Answer
+                      </button>
+                    </div>
+                  )}
+
+                  {isChecked && (
+                    <div style={{
+                      position: 'absolute',
+                      bottom: 0, left: 0, right: 0,
+                      background: lessonListenWordMCQFeedback.isCorrect ? '#d1fae5' : '#fee2e2',
+                      borderTop: `2px solid ${lessonListenWordMCQFeedback.isCorrect ? '#10b981' : '#ef4444'}`,
+                      padding: '20px 40px',
+                      zIndex: 100,
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                    }}>
+                      <div>
+                        <h4 style={{ margin: 0, color: lessonListenWordMCQFeedback.isCorrect ? '#065f46' : '#991b1b', fontWeight: '800', fontSize: '1.2rem' }}>
+                          {lessonListenWordMCQFeedback.isCorrect ? "Excellent!" : "Incorrect"}
+                        </h4>
+                        <p style={{ margin: '4px 0 0', color: lessonListenWordMCQFeedback.isCorrect ? '#047857' : '#b91c1c', fontSize: '0.95rem' }}>
+                          {lessonListenWordMCQFeedback.isCorrect ? "You heard it correctly!" : `Correct Answer: "${lessonListenWordMCQFeedback.correctAnswer}"`}
+                        </p>
+                      </div>
+                      <button type="button" className="primary-btn" onClick={handleNext}>
+                        Continue
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
+            // listenPassageMCQ — Listen to a paragraph/audio and answer MCQ
+            if (currentQuestion.type === "listenPassageMCQ") {
+              const audioText = currentQuestion.audioText || "";
+              const questionText = currentQuestion.question || "Listen and answer:";
+              const options = currentQuestion.options || [];
+              const selectedAnswer = lessonMeaningAnswer;
+              const isChecked = lessonMeaningFeedback !== null;
+
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '120px' }}>
+                  <div style={{ marginBottom: '16px', textAlign: 'center' }}>
+                    <span className="ai-step-badge">🎧 Listen to the Passage</span>
+                  </div>
+
+                  <div style={{
+                    background: 'var(--panel)',
+                    border: '2px solid var(--line)',
+                    borderRadius: '20px',
+                    padding: '20px',
+                    textAlign: 'center'
+                  }}>
+                    <p style={{ margin: '0 0 12px', fontSize: '1rem', fontWeight: '700', color: 'var(--text-muted)' }}>Tap to listen to the audio</p>
+                    <button
+                      type="button"
+                      onClick={() => speakText(audioText, 1.0)}
+                      style={{
+                        width: '80px',
+                        height: '80px',
+                        borderRadius: '24px',
+                        background: '#38bdf8',
+                        border: 'none',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                      }}
+                    >
+                      <span style={{ fontSize: '2.5rem' }}>🔊</span>
+                    </button>
+                  </div>
+
+                  <div style={{
+                    background: 'rgba(2, 132, 199, 0.05)',
+                    border: '2px solid rgba(2, 132, 199, 0.2)',
+                    borderRadius: '20px',
+                    padding: '20px',
+                    fontSize: '1.2rem',
+                    fontWeight: '800',
+                    textAlign: 'center'
+                  }}>
+                    {questionText}
+                  </div>
+
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(2, 1fr)',
+                    gap: '16px',
+                    margin: '20px 0'
+                  }}>
+                    {options.map((opt, oIdx) => {
+                      const isSelected = selectedAnswer === oIdx;
+                      let btnBg = 'var(--panel)';
+                      let btnBorder = '2px solid var(--line)';
+                      let btnColor = 'var(--text)';
+
+                      if (isChecked) {
+                        if (oIdx === currentQuestion.correctIndex) {
+                          btnBg = 'rgba(16, 185, 129, 0.1)';
+                          btnBorder = '2px solid #10b981';
+                          btnColor = '#065f46';
+                        } else if (isSelected) {
+                          btnBg = 'rgba(239, 68, 68, 0.1)';
+                          btnBorder = '2px solid #ef4444';
+                          btnColor = '#991b1b';
+                        }
+                      } else if (isSelected) {
+                        btnBorder = '2px solid var(--accent)';
+                        btnColor = 'var(--accent-dark)';
+                      }
+
+                      return (
+                        <button
+                          key={oIdx}
+                          type="button"
+                          onClick={() => { if (!isChecked) setLessonMeaningAnswer(oIdx); }}
+                          style={{
+                            background: btnBg,
+                            border: btnBorder,
+                            color: btnColor,
+                            borderRadius: '16px',
+                            padding: '20px',
+                            fontSize: '1.1rem',
+                            fontWeight: '600',
+                            cursor: isChecked ? 'default' : 'pointer',
+                            textAlign: 'center',
+                            transition: 'all 0.2s ease'
+                          }}
+                          disabled={isChecked}
+                        >
+                          {opt}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {!isChecked && (
+                    <div style={{ display: 'flex', justifyContent: 'center' }}>
+                      <button
+                        type="button"
+                        className="primary-btn"
+                        style={{ padding: '12px 40px', borderRadius: '12px' }}
+                        disabled={selectedAnswer === null}
+                        onClick={() => {
+                          const correct = selectedAnswer === currentQuestion.correctIndex;
+                          if (!correct) {
+                            recordUserMistake({
+                              type: "listenPassageMCQ",
+                              question: questionText,
+                              audioText: audioText,
+                              options: options,
+                              correctIndex: currentQuestion.correctIndex
+                            });
+                          }
+                          setLessonMeaningFeedback({
+                            isCorrect: correct,
+                            correctAnswer: options[currentQuestion.correctIndex]
+                          });
+                          if (correct) recordDailyCorrect();
+                          recordLessonAnswer(correct);
+                        }}
+                      >
+                        Check Answer
+                      </button>
+                    </div>
+                  )}
+
+                  {isChecked && (
+                    <div style={{
+                      position: 'absolute',
+                      bottom: 0, left: 0, right: 0,
+                      background: lessonMeaningFeedback.isCorrect ? '#d1fae5' : '#fee2e2',
+                      borderTop: `2px solid ${lessonMeaningFeedback.isCorrect ? '#10b981' : '#ef4444'}`,
+                      padding: '20px 40px',
+                      zIndex: 100,
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                    }}>
+                      <div>
+                        <h4 style={{ margin: 0, color: lessonMeaningFeedback.isCorrect ? '#065f46' : '#991b1b', fontWeight: '800', fontSize: '1.2rem' }}>
+                          {lessonMeaningFeedback.isCorrect ? "Excellent!" : "Incorrect"}
+                        </h4>
+                        <p style={{ margin: '4px 0 0', color: lessonMeaningFeedback.isCorrect ? '#047857' : '#b91c1c', fontSize: '0.95rem' }}>
+                          {lessonMeaningFeedback.isCorrect ? "You got it right!" : `Correct Answer: "${lessonMeaningFeedback.correctAnswer}"`}
+                        </p>
+                      </div>
+                      <button type="button" className="primary-btn" onClick={handleNext}>
+                        Continue
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
+            // chatComplete — Complete the conversation by choosing the best response
+            if (currentQuestion.type === "chatComplete") {
+              const scenario = currentQuestion.scenario || "";
+              const questionText = currentQuestion.question || "Choose the best response:";
+              const options = currentQuestion.options || [];
+              const selectedAnswer = lessonMeaningAnswer;
+              const isChecked = lessonMeaningFeedback !== null;
+
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '120px' }}>
+                  <div style={{ marginBottom: '16px', textAlign: 'center' }}>
+                    <span className="ai-step-badge">💬 Complete the Chat</span>
+                  </div>
+
+                  <div style={{
+                    background: 'var(--panel)',
+                    border: '2px solid var(--line)',
+                    borderRadius: '20px',
+                    padding: '20px',
+                    fontSize: '1.1rem',
+                    fontWeight: '600',
+                    lineHeight: '1.6',
+                    whiteSpace: 'pre-wrap'
+                  }}>
+                    {scenario}
+                  </div>
+
+                  <div style={{
+                    background: 'rgba(2, 132, 199, 0.05)',
+                    border: '2px solid rgba(2, 132, 199, 0.2)',
+                    borderRadius: '20px',
+                    padding: '20px',
+                    fontSize: '1.2rem',
+                    fontWeight: '800',
+                    textAlign: 'center'
+                  }}>
+                    {questionText}
+                  </div>
+
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(2, 1fr)',
+                    gap: '16px',
+                    margin: '20px 0'
+                  }}>
+                    {options.map((opt, oIdx) => {
+                      const isSelected = selectedAnswer === oIdx;
+                      let btnBg = 'var(--panel)';
+                      let btnBorder = '2px solid var(--line)';
+                      let btnColor = 'var(--text)';
+
+                      if (isChecked) {
+                        if (oIdx === currentQuestion.correctIndex) {
+                          btnBg = 'rgba(16, 185, 129, 0.1)';
+                          btnBorder = '2px solid #10b981';
+                          btnColor = '#065f46';
+                        } else if (isSelected) {
+                          btnBg = 'rgba(239, 68, 68, 0.1)';
+                          btnBorder = '2px solid #ef4444';
+                          btnColor = '#991b1b';
+                        }
+                      } else if (isSelected) {
+                        btnBorder = '2px solid var(--accent)';
+                        btnColor = 'var(--accent-dark)';
+                      }
+
+                      return (
+                        <button
+                          key={oIdx}
+                          type="button"
+                          onClick={() => { if (!isChecked) setLessonMeaningAnswer(oIdx); }}
+                          style={{
+                            background: btnBg,
+                            border: btnBorder,
+                            color: btnColor,
+                            borderRadius: '16px',
+                            padding: '20px',
+                            fontSize: '1.1rem',
+                            fontWeight: '600',
+                            cursor: isChecked ? 'default' : 'pointer',
+                            textAlign: 'center',
+                            transition: 'all 0.2s ease'
+                          }}
+                          disabled={isChecked}
+                        >
+                          {opt}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {!isChecked && (
+                    <div style={{ display: 'flex', justifyContent: 'center' }}>
+                      <button
+                        type="button"
+                        className="primary-btn"
+                        style={{ padding: '12px 40px', borderRadius: '12px' }}
+                        disabled={selectedAnswer === null}
+                        onClick={() => {
+                          const correct = selectedAnswer === currentQuestion.correctIndex;
+                          if (!correct) {
+                            recordUserMistake({
+                              type: "chatComplete",
+                              question: questionText,
+                              scenario: scenario,
+                              options: options,
+                              correctIndex: currentQuestion.correctIndex
+                            });
+                          }
+                          setLessonMeaningFeedback({
+                            isCorrect: correct,
+                            correctAnswer: options[currentQuestion.correctIndex]
+                          });
+                          if (correct) recordDailyCorrect();
+                          recordLessonAnswer(correct);
+                        }}
+                      >
+                        Check Answer
+                      </button>
+                    </div>
+                  )}
+
+                  {isChecked && (
+                    <div style={{
+                      position: 'absolute',
+                      bottom: 0, left: 0, right: 0,
+                      background: lessonMeaningFeedback.isCorrect ? '#d1fae5' : '#fee2e2',
+                      borderTop: `2px solid ${lessonMeaningFeedback.isCorrect ? '#10b981' : '#ef4444'}`,
+                      padding: '20px 40px',
+                      zIndex: 100,
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                    }}>
+                      <div>
+                        <h4 style={{ margin: 0, color: lessonMeaningFeedback.isCorrect ? '#065f46' : '#991b1b', fontWeight: '800', fontSize: '1.2rem' }}>
+                          {lessonMeaningFeedback.isCorrect ? "Excellent!" : "Incorrect"}
+                        </h4>
+                        <p style={{ margin: '4px 0 0', color: lessonMeaningFeedback.isCorrect ? '#047857' : '#b91c1c', fontSize: '0.95rem' }}>
+                          {lessonMeaningFeedback.isCorrect ? "Great response!" : `Correct Answer: "${lessonMeaningFeedback.correctAnswer}"`}
+                        </p>
+                      </div>
+                      <button type="button" className="primary-btn" onClick={handleNext}>
+                        Continue
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
+            // scenario — Real-world scenario based question
+            if (currentQuestion.type === "scenario") {
+              const scenarioText = currentQuestion.scenario || "";
+              const questionText = currentQuestion.question || "What should you do?";
+              const options = currentQuestion.options || [];
+              const selectedAnswer = lessonMeaningAnswer;
+              const isChecked = lessonMeaningFeedback !== null;
+
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '120px' }}>
+                  <div style={{ marginBottom: '16px', textAlign: 'center' }}>
+                    <span className="ai-step-badge">🌍 Real-World Scenario</span>
+                  </div>
+
+                  <div style={{
+                    background: 'var(--panel)',
+                    border: '2px solid var(--line)',
+                    borderRadius: '20px',
+                    padding: '20px',
+                    fontSize: '1.1rem',
+                    fontWeight: '600',
+                    lineHeight: '1.6',
+                    whiteSpace: 'pre-wrap'
+                  }}>
+                    {scenarioText}
+                  </div>
+
+                  <div style={{
+                    background: 'rgba(2, 132, 199, 0.05)',
+                    border: '2px solid rgba(2, 132, 199, 0.2)',
+                    borderRadius: '20px',
+                    padding: '20px',
+                    fontSize: '1.2rem',
+                    fontWeight: '800',
+                    textAlign: 'center'
+                  }}>
+                    {questionText}
+                  </div>
+
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(2, 1fr)',
+                    gap: '16px',
+                    margin: '20px 0'
+                  }}>
+                    {options.map((opt, oIdx) => {
+                      const isSelected = selectedAnswer === oIdx;
+                      let btnBg = 'var(--panel)';
+                      let btnBorder = '2px solid var(--line)';
+                      let btnColor = 'var(--text)';
+
+                      if (isChecked) {
+                        if (oIdx === currentQuestion.correctIndex) {
+                          btnBg = 'rgba(16, 185, 129, 0.1)';
+                          btnBorder = '2px solid #10b981';
+                          btnColor = '#065f46';
+                        } else if (isSelected) {
+                          btnBg = 'rgba(239, 68, 68, 0.1)';
+                          btnBorder = '2px solid #ef4444';
+                          btnColor = '#991b1b';
+                        }
+                      } else if (isSelected) {
+                        btnBorder = '2px solid var(--accent)';
+                        btnColor = 'var(--accent-dark)';
+                      }
+
+                      return (
+                        <button
+                          key={oIdx}
+                          type="button"
+                          onClick={() => { if (!isChecked) setLessonMeaningAnswer(oIdx); }}
+                          style={{
+                            background: btnBg,
+                            border: btnBorder,
+                            color: btnColor,
+                            borderRadius: '16px',
+                            padding: '20px',
+                            fontSize: '1.1rem',
+                            fontWeight: '600',
+                            cursor: isChecked ? 'default' : 'pointer',
+                            textAlign: 'center',
+                            transition: 'all 0.2s ease'
+                          }}
+                          disabled={isChecked}
+                        >
+                          {opt}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {!isChecked && (
+                    <div style={{ display: 'flex', justifyContent: 'center' }}>
+                      <button
+                        type="button"
+                        className="primary-btn"
+                        style={{ padding: '12px 40px', borderRadius: '12px' }}
+                        disabled={selectedAnswer === null}
+                        onClick={() => {
+                          const correct = selectedAnswer === currentQuestion.correctIndex;
+                          if (!correct) {
+                            recordUserMistake({
+                              type: "scenario",
+                              question: questionText,
+                              scenario: scenarioText,
+                              options: options,
+                              correctIndex: currentQuestion.correctIndex
+                            });
+                          }
+                          setLessonMeaningFeedback({
+                            isCorrect: correct,
+                            correctAnswer: options[currentQuestion.correctIndex]
+                          });
+                          if (correct) recordDailyCorrect();
+                          recordLessonAnswer(correct);
+                        }}
+                      >
+                        Check Answer
+                      </button>
+                    </div>
+                  )}
+
+                  {isChecked && (
+                    <div style={{
+                      position: 'absolute',
+                      bottom: 0, left: 0, right: 0,
+                      background: lessonMeaningFeedback.isCorrect ? '#d1fae5' : '#fee2e2',
+                      borderTop: `2px solid ${lessonMeaningFeedback.isCorrect ? '#10b981' : '#ef4444'}`,
+                      padding: '20px 40px',
+                      zIndex: 100,
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                    }}>
+                      <div>
+                        <h4 style={{ margin: 0, color: lessonMeaningFeedback.isCorrect ? '#065f46' : '#991b1b', fontWeight: '800', fontSize: '1.2rem' }}>
+                          {lessonMeaningFeedback.isCorrect ? "Excellent!" : "Incorrect"}
+                        </h4>
+                        <p style={{ margin: '4px 0 0', color: lessonMeaningFeedback.isCorrect ? '#047857' : '#b91c1c', fontSize: '0.95rem' }}>
+                          {lessonMeaningFeedback.isCorrect ? "Well done!" : `Correct Answer: "${lessonMeaningFeedback.correctAnswer}"`}
+                        </p>
+                      </div>
+                      <button type="button" className="primary-btn" onClick={handleNext}>
+                        Continue
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
             // Unknown type — skip to next step automatically
             if (currentQuestion.type && currentQuestion.type !== "") {
               return (
@@ -3794,6 +4416,12 @@ function App() {
     setLessonReadingStep(1);
     setLessonReadingFeedback(null);
     setLessonReadingAnswer("");
+    setLessonMeaningFeedback(null);
+    setLessonMeaningAnswer(null);
+    setLessonListeningFeedback(null);
+    setLessonListeningSelected([]);
+    setLessonListenWordMCQAnswer(null);
+    setLessonListenWordMCQFeedback(null);
     setMistakeAttemptsCount(0);
     setShowMistakeHint(false);
     setFlashcardFlipped(false);
@@ -8715,7 +9343,7 @@ style={(() => {
           <div className="lesson-overlay-screen">
             <div className="lesson-overlay-header">
               <div className="lesson-overlay-header-content">
-                <button className="lesson-overlay-close" onClick={() => { setLessonSession(null); setLessonAiContent(null); setLessonLoading(false); setLessonStep(0); }}>✕</button>
+                <button className="lesson-overlay-close" onClick={() => { setLessonSession(null); setLessonAiContent(null); setLessonLoading(false); setLessonStep(0); setLessonListenWordMCQAnswer(null); setLessonListenWordMCQFeedback(null); setLessonMeaningFeedback(null); setLessonMeaningAnswer(null); }}>✕</button>
                 <div className="lesson-progress-container">
                   {lessonSession?.title === "Mistakes Practice" && (
                     <span className="fixing-mistakes-pulse" style={{ fontSize: '1.3rem', marginRight: '8px' }}>🩹</span>
@@ -8787,7 +9415,7 @@ style={(() => {
                     </div>
                   </div>
                   <div className="lesson-complete-continue-row">
-                    <button className="lesson-complete-continue-btn" onClick={() => { setLessonSession(null); setLessonAiContent(null); setLessonStep(0); }}>
+                     <button className="lesson-complete-continue-btn" onClick={() => { setLessonSession(null); setLessonAiContent(null); setLessonStep(0); setLessonListenWordMCQAnswer(null); setLessonListenWordMCQFeedback(null); setLessonMeaningFeedback(null); setLessonMeaningAnswer(null); }}>
                       Continue
                     </button>
                   </div>
