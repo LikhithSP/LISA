@@ -72,322 +72,371 @@ const buildPrompt = (params) => {
     age, educationLevel, language, learningLanguage: paramLearningLang,
     interfaceLanguage: paramInterfaceLang, literacyLevel, literacyLevelName,
     weakAreas, sectionNum, sectionTitle, unitNum, unitTitle,
-    lessonNum, lessonTitle, difficulty, isAssessment
+    lessonNum, lessonTitle, difficulty
   } = params;
 
   const learningLanguage = paramLearningLang || language || "English";
   const interfaceLanguage = paramInterfaceLang || language || "English";
   const ageCtx = getAgeContext(age);
   const weakList = (weakAreas || []).join(", ") || "general literacy";
-  const seq = buildQuestionSequence(!!isAssessment);
 
-  // Map each step type to a precise JSON block description
-  const typeToBlock = (type, idx) => {
-    switch (type) {
-      case "intro":
-        return `{
-  "type": "intro",
-  "lessonTitle": "Engaging title for Section ${sectionNum} › Unit ${unitNum} › Lesson ${lessonNum}: ${lessonTitle}",
-  "subtitle": "Section ${sectionNum}: ${sectionTitle} › Unit ${unitNum}: ${unitTitle} › Lesson ${lessonNum}: ${lessonTitle}",
-  "explanation": "2-3 engaging paragraphs in ${interfaceLanguage} explaining the concept. Use real-life examples relevant to ${learningLanguage}.",
-  "guidedTip": "One encouraging actionable tip in ${interfaceLanguage}"
-}`;
-      case "mcq":
-        return `{
-  "type": "mcq",
-  "question": "Curriculum-specific MCQ question about ${lessonTitle} in ${interfaceLanguage}",
-  "options": ["correct option in ${learningLanguage}", "distractor 2", "distractor 3", "distractor 4"],
-  "correctIndex": 0,
-  "explanation": "Short explanation of why the answer is correct in ${interfaceLanguage}"
-}`;
-      case "meaning":
-        return `{
-  "type": "meaning",
-  "phrase": "A key ${learningLanguage} word from ${lessonTitle}",
-  "options": ["correct meaning in ${interfaceLanguage}", "wrong meaning 2", "wrong meaning 3", "wrong meaning 4"],
-  "correctIndex": 0
-}`;
-      case "matchPairs":
-        return `{
-  "type": "matchPairs",
-  "pairs": [
-    {"left": "${learningLanguage} word 1", "right": "meaning or definition in ${interfaceLanguage}"},
-    {"left": "${learningLanguage} word 2", "right": "meaning in ${interfaceLanguage}"},
-    {"left": "${learningLanguage} word 3", "right": "meaning in ${interfaceLanguage}"},
-    {"left": "${learningLanguage} word 4", "right": "meaning in ${interfaceLanguage}"}
-  ]
-}`;
-      case "imageChoice":
-        return `{
-  "type": "imageChoice",
-  "word": "a ${learningLanguage} target word from ${lessonTitle}",
-  "prompt": "Tap the picture that means [word] in ${interfaceLanguage}",
-  "options": ["correct emoji", "wrong emoji 1", "wrong emoji 2"],
-  "correctIndex": 0
-}`;
-      case "fillBlank":
-        return `{
-  "type": "fillBlank",
-  "sentence": "A sentence related to ${lessonTitle} with ___ for the missing word, in ${learningLanguage}",
-  "answer": "the correct missing word",
-  "hint": "Short hint in ${interfaceLanguage}"
-}`;
-      case "arrangeWords":
-        return `{
-  "type": "arrangeWords",
-  "sentence": "A sentence in ${learningLanguage} related to ${lessonTitle}",
-  "prompt": "Arrange the word tiles to form a correct sentence in ${interfaceLanguage}. Do NOT reveal the sentence.",
-  "tiles": ["shuffled", "array", "of", "words", "from", "the", "sentence", "plus", "2", "distractors"]
-}`;
-      case "listeningTask":
-        return `{
-  "type": "listeningTask",
-  "audioText": "A short sentence or phrase in ${learningLanguage} relevant to ${lessonTitle}",
-  "tiles": ["word1", "word2", "word3", "plus", "2-3", "distractor", "words"]
-}`;
-      case "unscramble":
-        return `{
-  "type": "unscramble",
-  "hint": "A clue in ${interfaceLanguage} for the target word from ${lessonTitle}",
-  "emoji": "A single relevant emoji",
-  "answer": "TARGET_WORD_UPPERCASE",
-  "tiles": ["shuffled", "letter", "tiles", "of", "TARGET_WORD", "plus", "2", "extra", "letters"]
-}`;
-      case "passage":
-        return `{
-  "type": "passage",
-  "passage": "A 3-5 sentence reading passage in ${learningLanguage} about the topic of ${lessonTitle}",
-  "question": "One comprehension question about the passage in ${interfaceLanguage}",
-  "options": ["correct answer", "wrong option 2", "wrong option 3", "wrong option 4"],
-  "correctIndex": 0
-}`;
-      case "writingActivity":
-        return `{
-  "type": "writingActivity",
-  "prompt": "A clear short writing task in ${interfaceLanguage} related to ${lessonTitle}. Ask the learner to write 1-3 sentences in ${learningLanguage}."
-}`;
-      case "speak":
-        return `{
-  "type": "speak",
-  "sentence": "A meaningful sentence in ${learningLanguage} related to ${lessonTitle} for the learner to read aloud",
-  "tip": "Pronunciation tip in ${interfaceLanguage}"
-}`;
-      case "tracing":
-        return `{
-  "type": "tracing",
-  "question": "Short question in ${interfaceLanguage} asking the learner to write a word or letter related to ${lessonTitle}",
-  "kind": "the target letter or short word in ${learningLanguage}",
-  "sound": "the target word pronunciation text"
-}`;
-      case "listenWordMCQ":
-        return `{
-  "type": "listenWordMCQ",
-  "audioText": "A single word in ${learningLanguage} relevant to ${lessonTitle}",
-  "question": "Which word did you hear? (in ${interfaceLanguage})",
-  "options": ["correct word in ${learningLanguage}", "wrong option 2", "wrong option 3", "wrong option 4"],
-  "correctIndex": 0
-}`;
-      case "listenPassageMCQ":
-        return `{
-  "type": "listenPassageMCQ",
-  "audioText": "A short paragraph or 2-3 sentences in ${learningLanguage} relevant to ${lessonTitle}",
-  "question": "Listen to the audio and answer: (question in ${interfaceLanguage})",
-  "options": ["correct answer in ${learningLanguage}", "wrong option 2", "wrong option 3", "wrong option 4"],
-  "correctIndex": 0
-}`;
-      case "chatComplete":
-        return `{
-  "type": "chatComplete",
-  "scenario": "A short chat conversation snippet in ${learningLanguage} with one missing response (use ___ for the blank)",
-  "question": "Choose the best response to complete the conversation (in ${interfaceLanguage})",
-  "options": ["correct response in ${learningLanguage}", "wrong option 2", "wrong option 3", "wrong option 4"],
-  "correctIndex": 0
-}`;
-      case "scenario":
-        return `{
-  "type": "scenario",
-  "scenario": "A short real-world scenario description in ${learningLanguage} relevant to ${lessonTitle} (e.g., at a bank, hospital, bus stop, shop)",
-  "question": "What should you do? (question in ${interfaceLanguage})",
-  "options": ["correct action in ${learningLanguage}", "wrong option 2", "wrong option 3", "wrong option 4"],
-  "correctIndex": 0
-}`;
-      default:
-        return `{"type": "${type}"}`;
-    }
-  };
-
-  const questionBlocks = seq.map((type, idx) =>
-    `    // Question ${idx + 1} — ${type.toUpperCase()}\n    ${typeToBlock(type, idx)}`
-  ).join(",\n");
-
-  return `You are LISA, a world-class AI literacy tutor. Generate a Duolingo-style lesson with exactly 8 questions following the cognitive-load tier formula.
+  return `You are LISA, an expert AI literacy tutor. Generate a complete, structured lesson for a learner with the following profile:
 
 LEARNER PROFILE:
 - Age: ${age} (${ageCtx.contextName})
-- Education: ${educationLevel}
-- Interface Language: ${interfaceLanguage}
-- Learning Language: ${learningLanguage}
+- Education Level: ${educationLevel}
+- Interface Language (Site UI & Instructions): ${interfaceLanguage}
+- Learning Language (Target Language to Learn): ${learningLanguage}
 - Literacy Level: Level ${literacyLevel} — ${literacyLevelName}
 - Weak Areas: ${weakList}
-- Difficulty: ${difficulty}${isAssessment ? " (UNIT ASSESSMENT — use harder vocabulary and more complex sentences)" : ""}
 
-LESSON CONTEXT:
+LESSON DETAILS:
 - Section ${sectionNum}: ${sectionTitle}
 - Unit ${unitNum}: ${unitTitle}
 - Lesson ${lessonNum}: ${lessonTitle}
+- Difficulty: ${difficulty}
 
-GOLDEN RULES:
-1. ALL question content (words, sentences, passages) MUST be directly about the lesson topic: "${lessonTitle}" in Section "${sectionTitle}".
-2. Target text MUST be in ${learningLanguage}. Instructions/hints MUST be in ${interfaceLanguage}.
-3. Age-appropriate examples (this learner: "${ageCtx.contextExample}").
-4. For "unscramble": tiles = shuffled letters of answer + 2 extra distractor letters.
-5. For "imageChoice": exactly 3 emoji options; correctIndex points to the matching one.
-6. For "arrangeWords": tiles = all sentence words shuffled + 2-3 distractor words that cannot form an alternate valid sentence.
-7. Every question must feel fresh — no repetition of words across questions.
-8. Return ONLY valid JSON — no markdown, no backticks, no comments.
+IMPORTANT RULES:
+1. Target literacy content (target words, letters, sentences, reading passages, dictation sentences, unscramble tiles) MUST be in ${learningLanguage}.
+2. Instructions, explanations, hints, guidance, and question prompts MUST be given in ${interfaceLanguage} so the learner understands what to do while learning ${learningLanguage}.
+3. Adapt ALL context examples to be age-appropriate. Example for this learner's age: "${ageCtx.contextExample}"
+4. Keep language simple and encouraging. Do not use jargon.
+5. The lesson must directly target the weak skill: ${weakList}.
+6. For "unscramble": "tiles" must be the individual letters of "answer" shuffled into a random order, written in the ${learningLanguage} script. The letters must NOT be adjacent in a way that spells the answer or starts with it.
+7. For "imageChoice": provide exactly 3 emoji options where "correctIndex" points to the emoji that matches "word".
+8. For "tracing": provide a short letter/word (3-4 characters max) to practice writing in ${learningLanguage}, a short "info" fact in ${interfaceLanguage}, and the "sound" text in ${learningLanguage}.
+9. For "translationTask" and "arrangeWords": Shuffled tiles MUST NOT be able to form any other grammatically correct sentence other than the correct one.
 
-Return this EXACT JSON structure:
+Return ONLY valid JSON with this exact structure (no markdown, no backticks):
 {
-  "lessonTitle": "Engaging lesson title",
-  "lessonSubtitle": "Section ${sectionNum}: ${sectionTitle} › Unit ${unitNum}: ${unitTitle}",
-  "skillFocus": "Core skill being practiced",
-  "aiFeedbackPositive": "Encouraging message in ${interfaceLanguage}",
-  "aiFeedbackNegative": "Gentle corrective message in ${interfaceLanguage}",
-  "questions": [
-${questionBlocks}
-  ]
+  "lessonTitle": "string",
+  "skillFocus": "string",
+  "explanation": "string (2-3 paragraphs explaining the concept clearly in ${interfaceLanguage})",
+  "examples": [
+    {"text": "string", "translation": "string (English translation if not English)"},
+    {"text": "string", "translation": "string"},
+    {"text": "string", "translation": "string"}
+  ],
+  "guidedPractice": "string (step-by-step guided exercise description in ${interfaceLanguage})",
+  "mcqs": [
+    {"question": "string", "options": ["A", "B", "C", "D"], "correctIndex": 0, "explanation": "string"}
+  ],
+  "fillBlanks": [
+    {"sentence": "string with ___ for blank in ${learningLanguage}", "answer": "string in ${learningLanguage}", "hint": "string in ${interfaceLanguage}", "options": ["correct_answer", "distractor 1", "distractor 2", "distractor 3"]}
+  ],
+  "readingPassage": "string (short reading text of 3-5 sentences in ${learningLanguage})",
+  "readingQuestion": "string (one comprehension question about the passage in ${interfaceLanguage})",
+  "readingAnswer": "string (correct answer in ${learningLanguage})",
+  "speakSentence": "string (a full sentence in ${learningLanguage} for the user to practice speaking)",
+  "speakSentenceEmoji": "string (a single emoji representing the speak sentence topic)",
+  "meaningQuestion": {
+    "phrase": "string (a simple common target language word in ${learningLanguage})",
+    "options": ["correct meaning as a short sentence in ${interfaceLanguage}", "incorrect meaning sentence distractor 1", "incorrect meaning sentence distractor 2", "incorrect meaning sentence distractor 3"],
+    "correctIndex": 0
+  },
+  "translationTask": {
+    "sentence": "string (a sentence in ${learningLanguage})",
+    "prompt": "string (a short instruction telling the learner to arrange the word tiles into a sentence, e.g. 'Arrange the words to form a sentence'. DO NOT reveal the answer or the exact sentence in the prompt)",
+    "englishTranslation": "string (correct English translation)",
+    "tiles": ["array of 6-8 English words containing all words from englishTranslation plus 2-3 distractor words, in any shuffled (non sentence) order. Shuffled tiles MUST NOT form any other meaningful sentence."]
+  },
+  "matchingPairs": [
+    {"left": "a ${learningLanguage} word 1", "right": "its simple meaning/translation 1 in ${interfaceLanguage}"},
+    {"left": "a ${learningLanguage} word 2", "right": "its simple meaning/translation 2 in ${interfaceLanguage}"},
+    {"left": "a ${learningLanguage} word 3", "right": "its simple meaning/translation 3 in ${interfaceLanguage}"},
+    {"left": "a ${learningLanguage} word 4", "right": "its simple meaning/translation 4 in ${interfaceLanguage}"}
+  ],
+  "listeningTask": {
+    "audioText": "string (a simple sentence or phrase in ${learningLanguage} for the user to listen to)",
+    "tiles": ["array of 6-8 words in ${learningLanguage} containing all words from audioText plus 2-3 distractor words"]
+  },
+  "unscramble": [
+    {"hint": "string (a clue in ${interfaceLanguage})", "emoji": "string (a single emoji hint)", "answer": "WORD_IN_TARGET_LANG", "tiles": ["array of letter tiles for word in any shuffled order"]}
+  ],
+  "imageChoice": [
+    {"word": "string (the target word in ${learningLanguage})", "prompt": "string (instruction in ${interfaceLanguage})", "options": ["emoji1","emoji2","emoji3"], "correctIndex": 0}
+  ],
+  "tracing": [
+    {"kind": "target short word/letter in ${learningLanguage} (3-4 characters max)", "question": "string (a simple question/prompt in ${interfaceLanguage})", "sound": "pronunciation text in ${learningLanguage}"}
+  ],
+  "listenWordMCQ": {
+    "audioText": "string (a single target word in ${learningLanguage})",
+    "question": "string (question in ${interfaceLanguage}, e.g. 'Which word did you hear?')",
+    "options": ["correct target word in ${learningLanguage}", "distractor 1", "distractor 2", "distractor 3"],
+    "correctIndex": 0
+  },
+  "listenPassageMCQ": {
+    "audioText": "string (2-3 simple sentences in ${learningLanguage})",
+    "question": "string (question in ${interfaceLanguage} about the passage)",
+    "options": ["correct option in ${learningLanguage}", "distractor 1", "distractor 2", "distractor 3"],
+    "correctIndex": 0
+  },
+  "chatComplete": {
+    "scenario": "string (a short chat dialogue snippet in ${learningLanguage} showing a previous speaker's message and a missing response represented by B: ___, e.g. 'A: Hello! How are you?\nB: ___')",
+    "question": "string (prompt in ${interfaceLanguage}, e.g. 'Complete the conversation:')",
+    "options": ["correct response in ${learningLanguage}", "wrong option 1", "wrong option 2", "wrong option 3"],
+    "correctIndex": 0
+  },
+  "scenario": {
+    "scenario": "string (a short real-world scenario description in ${learningLanguage})",
+    "question": "string (question/prompt in ${interfaceLanguage})",
+    "options": ["correct action in ${learningLanguage}", "wrong option 1", "wrong option 2", "wrong option 3"],
+    "correctIndex": 0
+  },
+  "aiFeedbackPositive": "string (encouraging message for correct answers in ${interfaceLanguage})",
+  "aiFeedbackNegative": "string (gentle corrective message in ${interfaceLanguage})"
 }`;
 };
 
-// ─── Cache (keyed by lesson ID + language + level) ───────────────────────────
+// Cache lesson content by lesson ID to avoid re-fetching
 const lessonCache = new Map();
 
-// ─── API fetch with primary → fallback cascade ────────────────────────────────
-const fetchAI = async (prompt, maxTokens = 4096) => {
-  // Try primary (OpenRouter)
-  if (PRIMARY_KEY) {
-    const openRouterModels = [PRIMARY_MODEL, "google/gemma-2-9b-it:free", "meta-llama/llama-3-8b-instruct:free"];
-    for (const model of openRouterModels) {
-      if (!model) continue;
-      try {
-        const resp = await fetch(PRIMARY_URL, {
-          method: "POST",
-          headers: {
-            "Content-Type":  "application/json",
-            "Authorization": `Bearer ${PRIMARY_KEY}`,
-            "HTTP-Referer":  "https://lisalearn.app",
-            "X-Title":       "LISA Learning"
-          },
-          body: JSON.stringify({
-            model: model,
-            messages: [{ role: "user", content: prompt }],
-            temperature: 0.7,
-            max_tokens: maxTokens
-          })
-        });
-        if (resp.ok) {
-          const data = await resp.json();
-          const text = data?.choices?.[0]?.message?.content || "";
-          if (text) return text;
-        }
-        console.warn(`OpenRouter model ${model} non-OK:`, resp.status, resp.statusText);
-      } catch (e) {
-        console.warn(`OpenRouter model ${model} request failed:`, e.message);
-      }
-    }
+const convertToUnifiedQuestions = (lesson, params) => {
+  const questions = [];
+
+  // 1. Intro step
+  questions.push({
+    type: "intro",
+    lessonTitle: lesson.lessonTitle || params.lessonTitle || "Literacy Lesson",
+    subtitle: lesson.lessonSubtitle || `Section ${params.sectionNum || 1} › Unit ${params.unitNum || 1}`,
+    explanation: lesson.explanation || "",
+    guidedTip: lesson.guidedPractice || ""
+  });
+
+  // 2. MCQ 1 (Exactly 1)
+  if (Array.isArray(lesson.mcqs) && lesson.mcqs.length > 0) {
+    const q = lesson.mcqs[0];
+    questions.push({
+      type: "mcq",
+      question: q.question,
+      options: q.options,
+      correctIndex: q.correctIndex,
+      explanation: q.explanation
+    });
   }
 
-  // Fallback to Gemini
-  if (FALLBACK_KEY) {
-    try {
-      const resp = await fetch(FALLBACK_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type":  "application/json",
-          "Authorization": `Bearer ${FALLBACK_KEY}`
-        },
-        body: JSON.stringify({
-          model: FALLBACK_MODEL,
-          messages: [{ role: "user", content: prompt }],
-          temperature: 0.7,
-          max_tokens: maxTokens,
-          response_format: { type: "json_object" }
-        })
-      });
-      if (resp.ok) {
-        const data = await resp.json();
-        const text = data?.choices?.[0]?.message?.content || "";
-        if (text) return text;
-      }
-      console.warn("Gemini fallback non-OK:", resp.status, resp.statusText);
-    } catch (e) {
-      console.warn("Gemini fallback failed:", e.message);
-    }
+  // 3. Fill in the Blank (Exactly 1)
+  if (Array.isArray(lesson.fillBlanks) && lesson.fillBlanks.length > 0) {
+    const fb = lesson.fillBlanks[0];
+    questions.push({
+      type: "fillBlank",
+      sentence: fb.sentence,
+      answer: fb.answer,
+      hint: fb.hint,
+      options: fb.options || [fb.answer, "option2", "option3", "option4"]
+    });
   }
 
-  // Fallback to Groq
-  if (GROQ_KEY) {
-    const groqModels = [GROQ_MODEL, "llama-3.3-70b-versatile", "llama-3.1-8b-instant"];
-    for (const model of groqModels) {
-      if (!model) continue;
-      try {
-        const resp = await fetch(GROQ_URL, {
-          method: "POST",
-          headers: {
-            "Content-Type":  "application/json",
-            "Authorization": `Bearer ${GROQ_KEY}`
-          },
-          body: JSON.stringify({
-            model: model,
-            messages: [{ role: "user", content: prompt }],
-            temperature: 0.7,
-            max_tokens: maxTokens,
-            response_format: { type: "json_object" }
-          })
-        });
-        if (resp.ok) {
-          const data = await resp.json();
-          const text = data?.choices?.[0]?.message?.content || "";
-          if (text) return text;
-        }
-        console.warn(`Groq model ${model} non-OK:`, resp.status, resp.statusText);
-      } catch (e) {
-        console.warn(`Groq model ${model} request failed:`, e.message);
-      }
-    }
+  // 4. Translate to Learning Language (Exactly 1) - Replaces spelling!
+  if (lesson.writeThisTask) {
+    questions.push({
+      type: "translateToLearning",
+      englishSentence: lesson.writeThisTask.englishTranslation,
+      targetSentence: lesson.writeThisTask.sentence,
+      tiles: lesson.writeThisTask.targetTiles
+    });
+  } else if (lesson.translationTask) {
+    const targetWordList = (lesson.translationTask.sentence || "").split(/\s+/).filter(Boolean);
+    const targetTiles = [
+      ...targetWordList,
+      "चाय", "केला", "ಹಣ್ಣು", "ನೀರು", "apple", "car"
+    ];
+    questions.push({
+      type: "translateToLearning",
+      englishSentence: "She reads a book",
+      targetSentence: "She reads a book",
+      tiles: targetTiles
+    });
   }
 
-  return null; // all failed
+  // 5. Reading Passage (Exactly 1)
+  if (lesson.readingPassage) {
+    questions.push({
+      type: "passage",
+      passage: lesson.readingPassage,
+      question: lesson.readingQuestion || "Read the passage above.",
+      options: lesson.readingOptions || [lesson.readingAnswer || "Yes", "No", "Maybe", "Not sure"],
+      correctIndex: 0
+    });
+  }
+
+  // 6. Speak Sentence (Exactly 1)
+  if (lesson.speakSentence) {
+    questions.push({
+      type: "speak",
+      sentence: lesson.speakSentence,
+      emoji: lesson.speakSentenceEmoji || "🗣️"
+    });
+  }
+
+  // 7. Meaning Question (Exactly 1)
+  if (lesson.meaningQuestion) {
+    questions.push({
+      type: "meaning",
+      phrase: lesson.meaningQuestion.phrase,
+      options: lesson.meaningQuestion.options,
+      correctIndex: lesson.meaningQuestion.correctIndex
+    });
+  }
+
+  // 8. Translation Task (Exactly 1) - Target -> English
+  if (lesson.translationTask) {
+    questions.push({
+      type: "translationTask",
+      sentence: lesson.translationTask.sentence,
+      prompt: lesson.translationTask.prompt,
+      englishTranslation: lesson.translationTask.englishTranslation,
+      tiles: lesson.translationTask.tiles
+    });
+  }
+
+  // 9. MCQ 2 (Exactly 1) - Replaces the duplicate arrangeWords!
+  if (Array.isArray(lesson.mcqs) && lesson.mcqs.length > 1) {
+    const q = lesson.mcqs[1];
+    questions.push({
+      type: "mcq",
+      question: q.question,
+      options: q.options,
+      correctIndex: q.correctIndex,
+      explanation: q.explanation
+    });
+  } else {
+    questions.push({
+      type: "mcq",
+      question: "Which of the following is an action verb?",
+      options: ["run", "quickly", "beautiful", "book"],
+      correctIndex: 0,
+      explanation: "'Run' represents an action."
+    });
+  }
+
+  // 10. Matching Pairs (Exactly 1)
+  if (Array.isArray(lesson.matchingPairs) && lesson.matchingPairs.length > 0) {
+    questions.push({
+      type: "matchingPairs",
+      pairs: lesson.matchingPairs
+    });
+  }
+
+  // 11. Listening Task (Exactly 1)
+  if (lesson.listeningTask) {
+    questions.push({
+      type: "listeningTask",
+      audioText: lesson.listeningTask.audioText,
+      tiles: lesson.listeningTask.tiles
+    });
+  }
+
+  // 12. Unscramble (Exactly 1)
+  if (Array.isArray(lesson.unscramble) && lesson.unscramble.length > 0) {
+    const u = lesson.unscramble[0];
+    questions.push({
+      type: "unscramble",
+      hint: u.hint,
+      emoji: u.emoji,
+      answer: u.answer,
+      tiles: u.tiles
+    });
+  }
+
+  // 13. Image Choice (Exactly 1)
+  if (Array.isArray(lesson.imageChoice) && lesson.imageChoice.length > 0) {
+    const ic = lesson.imageChoice[0];
+    questions.push({
+      type: "imageChoice",
+      word: ic.word,
+      prompt: ic.prompt,
+      options: ic.options,
+      correctIndex: ic.correctIndex
+    });
+  }
+
+  // 14. Tracing (Exactly 1)
+  if (Array.isArray(lesson.tracing) && lesson.tracing.length > 0) {
+    const t = lesson.tracing[0];
+    questions.push({
+      type: "tracing",
+      kind: t.kind,
+      letter: t.kind,
+      word: t.kind,
+      question: t.question,
+      sound: t.sound
+    });
+  }
+
+  // 15. listenWordMCQ (Exactly 1)
+  if (lesson.listenWordMCQ) {
+    questions.push({
+      type: "listenWordMCQ",
+      audioText: lesson.listenWordMCQ.audioText,
+      question: lesson.listenWordMCQ.question,
+      options: lesson.listenWordMCQ.options,
+      correctIndex: lesson.listenWordMCQ.correctIndex
+    });
+  }
+
+  // 16. listenPassageMCQ (Exactly 1)
+  if (lesson.listenPassageMCQ) {
+    questions.push({
+      type: "listenPassageMCQ",
+      audioText: lesson.listenPassageMCQ.audioText,
+      question: lesson.listenPassageMCQ.question,
+      options: lesson.listenPassageMCQ.options,
+      correctIndex: lesson.listenPassageMCQ.correctIndex
+    });
+  }
+
+  // 17. chatComplete (Exactly 1)
+  if (lesson.chatComplete) {
+    questions.push({
+      type: "chatComplete",
+      scenario: lesson.chatComplete.scenario,
+      question: lesson.chatComplete.question,
+      options: lesson.chatComplete.options,
+      correctIndex: lesson.chatComplete.correctIndex
+    });
+  }
+
+  // 18. scenario (Exactly 1)
+  if (lesson.scenario) {
+    questions.push({
+      type: "scenario",
+      scenario: lesson.scenario.scenario,
+      question: lesson.scenario.question,
+      options: lesson.scenario.options,
+      correctIndex: lesson.scenario.correctIndex
+    });
+  }
+
+  return {
+    ...lesson,
+    questions
+  };
 };
 
-// ─── generateLessonContent ────────────────────────────────────────────────────
 export const generateLessonContent = async (params) => {
   const cacheKey = `lesson_${params.sectionNum}_${params.unitNum}_${params.lessonNum}_${params.learningLanguage || params.language}_${params.literacyLevel}`;
 
   if (params.useFallback) {
-    return getFallbackLesson(params);
+    return convertToUnifiedQuestions(getFallbackLesson(params), params);
   }
 
   if (lessonCache.has(cacheKey)) {
     return lessonCache.get(cacheKey);
   }
 
-  const isAssessment = (params.lessonNum === 5) || (params.lessonTitle || "").toLowerCase().includes("assessment");
-  const prompt = buildPrompt({ ...params, isAssessment });
+  const prompt = buildPrompt(params);
 
   try {
     const text = await fetchAI(prompt, 4096);
     if (!text) throw new Error("Empty AI response");
     const lesson = extractJSON(text);
-    // Ensure questions array exists (some models omit it)
-    if (!lesson.questions || !Array.isArray(lesson.questions)) {
-      throw new Error("AI response missing questions array");
-    }
-    lessonCache.set(cacheKey, lesson);
-    return lesson;
+    const unifiedLesson = convertToUnifiedQuestions(lesson, params);
+    lessonCache.set(cacheKey, unifiedLesson);
+    return unifiedLesson;
   } catch (err) {
     console.error("Failed to generate lesson content:", err);
-    return getFallbackLesson(params);
+    return convertToUnifiedQuestions(getFallbackLesson(params), params);
   }
 };
 
@@ -436,79 +485,443 @@ const extractJSON = (text) => {
   }
 };
 
-// ─── Fallback static lesson (returns unified questions[] format) ──────────────
+
 const getFallbackLesson = (params) => {
-  const { language, sectionTitle, unitTitle, lessonTitle, sectionNum, unitNum, lessonNum } = params;
-  const lang = language || "English";
+  const { language, sectionTitle, unitTitle, lessonTitle } = params;
+
+  if (language === "Hindi") {
+    return {
+      lessonTitle: lessonTitle || "साक्षरता पाठ",
+      skillFocus: sectionTitle || "पढ़ना और लिखना",
+      explanation: `यह पाठ ${unitTitle || "बुनियादी बातें"} के बारे में है। इसमें आप बुनियादी साक्षरता कौशल सीखेंगे।`,
+      examples: [
+        { text: "राम एक अच्छा लड़का है।", translation: "Ram is a good boy." },
+        { text: "वह स्कूल जाता है।", translation: "He goes to school." }
+      ],
+      mcqs: [
+        { question: "इनमें से कौन सा एक संज्ञा (Noun) है?", options: ["दौड़ना", "सुंदर", "किताब", "धीरे-धीरे"], correctIndex: 2, explanation: "किताब एक वस्तु का नाम है, इसलिए यह संज्ञा है।" },
+        { question: "वह स्कूल _____ है।", options: ["जाता", "जाती", "जाते", "जाना"], correctIndex: 0, explanation: "पुल्लिंग एकవచన్ కర్తతో 'जाता' का प्रयोग होता है।" }
+      ],
+      fillBlanks: [
+        { sentence: "लड़का मैदान में ___ खेल रहा है।", answer: "फ़ुटबॉल", hint: "एक गोल आकार की गेंद वाला खेल", options: ["फ़ुटबॉल", "पानी", "किताब", "बिल्ली"] }
+      ],
+      readingPassage: "राम सात साल का लड़का है। वह हर सुबह स्कूल जाता है। स्कूल में, राम को किताबें पढ़ना और अपनी कक्षा में सीखना बहुत पसंद है। उसके शिक्षक बहुत दयालु हैं।",
+      readingQuestion: "राम हर सुबह कहाँ जाता है?",
+      readingAnswer: "स्कूल",
+      readingOptions: ["स्कूल", "पार्क", "दुकान", "बाजार"],
+      speakSentence: "नई भाषा सीखना बहुत मजेदार है।",
+      speakSentenceEmoji: "🗣️",
+      meaningQuestion: {
+        phrase: "खुश",
+        options: ["अच्छा और प्रसन्न महसूस करना", "उदास होना", "थका हुआ होना", "भूखा होना"],
+        correctIndex: 0
+      },
+      writeThisTask: {
+        sentence: "वह किताब पढ़ती है",
+        englishTranslation: "She reads a book",
+        targetTiles: ["वह", "किताब", "पढ़ती", "है", "लड़का", "पानी", "सेब"]
+      },
+      translationTask: {
+        sentence: "बच्चा खुश है",
+        prompt: "एक वाक्य बनाने के लिए शब्दों को व्यवस्थित करें।",
+        englishTranslation: "The child is happy",
+        tiles: ["The", "child", "is", "happy", "banana", "black", "water"],
+        targetTiles: ["वह", "किताब", "पढ़ती", "है", "लड़का", "पानी", "सेब"]
+      },
+      matchingPairs: [
+        { left: "स्कूल", right: "वह स्थान जहाँ हम सीखते हैं" },
+        { left: "किताब", right: "हम इसे ज्ञान के लिए पढ़ते हैं" },
+        { left: "लड़का", right: "एक युवा पुरुष बच्चा" },
+        { left: "पानी", right: "एक साफ तरल जिसे हम पीते हैं" }
+      ],
+      listeningTask: {
+        audioText: "वह स्कूल जा रहा है",
+        tiles: ["वह", "स्कूल", "जा", "रहा", "है", "घर", "खा", "रही"]
+      },
+      unscramble: [
+        { hint: "एक लाल फल", emoji: "🍎", answer: "सेब", tiles: ["से", "ब", "के", "ला"] }
+      ],
+      imageChoice: [
+        { word: "गाड़ी", prompt: "गाड़ी वाले चित्र पर टैप करें", options: ["🚗", "🏫", "🍎"], correctIndex: 0 }
+      ],
+      tracing: [
+        { kind: "घर", question: "घर शब्द को ट्रेस करें", sound: "घर" }
+      ],
+      listenWordMCQ: {
+        audioText: "स्कूल",
+        question: "आपने कौन सा शब्द सुना?",
+        options: ["स्कूल", "घर", "पानी", "फल"],
+        correctIndex: 0
+      },
+      listenPassageMCQ: {
+        audioText: "राम सात साल का लड़का है। वह हर सुबह स्कूल जाता है। स्कूल में, राम को किताबें पढ़ना और अपनी कक्षा में नई चीजें सीखना बहुत पसंद है।",
+        question: "राम स्कूल में क्या करना पसंद करता है?",
+        options: ["पढ़ना और सीखना", "खेलना", "सोना", "खाना"],
+        correctIndex: 0
+      },
+      chatComplete: {
+        scenario: "Anna: नमस्ते! आप कैसे हैं?\nYou: ___",
+        question: "बातचीत पूरी करने के लिए सही प्रतिक्रिया चुनें",
+        options: ["मैं ठीक हूँ, धन्यवाद।", "शुभ रात्रि।", "नमस्ते।", "अलविदा।"],
+        correctIndex: 0
+      },
+      scenario: {
+        scenario: "आप एक स्थानीय दुकान पर एक किताब खरीद रहे हैं। दुकानदार मुस्कुराता है और आपको किताब देता है।",
+        question: "आपको दुकानदार से क्या कहना चाहिए?",
+        options: ["धन्यवाद।", "माफ़ कीजिए।", "क्षमा करें।", "स्वागत है।"],
+        correctIndex: 0
+      },
+      aiFeedbackPositive: "अद्भुत काम! आप बहुत अच्छी प्रगति कर रहे हैं।",
+      aiFeedbackNegative: "अच्छा प्रयास! पाठ की समीक्षा करें और पुनः प्रयास करें।"
+    };
+  }
+
+  if (language === "Kannada") {
+    return {
+      lessonTitle: lessonTitle || "ಸಾಕ್ಷರತಾ ಪಾಠ",
+      skillFocus: sectionTitle || "ಓದುವುದು ಮತ್ತು ಬರೆಯುವುದು",
+      explanation: `ಈ ಪಾಠವು ${unitTitle || "ಮೂಲಭೂತ ಸಂಗತಿಗಳು"} ಬಗ್ಗೆ ಇದೆ. ಇಲ್ಲಿ ನೀವು ಮೂಲ ಸಾಕ್ಷರತಾ ಕೌಶಲ್ಯಗಳನ್ನು ಕಲಿಯುವಿರಿ.`,
+      examples: [
+        { text: "ರಾಮ್ ಒಳ್ಳೆಯ ಹುಡುಗ.", translation: "Ram is a good boy." },
+        { text: "ಅವನು ಶಾಲೆಗೆ ಹೋಗುತ್ತಾನೆ.", translation: "He goes to school." }
+      ],
+      mcqs: [
+        { question: "ಇವುಗಳಲ್ಲಿ ಯಾವುದು ನಾಮಪದ (Noun)?", options: ["ಓಡು", "ಸುಂದರ", "ಪುಸ್ತಕ", "ಮೆಲ್ಲನೆ"], correctIndex: 2, explanation: "ಪುಸ್ತಕ ಒಂದು ವಸ್ತುವಿನ ಹೆಸರು, ಆದ್ದರಿಂದ ಇದು ನಾಮಪದ." },
+        { question: "ಅವನು ಶಾಲೆಗೆ _____.", options: ["ಹೋಗುತ್ತಾನೆ", "ಹೋಗುತ್ತಾಳೆ", "ಹೋಗುತ್ತಾರೆ", "ಹೋಗು"], correctIndex: 0, explanation: "ಪುಲ್ಲಿಂಗ ಏಕವಚನ ಕರ್ತೃವಿನೊಂದಿಗೆ 'ಹೋಗುತ್ತಾನೆ' ಬಳಸಲಾಗುತ್ತದೆ." }
+      ],
+      fillBlanks: [
+        { sentence: "ಹುಡುಗನು ಮೈದಾನದಲ್ಲಿ ___ ಆಡುತ್ತಿದ್ದಾನೆ.", answer: "ಫುಟ್ಬಾಲ್", hint: "ಚೆಂಡಿನ ಆಟ", options: ["ಫುಟ್ಬಾಲ್", "ನೀರು", "ಪುಸ್ತಕ", "ಬೆಕ್ಕು"] }
+      ],
+      readingPassage: "ರಾಮ್ ಏಳು ವರ್ಷದ ಹುಡುಗ. ಅವನು ಪ್ರತಿದಿನ ಬೆಳಿಗ್ಗೆ ಶಾಲೆಗೆ ಹೋಗುತ್ತಾನೆ. ಶಾಲೆಯಲ್ಲಿ, ರಾಮ್ ಪುಸ್ತಕಗಳನ್ನು ಓದುವುದನ್ನು ಮತ್ತು ತನ್ನ ತರಗತಿಯಲ್ಲಿ ಕಲಿಯುವುದನ್ನು ಇಷ್ಟಪಡುತ್ತಾನೆ.",
+      readingQuestion: "ರಾಮ್ ಪ್ರತಿದಿನ ಬೆಳಿಗ್ಗೆ ಎಲ್ಲಿಗೆ ಹೋಗುತ್ತಾನೆ?",
+      readingAnswer: "ಶಾಲೆಗೆ",
+      readingOptions: ["ಶಾಲೆಗೆ", "ಉದ್ಯಾನವನಕ್ಕೆ", "ಅಂಗಡಿಗೆ", "ಮಾರುಕಟ್ಟೆಗೆ"],
+      speakSentence: "ಹೊಸ ಭಾಷೆಯನ್ನು ಕಲಿಯುವುದು ತುಂಬಾ ತಮಾಷೆಯಾಗಿದೆ.",
+      speakSentenceEmoji: "🗣️",
+      meaningQuestion: {
+        phrase: "ಸಂತೋಷ",
+        options: ["ಉತ್ತಮ ಮತ್ತು ಪ್ರಸನ್ನವಾಗಿರುವುದು", "ದುಃಖವಾಗಿರುವುದು", "ಸುಸ್ತಾಗಿರುವುದು", "ಹಸಿದಿರುವುದು"],
+        correctIndex: 0
+      },
+      writeThisTask: {
+        sentence: "ಅವಳು ಪುಸ್ತಕ ಓದುತ್ತಾಳೆ",
+        englishTranslation: "She reads a book",
+        targetTiles: ["ಅವಳು", "ಪುಸ್ತಕ", "ಓದುತ್ತಾಳೆ", "ಹುಡುಗ", "ನೀರು", "ಸೇಬು"]
+      },
+      translationTask: {
+        sentence: "ಮಗು ಸಂತೋಷವಾಗಿದೆ",
+        prompt: "ಒಂದು ವಾಕ್ಯವನ್ನು ರೂಪಿಸಲು ಪದಗಳನ್ನು ಜೋಡಿಸಿ.",
+        englishTranslation: "The child is happy",
+        tiles: ["The", "child", "is", "happy", "banana", "black", "water"],
+        targetTiles: ["ಅವಳು", "ಪುಸ್ತಕ", "ಓದುತ್ತಾಳೆ", "ಹುಡುಗ", "ನೀರು", "ಸೇಬು"]
+      },
+      matchingPairs: [
+        { left: "ಶಾಲೆ", right: "ನಾವು ಕಲಿಯುವ ಸ್ಥಳ" },
+        { left: "ಪುಸ್ತಕ", right: "ನಾವು ಜ್ಞಾನಕ್ಕಾಗಿ ಓದುತ್ತೇವೆ" },
+        { left: "ಹುಡುಗ", right: "ಕಿರಿಯ ಗಂಡು ಮಗು" },
+        { left: "ನೀರು", right: "ನಾವು ಕುಡಿಯುವ ದ್ರವ" }
+      ],
+      listeningTask: {
+        audioText: "ಅವನು ಶಾಲೆಗೆ ಹೋಗುತ್ತಿದ್ದಾನೆ",
+        tiles: ["ಅವನು", "ಶಾಲೆಗೆ", "ಹೋಗುತ್ತಿದ್ದಾನೆ", "ಮನೆಗೆ", "ಬರುತ್ತಿದ್ದಾನೆ", "ನೀರು"]
+      },
+      unscramble: [
+        { hint: "ಒಂದು ಕೆಂಪು ಹಣ್ಣು", emoji: "🍎", answer: "ಸೇಬು", tiles: ["ಸೇ", "ಬು", "ಬಾ", "ಳೆ"] }
+      ],
+      imageChoice: [
+        { word: "ಕಾರು", prompt: "ಕಾರು ಇರುವ ಚಿತ್ರವನ್ನು ಟ್ಯಾಪ್ ಮಾಡಿ", options: ["🚗", "🏫", "🍎"], correctIndex: 0 }
+      ],
+      tracing: [
+        { kind: "ಮನೆ", question: "ಮನೆ ಪದವನ್ನು ಬರೆಯಿರಿ", sound: "ಮನೆ" }
+      ],
+      listenWordMCQ: {
+        audioText: "ಶಾಲೆ",
+        question: "ನೀವು ಯಾವ ಪದವನ್ನು ಕೇಳಿದ್ದೀರಿ?",
+        options: ["ಶಾಲೆ", "ಮನೆ", "ನೀರು", "ಹಣ್ಣು"],
+        correctIndex: 0
+      },
+      listenPassageMCQ: {
+        audioText: "ರಾಮ್ ಏಳು ವರ್ಷದ ಹುಡುಗ. ಅವನು ಪ್ರತಿದಿನ ಬೆಳಿಗ್ಗೆ ಶಾಲೆಗೆ ಹೋಗುತ್ತಾನೆ. ಶಾಲೆಯಲ್ಲಿ, ರಾಮ್ ಪುಸ್ತಕಗಳನ್ನು ಓದುವುದನ್ನು ಮತ್ತು ಕಲಿಯುವುದನ್ನು ಇಷ್ಟಪಡುತ್ತಾನೆ.",
+        question: "ರಾಮ್ ಶಾಲೆಯಲ್ಲಿ ಏನು ಮಾಡಲು ಇಷ್ಟಪಡುತ್ತಾನೆ?",
+        options: ["ಓದುವುದು ಮತ್ತು ಕಲಿಯುವುದು", "ಆಟವಾಡುವುದು", "ಮಲಗುವುದು", "ಊಟ ಮಾಡುವುದು"],
+        correctIndex: 0
+      },
+      chatComplete: {
+        scenario: "Anna: ನಮಸ್ತೆ! ಹೇಗಿದ್ದೀರಾ?\nYou: ___",
+        question: "ಸಂಭಾಷಣೆಯನ್ನು ಪೂರ್ಣಗೊಳಿಸಲು ಸರಿಯಾದ ಉತ್ತರವನ್ನು ಆರಿಸಿ",
+        options: ["ನಾನು ಚೆನ್ನಾಗಿದ್ದೇನೆ, ಧನ್ಯವಾದಗಳು.", "ಶುಭ ರಾತ್ರಿ.", "ನಮಸ್ಕಾರ.", "ಹೋಗಿ ಬರುತ್ತೇನೆ."],
+        correctIndex: 0
+      },
+      scenario: {
+        scenario: "ನೀವು ಸ್ಥಳೀಯ ಅಂಗಡಿಯೊಂದರಲ್ಲಿ ಪುಸ್ತಕವನ್ನು ಖರೀದಿಸುತ್ತಿದ್ದೀರಿ. ಅಂಗಡಿಯವನು ಮುಗುಳ್ನಕ್ಕು ನಿಮಗೆ ಪುಸ್ತಕವನ್ನು ನೀಡುತ್ತಾನೆ.",
+        question: "ನೀವು ಅಂಗಡಿಯವನಿಗೆ ಏನು ಹೇಳಬೇಕು?",
+        options: ["ಧನ್ಯವಾದಗಳು.", "ಕ್ಷಮಿಸಿ.", "ದಾರಿ ಬಿಡಿ.", "ಸ್ವಾಗತ."],
+        correctIndex: 0
+      },
+      aiFeedbackPositive: "ಅತ್ಯುತ್ತಮ ಕೆಲಸ! ನೀವು ಉತ್ತಮ ಪ್ರಗತಿಯನ್ನು ಸಾಧಿಸುತ್ತಿದ್ದೀರಿ.",
+      aiFeedbackNegative: "ಉತ್ತಮ ಪ್ರಯತ್ನ! ಪಾಠವನ್ನು ಪುನರಾವರ್ತಿಸಿ ಮತ್ತು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ."
+    };
+  }
+
+  if (language === "Telugu") {
+    return {
+      lessonTitle: lessonTitle || "అక్షరాస్యత పాఠం",
+      skillFocus: sectionTitle || "చదవడం మరియు రాయడం",
+      explanation: `ఈ పాఠం ${unitTitle || "ప్రతిపాదనలు"} గురించి. ఇందులో మీరు ప్రాథమిక అక్షరాస్యత నైపుణ్యాలను నేర్చుకుంటారు.`,
+      examples: [
+        { text: "రామ్ ఒక మంచి బాలుడు.", translation: "Ram is a good boy." },
+        { text: "అతడు బడికి వెళతాడు.", translation: "He goes to school." }
+      ],
+      mcqs: [
+        { question: "వీటిలో నామవాచకం (Noun) ఏది?", options: ["పరుగెత్తు", "అందమైన", "పుస్తకం", "మెల్లగా"], correctIndex: 2, explanation: "పుస్తకం ఒక వస్తువు పేరు కాబట్టి అది నామవాచకం." },
+        { question: "అతడు బడికి _____.", options: ["వెళతాడు", "వెళుతుంది", "వెళతారు", "వెళ్ళు"], correctIndex: 0, explanation: "పురుష ఏకవచన కర్తతో 'వెళతాడు' ఉపయోగించబడుతుంది." }
+      ],
+      fillBlanks: [
+        { sentence: "అబ్బాయి మైదానంలో ___ ఆడుతున్నాడు.", answer: "ఫుట్‌బాల్", hint: "బంతితో ఆడే ఆట", options: ["ఫుట్‌బాల్", "నీరు", "పుస్తకం", "పిల్లి"] }
+      ],
+      readingPassage: "రామ్ ఏడేళ్ల అబ్బాయి. అతడు ప్రతిరోజూ ఉదయం బడికి వెళతాడు. బడిలో రామ్ పుస్తకాలు చదవడం మరియు కొత్త విషయాలు నేర్చుకోవడం ఇష్టపడతాడు.",
+      readingQuestion: "రామ్ ప్రతిరోజూ ఉదయం ఎక్కడికి వెళతాడు?",
+      readingAnswer: "బడికి",
+      readingOptions: ["ఆసుపత్రికి", "పార్కుకు", "దుకాణానికి", "బడికి"],
+      speakSentence: "కొత్త భాష నేర్చుకోవడం చాలా సరదాగా ఉంటుంది.",
+      speakSentenceEmoji: "🗣️",
+      meaningQuestion: {
+        phrase: "సంతోషం",
+        options: ["బాగుండడం మరియు ఆనందంగా ఉండడం", "బాధపడడం", "అలసిపోవడం", "ఆకలి వేయడం"],
+        correctIndex: 0
+      },
+      writeThisTask: {
+        sentence: "ఆమె పుస్తకం చదువుతుంది",
+        englishTranslation: "She reads a book",
+        targetTiles: ["ఆమె", "పుస్తకం", "చదువుతుంది", "బాలుడు", "నీరు", "ఆపిల్"]
+      },
+      translationTask: {
+        sentence: "పాప సంతోషంగా ఉంది",
+        prompt: "ఒక వాక్యాన్ని రూపొందించడానికి పదాలను అమర్చండి.",
+        englishTranslation: "The child is happy",
+        tiles: ["The", "child", "is", "happy", "banana", "black", "water"],
+        targetTiles: ["ఆమె", "పుస్తకం", "చదువుతుంది", "బాలుడు", "నీరు", "ఆపిల్"]
+      },
+      matchingPairs: [
+        { left: "బడి", right: "మనం నేర్చుకునే స్థలం" },
+        { left: "పుస్తకం", right: "మనం జ్ఞానం కోసం చదువుతాము" },
+        { left: "బాలుడు", right: "ఒక చిన్న మగ పిల్లాడు" },
+        { left: "నీరు", right: "మనం త్రాగే ద్రవం" }
+      ],
+      listeningTask: {
+        audioText: "అతడు బడికి వెళుతున్నాడు",
+        tiles: ["అతడు", "బడికి", "వెళుతున్నాడు", "ఇంటికి", "వస్తున్నాడు", "నీరు"]
+      },
+      unscramble: [
+        { hint: "ఒక ఎరుపు పండు", emoji: "🍎", answer: "ఆపిల్", tiles: ["ఆ", "పి", "ల్", "న", "ర"] }
+      ],
+      imageChoice: [
+        { word: "కారు", prompt: "కారు ఉన్న చిత్రాన్ని నొక్కండి", options: ["🚗", "🏫", "🍎"], correctIndex: 0 }
+      ],
+      tracing: [
+        { kind: "ఇల్లు", question: "ఇల్లు పదాన్ని రాయండి", sound: "ఇల్లు" }
+      ],
+      listenWordMCQ: {
+        audioText: "బడి",
+        question: "మీరు ఏ పదాన్ని విన్నారు?",
+        options: ["బడి", "ఇల్లు", "నీరు", "పండు"],
+        correctIndex: 0
+      },
+      listenPassageMCQ: {
+        audioText: "రామ్ ఏడేళ్ల అబ్బాయి. అతడు ప్రతిరోజూ ఉదయం బడికి వెళతాడు. బడిలో రామ్ పుస్తకాలు చదవడం మరియు కొత్త విషయాలు నేర్చుకోవడం ఇష్టపడతాడు.",
+        question: "రామ్ బడిలో ఏమి చేయడానికి ఇష్టపడతాడు?",
+        options: ["చదవడం మరియు నేర్చుకోవడం", "ఆడుకోవడం", "నిద్రపోవడం", "తినడం"],
+        correctIndex: 0
+      },
+      chatComplete: {
+        scenario: "Anna: నమస్తే! ఎలా ఉన్నారు?\nYou: ___",
+        question: "సంభాషణను పూర్తి చేయడానికి సరైన సమాధానాన్ని ఎంచుకోండి",
+        options: ["నేను బాగున్నాను, ధన్యవాదాలు.", "శుభ రాత్రి.", "నమస్కారం.", "వెళ్ళివస్తాను."],
+        correctIndex: 0
+      },
+      scenario: {
+        scenario: "మీరు ఒక స్థానిక దుకాణంలో పుస్తకాన్ని కొనుగోలు చేస్తున్నారు. దుకాణదారుడు చిరునవ్వుతో మీకు పుస్తకాన్ని ఇస్తాడు.",
+        question: "మీరు దుకాణదారునికి ఏమి చెప్పాలి?",
+        options: ["ధన్యవాదాలు.", "క్షమించండి.", "తప్పుకోండి.", "స్వాగతం."],
+        correctIndex: 0
+      },
+      aiFeedbackPositive: "చాలా మంచి పని! మీరు మంచి పురోగతి సాధిస్తున్నారు.",
+      aiFeedbackNegative: "మంచి ప్రయత్నం! పాఠాన్ని సమీక్షించి మళ్లీ ప్రయత్నించండి."
+    };
+  }
+
+  if (language === "Tamil") {
+    return {
+      lessonTitle: lessonTitle || "எழுத்தறிவு பாடம்",
+      skillFocus: sectionTitle || "படித்தல் மற்றும் எழுதுதல்",
+      explanation: `இந்தப் பாடம் ${unitTitle || "அடிப்படைகள்"} பற்றியது. இதில் நீங்கள் அடிப்படை எழுத்தறிவு திறன்களைக் கற்றுக்கொள்வீர்கள்.`,
+      examples: [
+        { text: "ராம் ஒரு நல்ல பையன்.", translation: "Ram is a good boy." },
+        { text: "அvan பள்ளிக்குச் செல்கிறான்.", translation: "He goes to school." }
+      ],
+      mcqs: [
+        { question: "இவற்றில் எது பெயர்ச்சொல் (Noun)?", options: ["ஓடு", "அழகான", "புத்தகம்", "மெதுவாக"], correctIndex: 2, explanation: "புத்தகம் என்பது ஒரு பொருளின் பெயர், எனவே இது பெயர்ச்சொல்." },
+        { question: "அவன் பள்ளிக்கு _____.", options: ["செல்கிறான்", "செல்கிறாள்", "செல்கிறார்கள்", "செல்"], correctIndex: 0, explanation: "ஆண்பால் ஒருமை எழுவாயுடன் 'செல்கிறான்' பயன்படுத்தப்படுகிறது." }
+      ],
+      fillBlanks: [
+        { sentence: "சிறுவன் மைதானத்தில் ___ விளையாடுகிறான்.", answer: "கால்பந்து", hint: "பந்து விளையாட்டு", options: ["கால்பந்து", "தண்ணீர்", "புத்தகம்", "பூனை"] }
+      ],
+      readingPassage: "ராம் ஏழு வயது சிறுவன். அவன் தினமும் காலையில் பள்ளிக்குச் செல்கிறான். பள்ளியில், ராம் புத்தகங்களைப் படிக்கவும் தனது வகுப்பறையில் கற்கவும் விரும்புகிறான்.",
+      readingQuestion: "ராம் தினமும் காலையில் எங்கே செல்கிறான்?",
+      readingAnswer: "பள்ளிக்கு",
+      readingOptions: ["பள்ளிக்கு", "பூங்காவிற்கு", "கடைக்கு", "சந்தைக்கு"],
+      speakSentence: "ஒரு புதிய மொழியைக் கற்றுக்கொள்வது மிகவும் வேடிக்கையானது.",
+      speakSentenceEmoji: "🗣️",
+      meaningQuestion: {
+        phrase: "மகிழ்ச்சி",
+        options: ["நல்ல மற்றும் மகிழ்ச்சியாக உணர்தல்", "சோகமாக இருத்தல்", "சோர்வாக இருத்தல்", "பசியாக இருத்தல்"],
+        correctIndex: 0
+      },
+      writeThisTask: {
+        sentence: "அவள் புத்தகம் படிக்கிறாள்",
+        englishTranslation: "She reads a book",
+        targetTiles: ["அவள்", "புத்தகம்", "படிக்கிறாள்", "பையன்", "தண்ணீர்", "ஆப்பிள்"]
+      },
+      translationTask: {
+        sentence: "குழந்தை மகிழ்ச்சியாக இருக்கிறது",
+        prompt: "ஒரு வாக்கியத்தை உருவாக்க வார்த்தைகளை ஒழுங்கமைக்கவும்.",
+        englishTranslation: "The child is happy",
+        tiles: ["The", "child", "is", "happy", "banana", "black", "water"],
+        targetTiles: ["அவள்", "புத்தகம்", "படிக்கிறாள்", "பையன்", "தண்ணீர்", "ஆப்பிள்"]
+      },
+      matchingPairs: [
+        { left: "பள்ளி", right: "நாம் கற்கும் இடம்" },
+        { left: "புத்தகம்", right: "அறிவிற்காக நாம் அதைப் படிக்கிறோம்" },
+        { left: "பையன்", right: "ஒரு சிறுவன்" },
+        { left: "தண்ணீர்", right: "நாம் குடிக்கும் தெளிவான திரவம்" }
+      ],
+      listeningTask: {
+        audioText: "அவன் பள்ளிக்கு நடந்து செல்கிறான்",
+        tiles: ["அவன்", "பள்ளிக்கு", "நடந்து", "செல்கிறான்", "வீட்டிற்கு", "ஓடுகிறான்", "நீர்"]
+      },
+      unscramble: [
+        { hint: "ஒரு சிவப்பு பழம்", emoji: "🍎", answer: "ஆப்பிள்", tiles: ["ஆப்", "பிள்", "மா", "து"] }
+      ],
+      imageChoice: [
+        { word: "கார்", prompt: "கார் உள்ள படத்தை தட்டவும்", options: ["🚗", "🏫", "🍎"], correctIndex: 0 }
+      ],
+      tracing: [
+        { kind: "வீடு", question: "வீடு வார்த்தையை எழுதுங்கள்", sound: "வீடு" }
+      ],
+      listenWordMCQ: {
+        audioText: "பள்ளி",
+        question: "நீங்கள் என்ன வார்த்தை கேட்டீர்கள்?",
+        options: ["பள்ளி", "வீடு", "தண்ணீர்", "பழம்"],
+        correctIndex: 0
+      },
+      listenPassageMCQ: {
+        audioText: "ராம் ஏழு வயது சிறுவன். அவன் தினமும் காலையில் பள்ளிக்குச் செல்கிறான். பள்ளியில், ராம் புத்தகங்களைப் படிக்கவும் புதிய விஷயங்களைக் கற்றுக்கொள்ளவும் விரும்புகிறான்.",
+        question: "ராம் பள்ளியில் என்ன செய்ய விரும்புகிறான்?",
+        options: ["படித்தல் மற்றும் கற்றல்", "விளையாடுதல்", "தூங்குதல்", "உண்ணுதல்"],
+        correctIndex: 0
+      },
+      chatComplete: {
+        scenario: "Anna: வணக்கம்! எப்படி இருக்கிறீர்கள்?\nYou: ___",
+        question: "உரையாடலை முடிக்க சரியான பதிலைத் தேர்ந்தெடுக்கவும்",
+        options: ["நான் நலம், நன்றி.", "போய் வருகிறேன்.", "வணக்கம்.", "நன்றி."],
+        correctIndex: 0
+      },
+      scenario: {
+        scenario: "நீங்கள் ஒரு உள்ளூர் கடையில் புத்தகம் வாங்குகிறீர்கள். கடைக்காரர் புன்னகைத்து உங்களுக்கு புத்தகத்தை தருகிறார்.",
+        question: "கடைக்காரரிடம் நீங்கள் என்ன சொல்ல வேண்டும்?",
+        options: ["நன்றி.", "மன்னிக்கவும்.", "விலகுங்கள்.", "வரவேற்கிறோம்."],
+        correctIndex: 0
+      },
+      aiFeedbackPositive: "சிறந்த வேலை! நீங்கள் நல்ல முன்னேற்றம் கண்டு வருகிறீர்கள்.",
+      aiFeedbackNegative: "நல்ல முயற்சி! பாடத்தை மறுபரிசீலனை செய்து மீண்டும் முயற்சிக்கவும்."
+    };
+  }
 
   return {
     lessonTitle: lessonTitle || "Literacy Lesson",
-    lessonSubtitle: `Section ${sectionNum || 1}: ${sectionTitle || "Basics"} › Unit ${unitNum || 1}: ${unitTitle || "Foundations"}`,
     skillFocus: sectionTitle || "Reading & Writing",
+    explanation: `This lesson covers ${unitTitle || "Basics"}. You will practice essential literacy skills related to ${sectionTitle || "Reading & Writing"}.`,
+    examples: [
+      { text: "Ram is a good boy.", translation: "" },
+      { text: "He goes to school.", translation: "" }
+    ],
+    mcqs: [
+      { question: "Which of the following is a noun?", options: ["run", "beautiful", "book", "quickly"], correctIndex: 2, explanation: "Book is a name of a thing, so it is a noun." },
+      { question: "He _____ to school every day.", options: ["goes", "go", "going", "gone"], correctIndex: 0, explanation: "Singular subject takes 'goes' in present tense." }
+    ],
+    fillBlanks: [
+      { sentence: "The boy is playing ___ in the field.", answer: "football", hint: "A game played with a round ball", options: ["football", "water", "book", "cat"] }
+    ],
+    readingPassage: "Ram is a seven-year-old boy. He goes to school every morning. At school, Ram loves to read books and learn new things in his classroom.",
+    readingQuestion: "Where does Ram go every morning?",
+    readingAnswer: "To school",
+    readingOptions: ["To school", "To the park", "To the shop", "To the market"],
+    speakSentence: "Learning a new language is very fun.",
+    speakSentenceEmoji: "🗣️",
+    meaningQuestion: {
+      phrase: "Happy",
+      options: ["Feeling good and cheerful", "Feeling sad and upset", "Feeling tired and sleepy", "Feeling hungry and thirsty"],
+      correctIndex: 0
+    },
+    writeThisTask: {
+      sentence: "She reads a book",
+      englishTranslation: "She reads a book",
+      targetTiles: ["She", "reads", "a", "book", "car", "apple", "water"]
+    },
+    translationTask: {
+      sentence: "The child is happy",
+      prompt: "Arrange the words to form a sentence.",
+      englishTranslation: "The child is happy",
+      tiles: ["The", "child", "is", "happy", "car", "apple", "water"],
+      targetTiles: ["She", "reads", "a", "book", "car", "apple", "water"]
+    },
+    matchingPairs: [
+      { left: "School", right: "A place where we learn" },
+      { left: "Book", right: "We read it to gain knowledge" },
+      { left: "Boy", right: "A young male child" },
+      { left: "Water", right: "A clear liquid we drink" }
+    ],
+    listeningTask: {
+      audioText: "He is walking to school",
+      tiles: ["He", "is", "walking", "to", "school", "running", "car", "home"]
+    },
+    unscramble: [
+      { hint: "A red fruit", emoji: "🍎", answer: "APPLE", tiles: ["A", "P", "P", "L", "E", "B", "A", "N"] }
+    ],
+    imageChoice: [
+      { word: "car", prompt: "Tap the picture that means car", options: ["🚗", "🏫", "🍎"], correctIndex: 0 }
+    ],
+    tracing: [
+      { kind: "sun", question: "Trace the word sun", sound: "sun" }
+    ],
+    listenWordMCQ: {
+      audioText: "school",
+      question: "Which word did you hear?",
+      options: ["school", "home", "water", "fruit"],
+      correctIndex: 0
+    },
+    listenPassageMCQ: {
+      audioText: "Ram is a seven-year-old boy. He goes to school every morning. At school, Ram loves to read books and learn new things in his classroom.",
+      question: "What does Ram love to do at school?",
+      options: ["Read and Learn", "Play", "Sleep", "Eat"],
+      correctIndex: 0
+    },
+    chatComplete: {
+      scenario: "Anna: Hello! How are you?\nYou: ___",
+      question: "Choose the correct response to complete the conversation",
+      options: ["I am fine, thank you.", "Goodbye.", "Good night.", "See you."],
+      correctIndex: 0
+    },
+    scenario: {
+      scenario: "You are buying a book at a local store. The shopkeeper smiles and hands you the book.",
+      question: "What should you say to the shopkeeper?",
+      options: ["Thank you.", "Excuse me.", "Sorry.", "Welcome."],
+      correctIndex: 0
+    },
     aiFeedbackPositive: "Excellent work! You are making great progress.",
-    aiFeedbackNegative: "Good try! Review the lesson and try again. You can do it!",
-    questions: [
-      {
-        type: "intro",
-        lessonTitle: lessonTitle || "Literacy Lesson",
-        subtitle: `Section ${sectionNum || 1}: ${sectionTitle || "Basics"} › Unit ${unitNum || 1}: ${unitTitle || "Foundations"} › Lesson ${lessonNum || 1}: ${lessonTitle || ""}`,
-        explanation: lang === "Hindi"
-          ? `यह पाठ "${lessonTitle}" के बारे में है। आप इसमें बुनियादी साक्षरता कौशल सीखेंगे जो ${sectionTitle} से संबंधित हैं।`
-          : lang === "Kannada"
-          ? `ಈ ಪಾಠವು "${lessonTitle}" ಬಗ್ಗೆ ಇದೆ. ನೀವು ${sectionTitle} ಗೆ ಸಂಬಂಧಿಸಿದ ಮೂಲ ಸಾಕ್ಷರತಾ ಕೌಶಲ್ಯಗಳನ್ನು ಕಲಿಯುವಿರಿ.`
-          : `Welcome to "${lessonTitle}"! In this lesson you will explore key concepts from ${sectionTitle} — ${unitTitle}. Read each question carefully and give it your best try!`,
-        guidedTip: "Take your time with each question. Tap the speaker button to hear any word read aloud."
-      },
-      {
-        type: "mcq",
-        question: `Which of the following best relates to "${lessonTitle}"?`,
-        options: ["The correct concept", "An incorrect option", "Another wrong option", "Yet another distractor"],
-        correctIndex: 0,
-        explanation: `This is directly related to the topic of ${lessonTitle} in ${sectionTitle}.`
-      },
-      {
-        type: "meaning",
-        phrase: "Learn",
-        options: ["To gain knowledge or skill", "To forget something", "To sleep deeply", "To run quickly"],
-        correctIndex: 0
-      },
-      {
-        type: "fillBlank",
-        sentence: lang === "Hindi" ? "राम हर दिन ___ जाता है।" : lang === "Kannada" ? "ರಾಮ ಪ್ರತಿ ದಿನ ___ ಹೋಗುತ್ತಾನೆ." : "Ram goes to ___ every day.",
-        answer: lang === "Hindi" ? "स्कूल" : lang === "Kannada" ? "ಶಾಲೆ" : "school",
-        hint: "A place where children learn"
-      },
-      {
-        type: "imageChoice",
-        word: lang === "Hindi" ? "किताब" : lang === "Kannada" ? "ಪುಸ್ತಕ" : "book",
-        prompt: `Tap the picture that means "${lang === "Hindi" ? "किताब" : lang === "Kannada" ? "ಪುಸ್ತಕ" : "book"}"`,
-        options: ["📚", "🚗", "🍎"],
-        correctIndex: 0
-      },
-      {
-        type: "listeningTask",
-        audioText: lang === "Hindi" ? "वह स्कूल जाता है" : lang === "Kannada" ? "ಅವನು ಶಾಲೆಗೆ ಹೋಗುತ್ತಾನೆ" : "He goes to school",
-        tiles: lang === "Hindi" ? ["वह", "स्कूल", "जाता", "है", "घर", "खाना"] : lang === "Kannada" ? ["ಅವನು", "ಶಾಲೆಗೆ", "ಹೋಗುತ್ತಾನೆ", "ಬರುತ್ತಾನೆ", "ನಾವು"] : ["He", "goes", "to", "school", "home", "eats"]
-      },
-      {
-        type: "unscramble",
-        hint: "A place where children study",
-        emoji: "🏫",
-        answer: "SCHOOL",
-        tiles: ["S", "C", "H", "O", "O", "L", "B", "T"]
-      },
-      {
-        type: "writingActivity",
-        prompt: `Write 1-2 sentences about "${lessonTitle}". Use simple words and try your best!`
-      }
-    ]
+    aiFeedbackNegative: "Good try! Review the lesson and attempt again. You can do it!"
   };
 };
-
-export const clearLessonCache = () => lessonCache.clear();
-
-
-// Static Word of the Day used whenever AI is disabled (development mode OFF).
 const getFallbackWordOfDay = (language = "English") => {
   if (language === "Hindi") {
     return {
