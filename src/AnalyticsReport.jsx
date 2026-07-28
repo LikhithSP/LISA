@@ -8,17 +8,6 @@ const AnalyticsIcon = ({ className, style }) => (
   </svg>
 );
 
-const getWeekDates = () => {
-  const days = [];
-  const today = new Date();
-  for (let i = 6; i >= 0; i--) {
-    const d = new Date(today);
-    d.setDate(d.getDate() - i);
-    days.push(d.toLocaleDateString("en-CA"));
-  }
-  return days;
-};
-
 const getWeekStartDate = (d = new Date()) => {
   const date = new Date(d);
   const day = date.getDay();
@@ -31,14 +20,16 @@ const getWeekStartDate = (d = new Date()) => {
   return `${y}-${m}-${dd}`;
 };
 
-const getLocalWeeklyXp = (userId) => {
-  if (!userId) return 0;
+const getWeekDates = () => {
+  const days = [];
   const weekStart = getWeekStartDate();
-  const storedStart = localStorage.getItem(`lisa_weekly_start_${userId}`);
-  if (storedStart !== weekStart) {
-    return 0;
+  const start = new Date(weekStart + "T00:00:00");
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(start);
+    d.setDate(d.getDate() + i);
+    days.push(d.toLocaleDateString("en-CA"));
   }
-  return parseInt(localStorage.getItem(`lisa_weekly_xp_${userId}`) || "0", 10) || 0;
+  return days;
 };
 
 const getDailyXp = (userId) => {
@@ -87,7 +78,6 @@ export default function AnalyticsReport({
   onBack
 }) {
   const userId = session?.user?.id || null;
-  const [localWeeklyXp, setLocalWeeklyXp] = useState(() => userId ? getLocalWeeklyXp(userId) : 0);
   const [localDailyXp, setLocalDailyXp] = useState(() => userId ? getDailyXp(userId) : 0);
   const [localDailyTime, setLocalDailyTime] = useState(() => userId ? getDailyTime(userId) : 0);
   const [localDailyLessons, setLocalDailyLessons] = useState(() => userId ? getDailyLessons(userId) : 0);
@@ -95,7 +85,6 @@ export default function AnalyticsReport({
 
   useEffect(() => {
     if (!userId) return;
-    setLocalWeeklyXp(getLocalWeeklyXp(userId));
     setLocalDailyXp(getDailyXp(userId));
     setLocalDailyTime(getDailyTime(userId));
     setLocalDailyLessons(getDailyLessons(userId));

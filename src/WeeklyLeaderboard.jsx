@@ -1,17 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { supabase } from "./supabaseClient";
 
-const getWeekDates = () => {
-  const days = [];
-  const today = new Date();
-  for (let i = 6; i >= 0; i--) {
-    const d = new Date(today);
-    d.setDate(d.getDate() - i);
-    days.push(d.toLocaleDateString("en-CA"));
-  }
-  return days;
-};
-
 const getWeekStartDate = (d = new Date()) => {
   const date = new Date(d);
   const day = date.getDay();
@@ -24,16 +13,16 @@ const getWeekStartDate = (d = new Date()) => {
   return `${y}-${m}-${dd}`;
 };
 
-const getLocalWeeklyXp = (userId) => {
-  if (!userId) return 0;
+const getWeekDates = () => {
+  const days = [];
   const weekStart = getWeekStartDate();
-  const storedStart = localStorage.getItem(`lisa_weekly_start_${userId}`);
-  if (storedStart !== weekStart) {
-    localStorage.setItem(`lisa_weekly_start_${userId}`, weekStart);
-    localStorage.setItem(`lisa_weekly_xp_${userId}`, "0");
-    return 0;
+  const start = new Date(weekStart + "T00:00:00");
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(start);
+    d.setDate(d.getDate() + i);
+    days.push(d.toLocaleDateString("en-CA"));
   }
-  return parseInt(localStorage.getItem(`lisa_weekly_xp_${userId}`) || "0", 10) || 0;
+  return days;
 };
 
 // Derive up-to-2-letter initials from a name (e.g. "Likhith SP" -> "LS").
@@ -104,46 +93,10 @@ const resolveAvatar = (u, canUsePhoto) => {
 export default function WeeklyLeaderboard({ t = (key) => key, session, profile, weeklyXp, canUsePhoto }) {
   const [allProfiles, setAllProfiles] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [currentUserAvatar, setCurrentUserAvatar] = useState(null);
 
   const currentUserId = session?.user?.id || null;
   const currentUserName = profile?.full_name || session?.user?.user_metadata?.full_name || "You";
   const pollRef = useRef(null);
-
-  // Track the current user's live weekly XP locally so it stays fresh.
-  const [liveWeeklyXp, setLiveWeeklyXp] = useState(() =>
-    currentUserId ? getLocalWeeklyXp(currentUserId) : 0
-  );
-
-  useEffect(() => {
-    if (!currentUserId) return;
-    setLiveWeeklyXp(getLocalWeeklyXp(currentUserId));
-    const onStorage = (e) => {
-      if (e.key === `lisa_weekly_xp_${currentUserId}`) {
-        setLiveWeeklyXp(getLocalWeeklyXp(currentUserId));
-      }
-    };
-    window.addEventListener("storage", onStorage);
-    const id = setInterval(() => setLiveWeeklyXp(getLocalWeeklyXp(currentUserId)), 5000);
-    return () => {
-      window.removeEventListener("storage", onStorage);
-      clearInterval(id);
-    };
-  }, [currentUserId]);
-
-  useEffect(() => {
-    if (!currentUserId) return;
-    const stored = localStorage.getItem(`lisa_profile_avatar_${currentUserId}`);
-    let av = null;
-    if (stored) {
-      try {
-        av = stored.startsWith("{") ? JSON.parse(stored) : stored;
-      } catch {
-        av = stored;
-      }
-    }
-    setCurrentUserAvatar(av);
-  }, [currentUserId, profile]);
 
   // Fetch real users from Supabase (ordered by weekly_xp) so the leaderboard
   // reflects actual learners, not demo data.
@@ -197,22 +150,21 @@ export default function WeeklyLeaderboard({ t = (key) => key, session, profile, 
       rows.push({
         id: currentUserId || "me",
         name: currentUserName,
-        avatar: normalizeCurrentAvatar(currentUserAvatar, canUsePhoto, currentUserName),
-        weeklyXp: liveWeeklyXp,
+        avatar: profile ? resolveAvatar(profile, canUsePhoto) : fallbackAvatar(currentUserName),
+        weeklyXp: weeklyXp || 0,
         isCurrentUser: true,
       });
     } else {
-      // Override with the most accurate live value from localStorage.
-      me.weeklyXp = liveWeeklyXp;
+      me.weeklyXp = weeklyXp || me.weeklyXp;
       me.name = currentUserName;
-      me.avatar = normalizeCurrentAvatar(currentUserAvatar, canUsePhoto, currentUserName);
+      me.avatar = profile ? resolveAvatar(profile, canUsePhoto) : me.avatar;
     }
 
     rows.sort((a, b) => b.weeklyXp - a.weeklyXp);
 
     const currentUserRank = rows.findIndex((u) => u.isCurrentUser) + 1;
     return { sorted: rows, currentUserRank };
-  }, [allProfiles, currentUserId, currentUserName, liveWeeklyXp, currentUserAvatar, canUsePhoto]);
+  }, [allProfiles, currentUserId, currentUserName, weeklyXp, canUsePhoto, profile]);
 
   const weekDates = useMemo(() => getWeekDates(), []);
 
@@ -356,7 +308,7 @@ export default function WeeklyLeaderboard({ t = (key) => key, session, profile, 
                   {getRankBadge(leaderboardData.currentUserRank)}
                 </div>
                 <div className="leaderboard-avatar">
-                  {renderAvatar(normalizeCurrentAvatar(currentUserAvatar, canUsePhoto, currentUserName))}
+                  {renderAvatar(profile ? resolveAvatar(profile, canUsePhoto) : fallbackAvatar(currentUserName))}
                 </div>
                 <div className="leaderboard-info">
                   <div className="leaderboard-name">
@@ -365,7 +317,7 @@ export default function WeeklyLeaderboard({ t = (key) => key, session, profile, 
                   </div>
                 </div>
                 <div className="leaderboard-xp" style={{ color: "var(--accent)", fontWeight: 800 }}>
-                  {liveWeeklyXp.toLocaleString()} XP
+                  {(weeklyXp || 0).toLocaleString()} XP
                 </div>
               </div>
             </div>
