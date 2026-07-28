@@ -405,30 +405,6 @@ const getWeekStartDate = (d = new Date()) => {
   return `${y}-${m}-${dd}`;
 };
 
-// Reads the current user's weekly XP from localStorage, resetting it when a new week has begun.
-const readLocalWeeklyXp = (userId) => {
-  if (!userId) return 0;
-  const weekStart = getWeekStartDate();
-  const storedStart = localStorage.getItem(`lisa_weekly_start_${userId}`);
-  if (storedStart !== weekStart) {
-    // New week — reset the weekly accumulator
-    localStorage.setItem(`lisa_weekly_start_${userId}`, weekStart);
-    localStorage.setItem(`lisa_weekly_xp_${userId}`, "0");
-    return 0;
-  }
-  return parseInt(localStorage.getItem(`lisa_weekly_xp_${userId}`) || "0", 10) || 0;
-};
-
-// Adds XP to the current user's weekly total (auto-resets on a new week) and returns the new total.
-const addLocalWeeklyXp = (userId, amount) => {
-  if (!userId) return 0;
-  const current = readLocalWeeklyXp(userId);
-  const next = current + amount;
-  localStorage.setItem(`lisa_weekly_xp_${userId}`, String(next));
-  localStorage.setItem(`lisa_weekly_start_${userId}`, getWeekStartDate());
-  return next;
-};
-
 const localDashboardTranslations = {
   Hindi: {
     levels: {
@@ -883,15 +859,28 @@ function App() {
 
   // Adds XP to the current user's weekly total (auto-resets weekly) and syncs it to Supabase
   // so the weekly leaderboard reflects real users' progress this week.
-  const recordWeeklyXp = (amount) => {
+  const recordWeeklyXp = async (amount) => {
     const userId = session?.user?.id;
     if (!userId || !amount) return;
-    const nextWeekly = addLocalWeeklyXp(userId, amount);
-    setWeeklyXp(nextWeekly);
     try {
-      supabase
+      const weekStart = getWeekStartDate();
+      const { data } = await supabase
         .from("profiles")
-        .update({ weekly_xp: nextWeekly, weekly_start: getWeekStartDate() })
+        .select("weekly_xp, weekly_start")
+        .eq("id", userId)
+        .single();
+
+      let currentWeeklyXp = 0;
+      if (data?.weekly_start === weekStart) {
+        currentWeeklyXp = data.weekly_xp || 0;
+      }
+
+      const nextWeekly = currentWeeklyXp + amount;
+      setWeeklyXp(nextWeekly);
+
+      await supabase
+        .from("profiles")
+        .update({ weekly_xp: nextWeekly, weekly_start: weekStart })
         .eq("id", userId);
     } catch (e) {
       console.warn("Could not sync weekly XP to Supabase:", e);
@@ -941,13 +930,19 @@ function App() {
       localStorage.setItem(`lisa_daily_lessons_${userId}_${today}`, finalLessons);
       localStorage.setItem(`lisa_daily_correct_${userId}_${today}`, finalCorrect);
 
-      // Initialize weekly XP from DB if the local store has no value for the current week yet
+      // Initialize weekly XP from DB only
       const weekStart = getWeekStartDate();
-      const localWeekStart = localStorage.getItem(`lisa_weekly_start_${userId}`);
-      if (localWeekStart !== weekStart && dbWeeklyXp !== null) {
-        localStorage.setItem(`lisa_weekly_start_${userId}`, weekStart);
-        localStorage.setItem(`lisa_weekly_xp_${userId}`, String(dbWeeklyXp));
-        setWeeklyXp(dbWeeklyXp);
+      const dbWeeklyStart = data?.weekly_start;
+
+      if (dbWeeklyStart === weekStart) {
+        setWeeklyXp(dbWeeklyXp || 0);
+      } else {
+        setWeeklyXp(0);
+        try {
+          await supabase.from("profiles").update({ weekly_xp: 0, weekly_start: weekStart }).eq("id", userId);
+        } catch (e) {
+          console.warn("Could not reset weekly XP:", e);
+        }
       }
     };
 
@@ -1443,9 +1438,6 @@ function App() {
       if (typeof av === "string" && av.startsWith("http")) av = "/as1.png";
       setProfileBg(bg);
       setProfileAvatar(av);
-
-      // Weekly XP (auto-resets when a new week starts)
-      setWeeklyXp(readLocalWeeklyXp(userId));
     } else {
       setUserXp(0);
       setCompletedLessons([]);
