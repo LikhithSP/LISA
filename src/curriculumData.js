@@ -704,10 +704,11 @@ const getAgeGroup = (ageNum) => {
 // Map experience level string → starting assessment level (1–5)
 const getStartingLevelFromExperience = (experienceLevel) => {
   const exp = (experienceLevel || "").toLowerCase();
-  if (exp.includes("completely new") || exp.includes("recognize some letters")) return 1;
-  if (exp.includes("read simple sentences")) return 2;
-  if (exp.includes("read paragraphs")) return 3;
-  if (exp.includes("improve my vocabulary") || exp.includes("vocabulary and communication")) return 4;
+  if (exp.includes("completely new")) return 1;
+  if (exp.includes("recognize some letters")) return 2;
+  if (exp.includes("read simple sentences")) return 3;
+  if (exp.includes("read paragraphs")) return 4;
+  if (exp.includes("improve my vocabulary") || exp.includes("vocabulary and communication")) return 5;
   return 1; // Default fallback — start at L1
 };
 
@@ -734,6 +735,8 @@ const inferSkillFromQuestion = (question, questionIdx, totalQuestions) => {
     "sentence_understanding",
     "reading_comprehension",
     "practical_literacy",
+    "reading_ability",
+    "writing_ability",
   ];
   return skills[questionIdx % skills.length] || "reading_comprehension";
 };
@@ -972,24 +975,7 @@ export const computeSkillScores = (questions, selectedAnswers, readingAttempts, 
       scores[skill] = null;
       return;
     }
-    if (skill !== "reading_ability" && skill !== "writing_ability") {
-      if (total === 2) {
-        if (correct === 2) scores[skill] = 100;
-        else if (correct === 1) scores[skill] = 50;
-        else scores[skill] = 0;
-      } else {
-        const ratio = correct / total;
-        if (ratio >= 0.85) scores[skill] = 100;
-        else if (ratio >= 0.45) scores[skill] = 50;
-        else scores[skill] = 0;
-      }
-    } else {
-      const totalPoints = correct * 10;
-      if (totalPoints >= 25) scores[skill] = 100;
-      else if (totalPoints >= 15) scores[skill] = 67;
-      else if (totalPoints >= 5) scores[skill] = 33;
-      else scores[skill] = 0;
-    }
+    scores[skill] = Math.round((correct / total) * 100);
   });
 
   const assessedScores = Object.values(scores).filter(v => typeof v === "number");
