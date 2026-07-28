@@ -17,7 +17,7 @@ const FALLBACK_MODEL = import.meta.env.VITE_GEMINI_MODEL     || "gemini-2.0-flas
 
 // ─── Tier Definitions (Duolingo cognitive-load tiers) ────────────────────────
 // Tier 1 Receptive — tap/recognition only, zero typing
-const RECEPTIVE_TYPES = ["mcq", "meaning", "matchPairs", "imageChoice"];
+const RECEPTIVE_TYPES = ["mcq", "meaning", "matchPairs", "imageChoice", "listenWordMCQ", "listenPassageMCQ", "chatComplete", "scenario"];
 // Tier 2 Productive — assembly using tiles
 const PRODUCTIVE_TYPES = ["fillBlank", "arrangeWords", "listeningTask", "unscramble"];
 // Tier 3 Expressive — free-form creation
@@ -175,6 +175,38 @@ const buildPrompt = (params) => {
   "question": "Short question in ${interfaceLanguage} asking the learner to write a word or letter related to ${lessonTitle}",
   "kind": "the target letter or short word in ${learningLanguage}",
   "sound": "the target word pronunciation text"
+}`;
+      case "listenWordMCQ":
+        return `{
+  "type": "listenWordMCQ",
+  "audioText": "A single word in ${learningLanguage} relevant to ${lessonTitle}",
+  "question": "Which word did you hear? (in ${interfaceLanguage})",
+  "options": ["correct word in ${learningLanguage}", "wrong option 2", "wrong option 3", "wrong option 4"],
+  "correctIndex": 0
+}`;
+      case "listenPassageMCQ":
+        return `{
+  "type": "listenPassageMCQ",
+  "audioText": "A short paragraph or 2-3 sentences in ${learningLanguage} relevant to ${lessonTitle}",
+  "question": "Listen to the audio and answer: (question in ${interfaceLanguage})",
+  "options": ["correct answer in ${learningLanguage}", "wrong option 2", "wrong option 3", "wrong option 4"],
+  "correctIndex": 0
+}`;
+      case "chatComplete":
+        return `{
+  "type": "chatComplete",
+  "scenario": "A short chat conversation snippet in ${learningLanguage} with one missing response (use ___ for the blank)",
+  "question": "Choose the best response to complete the conversation (in ${interfaceLanguage})",
+  "options": ["correct response in ${learningLanguage}", "wrong option 2", "wrong option 3", "wrong option 4"],
+  "correctIndex": 0
+}`;
+      case "scenario":
+        return `{
+  "type": "scenario",
+  "scenario": "A short real-world scenario description in ${learningLanguage} relevant to ${lessonTitle} (e.g., at a bank, hospital, bus stop, shop)",
+  "question": "What should you do? (question in ${interfaceLanguage})",
+  "options": ["correct action in ${learningLanguage}", "wrong option 2", "wrong option 3", "wrong option 4"],
+  "correctIndex": 0
 }`;
       default:
         return `{"type": "${type}"}`;
