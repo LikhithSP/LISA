@@ -408,9 +408,23 @@ const convertToUnifiedQuestions = (lesson, params) => {
     });
   }
 
+  // Randomize questions: 8 questions (1 intro + 7 exercises) for normal lessons, 12 questions (1 intro + 11 exercises) for final 5th lesson
+  const allQuestions = [...questions];
+  const introQuestion = allQuestions.shift(); // Keep intro step at index 0
+
+  for (let i = allQuestions.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [allQuestions[i], allQuestions[j]] = [allQuestions[j], allQuestions[i]];
+  }
+
+  const lessonNum = parseInt(params.lessonNum) || 1;
+  const isFinal = lessonNum === 5;
+  const targetCount = isFinal ? 11 : 7;
+  const selectedExercises = allQuestions.slice(0, targetCount);
+
   return {
     ...lesson,
-    questions
+    questions: [introQuestion, ...selectedExercises]
   };
 };
 
