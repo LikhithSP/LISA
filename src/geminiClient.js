@@ -1,12 +1,14 @@
-// LISA — AI Lesson Generator (OpenRouter primary, Gemini fallback)
+// LISA — AI Lesson Generator (OpenRouter primary, Gemini fallback, Groq backup)
 
 // ─── API Configuration ───────────────────────────────────────────────────────
-// Always prefer OpenRouter for reliability; fall back to Gemini if needed.
+// Always prefer OpenRouter for reliability; fall back to Gemini, then Groq.
 const OPENROUTER_KEY = import.meta.env.VITE_OPENROUTER_API_KEY;
 const GEMINI_KEY     = import.meta.env.VITE_GEMINI_API_KEY;
+const GROQ_KEY       = import.meta.env.VITE_GROQ_API_KEY;
 
 const PRIMARY_URL    = "https://openrouter.ai/api/v1/chat/completions";
 const FALLBACK_URL   = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
+const GROQ_URL       = "https://api.groq.com/openai/v1/chat/completions";
 
 const PRIMARY_KEY    = OPENROUTER_KEY;
 const FALLBACK_KEY   = GEMINI_KEY;
@@ -14,6 +16,7 @@ const FALLBACK_KEY   = GEMINI_KEY;
 // Use a capable free instruction model on OpenRouter
 const PRIMARY_MODEL  = import.meta.env.VITE_OPENROUTER_MODEL || "mistralai/mistral-7b-instruct:free";
 const FALLBACK_MODEL = import.meta.env.VITE_GEMINI_MODEL     || "gemini-2.0-flash";
+const GROQ_MODEL     = import.meta.env.VITE_GROQ_MODEL       || "groq/compound";
 
 // ─── Tier Definitions (Duolingo cognitive-load tiers) ────────────────────────
 // Tier 1 Receptive — tap/recognition only, zero typing
@@ -262,30 +265,36 @@ const lessonCache = new Map();
 // ─── API fetch with primary → fallback cascade ────────────────────────────────
 const fetchAI = async (prompt, maxTokens = 4096) => {
   // Try primary (OpenRouter)
-  try {
-    const resp = await fetch(PRIMARY_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type":  "application/json",
-        "Authorization": `Bearer ${PRIMARY_KEY}`,
-        "HTTP-Referer":  "https://lisalearn.app",
-        "X-Title":       "LISA Learning"
-      },
-      body: JSON.stringify({
-        model: PRIMARY_MODEL,
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0.7,
-        max_tokens: maxTokens
-      })
-    });
-    if (resp.ok) {
-      const data = await resp.json();
-      const text = data?.choices?.[0]?.message?.content || "";
-      if (text) return text;
+  if (PRIMARY_KEY) {
+    const openRouterModels = [PRIMARY_MODEL, "google/gemma-2-9b-it:free", "meta-llama/llama-3-8b-instruct:free"];
+    for (const model of openRouterModels) {
+      if (!model) continue;
+      try {
+        const resp = await fetch(PRIMARY_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type":  "application/json",
+            "Authorization": `Bearer ${PRIMARY_KEY}`,
+            "HTTP-Referer":  "https://lisalearn.app",
+            "X-Title":       "LISA Learning"
+          },
+          body: JSON.stringify({
+            model: model,
+            messages: [{ role: "user", content: prompt }],
+            temperature: 0.7,
+            max_tokens: maxTokens
+          })
+        });
+        if (resp.ok) {
+          const data = await resp.json();
+          const text = data?.choices?.[0]?.message?.content || "";
+          if (text) return text;
+        }
+        console.warn(`OpenRouter model ${model} non-OK:`, resp.status, resp.statusText);
+      } catch (e) {
+        console.warn(`OpenRouter model ${model} request failed:`, e.message);
+      }
     }
-    console.warn("OpenRouter non-OK:", resp.status, resp.statusText);
-  } catch (e) {
-    console.warn("OpenRouter request failed:", e.message);
   }
 
   // Fallback to Gemini
@@ -307,14 +316,48 @@ const fetchAI = async (prompt, maxTokens = 4096) => {
       });
       if (resp.ok) {
         const data = await resp.json();
-        return data?.choices?.[0]?.message?.content || "";
+        const text = data?.choices?.[0]?.message?.content || "";
+        if (text) return text;
       }
+      console.warn("Gemini fallback non-OK:", resp.status, resp.statusText);
     } catch (e) {
       console.warn("Gemini fallback failed:", e.message);
     }
   }
 
-  return null; // both failed
+  // Fallback to Groq
+  if (GROQ_KEY) {
+    const groqModels = [GROQ_MODEL, "llama-3.3-70b-versatile", "llama-3.1-8b-instant"];
+    for (const model of groqModels) {
+      if (!model) continue;
+      try {
+        const resp = await fetch(GROQ_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type":  "application/json",
+            "Authorization": `Bearer ${GROQ_KEY}`
+          },
+          body: JSON.stringify({
+            model: model,
+            messages: [{ role: "user", content: prompt }],
+            temperature: 0.7,
+            max_tokens: maxTokens,
+            response_format: { type: "json_object" }
+          })
+        });
+        if (resp.ok) {
+          const data = await resp.json();
+          const text = data?.choices?.[0]?.message?.content || "";
+          if (text) return text;
+        }
+        console.warn(`Groq model ${model} non-OK:`, resp.status, resp.statusText);
+      } catch (e) {
+        console.warn(`Groq model ${model} request failed:`, e.message);
+      }
+    }
+  }
+
+  return null; // all failed
 };
 
 // ─── generateLessonContent ────────────────────────────────────────────────────
