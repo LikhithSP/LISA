@@ -1488,11 +1488,78 @@ function App() {
   // Lesson accuracy tracking
   const lessonTotalAnsweredRef = useRef(0);
   const lessonCorrectAnsweredRef = useRef(0);
+  const triggerHaptic = (type) => {
+    if (typeof navigator !== "undefined" && navigator.vibrate) {
+      if (type === "correct") {
+        navigator.vibrate([60, 40, 60]);
+      } else {
+        navigator.vibrate([120, 80, 120]);
+      }
+    }
+  };
+
+  const playChime = (type) => {
+    try {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextClass) return;
+      const ctx = new AudioContextClass();
+      
+      if (type === "correct") {
+        const now = ctx.currentTime;
+        const freqs = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+        freqs.forEach((f, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(f, now + idx * 0.08);
+          gain.gain.setValueAtTime(0.12, now + idx * 0.08);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.08 + 0.35);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now + idx * 0.08);
+          osc.stop(now + idx * 0.08 + 0.4);
+        });
+      } else {
+        const now = ctx.currentTime;
+        const osc1 = ctx.createOscillator();
+        const osc2 = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc1.type = "sawtooth";
+        osc1.frequency.setValueAtTime(180, now);
+        osc1.frequency.linearRampToValueAtTime(110, now + 0.35);
+        osc2.type = "triangle";
+        osc2.frequency.setValueAtTime(182, now);
+        osc2.frequency.linearRampToValueAtTime(112, now + 0.35);
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.4);
+        osc1.connect(gain);
+        osc2.connect(gain);
+        gain.connect(ctx.destination);
+        osc1.start(now);
+        osc2.start(now);
+        osc1.stop(now + 0.45);
+        osc2.stop(now + 0.45);
+      }
+    } catch (e) {
+      console.warn("Chime playback failed:", e);
+    }
+  };
+
   const recordLessonAnswer = (isCorrect) => {
     lessonTotalAnsweredRef.current += 1;
-    if (isCorrect) lessonCorrectAnsweredRef.current += 1;
+    if (isCorrect) {
+      lessonCorrectAnsweredRef.current += 1;
+      playChime("correct");
+      triggerHaptic("correct");
+    } else {
+      playChime("incorrect");
+      triggerHaptic("incorrect");
+      setLessonHearts(prev => prev - 1);
+    }
   };
   const [lessonAccuracy, setLessonAccuracy] = useState(null);
+  const [lessonXpEarned, setLessonXpEarned] = useState(0);
+  const [lessonHearts, setLessonHearts] = useState(3);
 
   // New lesson activities: Unscramble, Image choice, Tracing
   const [lessonUnscrambleIndex, setLessonUnscrambleIndex] = useState(0);
@@ -1819,10 +1886,52 @@ function App() {
       );
     }
 
+    if (lessonHearts <= 0) {
+      return (
+        <div className="ai-lesson-content" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+          <div className="lesson-complete-wrapper" style={{ textAlign: 'center', padding: '40px 20px', maxWidth: '400px' }}>
+            <img src="/as1.png" alt="Sad LISA Mascot" style={{ width: '120px', height: '120px', filter: 'grayscale(100%)', marginBottom: '20px' }} />
+            <h2 style={{ fontSize: '2rem', fontWeight: '900', color: '#ef4444', margin: '10px 0' }}>Out of Hearts!</h2>
+            <p style={{ fontSize: '1.15rem', color: 'var(--text-muted)', margin: '10px 0 30px', fontWeight: 600 }}>
+              You made 3 mistakes in this lesson. Let's restart and try again!
+            </p>
+            <button
+              type="button"
+              className="duo-check-btn"
+              style={{ background: '#ef4444', borderBottomColor: '#b91c1c' }}
+              onClick={() => {
+                setLessonStep(0);
+                setLessonHearts(3);
+                lessonTotalAnsweredRef.current = 0;
+                lessonCorrectAnsweredRef.current = 0;
+                setLessonMcqAnswers({});
+                setLessonFillAnswers({});
+                setLessonTranslationSelected([]);
+                setLessonListeningSelected([]);
+                setLessonMeaningAnswer(null);
+                setLessonMeaningFeedback(null);
+                setLessonTranslationFeedback(null);
+                setLessonListeningFeedback(null);
+                setLessonFillFeedback(null);
+                setLessonMcqFeedback(null);
+                setLessonListenWordMCQAnswer(null);
+                setLessonListenWordMCQFeedback(null);
+                setLessonMatchCompleted([]);
+                setLessonMatchSelectedLeft(null);
+                setLessonMatchSelectedRight(null);
+              }}
+            >
+              Restart Lesson
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="ai-lesson-content">
         <div className="ai-lesson-step" style={{ paddingBottom: '140px' }}>
-          <div className="ai-lesson-step-header" style={{ marginBottom: '20px' }}>
+          <div className="ai-lesson-step-header" style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span className="ai-step-badge">
               {lessonSession?.isPracticeSession ? (
                 <>⚡ {t("practiceMode")}: {(() => {
@@ -1846,6 +1955,11 @@ function App() {
                 <>📖 {ai.lessonSubtitle || `${lessonSession?.sectionTitle || ""} › ${lessonSession?.unitTitle || ""}`}</>
               )}
               {" "}({`Step ${lessonStep + 1} of ${ai.questions?.length || 8}`})
+            </span>
+            <span style={{ display: 'flex', gap: '4px', fontSize: '1.25rem', color: '#ef4444' }}>
+              {Array.from({ length: 3 }).map((_, idx) => (
+                <span key={idx} style={{ textShadow: '0 2px 0 rgba(0,0,0,0.1)' }}>{idx < lessonHearts ? "❤️" : "🖤"}</span>
+              ))}
             </span>
           </div>
 
@@ -1873,11 +1987,11 @@ function App() {
                 <div className="ai-lesson-step" style={{ paddingBottom: '20px' }}>
                   {/* Lesson title */}
                   <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-                    <h2 style={{ fontSize: '1.6rem', fontWeight: '900', margin: '0 0 6px', color: 'var(--accent)' }}>
+                    <h2 style={{ fontSize: '1.75rem', fontWeight: '900', margin: '0 0 6px', color: 'var(--accent)' }}>
                       {currentQuestion.lessonTitle || lessonSession?.title}
                     </h2>
                     {currentQuestion.subtitle && (
-                      <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>
+                      <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)', margin: 0, fontWeight: '700' }}>
                         {currentQuestion.subtitle}
                       </p>
                     )}
@@ -1888,9 +2002,8 @@ function App() {
                     <div style={{ flexShrink: 0 }}>
                       <img src="/as1.png" alt="LISA Mascot" style={{ width: '110px', height: '110px', objectFit: 'contain' }} />
                     </div>
-                    <div style={{ flexGrow: 1, background: 'var(--panel)', border: '2px solid var(--line)', borderRadius: '20px', padding: '20px', position: 'relative' }}>
-                      <div style={{ position: 'absolute', left: '-9px', top: '32px', width: '14px', height: '14px', background: 'var(--panel)', borderLeft: '2px solid var(--line)', borderBottom: '2px solid var(--line)', transform: 'rotate(45deg)' }}></div>
-                      <div style={{ fontSize: '1.05rem', lineHeight: '1.7' }}>
+                    <div className="duo-speech-bubble" style={{ flexGrow: 1 }}>
+                      <div style={{ fontSize: '1.1rem', lineHeight: '1.6' }}>
                         {(currentQuestion.explanation || "").split("\n").map((para, i) =>
                           para.trim() ? <p key={i} style={{ margin: '0 0 10px 0' }}>{para}</p> : null
                         )}
@@ -1902,12 +2015,12 @@ function App() {
                   {currentQuestion.guidedTip && (
                     <div style={{ background: 'rgba(245,158,11,0.08)', border: '2px dashed #f59e0b', borderRadius: '14px', padding: '14px 18px', margin: '16px 0', display: 'flex', gap: '10px', alignItems: 'center' }}>
                       <span style={{ fontSize: '1.4rem' }}>💡</span>
-                      <span style={{ color: '#b45309', fontWeight: 600, fontSize: '0.95rem' }}>{currentQuestion.guidedTip}</span>
+                      <span style={{ color: '#b45309', fontWeight: 700, fontSize: '0.95rem' }}>{currentQuestion.guidedTip}</span>
                     </div>
                   )}
 
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
-                    <button type="button" className="primary-btn" style={{ padding: '12px 36px', borderRadius: '12px' }} onClick={handleNext}>
+                  <div style={{ display: 'flex', justifyContent: 'center', marginTop: '30px' }}>
+                    <button type="button" className="duo-check-btn" onClick={handleNext}>
                       Start Lesson →
                     </button>
                   </div>
@@ -1944,44 +2057,23 @@ function App() {
                     gap: '20px',
                     margin: '30px 0'
                   }}>
-
                     <button
                       type="button"
                       onClick={() => speakText(lt.audioText || lt.sentence || "", 1.0)}
-                      style={{
-                        width: '80px',
-                        height: '80px',
-                        borderRadius: '24px',
-                        background: '#38bdf8',
-                        border: 'none',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-                      }}
+                      className="duo-listen-btn"
+                      style={{ width: '80px', height: '80px', borderRadius: '24px', fontSize: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                     >
-                      <span style={{ fontSize: '2.5rem' }}>🔊</span>
+                      🔊
                     </button>
 
                     <button
                       type="button"
                       onClick={() => speakText(lt.audioText || lt.sentence || "", 0.2)}
-                      style={{
-                        width: '60px',
-                        height: '60px',
-                        borderRadius: '18px',
-                        background: '#0284c7',
-                        border: 'none',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-                      }}
+                      className="duo-listen-btn"
+                      style={{ width: '60px', height: '60px', borderRadius: '18px', background: '#0284c7', borderBottomColor: '#0369a1', fontSize: '1.4rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                       title="Listen slowly"
                     >
-                      <span style={{ fontSize: '1.8rem' }}>🐢</span>
+                      🐢
                     </button>
                   </div>
 
@@ -2000,18 +2092,9 @@ function App() {
                       <button
                         key={wIdx}
                         type="button"
-                        style={{
-                          background: 'var(--accent)',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '10px',
-                          padding: '10px 16px',
-                          fontSize: '1.1rem',
-                          fontWeight: '700',
-                          cursor: 'pointer',
-                          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                        }}
+                        className="duo-word-tile"
                         onClick={() => {
+                          speakText(word);
                           if (!isChecked) {
                             setLessonListeningSelected(prev => prev.filter((_, idx) => idx !== wIdx));
                           }
@@ -2039,19 +2122,9 @@ function App() {
                         <button
                           key={wIdx}
                           type="button"
-                          style={{
-                            background: isUsed ? 'var(--line)' : 'var(--panel)',
-                            color: isUsed ? 'transparent' : 'var(--text)',
-                            border: '2px solid var(--line)',
-                            borderRadius: '10px',
-                            padding: '10px 16px',
-                            fontSize: '1.1rem',
-                            fontWeight: '700',
-                            cursor: isUsed ? 'default' : 'pointer',
-                            boxShadow: isUsed ? 'none' : '0 2px 4px rgba(0,0,0,0.05)',
-                            opacity: isUsed ? 0.3 : 1
-                          }}
+                          className={`duo-word-tile ${isUsed ? 'used' : ''}`}
                           onClick={() => {
+                            speakText(word);
                             if (!isChecked && !isUsed) {
                               setLessonListeningSelected(prev => [...prev, word]);
                             }
@@ -2129,25 +2202,26 @@ function App() {
                   <div style={{
                     background: 'rgba(2, 132, 199, 0.05)',
                     border: '2px solid rgba(2, 132, 199, 0.2)',
-                    borderRadius: '20px',
-                    padding: '20px',
+                    borderRadius: '24px',
+                    padding: '24px',
                     marginBottom: '10px'
                   }}>
-                    <h4 style={{ margin: '0 0 8px', color: '#0284c7', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <h4 style={{ margin: '0 0 10px', color: '#0284c7', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px' }}>
                       📖 Reading Passage
-                      <button type="button" className="tts-btn" onClick={() => speakText(currentQuestion.passage)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem' }}>🔊</button>
+                      <button type="button" className="duo-listen-btn" onClick={() => speakText(currentQuestion.passage)} style={{ padding: '6px 14px', borderRadius: '12px', fontSize: '0.9rem' }}>🔊 Listen</button>
                     </h4>
-                    <p style={{ margin: 0, fontSize: '1.15rem', lineHeight: '1.6', fontWeight: '500', color: 'var(--text)' }}>{currentQuestion.passage}</p>
+                    <p style={{ margin: 0, fontSize: '1.2rem', lineHeight: '1.6', fontWeight: '500', color: 'var(--text)' }}>{currentQuestion.passage}</p>
                   </div>
 
                   <div style={{
                     background: 'var(--panel)',
                     border: '2px solid var(--line)',
-                    borderRadius: '20px',
-                    padding: '20px',
-                    fontSize: '1.2rem',
+                    borderRadius: '24px',
+                    padding: '24px',
+                    fontSize: '1.3rem',
                     fontWeight: '800',
-                    textAlign: 'center'
+                    textAlign: 'center',
+                    boxShadow: '0 4px 10px rgba(0,0,0,0.01)'
                   }}>
                     {questionText}
                   </div>
@@ -2156,46 +2230,28 @@ function App() {
                     display: 'grid',
                     gridTemplateColumns: 'repeat(2, 1fr)',
                     gap: '16px',
-                    margin: '20px 0'
+                    margin: '25px 0'
                   }}>
                     {options.map((opt, oIdx) => {
                       const isSelected = selectedAnswer === oIdx;
-                      let btnBg = 'var(--panel)';
-                      let btnBorder = '2px solid var(--line)';
-                      let btnColor = 'var(--text)';
+                      let extraClass = "";
 
                       if (isChecked) {
                         if (oIdx === currentQuestion.correctIndex) {
-                          btnBg = 'rgba(16, 185, 129, 0.1)';
-                          btnBorder = '2px solid #10b981';
-                          btnColor = '#065f46';
+                          extraClass = "correct";
                         } else if (isSelected) {
-                          btnBg = 'rgba(239, 68, 68, 0.1)';
-                          btnBorder = '2px solid #ef4444';
-                          btnColor = '#991b1b';
+                          extraClass = "incorrect";
                         }
                       } else if (isSelected) {
-                        btnBorder = '2px solid var(--accent)';
-                        btnColor = 'var(--accent-dark)';
+                        extraClass = "selected";
                       }
 
                       return (
                         <button
                           key={opt + '_' + oIdx}
                           type="button"
-                          onClick={() => { if (!isChecked) setLessonMeaningAnswer(oIdx); }}
-                          style={{
-                            background: btnBg,
-                            border: btnBorder,
-                            color: btnColor,
-                            borderRadius: '16px',
-                            padding: '20px',
-                            fontSize: '1.1rem',
-                            fontWeight: '600',
-                            cursor: isChecked ? 'default' : 'pointer',
-                            textAlign: 'center',
-                            transition: 'all 0.2s ease'
-                          }}
+                          onClick={() => { speakText(opt); if (!isChecked) setLessonMeaningAnswer(oIdx); }}
+                          className={`duo-option-btn ${extraClass}`}
                           disabled={isChecked}
                         >
                           {opt}
@@ -2208,8 +2264,7 @@ function App() {
                     <div style={{ display: 'flex', justifyContent: 'center' }}>
                       <button
                         type="button"
-                        className="primary-btn"
-                        style={{ padding: '12px 40px', borderRadius: '12px' }}
+                        className="duo-check-btn"
                         disabled={selectedAnswer === null}
                         onClick={() => {
                           const correct = selectedAnswer === currentQuestion.correctIndex;
@@ -2227,28 +2282,16 @@ function App() {
                   )}
 
                   {isChecked && (
-                    <div style={{
-                      position: 'absolute',
-                      bottom: 0, left: 0, right: 0,
-                      background: lessonMeaningFeedback.isCorrect ? '#d1fae5' : '#fee2e2',
-                      borderTop: `2px solid ${lessonMeaningFeedback.isCorrect ? '#10b981' : '#ef4444'}`,
-                      padding: '20px 40px',
-                      zIndex: 100,
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center'
-                    }}>
+                    <div className={lessonMeaningFeedback.isCorrect ? "duo-banner-correct" : "duo-banner-incorrect"}>
                       <div>
-                        <h4 style={{ margin: 0, color: lessonMeaningFeedback.isCorrect ? '#065f46' : '#991b1b', fontWeight: '800', fontSize: '1.2rem' }}>
-                          {lessonMeaningFeedback.isCorrect ? "Excellent!" : "Incorrect"}
+                        <h4 className={lessonMeaningFeedback.isCorrect ? "duo-banner-title-correct" : "duo-banner-title-incorrect"}>
+                          {lessonMeaningFeedback.isCorrect ? "🎉 Excellent!" : "😢 Incorrect"}
                         </h4>
-                        <p style={{ margin: '4px 0 0', color: lessonMeaningFeedback.isCorrect ? '#047857' : '#b91c1c', fontSize: '0.95rem' }}>
-                          {lessonMeaningFeedback.isCorrect ? "You got it right!" : `Correct Answer: "${lessonMeaningFeedback.correctAnswer}"`}
+                        <p style={{ margin: '4px 0 0', fontSize: '1rem', fontWeight: '600' }}>
+                          {lessonMeaningFeedback.isCorrect ? "You got it right!" : `Correct Answer: "${options[currentQuestion.correctIndex]}"`}
                         </p>
                       </div>
-                      <button type="button" className="primary-btn" onClick={handleNext}>
-                        Continue
-                      </button>
+                      <button type="button" className="duo-check-btn" onClick={handleNext}>Continue</button>
                     </div>
                   )}
                 </div>
@@ -2319,24 +2362,9 @@ function App() {
                           <button
                             key={'left_' + idx}
                             type="button"
-                            onClick={() => handleLeftClick(item)}
-                            style={{
-                              padding: '16px',
-                              borderRadius: '16px',
-                              border: isSelected ? '2px solid var(--accent)' : '2px solid var(--line)',
-                              background: isCompleted ? 'var(--line)' : isSelected ? 'rgba(var(--accent-rgb), 0.1)' : 'var(--panel)',
-                              color: isCompleted ? 'var(--text-muted)' : 'var(--text)',
-                              textDecoration: isCompleted ? 'line-through' : 'none',
-                              fontWeight: '700',
-                              fontSize: '1.1rem',
-                              cursor: isCompleted ? 'default' : 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              gap: '8px',
-                              textAlign: 'center',
-                              opacity: isCompleted ? 0.6 : 1
-                            }}
+                            onClick={() => { speakText(item); handleLeftClick(item); }}
+                            className={`duo-option-btn ${isSelected ? 'selected' : ''} ${isCompleted ? 'correct' : ''}`}
+                            style={{ width: '100%' }}
                             disabled={isCompleted}
                           >
                             <span>{item}</span>
@@ -2356,24 +2384,9 @@ function App() {
                           <button
                             key={'right_' + idx}
                             type="button"
-                            onClick={() => handleRightClick(item)}
-                            style={{
-                              padding: '16px',
-                              borderRadius: '16px',
-                              border: isSelected ? '2px solid var(--accent)' : '2px solid var(--line)',
-                              background: isCompleted ? 'var(--line)' : isSelected ? 'rgba(var(--accent-rgb), 0.1)' : 'var(--panel)',
-                              color: isCompleted ? 'var(--text-muted)' : 'var(--text)',
-                              textDecoration: isCompleted ? 'line-through' : 'none',
-                              fontWeight: '700',
-                              fontSize: '1.1rem',
-                              cursor: isCompleted ? 'default' : 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              gap: '8px',
-                              textAlign: 'center',
-                              opacity: isCompleted ? 0.6 : 1
-                            }}
+                            onClick={() => { speakText(item); handleRightClick(item); }}
+                            className={`duo-option-btn ${isSelected ? 'selected' : ''} ${isCompleted ? 'correct' : ''}`}
+                            style={{ width: '100%' }}
                             disabled={isCompleted}
                           >
                             <span>{item}</span>
@@ -2381,7 +2394,7 @@ function App() {
                           </button>
                         );
                       })}
-                    </div>
+                  </div>
                   </div>
 
                   {lessonMatchFeedback && (
@@ -2389,24 +2402,12 @@ function App() {
                   )}
 
                   {isStepFinished && (
-                    <div style={{
-                      position: 'absolute',
-                      bottom: 0, left: 0, right: 0,
-                      background: '#d1fae5',
-                      borderTop: '2px solid #10b981',
-                      padding: '20px 40px',
-                      zIndex: 100,
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center'
-                    }}>
+                    <div className="duo-banner-correct">
                       <div>
-                        <h4 style={{ margin: 0, color: '#065f46', fontWeight: '800', fontSize: '1.2rem' }}>Excellent!</h4>
-                        <p style={{ margin: '4px 0 0', color: '#047857', fontSize: '0.95rem' }}>You matched all pairs correctly!</p>
+                        <h4 className="duo-banner-title-correct">🎉 Excellent Match!</h4>
+                        <p style={{ margin: '4px 0 0', fontSize: '1rem', fontWeight: '600' }}>You matched all pairs correctly.</p>
                       </div>
-                      <button type="button" className="primary-btn" onClick={handleNext}>
-                        Continue
-                      </button>
+                      <button type="button" className="duo-check-btn" onClick={handleNext}>Continue</button>
                     </div>
                   )}
                 </div>
@@ -2458,20 +2459,16 @@ function App() {
                   }}>
                     {options.map((option, oIdx) => {
                       const selected = lessonImageChoiceSel === oIdx;
-                      let btnBorder = '2px solid var(--line)';
-                      let btnBg = 'var(--panel)';
+                      let extraClass = "";
 
                       if (isChecked) {
                         if (oIdx === currentQuestion.correctIndex) {
-                          btnBorder = '2px solid #10b981';
-                          btnBg = 'rgba(16, 185, 129, 0.1)';
+                          extraClass = "correct";
                         } else if (selected) {
-                          btnBorder = '2px solid #ef4444';
-                          btnBg = 'rgba(239, 68, 68, 0.1)';
+                          extraClass = "incorrect";
                         }
                       } else if (selected) {
-                        btnBorder = '2px solid var(--accent)';
-                        btnBg = 'rgba(var(--accent-rgb), 0.1)';
+                        extraClass = "selected";
                       }
 
                       return (
@@ -2480,18 +2477,12 @@ function App() {
                           type="button"
                           onClick={() => { if (!isChecked) setLessonImageChoiceSel(oIdx); }}
                           disabled={isChecked}
+                          className={`duo-option-btn ${extraClass}`}
                           style={{
-                            width: '120px',
-                            height: '120px',
-                            borderRadius: '24px',
-                            border: btnBorder,
-                            background: btnBg,
-                            fontSize: '3.5rem',
-                            cursor: isChecked ? 'default' : 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            transition: 'all 0.2s ease'
+                            width: '130px',
+                            height: '130px',
+                            fontSize: '4.5rem',
+                            padding: '10px'
                           }}
                         >
                           {option}
@@ -2499,13 +2490,11 @@ function App() {
                       );
                     })}
                   </div>
-
                   {!isChecked && (
                     <div style={{ display: 'flex', justifyContent: 'center' }}>
                       <button
                         type="button"
-                        className="primary-btn"
-                        style={{ padding: '12px 40px', borderRadius: '12px' }}
+                        className="duo-check-btn"
                         onClick={() => {
                           const correct = lessonImageChoiceSel === currentQuestion.correctIndex;
                           setLessonImageChoiceFeedback({ isCorrect: correct });
@@ -2520,28 +2509,16 @@ function App() {
                   )}
 
                   {isChecked && (
-                    <div style={{
-                      position: 'absolute',
-                      bottom: 0, left: 0, right: 0,
-                      background: lessonImageChoiceFeedback.isCorrect ? '#d1fae5' : '#fee2e2',
-                      borderTop: `2px solid ${lessonImageChoiceFeedback.isCorrect ? '#10b981' : '#ef4444'}`,
-                      padding: '20px 40px',
-                      zIndex: 100,
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center'
-                    }}>
+                    <div className={lessonImageChoiceFeedback.isCorrect ? "duo-banner-correct" : "duo-banner-incorrect"}>
                       <div>
-                        <h4 style={{ margin: 0, color: lessonImageChoiceFeedback.isCorrect ? '#065f46' : '#991b1b', fontWeight: '800', fontSize: '1.2rem' }}>
-                          {lessonImageChoiceFeedback.isCorrect ? "Excellent!" : "Incorrect"}
+                        <h4 className={lessonImageChoiceFeedback.isCorrect ? "duo-banner-title-correct" : "duo-banner-title-incorrect"}>
+                          {lessonImageChoiceFeedback.isCorrect ? "🎉 Excellent!" : "😢 Incorrect"}
                         </h4>
-                        <p style={{ margin: '4px 0 0', color: lessonImageChoiceFeedback.isCorrect ? '#047857' : '#b91c1c', fontSize: '0.95rem' }}>
-                          {lessonImageChoiceFeedback.isCorrect ? "You picked the right picture!" : `Correct picture: ${options[currentQuestion.correctIndex]}`}
+                        <p style={{ margin: '4px 0 0', fontSize: '1rem', fontWeight: '600' }}>
+                          {lessonImageChoiceFeedback.isCorrect ? "You picked the right picture!" : `Correct Answer: "${options[currentQuestion.correctIndex]}"`}
                         </p>
                       </div>
-                      <button type="button" className="primary-btn" onClick={handleNext}>
-                        Continue
-                      </button>
+                      <button type="button" className="duo-check-btn" onClick={handleNext}>Continue</button>
                     </div>
                   )}
                 </div>
@@ -2572,29 +2549,11 @@ function App() {
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '20px', margin: '20px 0' }}>
                     <img src="/as1.png" alt="LISA Mascot" style={{ width: '80px', height: '80px', objectFit: 'contain' }} />
-                    <div style={{
-                      flexGrow: 1,
-                      background: 'var(--panel)',
-                      border: '2px solid var(--line)',
-                      borderRadius: '20px',
-                      padding: '16px 24px',
-                      position: 'relative'
-                    }}>
-                      <div style={{
-                        position: 'absolute',
-                        left: '-9px',
-                        top: '32px',
-                        width: '14px',
-                        height: '14px',
-                        background: 'var(--panel)',
-                        borderLeft: '2px solid var(--line)',
-                        borderBottom: '2px solid var(--line)',
-                        transform: 'rotate(45deg)'
-                      }}></div>
-                      <p style={{ fontSize: '0.95rem', color: 'var(--text-muted)', margin: '0 0 4px', fontWeight: '800' }}>
+                    <div className="duo-speech-bubble" style={{ flexGrow: 1 }}>
+                      <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '0 0 4px', fontWeight: '800' }}>
                         Write this in {learningLanguage}:
                       </p>
-                      <p style={{ fontSize: '1.3rem', fontWeight: '800', margin: 0 }}>
+                      <p style={{ fontSize: '1.25rem', fontWeight: '800', margin: 0 }}>
                         "{tt.englishSentence}"
                       </p>
                     </div>
@@ -2615,18 +2574,10 @@ function App() {
                       <button
                         key={'sel_' + wIdx}
                         type="button"
-                        style={{
-                          background: 'var(--accent)',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '10px',
-                          padding: '10px 16px',
-                          fontSize: '1.1rem',
-                          fontWeight: '700',
-                          cursor: isChecked ? 'default' : 'pointer'
-                        }}
+                        className="duo-word-tile"
                         disabled={isChecked}
                         onClick={() => {
+                          speakText(word);
                           setLessonTranslationSelected(prev => prev.filter((_, idx) => idx !== wIdx));
                         }}
                       >
@@ -2649,19 +2600,10 @@ function App() {
                         <button
                           key={'tile_' + wIdx}
                           type="button"
-                          style={{
-                            background: isUsed ? 'var(--line)' : 'var(--panel)',
-                            color: isUsed ? 'transparent' : 'var(--text)',
-                            border: '2px solid var(--line)',
-                            borderRadius: '10px',
-                            padding: '10px 16px',
-                            fontSize: '1.1rem',
-                            fontWeight: '700',
-                            cursor: isUsed ? 'default' : 'pointer',
-                            opacity: isUsed ? 0.35 : 1
-                          }}
+                          className={`duo-word-tile ${isUsed ? 'used' : ''}`}
                           disabled={isChecked || isUsed}
                           onClick={() => {
+                            speakText(word);
                             setLessonTranslationSelected(prev => [...prev, word]);
                           }}
                         >
@@ -2675,8 +2617,7 @@ function App() {
                     <div style={{ display: 'flex', justifyContent: 'center' }}>
                       <button
                         type="button"
-                        className="primary-btn"
-                        style={{ padding: '12px 40px', borderRadius: '12px' }}
+                        className="duo-check-btn"
                         disabled={lessonTranslationSelected.length === 0}
                         onClick={() => {
                           const clean = s => s.replace(/[.,\/#!$%\^&\*;:{}=\-_`()?]/g, "").toLowerCase().trim();
@@ -2703,30 +2644,18 @@ function App() {
                   )}
 
                   {isChecked && (
-                    <div style={{
-                      position: 'absolute',
-                      bottom: 0, left: 0, right: 0,
-                      background: lessonTranslationFeedback.isCorrect ? '#d1fae5' : '#fee2e2',
-                      borderTop: `2px solid ${lessonTranslationFeedback.isCorrect ? '#10b981' : '#ef4444'}`,
-                      padding: '20px 40px',
-                      zIndex: 100,
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center'
-                    }}>
+                    <div className={lessonTranslationFeedback.isCorrect ? "duo-banner-correct" : "duo-banner-incorrect"}>
                       <div>
-                        <h4 style={{ margin: 0, color: lessonTranslationFeedback.isCorrect ? '#065f46' : '#991b1b', fontWeight: '800', fontSize: '1.2rem' }}>
-                          {lessonTranslationFeedback.isCorrect ? "Excellent!" : "Incorrect"}
+                        <h4 className={lessonTranslationFeedback.isCorrect ? "duo-banner-title-correct" : "duo-banner-title-incorrect"}>
+                          {lessonTranslationFeedback.isCorrect ? "🎉 Excellent!" : "😢 Incorrect"}
                         </h4>
                         {!lessonTranslationFeedback.isCorrect && (
-                          <p style={{ margin: '4px 0 0', color: '#b91c1c', fontSize: '0.95rem' }}>
+                          <p style={{ margin: '4px 0 0', fontSize: '1rem', fontWeight: '600' }}>
                             Correct Answer: "{lessonTranslationFeedback.correctSentence}"
                           </p>
                         )}
                       </div>
-                      <button type="button" className="primary-btn" onClick={handleNext}>
-                        Continue
-                      </button>
+                      <button type="button" className="duo-check-btn" onClick={handleNext}>Continue</button>
                     </div>
                   )}
                 </div>
@@ -2756,25 +2685,7 @@ function App() {
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '20px', margin: '20px 0' }}>
                     <img src="/as1.png" alt="LISA Mascot" style={{ width: '80px', height: '80px', objectFit: 'contain' }} />
-                    <div style={{
-                      flexGrow: 1,
-                      background: 'var(--panel)',
-                      border: '2px solid var(--line)',
-                      borderRadius: '20px',
-                      padding: '16px 24px',
-                      position: 'relative'
-                    }}>
-                      <div style={{
-                        position: 'absolute',
-                        left: '-9px',
-                        top: '32px',
-                        width: '14px',
-                        height: '14px',
-                        background: 'var(--panel)',
-                        borderLeft: '2px solid var(--line)',
-                        borderBottom: '2px solid var(--line)',
-                        transform: 'rotate(45deg)'
-                      }}></div>
+                    <div className="duo-speech-bubble" style={{ flexGrow: 1 }}>
                       <p style={{ fontSize: '1.25rem', fontWeight: '800', margin: 0 }}>{tt.prompt}</p>
                     </div>
                   </div>
@@ -2794,23 +2705,12 @@ function App() {
                       <button
                         key={'sel_' + wIdx}
                         type="button"
-                        style={{
-                          background: 'var(--accent)',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '10px',
-                          padding: '10px 16px',
-                          fontSize: '1.1rem',
-                          fontWeight: '700',
-                          cursor: 'pointer',
-                          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                        }}
-                        onClick={() => {
-                          if (!isChecked) {
-                            setLessonTranslationSelected(prev => prev.filter((_, idx) => idx !== wIdx));
-                          }
-                        }}
+                        className="duo-word-tile"
                         disabled={isChecked}
+                        onClick={() => {
+                          speakText(word);
+                          setLessonTranslationSelected(prev => prev.filter((_, idx) => idx !== wIdx));
+                        }}
                       >
                         {word}
                       </button>
@@ -2820,37 +2720,21 @@ function App() {
                     )}
                   </div>
 
-                  <div style={{
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    gap: '10px',
-                    justifyContent: 'center',
-                    margin: '20px 0 30px'
-                  }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'center', margin: '10px 0 30px' }}>
                     {shuffledTiles.map((word, wIdx) => {
-                      const isUsed = lessonTranslationSelected.includes(word);
+                      const countSelected = lessonTranslationSelected.filter(w => w === word).length;
+                      const countTotal = shuffledTiles.filter(w => w === word).length;
+                      const isUsed = countSelected >= countTotal;
                       return (
                         <button
                           key={'tile_' + wIdx}
                           type="button"
-                          style={{
-                            background: isUsed ? 'var(--line)' : 'var(--panel)',
-                            color: isUsed ? 'transparent' : 'var(--text)',
-                            border: '2px solid var(--line)',
-                            borderRadius: '10px',
-                            padding: '10px 16px',
-                            fontSize: '1.1rem',
-                            fontWeight: '700',
-                            cursor: isUsed ? 'default' : 'pointer',
-                            boxShadow: isUsed ? 'none' : '0 2px 4px rgba(0,0,0,0.05)',
-                            opacity: isUsed ? 0.3 : 1
-                          }}
-                          onClick={() => {
-                            if (!isChecked && !isUsed) {
-                              setLessonTranslationSelected(prev => [...prev, word]);
-                            }
-                          }}
+                          className={`duo-word-tile ${isUsed ? 'used' : ''}`}
                           disabled={isChecked || isUsed}
+                          onClick={() => {
+                            speakText(word);
+                            setLessonTranslationSelected(prev => [...prev, word]);
+                          }}
                         >
                           {word}
                         </button>
@@ -2862,21 +2746,28 @@ function App() {
                     <div style={{ display: 'flex', justifyContent: 'center' }}>
                       <button
                         type="button"
-                        className="primary-btn"
-                        style={{ padding: '12px 40px', borderRadius: '12px' }}
+                        className="duo-check-btn"
+                        disabled={lessonTranslationSelected.length === 0}
                         onClick={() => {
                           const userSentence = lessonTranslationSelected.join(" ").trim().toLowerCase();
-                          const clean = (s) => s.replace(/[.,\/#!$%\^&\*;:{}=\-_\u0060()?]/g, "").toLowerCase().trim();
+                          const clean = (s) => s.replace(/[.,\/#!$%\^&\*;:{}=\-_`()?]/g, "").toLowerCase().trim();
                           const correct = clean(userSentence) === clean(tt.englishTranslation || tt.answer || "");
-
+                          if (!correct) {
+                            recordUserMistake({
+                              type: "translationTask",
+                              prompt: tt.prompt,
+                              englishSentence: tt.englishSentence,
+                              targetSentence: tt.englishTranslation || tt.answer,
+                              tiles: tt.tiles
+                            });
+                          }
                           setLessonTranslationFeedback({
                             isCorrect: correct,
-                            correctAnswer: tt.englishTranslation || tt.answer || ""
+                            correctSentence: tt.englishTranslation || tt.answer
                           });
                           if (correct) recordDailyCorrect();
                           recordLessonAnswer(correct);
                         }}
-                        disabled={lessonTranslationSelected.length === 0}
                       >
                         Check Answer
                       </button>
@@ -2884,28 +2775,18 @@ function App() {
                   )}
 
                   {isChecked && (
-                    <div style={{
-                      position: 'absolute',
-                      bottom: 0, left: 0, right: 0,
-                      background: lessonTranslationFeedback.isCorrect ? '#d1fae5' : '#fee2e2',
-                      borderTop: `2px solid ${lessonTranslationFeedback.isCorrect ? '#10b981' : '#ef4444'}`,
-                      padding: '20px 40px',
-                      zIndex: 100,
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center'
-                    }}>
+                    <div className={lessonTranslationFeedback.isCorrect ? "duo-banner-correct" : "duo-banner-incorrect"}>
                       <div>
-                        <h4 style={{ margin: 0, color: lessonTranslationFeedback.isCorrect ? '#065f46' : '#991b1b', fontWeight: '800', fontSize: '1.2rem' }}>
-                          {lessonTranslationFeedback.isCorrect ? "Excellent!" : "Incorrect"}
+                        <h4 className={lessonTranslationFeedback.isCorrect ? "duo-banner-title-correct" : "duo-banner-title-incorrect"}>
+                          {lessonTranslationFeedback.isCorrect ? "🎉 Excellent!" : "😢 Incorrect"}
                         </h4>
-                        <p style={{ margin: '4px 0 0', color: lessonTranslationFeedback.isCorrect ? '#047857' : '#b91c1c', fontSize: '0.95rem' }}>
-                          {lessonTranslationFeedback.isCorrect ? "Beautiful translation!" : `Correct Translation: "${lessonTranslationFeedback.correctAnswer}"`}
-                        </p>
+                        {!lessonTranslationFeedback.isCorrect && (
+                          <p style={{ margin: '4px 0 0', fontSize: '1rem', fontWeight: '600' }}>
+                            Correct Answer: "{lessonTranslationFeedback.correctSentence}"
+                          </p>
+                        )}
                       </div>
-                      <button type="button" className="primary-btn" onClick={handleNext}>
-                        Continue
-                      </button>
+                      <button type="button" className="duo-check-btn" onClick={handleNext}>Continue</button>
                     </div>
                   )}
                 </div>
@@ -3279,11 +3160,12 @@ function App() {
                   <div style={{
                     background: 'var(--panel)',
                     border: '2px solid var(--line)',
-                    borderRadius: '20px',
+                    borderRadius: '24px',
                     padding: '24px',
-                    fontSize: '1.3rem',
+                    fontSize: '1.35rem',
                     fontWeight: '800',
-                    textAlign: 'center'
+                    textAlign: 'center',
+                    boxShadow: '0 4px 10px rgba(0,0,0,0.01)'
                   }}>
                     {questionText}
                   </div>
@@ -3292,46 +3174,28 @@ function App() {
                     display: 'grid',
                     gridTemplateColumns: 'repeat(2, 1fr)',
                     gap: '16px',
-                    margin: '20px 0'
+                    margin: '25px 0'
                   }}>
                     {options.map((opt, oIdx) => {
                       const isSelected = selectedAnswer === oIdx;
-                      let btnBg = 'var(--panel)';
-                      let btnBorder = '2px solid var(--line)';
-                      let btnColor = 'var(--text)';
+                      let extraClass = "";
 
                       if (isChecked) {
                         if (oIdx === currentQuestion.correctIndex) {
-                          btnBg = 'rgba(16, 185, 129, 0.1)';
-                          btnBorder = '2px solid #10b981';
-                          btnColor = '#065f46';
+                          extraClass = "correct";
                         } else if (isSelected) {
-                          btnBg = 'rgba(239, 68, 68, 0.1)';
-                          btnBorder = '2px solid #ef4444';
-                          btnColor = '#991b1b';
+                          extraClass = "incorrect";
                         }
                       } else if (isSelected) {
-                        btnBorder = '2px solid var(--accent)';
-                        btnColor = 'var(--accent-dark)';
+                        extraClass = "selected";
                       }
 
                       return (
                         <button
                           key={oIdx}
                           type="button"
-                          onClick={() => { if (!isChecked) setLessonMeaningAnswer(oIdx); }}
-                          style={{
-                            background: btnBg,
-                            border: btnBorder,
-                            color: btnColor,
-                            borderRadius: '16px',
-                            padding: '20px',
-                            fontSize: '1.1rem',
-                            fontWeight: '600',
-                            cursor: isChecked ? 'default' : 'pointer',
-                            textAlign: 'center',
-                            transition: 'all 0.2s ease'
-                          }}
+                          onClick={() => { speakText(opt); if (!isChecked) setLessonMeaningAnswer(oIdx); }}
+                          className={`duo-option-btn ${extraClass}`}
                           disabled={isChecked}
                         >
                           {opt}
@@ -3344,8 +3208,7 @@ function App() {
                     <div style={{ display: 'flex', justifyContent: 'center' }}>
                       <button
                         type="button"
-                        className="primary-btn"
-                        style={{ padding: '12px 40px', borderRadius: '12px' }}
+                        className="duo-check-btn"
                         disabled={selectedAnswer === null}
                         onClick={() => {
                           const correct = selectedAnswer === currentQuestion.correctIndex;
@@ -3372,28 +3235,16 @@ function App() {
                   )}
 
                   {isChecked && (
-                    <div style={{
-                      position: 'absolute',
-                      bottom: 0, left: 0, right: 0,
-                      background: lessonMeaningFeedback.isCorrect ? '#d1fae5' : '#fee2e2',
-                      borderTop: `2px solid ${lessonMeaningFeedback.isCorrect ? '#10b981' : '#ef4444'}`,
-                      padding: '20px 40px',
-                      zIndex: 100,
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center'
-                    }}>
+                    <div className={lessonMeaningFeedback.isCorrect ? "duo-banner-correct" : "duo-banner-incorrect"}>
                       <div>
-                        <h4 style={{ margin: 0, color: lessonMeaningFeedback.isCorrect ? '#065f46' : '#991b1b', fontWeight: '800', fontSize: '1.2rem' }}>
-                          {lessonMeaningFeedback.isCorrect ? "Excellent!" : "Incorrect"}
+                        <h4 className={lessonMeaningFeedback.isCorrect ? "duo-banner-title-correct" : "duo-banner-title-incorrect"}>
+                          {lessonMeaningFeedback.isCorrect ? "🎉 Excellent!" : "😢 Incorrect"}
                         </h4>
-                        <p style={{ margin: '4px 0 0', color: lessonMeaningFeedback.isCorrect ? '#047857' : '#b91c1c', fontSize: '0.95rem' }}>
-                          {lessonMeaningFeedback.isCorrect ? "You got it right!" : `Correct Answer: "${lessonMeaningFeedback.correctAnswer}"`}
+                        <p style={{ margin: '4px 0 0', fontSize: '1rem', fontWeight: '600' }}>
+                          {currentQuestion.explanation || `Correct Answer: "${options[currentQuestion.correctIndex]}"`}
                         </p>
                       </div>
-                      <button type="button" className="primary-btn" onClick={handleNext}>
-                        Continue
-                      </button>
+                      <button type="button" className="duo-check-btn" onClick={handleNext}>Continue</button>
                     </div>
                   )}
                 </div>
@@ -3444,24 +3295,26 @@ function App() {
                     <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', margin: '20px 0' }}>
                       {currentQuestion.options.map((opt, oIdx) => {
                         const isSelected = userAnswer.toLowerCase() === opt.toLowerCase();
-                        let border = isSelected ? '2px solid var(--accent)' : '2px solid var(--line)';
-                        let bg = isSelected ? 'rgba(var(--accent-rgb),0.05)' : 'var(--panel)';
+                        let extraClass = "";
+                        if (isChecked) {
+                          if (opt.toLowerCase() === answer.toLowerCase()) {
+                            extraClass = "correct";
+                          } else if (isSelected) {
+                            extraClass = "incorrect";
+                          }
+                        } else if (isSelected) {
+                          extraClass = "selected";
+                        }
                         return (
                           <button
                             key={oIdx}
                             type="button"
-                            onClick={() => { if (!isChecked) setLessonFillAnswers(prev => ({ ...prev, [lessonStep]: opt })); }}
-                            disabled={isChecked}
-                            style={{
-                              border,
-                              background: bg,
-                              borderRadius: '12px',
-                              padding: '12px 24px',
-                              fontSize: '1.1rem',
-                              fontWeight: '600',
-                              cursor: isChecked ? 'default' : 'pointer',
-                              color: 'var(--text)'
+                            className={`duo-word-tile ${extraClass}`}
+                            onClick={() => {
+                              speakText(opt);
+                              if (!isChecked) setLessonFillAnswers(prev => ({ ...prev, [lessonStep]: opt }));
                             }}
+                            disabled={isChecked}
                           >
                             {opt}
                           </button>
@@ -3611,11 +3464,14 @@ function App() {
               const handleTileClick = (idx) => {
                 if (isChecked) return;
                 if (lessonUnscrambleSelected.includes(idx)) return;
+                speakText(tiles[idx]);
                 setLessonUnscrambleSelected(prev => [...prev, idx]);
               };
 
               const handleRemoveClick = (sIdx) => {
                 if (isChecked) return;
+                const targetIdx = lessonUnscrambleSelected[sIdx];
+                if (targetIdx !== undefined) speakText(tiles[targetIdx]);
                 setLessonUnscrambleSelected(prev => prev.filter((_, idx) => idx !== sIdx));
               };
 
@@ -4241,46 +4097,28 @@ function App() {
                     display: 'grid',
                     gridTemplateColumns: 'repeat(2, 1fr)',
                     gap: '16px',
-                    margin: '20px 0'
+                    margin: '25px 0'
                   }}>
                     {options.map((opt, oIdx) => {
                       const isSelected = selectedAnswer === oIdx;
-                      let btnBg = 'var(--panel)';
-                      let btnBorder = '2px solid var(--line)';
-                      let btnColor = 'var(--text)';
+                      let extraClass = "";
 
                       if (isChecked) {
                         if (oIdx === currentQuestion.correctIndex) {
-                          btnBg = 'rgba(16, 185, 129, 0.1)';
-                          btnBorder = '2px solid #10b981';
-                          btnColor = '#065f46';
+                          extraClass = "correct";
                         } else if (isSelected) {
-                          btnBg = 'rgba(239, 68, 68, 0.1)';
-                          btnBorder = '2px solid #ef4444';
-                          btnColor = '#991b1b';
+                          extraClass = "incorrect";
                         }
                       } else if (isSelected) {
-                        btnBorder = '2px solid var(--accent)';
-                        btnColor = 'var(--accent-dark)';
+                        extraClass = "selected";
                       }
 
                       return (
                         <button
                           key={oIdx}
                           type="button"
-                          onClick={() => { if (!isChecked) setLessonMeaningAnswer(oIdx); }}
-                          style={{
-                            background: btnBg,
-                            border: btnBorder,
-                            color: btnColor,
-                            borderRadius: '16px',
-                            padding: '20px',
-                            fontSize: '1.1rem',
-                            fontWeight: '600',
-                            cursor: isChecked ? 'default' : 'pointer',
-                            textAlign: 'center',
-                            transition: 'all 0.2s ease'
-                          }}
+                          onClick={() => { speakText(opt); if (!isChecked) setLessonMeaningAnswer(oIdx); }}
+                          className={`duo-option-btn ${extraClass}`}
                           disabled={isChecked}
                         >
                           {opt}
@@ -4349,7 +4187,6 @@ function App() {
               );
             }
 
-            // chatComplete — Complete the conversation by choosing the best response
             if (currentQuestion.type === "chatComplete") {
               const scenario = currentQuestion.scenario || "";
               const questionText = currentQuestion.question || "Choose the best response:";
@@ -4357,7 +4194,7 @@ function App() {
               const selectedAnswer = lessonMeaningAnswer;
               const isChecked = lessonMeaningFeedback !== null;
 
-              const lines = scenario.split("\n").map(l => l.trim()).filter(Boolean);
+              const lines_chat = scenario.split("\n").map(l => l.trim()).filter(Boolean);
 
               return (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '120px' }}>
@@ -4374,7 +4211,7 @@ function App() {
                     flexDirection: 'column',
                     gap: '12px'
                   }}>
-                    {lines.map((line, lIdx) => {
+                    {lines_chat.map((line, lIdx) => {
                       const match = line.match(/^([^:]+):\s*(.*)$/);
                       if (match) {
                         const speaker = match[1].trim();
@@ -4386,16 +4223,21 @@ function App() {
                             justifyContent: isUser ? 'flex-end' : 'flex-start',
                             width: '100%'
                           }}>
-                            <div style={{
-                              background: isUser ? 'rgba(var(--accent-rgb),0.1)' : 'var(--bg)',
-                              border: `2px solid ${isUser ? 'var(--accent)' : 'var(--line)'}`,
-                              borderRadius: '18px',
-                              padding: '12px 18px',
-                              maxWidth: '75%',
-                              position: 'relative'
-                            }}>
+                            <div 
+                              onClick={() => speakText(text)}
+                              title="Click to speak"
+                              style={{
+                                background: isUser ? 'rgba(var(--accent-rgb),0.1)' : 'var(--bg)',
+                                border: `2px solid ${isUser ? 'var(--accent)' : 'var(--line)'}`,
+                                borderRadius: '18px',
+                                padding: '12px 18px',
+                                maxWidth: '75%',
+                                position: 'relative',
+                                cursor: 'pointer'
+                              }}
+                            >
                               <span style={{ fontSize: '0.85rem', fontWeight: '800', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>
-                                {speaker.toUpperCase() === 'A' ? 'Anna' : speaker.toUpperCase() === 'B' ? 'You' : speaker}
+                                {speaker.toUpperCase() === 'A' ? 'Anna' : speaker.toUpperCase() === 'B' ? 'You' : speaker} 🔊
                               </span>
                               <span style={{ fontSize: '1.1rem', fontWeight: '600' }}>
                                 {text}
@@ -4405,8 +4247,12 @@ function App() {
                         );
                       }
                       return (
-                        <div key={lIdx} style={{ fontSize: '1.1rem', fontWeight: '600', fontStyle: 'italic', textAlign: 'center', color: 'var(--text-muted)' }}>
-                          {line}
+                        <div 
+                          key={lIdx} 
+                          onClick={() => speakText(line)}
+                          style={{ fontSize: '1.1rem', fontWeight: '600', fontStyle: 'italic', textAlign: 'center', color: 'var(--text-muted)', cursor: 'pointer' }}
+                        >
+                          🔊 {line}
                         </div>
                       );
                     })}
@@ -4415,11 +4261,12 @@ function App() {
                   <div style={{
                     background: 'rgba(2, 132, 199, 0.05)',
                     border: '2px solid rgba(2, 132, 199, 0.2)',
-                    borderRadius: '20px',
-                    padding: '20px',
-                    fontSize: '1.2rem',
+                    borderRadius: '24px',
+                    padding: '24px',
+                    fontSize: '1.3rem',
                     fontWeight: '800',
-                    textAlign: 'center'
+                    textAlign: 'center',
+                    boxShadow: '0 4px 10px rgba(0,0,0,0.01)'
                   }}>
                     {questionText}
                   </div>
@@ -4428,46 +4275,28 @@ function App() {
                     display: 'grid',
                     gridTemplateColumns: 'repeat(2, 1fr)',
                     gap: '16px',
-                    margin: '20px 0'
+                    margin: '25px 0'
                   }}>
                     {options.map((opt, oIdx) => {
                       const isSelected = selectedAnswer === oIdx;
-                      let btnBg = 'var(--panel)';
-                      let btnBorder = '2px solid var(--line)';
-                      let btnColor = 'var(--text)';
+                      let extraClass = "";
 
                       if (isChecked) {
                         if (oIdx === currentQuestion.correctIndex) {
-                          btnBg = 'rgba(16, 185, 129, 0.1)';
-                          btnBorder = '2px solid #10b981';
-                          btnColor = '#065f46';
+                          extraClass = "correct";
                         } else if (isSelected) {
-                          btnBg = 'rgba(239, 68, 68, 0.1)';
-                          btnBorder = '2px solid #ef4444';
-                          btnColor = '#991b1b';
+                          extraClass = "incorrect";
                         }
                       } else if (isSelected) {
-                        btnBorder = '2px solid var(--accent)';
-                        btnColor = 'var(--accent-dark)';
+                        extraClass = "selected";
                       }
 
                       return (
                         <button
                           key={oIdx}
                           type="button"
-                          onClick={() => { if (!isChecked) setLessonMeaningAnswer(oIdx); }}
-                          style={{
-                            background: btnBg,
-                            border: btnBorder,
-                            color: btnColor,
-                            borderRadius: '16px',
-                            padding: '20px',
-                            fontSize: '1.1rem',
-                            fontWeight: '600',
-                            cursor: isChecked ? 'default' : 'pointer',
-                            textAlign: 'center',
-                            transition: 'all 0.2s ease'
-                          }}
+                          onClick={() => { speakText(opt); if (!isChecked) setLessonMeaningAnswer(oIdx); }}
+                          className={`duo-option-btn ${extraClass}`}
                           disabled={isChecked}
                         >
                           {opt}
@@ -4480,20 +4309,10 @@ function App() {
                     <div style={{ display: 'flex', justifyContent: 'center' }}>
                       <button
                         type="button"
-                        className="primary-btn"
-                        style={{ padding: '12px 40px', borderRadius: '12px' }}
+                        className="duo-check-btn"
                         disabled={selectedAnswer === null}
                         onClick={() => {
                           const correct = selectedAnswer === currentQuestion.correctIndex;
-                          if (!correct) {
-                            recordUserMistake({
-                              type: "chatComplete",
-                              question: questionText,
-                              scenario: scenario,
-                              options: options,
-                              correctIndex: currentQuestion.correctIndex
-                            });
-                          }
                           setLessonMeaningFeedback({
                             isCorrect: correct,
                             correctAnswer: options[currentQuestion.correctIndex]
@@ -4508,28 +4327,16 @@ function App() {
                   )}
 
                   {isChecked && (
-                    <div style={{
-                      position: 'absolute',
-                      bottom: 0, left: 0, right: 0,
-                      background: lessonMeaningFeedback.isCorrect ? '#d1fae5' : '#fee2e2',
-                      borderTop: `2px solid ${lessonMeaningFeedback.isCorrect ? '#10b981' : '#ef4444'}`,
-                      padding: '20px 40px',
-                      zIndex: 100,
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center'
-                    }}>
+                    <div className={lessonMeaningFeedback.isCorrect ? "duo-banner-correct" : "duo-banner-incorrect"}>
                       <div>
-                        <h4 style={{ margin: 0, color: lessonMeaningFeedback.isCorrect ? '#065f46' : '#991b1b', fontWeight: '800', fontSize: '1.2rem' }}>
-                          {lessonMeaningFeedback.isCorrect ? "Excellent!" : "Incorrect"}
+                        <h4 className={lessonMeaningFeedback.isCorrect ? "duo-banner-title-correct" : "duo-banner-title-incorrect"}>
+                          {lessonMeaningFeedback.isCorrect ? "🎉 Excellent!" : "😢 Incorrect"}
                         </h4>
-                        <p style={{ margin: '4px 0 0', color: lessonMeaningFeedback.isCorrect ? '#047857' : '#b91c1c', fontSize: '0.95rem' }}>
-                          {lessonMeaningFeedback.isCorrect ? "Great response!" : `Correct Answer: "${lessonMeaningFeedback.correctAnswer}"`}
+                        <p style={{ margin: '4px 0 0', fontSize: '1rem', fontWeight: '600' }}>
+                          {currentQuestion.explanation || `Correct Answer: "${options[currentQuestion.correctIndex]}"`}
                         </p>
                       </div>
-                      <button type="button" className="primary-btn" onClick={handleNext}>
-                        Continue
-                      </button>
+                      <button type="button" className="duo-check-btn" onClick={handleNext}>Continue</button>
                     </div>
                   )}
                 </div>
@@ -4550,17 +4357,22 @@ function App() {
                     <span className="ai-step-badge">🌍 Real-World Scenario</span>
                   </div>
 
-                  <div style={{
-                    background: 'var(--panel)',
-                    border: '2px solid var(--line)',
-                    borderRadius: '20px',
-                    padding: '20px',
-                    fontSize: '1.1rem',
-                    fontWeight: '600',
-                    lineHeight: '1.6',
-                    whiteSpace: 'pre-wrap'
-                  }}>
-                    {scenarioText}
+                  <div 
+                    onClick={() => speakText(scenarioText)}
+                    title="Click to listen"
+                    style={{
+                      background: 'var(--panel)',
+                      border: '2px solid var(--line)',
+                      borderRadius: '20px',
+                      padding: '20px',
+                      fontSize: '1.1rem',
+                      fontWeight: '600',
+                      lineHeight: '1.6',
+                      whiteSpace: 'pre-wrap',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    🔊 {scenarioText}
                   </div>
 
                   <div style={{
@@ -4579,46 +4391,28 @@ function App() {
                     display: 'grid',
                     gridTemplateColumns: 'repeat(2, 1fr)',
                     gap: '16px',
-                    margin: '20px 0'
+                    margin: '25px 0'
                   }}>
                     {options.map((opt, oIdx) => {
                       const isSelected = selectedAnswer === oIdx;
-                      let btnBg = 'var(--panel)';
-                      let btnBorder = '2px solid var(--line)';
-                      let btnColor = 'var(--text)';
+                      let extraClass = "";
 
                       if (isChecked) {
                         if (oIdx === currentQuestion.correctIndex) {
-                          btnBg = 'rgba(16, 185, 129, 0.1)';
-                          btnBorder = '2px solid #10b981';
-                          btnColor = '#065f46';
+                          extraClass = "correct";
                         } else if (isSelected) {
-                          btnBg = 'rgba(239, 68, 68, 0.1)';
-                          btnBorder = '2px solid #ef4444';
-                          btnColor = '#991b1b';
+                          extraClass = "incorrect";
                         }
                       } else if (isSelected) {
-                        btnBorder = '2px solid var(--accent)';
-                        btnColor = 'var(--accent-dark)';
+                        extraClass = "selected";
                       }
 
                       return (
                         <button
                           key={oIdx}
                           type="button"
-                          onClick={() => { if (!isChecked) setLessonMeaningAnswer(oIdx); }}
-                          style={{
-                            background: btnBg,
-                            border: btnBorder,
-                            color: btnColor,
-                            borderRadius: '16px',
-                            padding: '20px',
-                            fontSize: '1.1rem',
-                            fontWeight: '600',
-                            cursor: isChecked ? 'default' : 'pointer',
-                            textAlign: 'center',
-                            transition: 'all 0.2s ease'
-                          }}
+                          onClick={() => { speakText(opt); if (!isChecked) setLessonMeaningAnswer(oIdx); }}
+                          className={`duo-option-btn ${extraClass}`}
                           disabled={isChecked}
                         >
                           {opt}
@@ -4822,6 +4616,7 @@ function App() {
   const startLessonSession = async (lesson, sectionInfo, unitInfo) => {
     setLessonLoading(true);
     setLessonStep(0);
+    setLessonHearts(3);
     setLessonMcqAnswers({});
     setLessonFillAnswers({});
     setLessonWritingText("");
@@ -4934,12 +4729,9 @@ function App() {
       setLessonAccuracy(accuracy);
 
       const isExam = lessonSession?.lessonId?.endsWith("l5");
-      // XP formula: base + 2 per correct answer + 5 accuracy bonus if > 80%
-      const baseXp    = isExam ? 60 : 15;
-      const bonusXp   = correctAnswered * 2;
-      const accuracyBonus = accuracy >= 80 ? 5 : 0;
-      const totalXp   = baseXp + bonusXp + accuracyBonus;
+      const totalXp = isExam ? 60 : 30;
 
+      setLessonXpEarned(totalXp);
       completeLesson(lessonSession?.lessonId, totalXp);
       setLessonSession(prev => prev ? { ...prev, status: "completed" } : null);
     }
@@ -9818,7 +9610,7 @@ style={(() => {
                       <div className="lesson-complete-stat-label">Total XP</div>
                       <div className="lesson-complete-stat-icon">⚡</div>
                       <div className="lesson-complete-stat-value">
-                        {lessonSession?.lessonId?.endsWith("l5") ? "60" : "15"}
+                        {lessonXpEarned}
                       </div>
                       <div className="lesson-complete-stat-sub">earned</div>
                     </div>

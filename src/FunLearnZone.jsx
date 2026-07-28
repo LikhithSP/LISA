@@ -1,5 +1,65 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 
+const playChime = (type) => {
+  try {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return;
+    const ctx = new AudioContextClass();
+    
+    if (type === "correct") {
+      const now = ctx.currentTime;
+      const freqs = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+      freqs.forEach((f, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(f, now + idx * 0.08);
+        gain.gain.setValueAtTime(0.12, now + idx * 0.08);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.08 + 0.35);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now + idx * 0.08);
+        osc.stop(now + idx * 0.08 + 0.4);
+      });
+    } else if (type === "incorrect") {
+      const now = ctx.currentTime;
+      const osc1 = ctx.createOscillator();
+      const osc2 = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc1.type = "sawtooth";
+      osc1.frequency.setValueAtTime(180, now);
+      osc1.frequency.linearRampToValueAtTime(110, now + 0.35);
+      osc2.type = "triangle";
+      osc2.frequency.setValueAtTime(182, now);
+      osc2.frequency.linearRampToValueAtTime(112, now + 0.35);
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.4);
+      osc1.connect(gain);
+      osc2.connect(gain);
+      gain.connect(ctx.destination);
+      osc1.start(now);
+      osc2.start(now);
+      osc1.stop(now + 0.45);
+      osc2.stop(now + 0.45);
+    } else if (type === "click") {
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(600, now);
+      gain.gain.setValueAtTime(0.05, now);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.1);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.1);
+    }
+  } catch (e) {
+    console.warn("Chime playback failed:", e);
+  }
+};
+
+
 // ─── Word Sprint Game ──────────────────────────────────────────────────────────
 // ─── Word Sprint Game ──────────────────────────────────────────────────────────
 const WORD_SPRINT_WORDS_BY_LANG = {
@@ -185,9 +245,11 @@ function WordSprintGame({ t = (key) => key, learningLanguage = "English", onXpEa
       const points = newCombo >= 3 ? 3 : newCombo >= 2 ? 2 : 1;
       setScore((s) => s + points);
       setFeedback("correct");
+      playChime("correct");
     } else {
       setCombo(0);
       setFeedback("wrong");
+      playChime("incorrect");
     }
     setInput("");
     setTimeout(() => {
@@ -213,9 +275,11 @@ function WordSprintGame({ t = (key) => key, learningLanguage = "English", onXpEa
       const points = newCombo >= 3 ? 3 : newCombo >= 2 ? 2 : 1;
       setScore((s) => s + points);
       setFeedback("correct");
+      playChime("correct");
     } else {
       setCombo(0);
       setFeedback("wrong");
+      playChime("incorrect");
     }
     setTimeout(() => {
       setFeedback(null);
@@ -546,10 +610,12 @@ function WordScrambleGame({ t = (key) => key, learningLanguage = "English", onXp
       const isCorrect = newSel.every((val, i) => val === correctTiles[i]);
       if (isCorrect) {
         setFeedback("correct");
+        playChime("correct");
         setTimeout(() => goNext(true), 700);
       } else {
         setShake(true);
         setFeedback("wrong");
+        playChime("incorrect");
         setTimeout(() => {
           setShake(false);
           loadWord(wordsRef.current, wordIdx);
@@ -769,6 +835,7 @@ function MemoryMatchGame({ t = (key) => key, learningLanguage = "English", onXpE
 
   const handleCardClick = (card) => {
     if (!canFlip) return;
+    playChime("click");
     if (flipped.includes(card.cardId)) return;
     if (matched.includes(card.id)) return;
     const newFlipped = [...flipped, card.cardId];
@@ -783,7 +850,9 @@ function MemoryMatchGame({ t = (key) => key, learningLanguage = "English", onXpE
         setMatched((m) => [...m, c1.id]);
         setFlipped([]);
         setCanFlip(true);
+        playChime("correct");
       } else {
+        playChime("incorrect");
         setTimeout(() => {
           setFlipped([]);
           setCanFlip(true);

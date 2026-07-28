@@ -12092,3 +12092,329 @@ select:focus {
   from { transform: scale(0.95); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
 }
+/* ==========================================================================
+   Duolingo UI System for Lesson Questions
+   ========================================================================== */
+
+.duo-option-btn {
+  background: var(--panel) !important;
+  border: 2px solid var(--line) !important;
+  border-bottom: 5px solid var(--line) !important;
+  border-radius: 16px !important;
+  padding: 16px 20px !important;
+  font-size: 1.15rem !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  transition: all 0.1s ease !important;
+  color: var(--text) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  outline: none !important;
+}
+
+.duo-option-btn:hover:not(:disabled) {
+  background: rgba(var(--accent-rgb), 0.03) !important;
+  border-color: var(--accent) !important;
+  border-bottom-color: var(--accent) !important;
+}
+
+.duo-option-btn:active:not(:disabled) {
+  border-bottom: 2px solid var(--line) !important;
+  transform: translateY(3px) !important;
+}
+
+.duo-option-btn.selected {
+  background: rgba(56, 189, 248, 0.08) !important;
+  border-color: #38bdf8 !important;
+  border-bottom-color: #0284c7 !important;
+  color: #0284c7 !important;
+}
+
+.duo-option-btn.correct {
+  background: #d7ffb8 !important;
+  border-color: #58a700 !important;
+  border-bottom-color: #3b7000 !important;
+  color: #3b7000 !important;
+}
+
+.duo-option-btn.incorrect {
+  background: #ffd3d3 !important;
+  border-color: #ea2b2b !important;
+  border-bottom-color: #b91c1c !important;
+  color: #b91c1c !important;
+}
+
+/* Word tiles */
+.duo-word-tile {
+  background: var(--panel) !important;
+  border: 2px solid var(--line) !important;
+  border-bottom: 4px solid var(--line) !important;
+  border-radius: 12px !important;
+  padding: 10px 18px !important;
+  font-size: 1.1rem !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  color: var(--text) !important;
+  transition: all 0.05s ease !important;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02) !important;
+  outline: none !important;
+  display: inline-block !important;
+}
+
+.duo-word-tile:hover:not(:disabled) {
+  background: rgba(var(--accent-rgb), 0.02) !important;
+}
+
+.duo-word-tile:active:not(:disabled) {
+  border-bottom: 2px solid var(--line) !important;
+  transform: translateY(2px) !important;
+}
+
+.duo-word-tile.used {
+  background: #e5e5e5 !important;
+  border-color: #e5e5e5 !important;
+  border-bottom-color: #e5e5e5 !important;
+  color: transparent !important;
+  cursor: default !important;
+  pointer-events: none !important;
+  opacity: 0.35 !important;
+  box-shadow: none !important;
+}
+
+/* Primary actions buttons */
+.duo-check-btn {
+  background: #58cc02 !important;
+  border: none !important;
+  border-bottom: 4px solid #58a700 !important;
+  color: white !important;
+  border-radius: 16px !important;
+  padding: 14px 44px !important;
+  font-size: 1.1rem !important;
+  font-weight: 800 !important;
+  cursor: pointer !important;
+  transition: all 0.1s ease !important;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.8px !important;
+  outline: none !important;
+}
+
+.duo-check-btn:hover:not(:disabled) {
+  background: #61e002 !important;
+}
+
+.duo-check-btn:active:not(:disabled) {
+  border-bottom: 1px solid transparent !important;
+  transform: translateY(3px) !important;
+}
+
+.duo-check-btn:disabled {
+  background: #e5e5e5 !important;
+  border-bottom: 4px solid #cccccc !important;
+  color: #afafaf !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+}
+
+/* Secondary listening buttons */
+.duo-listen-btn {
+  background: #38bdf8 !important;
+  border: none !important;
+  border-bottom: 4px solid #0284c7 !important;
+  color: white !important;
+  border-radius: 16px !important;
+  padding: 10px 20px !important;
+  font-weight: 800 !important;
+  cursor: pointer !important;
+  font-size: 1rem !important;
+  transition: all 0.1s ease !important;
+}
+.duo-listen-btn:hover {
+  background: #56c8ff !important;
+}
+.duo-listen-btn:active {
+  border-bottom: 1px solid transparent !important;
+  transform: translateY(3px) !important;
+}
+
+/* Bubbles & mascot layouts */
+.duo-speech-bubble {
+  background: var(--panel) !important;
+  border: 2px solid var(--line) !important;
+  border-radius: 20px !important;
+  padding: 18px 24px !important;
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+  line-height: 1.5 !important;
+  color: var(--text) !important;
+  position: relative !important;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.01) !important;
+}
+
+.duo-speech-bubble::before {
+  content: '' !important;
+  position: absolute !important;
+  left: -9px !important;
+  top: 28px !important;
+  width: 14px !important;
+  height: 14px !important;
+  background: var(--panel) !important;
+  border-left: 2px solid var(--line) !important;
+  border-bottom: 2px solid var(--line) !important;
+  transform: rotate(45deg) !important;
+}
+
+/* Bottom Banners */
+.duo-banner-correct {
+  position: absolute !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  background: #d7ffb8 !important;
+  border-top: 2px solid #58a700 !important;
+  padding: 24px 40px !important;
+  z-index: 100 !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+}
+
+.duo-banner-incorrect {
+  position: absolute !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  background: #ffd3d3 !important;
+  border-top: 2px solid #ea2b2b !important;
+  padding: 24px 40px !important;
+  z-index: 100 !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+}
+
+.duo-banner-title-correct {
+  margin: 0 !important;
+  color: #3b7000 !important;
+  font-weight: 900 !important;
+  font-size: 1.4rem !important;
+}
+
+.duo-banner-title-incorrect {
+  margin: 0 !important;
+  color: #b91c1c !important;
+  font-weight: 900 !important;
+  font-size: 1.4rem !important;
+}
+
+
+/* ─── Duolingo Hero Page Styles ─────────────────────────── */
+.duo-hero-navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 40px;
+  background: var(--bg);
+  border-bottom: 2px solid var(--line);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.duo-hero-logo {
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: #58cc02;
+  text-shadow: 0 2px 0 rgba(0,0,0,0.05);
+  cursor: pointer;
+  letter-spacing: -1px;
+}
+
+.duo-hero-container {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 40px;
+  max-width: 1080px;
+  margin: 60px auto;
+  padding: 0 40px;
+  align-items: center;
+  min-height: 60vh;
+}
+
+.duo-hero-left {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.duo-hero-mascot {
+  width: 320px;
+  height: 320px;
+  object-fit: contain;
+  animation: floatMascot 4s ease-in-out infinite;
+}
+
+@keyframes floatMascot {
+  0% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-15px) rotate(2deg); }
+  100% { transform: translateY(0px) rotate(0deg); }
+}
+
+.duo-hero-right {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  justify-content: center;
+}
+
+.duo-hero-title {
+  font-size: 2.2rem;
+  font-weight: 800;
+  line-height: 1.25;
+  color: var(--text);
+  margin: 0;
+}
+
+.duo-hero-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 340px;
+}
+
+.duo-hero-footer {
+  border-top: 2px solid var(--line);
+  padding: 24px 20px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-top: 40px;
+}
+
+.duo-flag-row {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 10px;
+  font-size: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .duo-hero-container {
+    grid-template-columns: 1fr;
+    text-align: center;
+    margin: 30px auto;
+    gap: 30px;
+  }
+  .duo-hero-right {
+    align-items: center;
+  }
+  .duo-hero-mascot {
+    width: 200px;
+    height: 200px;
+  }
+}
