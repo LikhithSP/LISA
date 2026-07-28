@@ -16,6 +16,7 @@ import FunLearnZone from "./FunLearnZone";
 import XPShop, { applyTheme, applyFont, SHOP_CATALOG } from "./XPShop";
 import WeeklyLeaderboard from "./WeeklyLeaderboard";
 import AnalyticsReport from "./AnalyticsReport";
+import AdminDashboard from "./AdminDashboard";
 
 const languages = ["English", "Hindi", "Kannada", "Telugu", "Tamil"];
 const educationLevels = ["No Formal Education", "Primary", "Middle School", "Secondary & Above"];
@@ -900,6 +901,7 @@ function App() {
     const initDaily = async () => {
       let dbDailyXp = 0, dbDailyTime = 0, dbDailyLessons = 0, dbDailyCorrect = 0;
       let dbWeeklyXp = null;
+      let dbWeeklyStart = null;
       try {
         const { data } = await supabase.from("profiles").select("daily_xp,daily_time_spent,daily_lessons,daily_correct_answers,daily_quest_date,weekly_xp,weekly_start").eq("id", userId).single();
         if (data) {
@@ -912,6 +914,7 @@ function App() {
           }
           // Seed the local weekly accumulator from the DB if we have no local value yet this week
           dbWeeklyXp = data.weekly_xp || 0;
+          dbWeeklyStart = data.weekly_start;
         }
       } catch { }
 
@@ -932,7 +935,6 @@ function App() {
 
       // Initialize weekly XP from DB only
       const weekStart = getWeekStartDate();
-      const dbWeeklyStart = data?.weekly_start;
 
       if (dbWeeklyStart === weekStart) {
         setWeeklyXp(dbWeeklyXp || 0);
@@ -5028,6 +5030,17 @@ function App() {
     }
   }, [session, selectedLanguage, recoveryMode, activeTab, assessmentState, lessonSession, dashboardTab]);
 
+  // Protect admin tab and redirect on login
+  useEffect(() => {
+    if (session?.user?.email === "admin@gmail.com") {
+      if (dashboardTab !== "admin") {
+        setDashboardTab("admin");
+      }
+    } else if (dashboardTab === "admin") {
+      setDashboardTab("dashboard");
+    }
+  }, [dashboardTab, session]);
+
   // Auto-play the dictation sentence when the writing section is opened
   useEffect(() => {
     if (assessmentState !== "answering") return;
@@ -6480,7 +6493,7 @@ function App() {
       }
     };
 
-    if (!hasDiagnosed || assessmentState !== "not_started") {
+    if (session?.user?.email !== "admin@gmail.com" && (!hasDiagnosed || assessmentState !== "not_started")) {
       return (
         <div className="dashboard-container">
           {/* Navigation Top Bar Header */}
@@ -7160,7 +7173,12 @@ function App() {
         {/* Topbar with embedded sidebar navigation */}
         <div className="dashboard-topbar">
           <div className="topbar-left">
-            <div className="topbar-indicators" style={{ position: 'relative' }}>
+            {session?.user?.email === "admin@gmail.com" ? (
+              <div style={{ fontSize: '1.25rem', fontWeight: '900', color: 'var(--accent)', paddingLeft: '8px' }}>
+                🛡️ LISA System Administrator
+              </div>
+            ) : (
+              <div className="topbar-indicators" style={{ position: 'relative' }}>
               <div
                 className="indicator-pill streak"
                 onClick={() => setStreakPopupOpen(!streakPopupOpen)}
@@ -7268,98 +7286,125 @@ function App() {
 
 
             </div>
+            )}
           </div>
 
           <div className="sidebar-pill">
             <div className="sidebar-logo">LISA</div>
             <div className="sidebar-menu">
-              <button
-                type="button"
-                className={`sidebar-item ${dashboardTab === "dashboard" ? "active" : ""}`}
-                onClick={() => setDashboardTab("dashboard")}
-              >
-                <DashboardIcon style={{ marginRight: 0, width: 18, height: 18 }} /> {t("sidebarDashboard")}
-              </button>
-              <span className="sidebar-separator" aria-hidden="true" />
-              <button
-                type="button"
-                className={`sidebar-item ${dashboardTab === "learn" ? "active" : ""}`}
-                onClick={() => setDashboardTab("learn")}
-              >
-                <LearnIcon style={{ marginRight: 0, width: 18, height: 18 }} /> {t("sidebarLearn")}
-              </button>
-              <span className="sidebar-separator" aria-hidden="true" />
-              <button
-                type="button"
-                className={`sidebar-item ${dashboardTab === "practice" ? "active" : ""}`}
-                onClick={() => setDashboardTab("practice")}
-              >
-                <PracticeIcon style={{ marginRight: 0, width: 18, height: 18 }} /> {t("sidebarPractice")}
-              </button>
-              <span className="sidebar-separator" aria-hidden="true" />
-              <button
-                type="button"
-                className={`sidebar-item ${dashboardTab === "profile" ? "active" : ""}`}
-                onClick={() => setDashboardTab("profile")}
-                style={{ display: 'inline-flex', alignItems: 'center' }}
-              >
-                {(() => {
-                  const resolved = resolveProfileAvatar(profileAvatar);
-                  if (resolved?.type === "photo") {
-                    return (
-                      <img
-                        src={resolved.value}
-                        alt="Profile"
-                        style={{
-                          width: "22px",
-                          height: "22px",
-                          borderRadius: "50%",
-                          objectFit: "cover",
-                          marginRight: "6px"
-                        }}
-                      />
-                    );
-                  }
-                  if (resolved?.type === "emoji") {
-                    return <span style={{ fontSize: "1.1rem", marginRight: "6px" }}>{resolved.emoji}</span>;
-                  }
-                  if (resolved?.type === "builder") {
-                    const shape = AVATAR_SHAPE_STYLE[resolved.shape] || AVATAR_SHAPE_STYLE.circle;
-                    return (
-                      <span style={{
-                        width: "22px",
-                        height: "22px",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        background: resolved.bg,
-                        ...shape,
-                        fontSize: "1.1rem",
-                        marginRight: "6px"
-                      }}>
-                        {resolved.emoji}
-                      </span>
-                    );
-                  }
-                  return <ProfileIcon style={{ marginRight: 0, width: 18, height: 18 }} />;
-                })()}
-                {t("sidebarProfile")}
-               </button>
-
-             </div>
-            <div className="sidebar-footer">
-              <button
-                type="button"
-                className="sidebar-signout-pill"
-                onClick={() => handleSignOut()}
-              >
-                <LogoutIcon style={{ marginRight: 0, width: 16, height: 16 }} /> {t("logout")}
-              </button>
+              {session?.user?.email === "admin@gmail.com" ? (
+                <>
+                  <button
+                    type="button"
+                    className={`sidebar-item ${dashboardTab === "admin" ? "active" : ""}`}
+                    onClick={() => setDashboardTab("admin")}
+                    style={{ display: 'inline-flex', alignItems: 'center' }}
+                  >
+                    <span style={{ marginRight: '6px' }}>🔒</span> Admin Portal
+                  </button>
+                  <span className="sidebar-separator" aria-hidden="true" />
+                  <button
+                    type="button"
+                    className="sidebar-signout-pill"
+                    onClick={() => handleSignOut()}
+                    style={{ display: 'inline-flex', alignItems: 'center', marginLeft: 'auto' }}
+                  >
+                    <LogoutIcon style={{ marginRight: 0, width: 16, height: 16 }} /> {t("logout")}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    className={`sidebar-item ${dashboardTab === "dashboard" ? "active" : ""}`}
+                    onClick={() => setDashboardTab("dashboard")}
+                  >
+                    <DashboardIcon style={{ marginRight: 0, width: 18, height: 18 }} /> {t("sidebarDashboard")}
+                  </button>
+                  <span className="sidebar-separator" aria-hidden="true" />
+                  <button
+                    type="button"
+                    className={`sidebar-item ${dashboardTab === "learn" ? "active" : ""}`}
+                    onClick={() => setDashboardTab("learn")}
+                  >
+                    <LearnIcon style={{ marginRight: 0, width: 18, height: 18 }} /> {t("sidebarLearn")}
+                  </button>
+                  <span className="sidebar-separator" aria-hidden="true" />
+                  <button
+                    type="button"
+                    className={`sidebar-item ${dashboardTab === "practice" ? "active" : ""}`}
+                    onClick={() => setDashboardTab("practice")}
+                  >
+                    <PracticeIcon style={{ marginRight: 0, width: 18, height: 18 }} /> {t("sidebarPractice")}
+                  </button>
+                  <span className="sidebar-separator" aria-hidden="true" />
+                  <button
+                    type="button"
+                    className={`sidebar-item ${dashboardTab === "profile" ? "active" : ""}`}
+                    onClick={() => setDashboardTab("profile")}
+                    style={{ display: 'inline-flex', alignItems: 'center' }}
+                  >
+                    {(() => {
+                      const resolved = resolveProfileAvatar(profileAvatar);
+                      if (resolved?.type === "photo") {
+                        return (
+                          <img
+                            src={resolved.value}
+                            alt="Profile"
+                            style={{
+                              width: "22px",
+                              height: "22px",
+                              borderRadius: "50%",
+                              objectFit: "cover",
+                              marginRight: "6px"
+                            }}
+                          />
+                        );
+                      }
+                      if (resolved?.type === "emoji") {
+                        return <span style={{ fontSize: "1.1rem", marginRight: "6px" }}>{resolved.emoji}</span>;
+                      }
+                      if (resolved?.type === "builder") {
+                        const shape = AVATAR_SHAPE_STYLE[resolved.shape] || AVATAR_SHAPE_STYLE.circle;
+                        return (
+                          <span style={{
+                            width: "22px",
+                            height: "22px",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            background: resolved.bg,
+                            ...shape,
+                            fontSize: "1.1rem",
+                            marginRight: "6px"
+                          }}>
+                            {resolved.emoji}
+                          </span>
+                        );
+                      }
+                      return <ProfileIcon style={{ marginRight: 0, width: 18, height: 18 }} />;
+                    })()}
+                    {t("sidebarProfile")}
+                  </button>
+                </>
+              )}
             </div>
+            {session?.user?.email !== "admin@gmail.com" && (
+              <div className="sidebar-footer">
+                <button
+                  type="button"
+                  className="sidebar-signout-pill"
+                  onClick={() => handleSignOut()}
+                >
+                  <LogoutIcon style={{ marginRight: 0, width: 16, height: 16 }} /> {t("logout")}
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="topbar-right">
-            <div style={{ position: "relative" }}>
+            {session?.user?.email !== "admin@gmail.com" && (
+              <div style={{ position: "relative" }}>
               <button
                 type="button"
                 className="notif-bell-btn"
@@ -7421,6 +7466,7 @@ function App() {
                 </div>
               )}
             </div>
+            )}
             {renderThemeToggle()}
             {renderLanguageDropdown(true)}
           </div>
@@ -8656,6 +8702,11 @@ style={(() => {
                selectedLanguage={selectedLanguage}
                onBack={() => setDashboardTab("dashboard")}
              />
+          )}
+
+          {/* 3.7. Admin Portal Tab */}
+          {dashboardTab === "admin" && (
+            <AdminDashboard session={session} />
           )}
         </main>
 
