@@ -3830,7 +3830,7 @@ function App() {
     const profInfo = getProficiencyName(currentLevelNum, "English");
 
     let aiContent;
-    if (isPractice) {
+    if (isPracticeSession) {
       aiContent = await generatePracticeContent({
         practiceType: lesson.title,
         language: learningLanguage || "English",
