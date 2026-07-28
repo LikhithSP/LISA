@@ -1138,8 +1138,18 @@ function App() {
           .order("word"); // Ordering consistently to maintain index ordering
 
         if (fetchErr || !words || words.length === 0) {
-          console.warn("Could not fetch words from database, using fallback:", fetchErr);
-          if (active) setWordOfDay(getFallback());
+          console.warn("Could not fetch words from database, generating AI word:", fetchErr);
+          const li = profile?.literacy_level || 1;
+          const aiWord = await fetchWordOfDay(
+            learnLang,
+            {
+              level: li,
+              age: profile?.age || 20,
+              education: profile?.education_level || "No Formal Education"
+            },
+            false
+          );
+          if (active && aiWord) setWordOfDay(aiWord);
           return;
         }
 
@@ -5695,17 +5705,19 @@ function App() {
         const currentLevelForB = assessmentQuestionsList[3]?.blockLevel;
 
         if (currentLevelForB !== desiredLevelForB) {
-          const usedIds = new Set(assessmentQuestionsList.slice(0, 3).map((q) => q.id));
           const newBlockB = getQuestionsForBlock(
             profile?.age || 20,
             learningLanguage || "English",
             desiredLevelForB,
             3,
-            usedIds,
+            new Set([...assessmentQuestionsList].map((q) => q.id)),
             "B"
           );
           if (newBlockB.length === 3) {
             updatedList.splice(3, 3, ...newBlockB);
+            const clearedAnswers = { ...selectedAnswers };
+            [3, 4, 5].forEach(i => delete clearedAnswers[i]);
+            setSelectedAnswers(clearedAnswers);
             questionsChanged = true;
           }
         }
@@ -5720,18 +5732,19 @@ function App() {
         const currentLevelForC = assessmentQuestionsList[6]?.blockLevel;
 
         if (currentLevelForC !== desiredLevelForC) {
-          const usedIds = new Set(assessmentQuestionsList.slice(0, 6).map((q) => q.id));
           const newBlockC = getQuestionsForBlock(
             profile?.age || 20,
             learningLanguage || "English",
             desiredLevelForC,
             4,
-            usedIds,
+            new Set([...assessmentQuestionsList].map((q) => q.id)),
             "C"
           );
-          // updated newBlockC
           if (newBlockC.length === 4) {
             updatedList.splice(6, 4, ...newBlockC);
+            const clearedAnswers = { ...selectedAnswers };
+            [6, 7, 8, 9].forEach(i => delete clearedAnswers[i]);
+            setSelectedAnswers(clearedAnswers);
             questionsChanged = true;
           }
         }
