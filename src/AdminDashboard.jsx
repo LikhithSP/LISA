@@ -1,5 +1,20 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { supabase } from "./supabaseClient";
+import { CURRICULUM_SECTIONS, SKILL_CATEGORIES } from "./curriculumData";
+import { assessmentQuestionsByLanguage } from "./assessmentQuestionsData";
+import { 
+  Users, 
+  Search, 
+  Trash2, 
+  Edit, 
+  BookOpen, 
+  Download, 
+  RefreshCw, 
+  Eye, 
+  Sparkles, 
+  Award, 
+  Layers 
+} from "lucide-react";
 
 export default function AdminDashboard({ session, t = (key) => key }) {
   // Guard access
@@ -14,14 +29,21 @@ export default function AdminDashboard({ session, t = (key) => key }) {
     );
   }
 
-  const [activeSubTab, setActiveSubTab] = useState("overview"); // "overview", "users", "words"
+  const [activeSubTab, setActiveSubTab] = useState("overview"); // "overview", "users", "words", "curriculum"
   
   // States for Users
   const [users, setUsers] = useState([]);
   const [usersLoading, setUsersLoading] = useState(false);
   const [userSearch, setUserSearch] = useState("");
+  const [userFilter, setUserFilter] = useState("all"); // "all", "completed", "pending", "not_diagnosed"
+  const [userSort, setUserSort] = useState("xp"); // "name", "xp", "streak", "level"
   const [editingUser, setEditingUser] = useState(null); // Profile object being edited
   const [deletingUser, setDeletingUser] = useState(null); // Profile object to delete
+  const [viewingUserDetail, setViewingUserDetail] = useState(null); // Profile object being viewed
+
+  // States for Curriculum
+  const [selectedCurriculumLang, setSelectedCurriculumLang] = useState("English");
+  const [activeCurriculumSection, setActiveCurriculumSection] = useState("");
 
   // States for Words
   const [words, setWords] = useState([]);
@@ -37,7 +59,19 @@ export default function AdminDashboard({ session, t = (key) => key }) {
     avgLiteracyLevel: 0,
     levelsCount: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
     langCount: {},
+    activeLearners: 0,
+    totalCompletedLessons: 0,
+    completedAssessmentsPct: 0
   });
+
+  // Local Curriculum State for Management
+  const [localCurriculum, setLocalCurriculum] = useState([]);
+  
+  useEffect(() => {
+    if (activeSubTab === "curriculum") {
+      setLocalCurriculum(JSON.parse(JSON.stringify(CURRICULUM_SECTIONS)));
+    }
+  }, [activeSubTab]);
 
   // Fetch Users & Stats
   const fetchUsersData = async () => {
@@ -59,6 +93,9 @@ export default function AdminDashboard({ session, t = (key) => key }) {
         
         let literacySum = 0;
         let literacyCount = 0;
+        let activeLearners = 0;
+        let totalCompletedLessons = 0;
+        let completedAssessmentsCount = 0;
         const levelsCount = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
         const langCount = {};
 
@@ -71,6 +108,15 @@ export default function AdminDashboard({ session, t = (key) => key }) {
           if (user.preferred_language) {
             langCount[user.preferred_language] = (langCount[user.preferred_language] || 0) + 1;
           }
+          if (user.streak > 0) {
+            activeLearners++;
+          }
+          if (user.completed_lessons && Array.isArray(user.completed_lessons)) {
+            totalCompletedLessons += user.completed_lessons.length;
+          }
+          if (user.assessment_completed) {
+            completedAssessmentsCount++;
+          }
         });
 
         setStats({
@@ -79,6 +125,9 @@ export default function AdminDashboard({ session, t = (key) => key }) {
           avgLiteracyLevel: literacyCount ? (literacySum / literacyCount).toFixed(1) : 0,
           levelsCount,
           langCount,
+          activeLearners,
+          totalCompletedLessons,
+          completedAssessmentsPct: totalUsers ? Math.round((completedAssessmentsCount / totalUsers) * 100) : 0
         });
       }
     } catch (err) {
@@ -111,17 +160,76 @@ export default function AdminDashboard({ session, t = (key) => key }) {
     fetchWordsData();
   }, []);
 
-  // Filtered lists
+  // Filtered and sorted lists
   const filteredUsers = useMemo(() => {
-    if (!userSearch.trim()) return users;
-    const query = userSearch.toLowerCase();
-    return users.filter(user => 
-      (user.full_name || "").toLowerCase().includes(query) ||
-      (user.preferred_language || "").toLowerCase().includes(query) ||
-      (user.education_level || "").toLowerCase().includes(query) ||
-      (user.id || "").toLowerCase().includes(query)
-    );
-  }, [users, userSearch]);
+    let result = [...users];
+
+    // Search query filter
+    if (userSearch.trim()) {
+      const query = userSearch.toLowerCase();
+      result = result.filter(user => 
+        (user.full_name || "").toLowerCase().includes(query) ||
+        (user.preferred_language || "").toLowerCase().includes(query) ||
+        (user.education_level || "").toLowerCase().includes(query) ||
+        (user.id || "").toLowerCase().includes(query)
+      );
+    }
+
+    // Diagnostic/Assessment completion filter
+    if (userFilter === "completed") {
+      result = result.filter(user => user.assessment_completed === true);
+    } else if (userFilter === "pending") {
+      result = result.filter(user => !user.assessment_completed);
+    } else if (userFilter === "not_diagnosed") {
+      result = result.filter(user => !user.literacy_level);
+    }
+
+    // Sort order logic
+    result.sort((a, b) => {
+      if (userSort === "name") {
+        return (a.full_name || "").localeCompare(b.full_name || "");
+      } else if (userSort === "xp") {
+        return (b.xp || 0) - (a.xp || 0);
+      } else if (userSort === "streak") {
+        return (b.streak || 0) - (a.streak || 0);
+      } else if (userSort === "level") {
+        return (b.literacy_level || 0) - (a.literacy_level || 0);
+      }
+      return 0;
+    });
+
+    return result;
+  }, [users, userSearch, userFilter, userSort]);
+
+  // Client-side CSV export logic
+  const exportUsersCSV = () => {
+    if (!filteredUsers || filteredUsers.length === 0) return;
+    
+    const headers = ["User ID", "Full Name", "Age", "Interface Language", "Learning Language", "XP", "Streak", "Literacy Level", "Assessment Completed", "Last Active Date"];
+    const rows = filteredUsers.map(u => [
+      u.id,
+      `"${(u.full_name || "Anonymous Learner").replace(/"/g, '""')}"`,
+      u.age || "N/A",
+      u.preferred_language || "English",
+      u.learning_language || "English",
+      u.xp || 0,
+      u.streak || 0,
+      u.literacy_level ? `Level ${u.literacy_level}` : "Not Diagnosed",
+      u.assessment_completed ? "Completed" : "Not Done",
+      u.last_active_date || "N/A"
+    ]);
+    
+    const csvContent = "data:text/csv;charset=utf-8," 
+      + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+      
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `lisa_learner_roster_${new Date().toLocaleDateString("en-CA")}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   const filteredWords = useMemo(() => {
     if (!wordSearch.trim()) return words;
@@ -252,6 +360,192 @@ export default function AdminDashboard({ session, t = (key) => key }) {
       alert("Failed to delete word: " + err.message);
     }
   };
+  // Save Curriculum to Supabase
+  const handleSaveCurriculum = async () => {
+    try {
+      const adminUserId = session?.user?.id;
+      if (!adminUserId) return;
+
+      const { data: profileData } = await supabase.from("profiles").select("shop_data").eq("id", adminUserId).single();
+      const existingShopData = profileData?.shop_data || {};
+
+      const updatedShopData = {
+        ...existingShopData,
+        custom_curriculum: localCurriculum
+      };
+
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          shop_data: updatedShopData
+        })
+        .eq("id", adminUserId);
+
+      if (error) throw error;
+
+      // Update global array in-place so all app modules reflect the changes immediately
+      CURRICULUM_SECTIONS.length = 0;
+      CURRICULUM_SECTIONS.push(...localCurriculum);
+
+      alert("✅ Curriculum saved successfully and synchronized across the platform!");
+    } catch (err) {
+      alert("❌ Failed to save curriculum: " + err.message);
+    }
+  };
+
+  // Section Handlers
+  const handleAddSection = () => {
+    const newSecId = "sec_" + Date.now();
+    const newSection = {
+      id: newSecId,
+      title: "New Section",
+      desc: "Describe what skills this section targets",
+      skillTarget: "word_recognition",
+      units: []
+    };
+    setLocalCurriculum(prev => [...prev, newSection]);
+    setActiveCurriculumSection(newSecId);
+  };
+
+  const handleUpdateSectionField = (secId, field, value) => {
+    setLocalCurriculum(prev => prev.map(sec => {
+      if (sec.id === secId) {
+        return { ...sec, [field]: value };
+      }
+      return sec;
+    }));
+  };
+
+  const handleDeleteSection = (secId) => {
+    if (!window.confirm("Are you sure you want to delete this section? All its units and lessons will be removed!")) return;
+    setLocalCurriculum(prev => prev.filter(sec => sec.id !== secId));
+    setActiveCurriculumSection("");
+  };
+
+  // Unit Handlers
+  const handleAddUnit = (secId) => {
+    const newUnitId = "uni_" + Date.now();
+    const newUnit = {
+      id: newUnitId,
+      title: "New Unit",
+      skill: "word_recognition",
+      lessons: []
+    };
+    setLocalCurriculum(prev => prev.map(sec => {
+      if (sec.id === secId) {
+        return { ...sec, units: [...sec.units, newUnit] };
+      }
+      return sec;
+    }));
+  };
+
+  const handleUpdateUnitField = (secId, unitId, field, value) => {
+    setLocalCurriculum(prev => prev.map(sec => {
+      if (sec.id === secId) {
+        return {
+          ...sec,
+          units: sec.units.map(uni => {
+            if (uni.id === unitId) {
+              return { ...uni, [field]: value };
+            }
+            return uni;
+          })
+        };
+      }
+      return sec;
+    }));
+  };
+
+  const handleDeleteUnit = (secId, unitId) => {
+    if (!window.confirm("Are you sure you want to delete this unit?")) return;
+    setLocalCurriculum(prev => prev.map(sec => {
+      if (sec.id === secId) {
+        return { ...sec, units: sec.units.filter(uni => uni.id !== unitId) };
+      }
+      return sec;
+    }));
+  };
+
+  // Lesson Handlers
+  const handleAddLesson = (secId, unitId, lessonTitle) => {
+    if (!lessonTitle.trim()) return;
+    const newLesId = "les_" + Date.now();
+    const newLesson = {
+      id: newLesId,
+      title: lessonTitle
+    };
+    setLocalCurriculum(prev => prev.map(sec => {
+      if (sec.id === secId) {
+        return {
+          ...sec,
+          units: sec.units.map(uni => {
+            if (uni.id === unitId) {
+              return { ...uni, lessons: [...uni.lessons, newLesson] };
+            }
+            return uni;
+          })
+        };
+      }
+      return sec;
+    }));
+  };
+
+  const handleDeleteLesson = (secId, unitId, lesId) => {
+    setLocalCurriculum(prev => prev.map(sec => {
+      if (sec.id === secId) {
+        return {
+          ...sec,
+          units: sec.units.map(uni => {
+            if (uni.id === unitId) {
+              return { ...uni, lessons: uni.lessons.filter(l => l.id !== lesId) };
+            }
+            return uni;
+          })
+        };
+      }
+      return sec;
+    }));
+  };
+
+  const handleUpdateLessonTitle = (secId, unitId, lesId, newTitle) => {
+    setLocalCurriculum(prev => prev.map(sec => {
+      if (sec.id === secId) {
+        return {
+          ...sec,
+          units: sec.units.map(uni => {
+            if (uni.id === unitId) {
+              return {
+                ...uni,
+                lessons: uni.lessons.map(l => l.id === lesId ? { ...l, title: newTitle } : l)
+              };
+            }
+            return uni;
+          })
+        };
+      }
+      return sec;
+    }));
+  };
+
+  const getLessonNameById = (lessonId) => {
+    if (!lessonId) return "N/A";
+    for (const section of localCurriculum) {
+      for (const unit of section.units) {
+        for (const lesson of unit.lessons) {
+          if (lesson.id === lessonId) return lesson.title;
+        }
+      }
+    }
+    for (const section of CURRICULUM_SECTIONS) {
+      for (const unit of section.units) {
+        for (const lesson of unit.lessons) {
+          if (lesson.id === lessonId) return lesson.title;
+        }
+      }
+    }
+    if (lessonId === "ach_1") return "Diagnostic Assessment Completed";
+    return lessonId;
+  };
 
   return (
     <div className="admin-dashboard-container">
@@ -282,6 +576,13 @@ export default function AdminDashboard({ session, t = (key) => key }) {
           >
             📖 Words of the Day
           </button>
+          <button 
+            type="button" 
+            className={`admin-tab-btn ${activeSubTab === "curriculum" ? "active" : ""}`}
+            onClick={() => setActiveSubTab("curriculum")}
+          >
+            📚 Curriculum & Assessment
+          </button>
         </div>
       </div>
 
@@ -289,79 +590,302 @@ export default function AdminDashboard({ session, t = (key) => key }) {
         {/* OVERVIEW SUB-TAB */}
         {activeSubTab === "overview" && (
           <div className="admin-section animate-fade-in">
-            <div className="admin-stats-grid">
-              <div className="admin-stat-card">
-                <span className="stat-card-icon">👥</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
+              <h3 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 800, color: 'var(--text)' }}>📊 Platform Insights & Analytics</h3>
+              <button 
+                type="button" 
+                className="admin-export-btn"
+                onClick={exportUsersCSV}
+                style={{ 
+                  display: 'inline-flex', 
+                  alignItems: 'center', 
+                  gap: '8px', 
+                  background: 'linear-gradient(135deg, var(--accent), #df7f3d)', 
+                  color: 'white', 
+                  padding: '10px 20px', 
+                  borderRadius: '16px', 
+                  fontWeight: 800, 
+                  border: 'none', 
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(198, 95, 45, 0.2)',
+                  fontFamily: 'var(--font-family)',
+                  fontSize: '0.85rem'
+                }}
+              >
+                <Download size={15} style={{ strokeWidth: 3 }} /> Export Learner Roster (CSV)
+              </button>
+            </div>
+             <div className="admin-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+              <div className="admin-stat-card" style={{ transition: 'transform 0.2s ease', cursor: 'pointer' }} onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseLeave={e => e.currentTarget.style.transform = 'none'}>
+                <span className="stat-card-icon" style={{ background: 'rgba(198, 95, 45, 0.1)', color: 'var(--accent)' }}>👥</span>
                 <div className="stat-card-info">
                   <h3>{stats.totalUsers}</h3>
                   <p>Registered Learners</p>
                 </div>
               </div>
 
-              <div className="admin-stat-card">
-                <span className="stat-card-icon">⚡</span>
+              <div className="admin-stat-card" style={{ transition: 'transform 0.2s ease', cursor: 'pointer' }} onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseLeave={e => e.currentTarget.style.transform = 'none'}>
+                <span className="stat-card-icon" style={{ background: 'rgba(245, 158, 11, 0.1)', color: '#d97706' }}>⚡</span>
                 <div className="stat-card-info">
                   <h3>{stats.totalXp.toLocaleString()}</h3>
                   <p>Total XP Earned</p>
                 </div>
               </div>
 
-              <div className="admin-stat-card">
-                <span className="stat-card-icon">📚</span>
+              <div className="admin-stat-card" style={{ transition: 'transform 0.2s ease', cursor: 'pointer' }} onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseLeave={e => e.currentTarget.style.transform = 'none'}>
+                <span className="stat-card-icon" style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' }}>📚</span>
                 <div className="stat-card-info">
                   <h3>{stats.avgLiteracyLevel}</h3>
-                  <p>Average Literacy Level</p>
+                  <p>Avg Literacy Level</p>
                 </div>
               </div>
 
-              <div className="admin-stat-card">
-                <span className="stat-card-icon">🗣️</span>
+              <div className="admin-stat-card" style={{ transition: 'transform 0.2s ease', cursor: 'pointer' }} onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseLeave={e => e.currentTarget.style.transform = 'none'}>
+                <span className="stat-card-icon" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}>🔥</span>
                 <div className="stat-card-info">
-                  <h3>{Object.keys(stats.langCount).length || 0}</h3>
-                  <p>Languages Configured</p>
+                  <h3>{stats.activeLearners}</h3>
+                  <p>Active Learners</p>
+                </div>
+              </div>
+
+              <div className="admin-stat-card" style={{ transition: 'transform 0.2s ease', cursor: 'pointer' }} onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseLeave={e => e.currentTarget.style.transform = 'none'}>
+                <span className="stat-card-icon" style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>📖</span>
+                <div className="stat-card-info">
+                  <h3>{stats.totalCompletedLessons}</h3>
+                  <p>Lessons Completed</p>
+                </div>
+              </div>
+
+              <div className="admin-stat-card" style={{ transition: 'transform 0.2s ease', cursor: 'pointer' }} onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseLeave={e => e.currentTarget.style.transform = 'none'}>
+                <span className="stat-card-icon" style={{ background: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6' }}>🎯</span>
+                <div className="stat-card-info">
+                  <h3>{stats.completedAssessmentsPct}%</h3>
+                  <p>Assessment Complete</p>
                 </div>
               </div>
             </div>
 
-            <div className="admin-charts-grid">
-              <div className="admin-chart-box">
-                <h4>Literacy Level Distribution</h4>
-                <div className="bar-chart-container">
-                  {[1, 2, 3, 4, 5].map(lvl => {
-                    const count = stats.levelsCount[lvl] || 0;
-                    const pct = stats.totalUsers ? (count / stats.totalUsers) * 100 : 0;
-                    return (
-                      <div key={lvl} className="bar-chart-row">
-                        <span className="bar-label">Level {lvl}</span>
-                        <div className="bar-track">
-                          <div className="bar-fill" style={{ width: `${pct}%`, background: "var(--accent)" }} />
-                        </div>
-                        <span className="bar-value">{count} ({pct.toFixed(0)}%)</span>
-                      </div>
-                    );
-                  })}
-                </div>
+            <div className="admin-charts-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
+              {/* SVG Vertical Bar Chart for Literacy Levels */}
+              <div className="admin-chart-box" style={{ background: 'var(--panel-strong)', border: '1px solid var(--line)', borderRadius: '24px', padding: '24px' }}>
+                <h4 style={{ margin: '0 0 16px 0', fontSize: '1.1rem', fontWeight: 900, color: 'var(--text)' }}>Literacy Level Distribution</h4>
+                {(() => {
+                  const counts = [1, 2, 3, 4, 5].map(lvl => stats.levelsCount[lvl] || 0);
+                  const maxCount = Math.max(...counts, 1);
+                  const chartHeight = 180;
+                  const chartWidth = 320;
+                  const barWidth = 36;
+                  const spacing = (chartWidth - (barWidth * 5)) / 6;
+
+                  return (
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                      <svg width="100%" height="240" viewBox={`0 0 ${chartWidth + 40} 240`} style={{ overflow: 'visible' }}>
+                        <defs>
+                          <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="var(--accent)" />
+                            <stop offset="100%" stopColor="#df7f3d" />
+                          </linearGradient>
+                        </defs>
+                        
+                        {/* Horizontal Gridlines */}
+                        {[0, 0.25, 0.5, 0.75, 1].map((ratio, idx) => {
+                          const y = chartHeight - (ratio * chartHeight) + 15;
+                          const gridVal = Math.round(ratio * maxCount);
+                          return (
+                            <g key={idx}>
+                              <line x1="30" y1={y} x2={chartWidth + 30} y2={y} stroke="var(--line)" strokeWidth="1" strokeDasharray="4 4" />
+                              <text x="22" y={y + 4} fill="var(--muted)" fontSize="10" fontWeight="800" textAnchor="end">{gridVal}</text>
+                            </g>
+                          );
+                        })}
+
+                        {/* Bars and labels */}
+                        {[1, 2, 3, 4, 5].map((lvl, index) => {
+                          const count = stats.levelsCount[lvl] || 0;
+                          const barHeight = (count / maxCount) * chartHeight;
+                          const x = spacing + index * (barWidth + spacing) + 30;
+                          const y = chartHeight - barHeight + 15;
+
+                          return (
+                            <g key={lvl} style={{ transition: 'all 0.3s ease' }}>
+                              {/* Hover tooltip area */}
+                              <title>{`Level ${lvl}: ${count} students`}</title>
+                              
+                              {/* Rounded top rect for bar */}
+                              <rect
+                                x={x}
+                                y={y}
+                                width={barWidth}
+                                height={barHeight}
+                                rx="8"
+                                fill="url(#barGrad)"
+                                style={{ cursor: 'pointer' }}
+                              />
+                              
+                              {/* Count Text on top of the bar */}
+                              {count > 0 && (
+                                <text
+                                  x={x + barWidth / 2}
+                                  y={y - 6}
+                                  fill="var(--text)"
+                                  fontSize="10"
+                                  fontWeight="900"
+                                  textAnchor="middle"
+                                >
+                                  {count}
+                                </text>
+                              )}
+
+                              {/* Bottom labels */}
+                              <text
+                                x={x + barWidth / 2}
+                                y={chartHeight + 35}
+                                fill="var(--text)"
+                                fontSize="10.5"
+                                fontWeight="900"
+                                textAnchor="middle"
+                              >
+                                Lvl {lvl}
+                              </text>
+                            </g>
+                          );
+                        })}
+                        {/* Baseline */}
+                        <line x1="30" y1={chartHeight + 15} x2={chartWidth + 30} y2={chartHeight + 15} stroke="var(--line)" strokeWidth="2" />
+                      </svg>
+                    </div>
+                  );
+                })()}
               </div>
 
-              <div className="admin-chart-box">
-                <h4>Preferred Interface Languages</h4>
-                <div className="bar-chart-container">
-                  {Object.entries(stats.langCount).map(([lang, count]) => {
-                    const pct = stats.totalUsers ? (count / stats.totalUsers) * 100 : 0;
+              {/* SVG Donut Chart for Languages */}
+              <div className="admin-chart-box" style={{ background: 'var(--panel-strong)', border: '1px solid var(--line)', borderRadius: '24px', padding: '24px' }}>
+                <h4 style={{ margin: '0 0 16px 0', fontSize: '1.1rem', fontWeight: 900, color: 'var(--text)' }}>Preferred Interface Languages</h4>
+                {(() => {
+                  const langData = Object.entries(stats.langCount).filter(([_, count]) => count > 0);
+                  const totalUsers = langData.reduce((acc, curr) => acc + curr[1], 0) || 0;
+                  
+                  if (totalUsers === 0) {
                     return (
-                      <div key={lang} className="bar-chart-row">
-                        <span className="bar-label">{lang}</span>
-                        <div className="bar-track">
-                          <div className="bar-fill" style={{ width: `${pct}%`, background: "var(--flz-ok)" }} />
-                        </div>
-                        <span className="bar-value">{count} ({pct.toFixed(0)}%)</span>
+                      <div style={{ height: '240px', display: 'grid', placeItems: 'center', color: 'var(--muted)', fontStyle: 'italic' }}>
+                        No language metrics configuration available.
                       </div>
                     );
-                  })}
-                  {Object.keys(stats.langCount).length === 0 && (
-                    <p style={{ color: "var(--muted)", fontStyle: "italic", textAlign: "center", width: "100%" }}>No language metrics available</p>
-                  )}
-                </div>
+                  }
+
+                  const colors = ["#3b82f6", "#f59e0b", "#10b981", "#8b5cf6", "#ef4444", "#14b8a6"];
+                  
+                  // Helper function to convert percentage coordinates
+                  const getCoords = (percent) => {
+                    const angle = (percent * 2 * Math.PI) - (Math.PI / 2);
+                    const x = Math.cos(angle);
+                    const y = Math.sin(angle);
+                    return [x, y];
+                  };
+
+                  let accumulatedPercent = 0;
+
+                  return (
+                    <div style={{ display: 'flex', gap: '20px', alignItems: 'center', justifyContent: 'space-around', flexWrap: 'wrap' }}>
+                      <svg width="180" height="180" viewBox="-100 -100 200 200" style={{ transform: 'rotate(-90deg)', overflow: 'visible' }}>
+                        {langData.map(([lang, count], idx) => {
+                          const pct = count / totalUsers;
+                          const startPercent = accumulatedPercent;
+                          accumulatedPercent += pct;
+                          
+                          const [startX, startY] = getCoords(startPercent);
+                          const [endX, endY] = getCoords(accumulatedPercent);
+                          
+                          const largeArc = pct > 0.5 ? 1 : 0;
+                          
+                          // outer radius 80, inner radius 50
+                          const pathData = [
+                            `M ${startX * 82} ${startY * 82}`,
+                            `A 82 82 0 ${largeArc} 1 ${endX * 82} ${endY * 82}`,
+                            `L ${endX * 52} ${endY * 52}`,
+                            `A 52 52 0 ${largeArc} 0 ${startX * 52} ${startY * 52}`,
+                            'Z'
+                          ].join(' ');
+
+                          return (
+                            <path
+                              key={lang}
+                              d={pathData}
+                              fill={colors[idx % colors.length]}
+                              stroke="var(--panel-strong)"
+                              strokeWidth="1.5"
+                              style={{ cursor: 'pointer', transition: 'all 0.2s' }}
+                              onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.03)'}
+                              onMouseLeave={e => e.currentTarget.style.transform = 'none'}
+                            >
+                              <title>{`${lang}: ${count} users (${(pct * 100).toFixed(0)}%)`}</title>
+                            </path>
+                          );
+                        })}
+                        {/* Center Hole Details */}
+                        <circle r="46" fill="var(--panel-strong)" />
+                        <text x="0" y="-4" fill="var(--text)" fontSize="14" fontWeight="950" textAnchor="middle" style={{ transform: 'rotate(90deg)', transformOrigin: '0 0' }}>
+                          {totalUsers}
+                        </text>
+                        <text x="0" y="14" fill="var(--muted)" fontSize="8.5" fontWeight="800" textAnchor="middle" style={{ transform: 'rotate(90deg)', transformOrigin: '0 0' }}>
+                          USERS
+                        </text>
+                      </svg>
+
+                      {/* Legend */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.8rem' }}>
+                        {langData.map(([lang, count], idx) => {
+                          const pct = (count / totalUsers) * 100;
+                          return (
+                            <div key={lang} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <span style={{ width: '12px', height: '12px', borderRadius: '4px', background: colors[idx % colors.length] }} />
+                              <span style={{ fontWeight: 800 }}>{lang}</span>
+                              <span style={{ color: 'var(--muted)', fontWeight: 600 }}>({pct.toFixed(0)}%)</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+
+            {/* Top performing students list */}
+            <div style={{ marginTop: '24px', background: 'var(--panel-strong)', border: '1px solid var(--line)', borderRadius: '24px', padding: '24px' }}>
+              <h4 style={{ margin: '0 0 16px 0', fontSize: '1.1rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text)' }}>
+                <Award size={18} color="var(--accent)" /> Top Performing Students Leaderboard
+              </h4>
+              <div className="admin-table-wrapper" style={{ boxShadow: 'none', border: 'none', background: 'transparent', padding: 0 }}>
+                <table className="admin-table" style={{ border: 'none' }}>
+                  <thead>
+                    <tr>
+                      <th style={{ background: 'transparent', paddingLeft: '8px' }}>Rank / Learner Name</th>
+                      <th style={{ background: 'transparent' }}>XP Score</th>
+                      <th style={{ background: 'transparent' }}>Day Streak</th>
+                      <th style={{ background: 'transparent', paddingRight: '8px' }}>Placement Rank</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {users.slice(0, 5).map((u, idx) => (
+                      <tr key={u.id}>
+                        <td style={{ paddingLeft: '8px' }}>
+                          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                            <span style={{ fontWeight: 950, color: 'var(--accent)', fontSize: '1rem', width: '24px' }}>#{idx+1}</span>
+                            <span style={{ fontWeight: 800 }}>{u.full_name || "Anonymous Learner"}</span>
+                          </div>
+                        </td>
+                        <td>⭐ {u.xp ? u.xp.toLocaleString() : 0} XP</td>
+                        <td>🔥 {u.streak || 0} days</td>
+                        <td style={{ paddingRight: '8px' }}>
+                          <span className={`level-badge level-${u.literacy_level || 'none'}`} style={{ display: 'inline-block' }}>
+                            {u.literacy_level ? `Level ${u.literacy_level}` : 'Not Diagnosed'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
@@ -386,6 +910,62 @@ export default function AdminDashboard({ session, t = (key) => key }) {
               </button>
             </div>
 
+            <div className="table-filters-sorting" style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginBottom: '24px', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--muted)', letterSpacing: '0.03em' }}>FILTER:</span>
+                <div className="filter-pills" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  {[
+                    { key: "all", label: "All Students" },
+                    { key: "completed", label: "Assessment Done" },
+                    { key: "pending", label: "Assessment Pending" },
+                    { key: "not_diagnosed", label: "No Diagnosis" }
+                  ].map(pill => (
+                    <button
+                      key={pill.key}
+                      type="button"
+                      onClick={() => setUserFilter(pill.key)}
+                      style={{
+                        padding: '6px 12px',
+                        borderRadius: '12px',
+                        border: userFilter === pill.key ? '2px solid var(--accent)' : '2px solid var(--line)',
+                        background: userFilter === pill.key ? 'var(--accent-soft)' : 'var(--panel-strong)',
+                        color: userFilter === pill.key ? 'var(--accent-dark)' : 'var(--text)',
+                        fontSize: '0.78rem',
+                        fontWeight: 800,
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      {pill.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: 'auto' }}>
+                <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--muted)', letterSpacing: '0.03em' }}>SORT:</span>
+                <select
+                  value={userSort}
+                  onChange={e => setUserSort(e.target.value)}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: '12px',
+                    border: '2px solid var(--line)',
+                    background: 'var(--panel-strong)',
+                    color: 'var(--text)',
+                    fontSize: '0.8rem',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    outline: 'none'
+                  }}
+                >
+                  <option value="xp">Total XP (Highest)</option>
+                  <option value="streak">Streak (Highest)</option>
+                  <option value="level">Literacy Level (Highest)</option>
+                  <option value="name">Alphabetical (Name)</option>
+                </select>
+              </div>
+            </div>
+
             {usersLoading ? (
               <div className="admin-loading-spinner">Loading profiles list...</div>
             ) : (
@@ -404,7 +984,12 @@ export default function AdminDashboard({ session, t = (key) => key }) {
                   </thead>
                   <tbody>
                     {filteredUsers.map(user => (
-                      <tr key={user.id}>
+                      <tr 
+                        key={user.id} 
+                        onClick={() => setViewingUserDetail(user)}
+                        style={{ cursor: 'pointer', transition: 'background-color 0.15s ease' }}
+                        className="admin-table-row-clickable"
+                      >
                         <td>
                           <div className="user-td-cell">
                             <span className="user-td-name">{user.full_name || "Anonymous Learner"}</span>
@@ -438,15 +1023,36 @@ export default function AdminDashboard({ session, t = (key) => key }) {
                           <div className="action-button-row">
                             <button 
                               type="button" 
+                              className="admin-action-btn view"
+                              onClick={(e) => { e.stopPropagation(); setViewingUserDetail(user); }}
+                              style={{ 
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                background: 'rgba(59, 130, 246, 0.08)', 
+                                color: '#3b82f6', 
+                                border: '1px solid rgba(59, 130, 246, 0.15)',
+                                borderRadius: '10px',
+                                padding: '6px 12px',
+                                fontSize: '0.78rem',
+                                fontWeight: 800,
+                                cursor: 'pointer',
+                                transition: 'all 0.15s ease'
+                              }}
+                            >
+                              <Eye size={12} /> View
+                            </button>
+                            <button 
+                              type="button" 
                               className="admin-action-btn edit"
-                              onClick={() => setEditingUser(user)}
+                              onClick={(e) => { e.stopPropagation(); setEditingUser(user); }}
                             >
                               ✏️ Edit
                             </button>
                             <button 
                               type="button" 
                               className="admin-action-btn delete"
-                              onClick={() => setDeletingUser(user)}
+                              onClick={(e) => { e.stopPropagation(); setDeletingUser(user); }}
                             >
                               🗑️ Delete
                             </button>
@@ -572,6 +1178,282 @@ export default function AdminDashboard({ session, t = (key) => key }) {
                 </table>
               </div>
             )}
+          </div>
+        )}
+
+        {/* CURRICULUM & ASSESSMENT INSIGHTS SUB-TAB */}
+        {activeSubTab === "curriculum" && (
+          <div className="admin-section animate-fade-in">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 900, color: 'var(--text)' }}>📚 Course Curriculum Builder</h3>
+                <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: 'var(--muted)' }}>
+                  Manage course sections, diagnostic target skills, unit blocks, and adaptive lessons.
+                </p>
+              </div>
+              <button 
+                type="button" 
+                onClick={handleSaveCurriculum}
+                style={{
+                  background: 'linear-gradient(135deg, #10b981, #059669)',
+                  color: 'white',
+                  border: 'none',
+                  padding: '12px 24px',
+                  borderRadius: '16px',
+                  fontWeight: 900,
+                  fontSize: '0.85rem',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)',
+                  fontFamily: 'var(--font-family)',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
+                onMouseLeave={e => e.currentTarget.style.transform = 'none'}
+              >
+                💾 Save Changes to Database
+              </button>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '24px', alignItems: 'start' }}>
+              {/* Left Column: Sections List */}
+              <div className="curriculum-left" style={{ background: 'var(--panel-strong)', border: '1px solid var(--line)', borderRadius: '24px', padding: '20px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Layers size={18} color="var(--accent)" /> Course Sections
+                  </h4>
+                  <button 
+                    type="button" 
+                    onClick={handleAddSection}
+                    style={{ background: 'var(--accent-soft)', color: 'var(--accent-dark)', border: 'none', borderRadius: '10px', padding: '4px 10px', fontSize: '0.75rem', fontWeight: 800, cursor: 'pointer' }}
+                  >
+                    ➕ Add
+                  </button>
+                </div>
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {localCurriculum.map((sec, idx) => {
+                    const isSelected = activeCurriculumSection === sec.id || (!activeCurriculumSection && idx === 0);
+                    if (idx === 0 && !activeCurriculumSection) {
+                      setTimeout(() => setActiveCurriculumSection(sec.id), 0);
+                    }
+                    return (
+                      <div 
+                        key={sec.id} 
+                        style={{ 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          gap: '6px',
+                          border: isSelected ? '2px solid var(--accent)' : '1px solid var(--line)',
+                          borderRadius: '16px',
+                          background: isSelected ? 'var(--accent-soft)' : 'transparent',
+                          padding: '4px 8px 4px 12px',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => setActiveCurriculumSection(sec.id)}
+                          style={{
+                            flex: 1,
+                            textAlign: 'left',
+                            background: 'none',
+                            border: 'none',
+                            padding: '8px 0',
+                            color: isSelected ? 'var(--accent-dark)' : 'var(--text)',
+                            fontWeight: 800,
+                            fontSize: '0.85rem',
+                            cursor: 'pointer',
+                            outline: 'none'
+                          }}
+                        >
+                          {sec.title}
+                          <div style={{ fontSize: '0.7rem', color: 'var(--muted)', marginTop: '2px', fontWeight: 500 }}>
+                            Target Skill: {SKILL_CATEGORIES[sec.skillTarget]?.label || sec.skillTarget}
+                          </div>
+                        </button>
+                        <button 
+                          type="button" 
+                          onClick={() => handleDeleteSection(sec.id)}
+                          style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '0.9rem', cursor: 'pointer', padding: '6px' }}
+                          title="Delete Section"
+                        >
+                          🗑️
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Right Column: Details & Operations Pane */}
+              <div className="curriculum-right" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                {activeCurriculumSection && (() => {
+                  const section = localCurriculum.find(s => s.id === activeCurriculumSection);
+                  if (!section) return null;
+                  return (
+                    <div style={{ background: 'var(--panel-strong)', border: '1px solid var(--line)', borderRadius: '24px', padding: '24px' }}>
+                      {/* Section Editor details */}
+                      <h4 style={{ margin: '0 0 16px 0', fontSize: '1.05rem', fontWeight: 900, borderBottom: '1px solid var(--line)', paddingBottom: '12px' }}>
+                        ⚙️ Section Configuration: {section.title}
+                      </h4>
+                      
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+                        <div>
+                          <label style={{ fontWeight: 800, fontSize: '0.78rem', color: 'var(--muted)', display: 'block', marginBottom: '6px' }}>SECTION TITLE</label>
+                          <input
+                            type="text"
+                            value={section.title}
+                            onChange={e => handleUpdateSectionField(section.id, "title", e.target.value)}
+                            style={{ width: '100%', padding: '10px 14px', borderRadius: '12px', border: '2px solid var(--line)', background: 'var(--bg)', color: 'var(--text)', fontWeight: 800, outline: 'none' }}
+                          />
+                        </div>
+                        <div>
+                          <label style={{ fontWeight: 800, fontSize: '0.78rem', color: 'var(--muted)', display: 'block', marginBottom: '6px' }}>TARGET SKILL</label>
+                          <select
+                            value={section.skillTarget}
+                            onChange={e => handleUpdateSectionField(section.id, "skillTarget", e.target.value)}
+                            style={{ width: '100%', padding: '10px 14px', borderRadius: '12px', border: '2px solid var(--line)', background: 'var(--bg)', color: 'var(--text)', fontWeight: 800, cursor: 'pointer', outline: 'none' }}
+                          >
+                            {Object.entries(SKILL_CATEGORIES).map(([key, config]) => (
+                              <option key={key} value={key}>{config.label}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+
+                      <div style={{ marginBottom: '24px' }}>
+                        <label style={{ fontWeight: 800, fontSize: '0.78rem', color: 'var(--muted)', display: 'block', marginBottom: '6px' }}>DESCRIPTION</label>
+                        <textarea
+                          value={section.desc || ""}
+                          onChange={e => handleUpdateSectionField(section.id, "desc", e.target.value)}
+                          style={{ width: '100%', height: '56px', padding: '10px 14px', borderRadius: '12px', border: '2px solid var(--line)', background: 'var(--bg)', color: 'var(--text)', fontWeight: 600, resize: 'none', outline: 'none', fontFamily: 'var(--font-family)', fontSize: '0.85rem' }}
+                        />
+                      </div>
+
+                      {/* Units list */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                        <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 900 }}>📦 Units in Section ({section.units.length})</h4>
+                        <button 
+                          type="button" 
+                          className="admin-add-btn" 
+                          onClick={() => handleAddUnit(section.id)}
+                          style={{ padding: '6px 12px', borderRadius: '10px', fontSize: '0.75rem', fontWeight: 800 }}
+                        >
+                          ➕ Add Unit
+                        </button>
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                        {section.units.map((unit, uIdx) => (
+                          <div key={unit.id} style={{ background: 'var(--bg)', border: '1px solid var(--line)', borderRadius: '20px', padding: '16px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', gap: '10px' }}>
+                              <span style={{ fontWeight: 900, color: 'var(--accent)', fontSize: '0.82rem' }}>UNIT {uIdx + 1}</span>
+                              <button 
+                                type="button" 
+                                onClick={() => handleDeleteUnit(section.id, unit.id)}
+                                style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '0.85rem', cursor: 'pointer', padding: '4px' }}
+                              >
+                                Delete Unit 🗑️
+                              </button>
+                            </div>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+                              <div>
+                                <label style={{ fontWeight: 800, fontSize: '0.7rem', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>UNIT TITLE</label>
+                                <input
+                                  type="text"
+                                  value={unit.title}
+                                  onChange={e => handleUpdateUnitField(section.id, unit.id, "title", e.target.value)}
+                                  style={{ width: '100%', padding: '8px 12px', borderRadius: '10px', border: '1.5px solid var(--line)', background: 'var(--panel)', color: 'var(--text)', fontWeight: 800, fontSize: '0.8rem', outline: 'none' }}
+                                />
+                              </div>
+                              <div>
+                                <label style={{ fontWeight: 800, fontSize: '0.7rem', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>UNIT SKILL TARGET</label>
+                                <select
+                                  value={unit.skill}
+                                  onChange={e => handleUpdateUnitField(section.id, unit.id, "skill", e.target.value)}
+                                  style={{ width: '100%', padding: '8px 12px', borderRadius: '10px', border: '1.5px solid var(--line)', background: 'var(--panel)', color: 'var(--text)', fontWeight: 800, fontSize: '0.8rem', cursor: 'pointer', outline: 'none' }}
+                                >
+                                  {Object.entries(SKILL_CATEGORIES).map(([key, config]) => (
+                                    <option key={key} value={key}>{config.label}</option>
+                                  ))}
+                                </select>
+                              </div>
+                            </div>
+
+                            {/* Lessons List inside Unit */}
+                            <div style={{ borderTop: '1px dashed var(--line)', paddingTop: '10px', marginTop: '10px' }}>
+                              <label style={{ fontWeight: 900, fontSize: '0.75rem', color: 'var(--text)', display: 'block', marginBottom: '8px' }}>📖 Lessons List ({unit.lessons.length})</label>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '10px' }}>
+                                {unit.lessons.map((les, lIdx) => (
+                                  <div key={les.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--panel-strong)', padding: '6px 12px', borderRadius: '10px', border: '1px solid var(--line)' }}>
+                                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flex: 1 }}>
+                                      <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--muted)' }}>{lIdx + 1}.</span>
+                                      <input
+                                        type="text"
+                                        value={les.title}
+                                        onChange={e => handleUpdateLessonTitle(section.id, unit.id, les.id, e.target.value)}
+                                        style={{
+                                          background: 'transparent',
+                                          border: 'none',
+                                          borderBottom: '1.5px dashed var(--line)',
+                                          color: 'var(--text)',
+                                          fontWeight: 800,
+                                          fontSize: '0.8rem',
+                                          padding: '2px 4px',
+                                          flex: 1,
+                                          outline: 'none'
+                                        }}
+                                        title="Rename Lesson"
+                                      />
+                                    </div>
+                                    <button 
+                                      type="button" 
+                                      onClick={() => handleDeleteLesson(section.id, unit.id, les.id)}
+                                      style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '0.8rem', cursor: 'pointer', padding: '2px' }}
+                                    >
+                                      ✕
+                                    </button>
+                                  </div>
+                                ))}
+                                {unit.lessons.length === 0 && (
+                                  <div style={{ color: 'var(--muted)', fontStyle: 'italic', fontSize: '0.75rem', padding: '6px' }}>No lessons configured in this unit.</div>
+                                )}
+                              </div>
+
+                              {/* Add lesson input */}
+                              <form 
+                                onSubmit={e => {
+                                  e.preventDefault();
+                                  const formData = new FormData(e.target);
+                                  const title = formData.get("lessonTitle");
+                                  if (title) {
+                                    handleAddLesson(section.id, unit.id, title);
+                                    e.target.reset();
+                                  }
+                                }}
+                                style={{ display: 'flex', gap: '8px' }}
+                              >
+                                <input
+                                  type="text"
+                                  name="lessonTitle"
+                                  placeholder="Enter new lesson title..."
+                                  required
+                                  style={{ flex: 1, padding: '6px 10px', borderRadius: '8px', border: '1px solid var(--line)', background: 'var(--panel)', color: 'var(--text)', fontSize: '0.75rem', outline: 'none' }}
+                                />
+                                <button type="submit" style={{ background: 'var(--accent)', color: 'white', border: 'none', borderRadius: '8px', padding: '6px 12px', fontSize: '0.75rem', fontWeight: 800, cursor: 'pointer' }}>
+                                  ➕ Add Lesson
+                                </button>
+                              </form>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
           </div>
         )}
       </div>
@@ -807,6 +1689,108 @@ export default function AdminDashboard({ session, t = (key) => key }) {
                 <button type="submit" className="primary-btn">Save Word</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* VIEW LEARNER PROGRESS MODAL */}
+      {viewingUserDetail && (
+        <div className="admin-modal-overlay">
+          <div className="admin-modal" style={{ maxWidth: '700px' }}>
+            <div className="modal-header">
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
+                <Eye size={20} color="var(--accent)" /> Student Progress Inspector
+              </h3>
+              <button type="button" className="close-modal-btn" onClick={() => setViewingUserDetail(null)}>✕</button>
+            </div>
+            
+            <div className="modal-body" style={{ maxHeight: '550px', overflowY: 'auto', paddingRight: '8px', paddingBottom: '12px' }}>
+              {/* Profile Card Summary */}
+              <div style={{ display: 'flex', gap: '20px', alignItems: 'center', padding: '20px', background: 'var(--bg)', borderRadius: '20px', marginBottom: '24px' }}>
+                <div style={{ fontSize: '3rem', width: '72px', height: '72px', borderRadius: '50%', background: 'var(--panel-strong)', display: 'grid', placeItems: 'center', border: '2px solid var(--line)' }}>
+                  👤
+                </div>
+                <div>
+                  <h4 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 900 }}>{viewingUserDetail.full_name || "Anonymous Student"}</h4>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--muted)', marginTop: '4px' }}>
+                    User ID: {viewingUserDetail.id}
+                  </div>
+                  <div style={{ display: 'flex', gap: '10px', marginTop: '6px', fontSize: '0.8rem' }}>
+                    <span>Age: <b>{viewingUserDetail.age || 'N/A'}</b></span>
+                    <span>•</span>
+                    <span>UI: <b>{viewingUserDetail.preferred_language || 'English'}</b></span>
+                    <span>•</span>
+                    <span>Learn: <b>{viewingUserDetail.learning_language || 'English'}</b></span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Stats highlights */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '24px' }}>
+                <div style={{ background: 'var(--panel-strong)', border: '1px solid var(--line)', borderRadius: '16px', padding: '12px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '1.2rem', fontWeight: 950, color: 'var(--accent)' }}>⭐ {viewingUserDetail.xp || 0}</div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--muted)', fontWeight: 800 }}>XP Earned</div>
+                </div>
+                <div style={{ background: 'var(--panel-strong)', border: '1px solid var(--line)', borderRadius: '16px', padding: '12px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '1.2rem', fontWeight: 950, color: '#ef4444' }}>🔥 {viewingUserDetail.streak || 0}</div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--muted)', fontWeight: 800 }}>Day Streak</div>
+                </div>
+                <div style={{ background: 'var(--panel-strong)', border: '1px solid var(--line)', borderRadius: '16px', padding: '12px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '1.2rem', fontWeight: 950, color: '#10b981' }}>
+                    Level {viewingUserDetail.literacy_level || 'N/A'}
+                  </div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--muted)', fontWeight: 800 }}>Literacy Rank</div>
+                </div>
+              </div>
+
+              {/* Skill Breakdowns */}
+              <div style={{ marginBottom: '24px' }}>
+                <h4 style={{ margin: '0 0 12px 0', fontSize: '0.95rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Award size={16} color="var(--accent)" /> Detailed Skill Diagnostic Scores
+                </h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {Object.keys(SKILL_CATEGORIES).map(skillKey => {
+                    const score = viewingUserDetail.skill_scores ? Math.round(Number(viewingUserDetail.skill_scores[skillKey]) || 0) : 0;
+                    const skillConfig = SKILL_CATEGORIES[skillKey];
+                    return (
+                      <div key={skillKey} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', fontWeight: 800 }}>
+                          <span>{skillConfig?.icon} {skillConfig?.label || skillKey}</span>
+                          <span>{score}%</span>
+                        </div>
+                        <div style={{ height: '8px', background: 'var(--bg)', borderRadius: '999px', overflow: 'hidden' }}>
+                          <div style={{ height: '100%', width: `${score}%`, background: skillConfig?.color || '#3b82f6', borderRadius: '999px' }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Completed Lessons Roster */}
+              <div>
+                <h4 style={{ margin: '0 0 12px 0', fontSize: '0.95rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <BookOpen size={16} color="#10b981" /> Completed Course Lessons ({Array.isArray(viewingUserDetail.completed_lessons) ? viewingUserDetail.completed_lessons.length : 0})
+                </h4>
+                {Array.isArray(viewingUserDetail.completed_lessons) && viewingUserDetail.completed_lessons.length > 0 ? (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                    {viewingUserDetail.completed_lessons.map(lesId => (
+                      <span key={lesId} style={{ background: 'rgba(16, 185, 129, 0.08)', color: '#059669', border: '1px solid rgba(16, 185, 129, 0.15)', padding: '6px 12px', borderRadius: '12px', fontSize: '0.78rem', fontWeight: 800 }}>
+                        {getLessonNameById(lesId)}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--muted)', fontStyle: 'italic' }}>
+                    Student has not completed any curriculum lessons yet.
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="modal-footer" style={{ marginTop: '20px' }}>
+              <button type="button" className="secondary-btn" onClick={() => setViewingUserDetail(null)}>Close Inspector</button>
+            </div>
           </div>
         </div>
       )}
