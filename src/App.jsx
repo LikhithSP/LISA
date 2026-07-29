@@ -3974,9 +3974,9 @@ function App() {
               return renderPracticeSession({ ...ai, questions: ai.questions.map((q, i) => i === lessonStep ? { ...q, type: "matchingPairs" } : q) });
             }
 
-            // 8. Speak question (read sentence aloud)
-            if (currentQuestion.type === "speak") {
-              const sentence = currentQuestion.sentence || "";
+            // 8. Speak question (read sentence aloud) and new speaking practice types
+            if (currentQuestion.type === "speak" || currentQuestion.type === "listenRepeat" || currentQuestion.type === "speakReply" || currentQuestion.type === "translateSpeak") {
+              const sentence = currentQuestion.sentence || currentQuestion.replyText || currentQuestion.targetSentence || "";
               const emoji = currentQuestion.emoji || "🗣️";
               const feedback = lessonSpeakFeedback;
               const isChecked = feedback !== null;
@@ -4051,20 +4051,86 @@ function App() {
               return (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '120px' }}>
                   <div style={{ textAlign: 'center' }}>
-                    <span className="ai-step-badge">🗣️ Read Aloud</span>
+                    <span className="ai-step-badge">
+                      {currentQuestion.type === "speak" && "🗣️ Read Aloud"}
+                      {currentQuestion.type === "listenRepeat" && "🎧 Listen & Repeat"}
+                      {currentQuestion.type === "speakReply" && "💬 Conversational Reply"}
+                      {currentQuestion.type === "translateSpeak" && "🔄 Translate & Speak"}
+                    </span>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '20px', margin: '20px 0' }}>
-                    <img src="/as1.png" alt="LISA" style={{ width: '80px', height: '80px', objectFit: 'contain' }} />
-                    <div style={{ flexGrow: 1, background: 'var(--panel)', border: '2px solid var(--line)', borderRadius: '20px', padding: '20px', position: 'relative' }}>
-                      <div style={{ position: 'absolute', left: '-9px', top: '32px', width: '14px', height: '14px', background: 'var(--panel)', borderLeft: '2px solid var(--line)', borderBottom: '2px solid var(--line)', transform: 'rotate(45deg)' }}></div>
-                      <p style={{ fontSize: '1.6rem', fontWeight: '900', margin: 0, textAlign: 'center' }}>
-                        {emoji} {sentence}
-                      </p>
+
+                  {currentQuestion.type === "speak" && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '20px', margin: '20px 0' }}>
+                      <img src="/as1.png" alt="LISA" style={{ width: '80px', height: '80px', objectFit: 'contain' }} />
+                      <div style={{ flexGrow: 1, background: 'var(--panel)', border: '2px solid var(--line)', borderRadius: '20px', padding: '20px', position: 'relative' }}>
+                        <div style={{ position: 'absolute', left: '-9px', top: '32px', width: '14px', height: '14px', background: 'var(--panel)', borderLeft: '2px solid var(--line)', borderBottom: '2px solid var(--line)', transform: 'rotate(45deg)' }}></div>
+                        <p style={{ fontSize: '1.6rem', fontWeight: '900', margin: 0, textAlign: 'center' }}>
+                          {emoji} {sentence}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'center', gap: '16px' }}>
-                    <button type="button" onClick={() => speakText(sentence)} style={{ background: '#38bdf8', border: 'none', color: 'white', borderRadius: '14px', padding: '14px 24px', fontWeight: '800', cursor: 'pointer', fontSize: '1rem' }}>🔊 Listen</button>
-                  </div>
+                  )}
+
+                  {currentQuestion.type === "listenRepeat" && (
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px', margin: '20px 0' }}>
+                      <p style={{ fontSize: '1.1rem', color: 'var(--text-muted)', margin: 0, fontWeight: 700 }}>Listen to the sentence and speak it back:</p>
+                      <button
+                        type="button"
+                        onClick={() => speakText(sentence)}
+                        className="duo-listen-btn"
+                        style={{ width: '100px', height: '100px', borderRadius: '50%', fontSize: '3.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      >
+                        🔊
+                      </button>
+                      <div style={{ margin: '10px 0', filter: isChecked ? 'none' : 'blur(4px)', transition: 'filter 0.3s' }}>
+                        <p style={{ fontSize: '1.4rem', fontWeight: '800', margin: 0 }}>{sentence}</p>
+                      </div>
+                      {!isChecked && (
+                        <button type="button" className="secondary-btn" onClick={() => speakText(sentence)} style={{ fontSize: '0.85rem', padding: '6px 12px' }}>Peek at text</button>
+                      )}
+                    </div>
+                  )}
+
+                  {currentQuestion.type === "speakReply" && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', margin: '20px 0' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        <img src="/as1.png" alt="LISA Character" style={{ width: '60px', height: '60px', objectFit: 'contain' }} />
+                        <div style={{ background: 'var(--accent-soft)', border: '1px solid var(--accent)', borderRadius: '16px', padding: '12px 16px', flexGrow: 1 }}>
+                          <p style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700 }}>{currentQuestion.promptText}</p>
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
+                        <div style={{ background: 'var(--panel)', border: '2px solid var(--line)', borderRadius: '16px', padding: '14px 20px', maxWidth: '80%' }}>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--accent)', fontWeight: 800, textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>Say this reply:</span>
+                          <p style={{ margin: 0, fontSize: '1.3rem', fontWeight: 800 }}>{sentence}</p>
+                          {currentQuestion.translation && (
+                            <p style={{ margin: '6px 0 0', fontSize: '0.9rem', color: 'var(--text-muted)' }}>({currentQuestion.translation})</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {currentQuestion.type === "translateSpeak" && (
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', margin: '20px 0' }}>
+                      <p style={{ fontSize: '1.1rem', color: 'var(--text-muted)', margin: 0, fontWeight: 700 }}>Translate this sentence and speak it in {learningLanguage}:</p>
+                      <div style={{ background: 'var(--panel)', border: '2px solid var(--line)', borderRadius: '20px', padding: '20px', width: '100%', textAlign: 'center' }}>
+                        <p style={{ fontSize: '1.5rem', fontWeight: '800', margin: 0 }}>{currentQuestion.promptText}</p>
+                        {currentQuestion.hint && (
+                          <p style={{ margin: '8px 0 0', fontSize: '0.88rem', color: '#b45309', fontWeight: 700 }}>💡 Hint: {currentQuestion.hint}</p>
+                        )}
+                      </div>
+                      {isChecked && (
+                        <p style={{ fontSize: '1.1rem', color: 'var(--text-muted)', margin: 0 }}>Expected translation: <strong>{sentence}</strong></p>
+                      )}
+                    </div>
+                  )}
+
+                  {currentQuestion.type === "speak" && (
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: '16px' }}>
+                      <button type="button" onClick={() => speakText(sentence)} style={{ background: '#38bdf8', border: 'none', color: 'white', borderRadius: '14px', padding: '14px 24px', fontWeight: '800', cursor: 'pointer', fontSize: '1rem' }}>🔊 Listen</button>
+                    </div>
+                  )}
                   
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', margin: '20px 0' }}>
                     <div className="mic-outer-container">
@@ -9897,21 +9963,9 @@ function App() {
               <div className="practice-grid-layout">
                 <div className="practice-content-column">
                   <div className="practice-section">
-                    <h2 className="practice-section-title">{t("practiceTodaysReview")}</h2>
-                    <div className="perfect-pronunciation-card" onClick={() => { setPracticeCollectionPage("pronunciation"); window.scrollTo({ top: 0, behavior: "smooth" }); }}>
-                      <div className="perfect-pronunciation-info">
-                        <h3 className="perfect-pronunciation-title">{t("practicePerfectPronunciation")}</h3>
-                        <p className="perfect-pronunciation-desc">{t("practicePerfectPronunciationDesc")}</p>
-                        <button type="button" className="perfect-pronunciation-btn">{t("practiceStart")}</button>
-                      </div>
-                      <img src="/as4.png" alt="Mascot" className="perfect-pronunciation-mascot" />
-                    </div>
-                  </div>
-
-                  <div className="practice-section">
                     <h2 className="practice-section-title">{t("practiceConversation")}</h2>
                     <div className="practice-row-cards">
-                      <div className="practice-row-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_read_practice`, title: "Speak Practice", desc: "Improve your speaking skills with these phrases" })}>
+                      <div className="practice-row-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_speak_practice`, title: "Speak Practice", desc: "Improve your speaking skills with these phrases" })}>
                         <div className="practice-row-card-content">
                           <h3 className="practice-row-card-title">{t("practiceSpeak") || "Speak"}</h3>
                           <p className="practice-row-card-desc">{t("practiceSpeakDesc")}</p>

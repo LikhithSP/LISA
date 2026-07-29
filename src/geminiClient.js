@@ -1272,24 +1272,16 @@ const buildPracticePrompt = (params) => {
   const targetLang = language || "English";
   const uiLang = interfaceLanguage || preferredLanguage || "English";
 
-  if (practiceType === "Perfect Pronunciation" || practiceType === "Speak Practice") {
+  if (practiceType === "Perfect Pronunciation") {
     return `You are LISA, an expert AI literacy tutor. Generate exactly 10 speaking/pronunciation practice questions in ${targetLang} suitable for a learner at Literacy Level ${literacyLevel} (${literacyLevelName}).
 The user's preferred interface language is ${uiLang}. Provide translation descriptions in ${uiLang}.
-The questions must be a mix of two types:
-1. Standard speak sentence:
-   {
-     "id": idx,
-     "type": "speak",
-     "sentence": "A simple sentence to read aloud in ${targetLang}",
-     "translation": "The translation in ${uiLang}"
-   }
-2. "listeningTask": Choose the words you hear:
-   {
-     "id": idx,
-     "type": "listeningTask",
-     "audioText": "A simple sentence or phrase in ${targetLang} for the user to hear",
-     "tiles": ["Array of 6-8 words in ${targetLang} containing all words from audioText plus 2-3 distractor words"]
-   }
+The questions must be standard speak sentences:
+{
+  "id": idx,
+  "type": "speak",
+  "sentence": "A simple sentence to read aloud in ${targetLang}",
+  "translation": "The translation in ${uiLang}"
+}
 
 Return ONLY valid JSON with this exact structure:
 {
@@ -1297,6 +1289,42 @@ Return ONLY valid JSON with this exact structure:
     ...
   ]
 } (Make sure there are exactly 10 items in the array)`;
+  }
+
+  if (practiceType === "Speak Practice" || practiceType === "Speak") {
+    return `You are LISA, an expert AI literacy tutor. Generate exactly 10 speaking practice questions in ${targetLang} suitable for a learner at Literacy Level ${literacyLevel} (${literacyLevelName}).
+The user's preferred interface language is ${uiLang}.
+Generate exactly 10 questions utilizing a mix of these three types:
+1. "listenRepeat": Listen to a sentence in ${targetLang} and repeat it:
+   {
+     "id": idx,
+     "type": "listenRepeat",
+     "sentence": "A simple sentence in ${targetLang} to read or repeat",
+     "translation": "The translation in ${uiLang}"
+   }
+2. "speakReply": Respond to a character's prompt:
+   {
+     "id": idx,
+     "type": "speakReply",
+     "promptText": "A dialog prompt from character in ${targetLang} e.g. 'Hello, how are you?' or 'What is your name?'",
+     "replyText": "The response for user to speak in ${targetLang} e.g. 'I am doing well, thank you' or 'My name is LISA'",
+     "translation": "Translation of the replyText in ${uiLang}"
+   }
+3. "translateSpeak": Translate and speak:
+   {
+     "id": idx,
+     "type": "translateSpeak",
+     "promptText": "A simple sentence written in ${uiLang} for the user to translate",
+     "targetSentence": "The correct translation in ${targetLang} for the user to speak aloud",
+     "hint": "A helpful grammar or vocabulary hint in ${uiLang} e.g. 'Use present tense'"
+   }
+
+Return ONLY valid JSON with this exact structure:
+{
+  "questions": [
+    ...
+  ]
+} (Make sure there are exactly 10 items in the array in total)`;
   }
 
   if (practiceType === "Read Practice") {
@@ -1458,65 +1486,127 @@ const getFallbackPractice = (params) => {
   const { practiceType, language } = params;
   
   const rawPractice = (() => {
-    if (practiceType === "Perfect Pronunciation" || practiceType === "Speak Practice") {
+    if (practiceType === "Perfect Pronunciation") {
       const defaultQuestions = language === "Hindi" ? [
-      { id: 1, type: "speak", sentence: "राम स्कूल जाता है।", englishTranslation: "Ram goes to school." },
-      { id: 2, type: "speak", sentence: "वह किताब पढ़ता है।", englishTranslation: "He reads a book." },
-      { id: 3, type: "speak", sentence: "सीता गाना गाती है।", englishTranslation: "Sita sings a song." },
-      { id: 4, type: "speak", sentence: "आज मौसम अच्छा है।", englishTranslation: "Today the weather is good." },
-      { id: 5, type: "speak", sentence: "मुझे फल खाना पसंद है।", englishTranslation: "I like to eat fruits." },
-      { id: 6, type: "speak", sentence: "यह मेरी पुस्तक है।", englishTranslation: "This is my book." },
-      { id: 7, type: "speak", sentence: "हम सब मिलकर खेलेंगे।", englishTranslation: "We will all play together." },
-      { id: 8, type: "speak", sentence: "पानी बहुत ठंडा है।", englishTranslation: "The water is very cold." },
-      { id: 9, type: "listeningTask", audioText: "पेड़ पर पक्षी हैं", tiles: ["पेड़", "पर", "पक्षी", "हैं", "पानी", "फूल", "आसमान"] },
-      { id: 10, type: "listeningTask", audioText: "समय बहुत मूल्यवान है", tiles: ["समय", "बहुत", "मूल्यवान", "है", "काम", "आज", "कल"] }
-    ] : language === "Kannada" ? [
-      { id: 1, type: "speak", sentence: "ರಾಮ್ ಶಾಲೆಗೆ ಹೋಗುತ್ತಾನೆ.", englishTranslation: "Ram goes to school." },
-      { id: 2, type: "speak", sentence: "ಅವನು ಪುಸ್ತಕ ಓದುತ್ತಾನೆ.", englishTranslation: "He reads a book." },
-      { id: 3, type: "speak", sentence: "ಸೀತಾ ಹಾಡು ಹಾಡುತ್ತಾಳೆ.", englishTranslation: "Sita sings a song." },
-      { id: 4, type: "speak", sentence: "ಇಂದು ಹವಾಮಾನ ಚೆನ್ನಾಗಿದೆ.", englishTranslation: "Today the weather is good." },
-      { id: 5, type: "speak", sentence: "ನನಗೆ ಹಣ್ಣು ತಿನ್ನಲು ಇಷ್ಟ.", englishTranslation: "I like to eat fruits." },
-      { id: 6, type: "speak", sentence: "ಇದು ನನ್ನ ಪುಸ್ತಕ.", englishTranslation: "This is my book." },
-      { id: 7, type: "speak", sentence: "ನಾವೆಲ್ಲರೂ ಒಟ್ಟಿಗೆ ಆಡೋಣ.", englishTranslation: "Let's all play together." },
-      { id: 8, type: "speak", sentence: "ನೀರು ತುಂಬಾ ತಣ್ಣಗಿದೆ.", englishTranslation: "The water is very cold." },
-      { id: 9, type: "listeningTask", audioText: "ಮರದ ಮೇಲೆ ಹಕ್ಕಿಗಳಿವೆ", tiles: ["ಮರದ", "ಮೇಲೆ", "ಹಕ್ಕಿಗಳಿವೆ", "ನೀರು", "ಹಣ್ಣು", "ಕಾಡು"] },
-      { id: 10, type: "listeningTask", audioText: "ಸಮಯ ತುಂಬಾ ಅಮೂಲ್ಯವಾಗಿದೆ", tiles: ["ಸಮಯ", "ತುಂಬಾ", "ಅಮೂಲ್ಯವಾಗಿದೆ", "ಕೆಲಸ", "ಇಂದು", "ಆಟ"] }
-    ] : language === "Telugu" ? [
-      { id: 1, type: "speak", sentence: "రాము బడికి వెళతాడు.", englishTranslation: "Ram goes to school." },
-      { id: 2, type: "speak", sentence: "అతడు పుస్తకం చదువుతాడు.", englishTranslation: "He reads a book." },
-      { id: 3, type: "speak", sentence: "సీత పాట పాడుతుంది.", englishTranslation: "Sita sings a song." },
-      { id: 4, type: "speak", sentence: "ఈరోజు వాతావరణం బాగుంది.", englishTranslation: "Today the weather is good." },
-      { id: 5, type: "speak", sentence: "నాకు పండ్లు తినడం ఇష్టం.", englishTranslation: "I like to eat fruits." },
-      { id: 6, type: "speak", sentence: "ఇది నా పుస్తకం.", englishTranslation: "This is my book." },
-      { id: 7, type: "speak", sentence: "మనమందరం కలిసి ఆడుకుందాం.", englishTranslation: "Let's all play together." },
-      { id: 8, type: "speak", sentence: "నీరు చాలా చల్లగా ఉంది.", englishTranslation: "Water is very cold." },
-      { id: 9, type: "listeningTask", audioText: "చెట్టు మీద పక్షులు ఉన్నాయి", tiles: ["చెట్టు", "మీద", "పక్షులు", "ఉన్నాయి", "నీరు", "ఆకాశం", "పండు"] },
-      { id: 10, type: "listeningTask", audioText: "సమయం చాలా విలువైనది", tiles: ["సమయం", "చాలా", "విలువైనది", "పని", "ఈరోజు", "ఆట"] }
-    ] : language === "Tamil" ? [
-      { id: 1, type: "speak", sentence: "ராம் பள்ளிக்குச் செல்கிறான்.", englishTranslation: "Ram goes to school." },
-      { id: 2, type: "speak", sentence: "அவன் புத்தகம் படிக்கிறான்.", englishTranslation: "He reads a book." },
-      { id: 3, type: "speak", sentence: "சீதா பாட்டு பாடுகிறாள்.", englishTranslation: "Sita sings a song." },
-      { id: 4, type: "speak", sentence: "இன்று வானிலை நன்றாக உள்ளது.", englishTranslation: "Today the weather is good." },
-      { id: 5, type: "speak", sentence: "எனக்கு பழங்கள் சாப்பிட பிடிக்கும்.", englishTranslation: "I like to eat fruits." },
-      { id: 6, type: "speak", sentence: "இது எனது புத்தகம்.", englishTranslation: "This is my book." },
-      { id: 7, type: "speak", sentence: "நாம் அனைவரும் சேர்ந்து விளையாடுவோம்.", englishTranslation: "We will all play together." },
-      { id: 8, type: "speak", sentence: "தண்ணீர் மிகவும் குளிராக இருக்கிறது.", englishTranslation: "Water is very cold." },
-      { id: 9, type: "listeningTask", audioText: "மரத்தின் மேல் பறவைகள் இருக்கின்றன", tiles: ["மரத்தின்", "மேல்", "பறவைகள்", "இருக்கின்றன", "தண்ணீர்", "பழங்கள்", "காடு"] },
-      { id: 10, type: "listeningTask", audioText: "நேரம் மிகவும் மதிப்புமிக்கது", tiles: ["நேரம்", "மிகவும்", "மதிப்புமிக்கது", "வேலை", "இன்று", "விளையாட்டு"] }
-    ] : [
-      { id: 1, type: "speak", sentence: "The sun shines bright.", englishTranslation: "The sun shines bright." },
-      { id: 2, type: "speak", sentence: "I love reading books.", englishTranslation: "I love reading books." },
-      { id: 3, type: "speak", sentence: "We go to school.", englishTranslation: "We go to school." },
-      { id: 4, type: "speak", sentence: "Water is clean and fresh.", englishTranslation: "Water is clean and fresh." },
-      { id: 5, type: "speak", sentence: "She speaks very kindly.", englishTranslation: "She speaks very kindly." },
-      { id: 6, type: "speak", sentence: "This is my favorite story.", englishTranslation: "This is my favorite story." },
-      { id: 7, type: "speak", sentence: "Let's play together today.", englishTranslation: "Let's play together today." },
-      { id: 8, type: "speak", sentence: "The trees are green.", englishTranslation: "The trees are green." },
-      { id: 9, type: "listeningTask", audioText: "Birds fly high in sky", tiles: ["Birds", "fly", "high", "in", "sky", "water", "green", "trees"] },
-      { id: 10, type: "listeningTask", audioText: "Practice makes perfect", tiles: ["Practice", "makes", "perfect", "good", "student", "today"] }
-    ];
+        { id: 1, type: "speak", sentence: "राम स्कूल जाता है।", englishTranslation: "Ram goes to school." },
+        { id: 2, type: "speak", sentence: "वह किताब पढ़ता है।", englishTranslation: "He reads a book." },
+        { id: 3, type: "speak", sentence: "सीता गाना गाती है।", englishTranslation: "Sita sings a song." },
+        { id: 4, type: "speak", sentence: "आज मौसम अच्छा है।", englishTranslation: "Today the weather is good." },
+        { id: 5, type: "speak", sentence: "मुझे फल खाना पसंद है।", englishTranslation: "I like to eat fruits." },
+        { id: 6, type: "speak", sentence: "यह मेरी पुस्तक है।", englishTranslation: "This is my book." },
+        { id: 7, type: "speak", sentence: "हम सब मिलकर खेलेंगे।", englishTranslation: "We will all play together." },
+        { id: 8, type: "speak", sentence: "पानी बहुत ठंडा है।", englishTranslation: "The water is very cold." },
+        { id: 9, type: "speak", sentence: "पेड़ पर पक्षी हैं।", englishTranslation: "Birds are on the tree." },
+        { id: 10, type: "speak", sentence: "समय बहुत मूल्यवान है।", englishTranslation: "Time is very valuable." }
+      ] : language === "Kannada" ? [
+        { id: 1, type: "speak", sentence: "ರಾಮ್ ಶಾಲೆಗೆ ಹೋಗುತ್ತಾನೆ.", englishTranslation: "Ram goes to school." },
+        { id: 2, type: "speak", sentence: "ಅವನು ಪುಸ್ತಕ ಓದುತ್ತಾನೆ.", englishTranslation: "He reads a book." },
+        { id: 3, type: "speak", sentence: "ಸೀತಾ ಹಾಡು ಹಾಡುತ್ತಾಳೆ.", englishTranslation: "Sita sings a song." },
+        { id: 4, type: "speak", sentence: "ಇಂದು ಹವಾಮಾನ ಚೆನ್ನಾಗಿದೆ.", englishTranslation: "Today the weather is good." },
+        { id: 5, type: "speak", sentence: "ನನಗೆ ಹಣ್ಣು ತಿನ್ನಲು ಇಷ್ಟ.", englishTranslation: "I like to eat fruits." },
+        { id: 6, type: "speak", sentence: "ಇದು ನನ್ನ ಪುಸ್ತಕ.", englishTranslation: "This is my book." },
+        { id: 7, type: "speak", sentence: "ನಾವೆಲ್ಲರೂ ಒಟ್ಟಿಗೆ ಆಡೋಣ.", englishTranslation: "Let's all play together." },
+        { id: 8, type: "speak", sentence: "ನೀರು ತುಂಬಾ ತಣ್ಣಗಿದೆ.", englishTranslation: "The water is very cold." },
+        { id: 9, type: "speak", sentence: "ಮರದ ಮೇಲೆ ಹಕ್ಕಿಗಳಿವೆ.", englishTranslation: "Birds are on the tree." },
+        { id: 10, type: "speak", sentence: "ಸಮಯ ತುಂಬಾ ಅಮೂಲ್ಯವಾಗಿದೆ.", englishTranslation: "Time is very precious." }
+      ] : language === "Telugu" ? [
+        { id: 1, type: "speak", sentence: "రాము బడికి వెళతాడు.", englishTranslation: "Ram goes to school." },
+        { id: 2, type: "speak", sentence: "అతడు పుస్తకం చదువుతాడు.", englishTranslation: "He reads a book." },
+        { id: 3, type: "speak", sentence: "సీత పాట పాడుతుంది.", englishTranslation: "Sita sings a song." },
+        { id: 4, type: "speak", sentence: "ఈరోజు వాతావరణం బాగుంది.", englishTranslation: "Today the weather is good." },
+        { id: 5, type: "speak", sentence: "నాకు పండ్లు తినడం ఇష్టం.", englishTranslation: "I like to eat fruits." },
+        { id: 6, type: "speak", sentence: "ఇది నా పుస్తకం.", englishTranslation: "This is my book." },
+        { id: 7, type: "speak", sentence: "మనమందరం కలిసి ఆడుకుందాం.", englishTranslation: "Let's all play together." },
+        { id: 8, type: "speak", sentence: "నీరు చాలా చల్లగా ఉంది.", englishTranslation: "Water is very cold." },
+        { id: 9, type: "speak", sentence: "చెట్టు మీద పక్షులు ఉన్నాయి.", englishTranslation: "Birds are on the tree." },
+        { id: 10, type: "speak", sentence: "సమయం చాలా విలువైనది.", englishTranslation: "Time is very precious." }
+      ] : language === "Tamil" ? [
+        { id: 1, type: "speak", sentence: "ராம் பள்ளிக்குச் செல்கிறான்.", englishTranslation: "Ram goes to school." },
+        { id: 2, type: "speak", sentence: "அவன் புத்தகம் படிக்கிறான்.", englishTranslation: "He reads a book." },
+        { id: 3, type: "speak", sentence: "சீதா பாட்டு பாடுகிறாள்.", englishTranslation: "Sita sings a song." },
+        { id: 4, type: "speak", sentence: "இன்று வானிலை நன்றாக உள்ளது.", englishTranslation: "Today the weather is good." },
+        { id: 5, type: "speak", sentence: "எனக்கு பழங்கள் சாப்பிட பிடிக்கும்.", englishTranslation: "I like to eat fruits." },
+        { id: 6, type: "speak", sentence: "இது எனது புத்தகம்.", englishTranslation: "This is my book." },
+        { id: 7, type: "speak", sentence: "நாம் அனைவரும் சேர்ந்து விளையாடுவோம்.", englishTranslation: "We will all play together." },
+        { id: 8, type: "speak", sentence: "தண்ணீர் மிகவும் குளிராக இருக்கிறது.", englishTranslation: "Water is very cold." },
+        { id: 9, type: "speak", sentence: "மரத்தின் மேல் பறவைகள் இருக்கின்றன.", englishTranslation: "Birds are on the tree." },
+        { id: 10, type: "speak", sentence: "நேரம் மிகவும் மதிப்புமிக்கது.", englishTranslation: "Time is very valuable." }
+      ] : [
+        { id: 1, type: "speak", sentence: "The sun shines bright.", englishTranslation: "The sun shines bright." },
+        { id: 2, type: "speak", sentence: "I love reading books.", englishTranslation: "I love reading books." },
+        { id: 3, type: "speak", sentence: "We go to school.", englishTranslation: "We go to school." },
+        { id: 4, type: "speak", sentence: "Water is clean and fresh.", englishTranslation: "Water is clean and fresh." },
+        { id: 5, type: "speak", sentence: "She speaks very kindly.", englishTranslation: "She speaks very kindly." },
+        { id: 6, type: "speak", sentence: "This is my favorite story.", englishTranslation: "This is my favorite story." },
+        { id: 7, type: "speak", sentence: "Let's play together today.", englishTranslation: "Let's play together today." },
+        { id: 8, type: "speak", sentence: "The trees are green.", englishTranslation: "The trees are green." },
+        { id: 9, type: "speak", sentence: "Birds fly high in the sky.", englishTranslation: "Birds fly high in the sky." },
+        { id: 10, type: "speak", sentence: "Practice makes perfect.", englishTranslation: "Practice makes perfect." }
+      ];
+      return { questions: defaultQuestions };
+    }
+
+    if (practiceType === "Speak Practice" || practiceType === "Speak") {
+      const speakQuestions = language === "Hindi" ? [
+        { id: 1, type: "listenRepeat", sentence: "राम स्कूल जाता है।", englishTranslation: "Ram goes to school." },
+        { id: 2, type: "listenRepeat", sentence: "वह किताब पढ़ता है।", englishTranslation: "He reads a book." },
+        { id: 3, type: "listenRepeat", sentence: "सीता गाना गाती है।", englishTranslation: "Sita sings a song." },
+        { id: 4, type: "listenRepeat", sentence: "पानी बहुत ठंडा है।", englishTranslation: "The water is very cold." },
+        { id: 5, type: "speakReply", promptText: "नमस्ते! आप कैसे हैं?", replyText: "मैं ठीक हूँ, धन्यवाद।", translation: "I am fine, thank you." },
+        { id: 6, type: "speakReply", promptText: "आपका नाम क्या है?", replyText: "मेरा नाम राहुल है।", translation: "My name is Rahul." },
+        { id: 7, type: "speakReply", promptText: "आप कहाँ जा रहे हैं?", replyText: "मैं स्कूल जा रहा हूँ।", translation: "I am going to school." },
+        { id: 8, type: "translateSpeak", promptText: "She sings a song.", targetSentence: "वह गाना गाती है।", hint: "Translate to Hindi" },
+        { id: 9, type: "translateSpeak", promptText: "Today the weather is good.", targetSentence: "आज मौसम अच्छा है।", hint: "Translate to Hindi" },
+        { id: 10, type: "translateSpeak", promptText: "I like to eat fruits.", targetSentence: "मुझे फल खाना पसंद है।", hint: "Translate to Hindi" }
+      ] : language === "Kannada" ? [
+        { id: 1, type: "listenRepeat", sentence: "ರಾಮ್ ಶಾಲೆಗೆ ಹೋಗುತ್ತಾನೆ.", englishTranslation: "Ram goes to school." },
+        { id: 2, type: "listenRepeat", sentence: "ಅವನು ಪುಸ್ತಕ ಓದುತ್ತಾನೆ.", englishTranslation: "He reads a book." },
+        { id: 3, type: "listenRepeat", sentence: "ಸೀತಾ ಹಾಡು ಹಾಡುತ್ತಾಳೆ.", englishTranslation: "Sita sings a song." },
+        { id: 4, type: "listenRepeat", sentence: "ನೀರು ತುಂಬಾ ತಣ್ಣಗಿದೆ.", englishTranslation: "The water is very cold." },
+        { id: 5, type: "speakReply", promptText: "ನಮಸ್ಕಾರ! ನೀವು ಹೇಗಿದ್ದೀರಿ?", replyText: "ನಾನು ಚೆನ್ನಾಗಿದ್ದೇನೆ, ಧನ್ಯವಾದಗಳು.", translation: "I am fine, thank you." },
+        { id: 6, type: "speakReply", promptText: "ನಿಮ್ಮ ಹೆಸರೇನು?", replyText: "ನನ್ನ ಹೆಸರು ರಾಹುಲ್.", translation: "My name is Rahul." },
+        { id: 7, type: "speakReply", promptText: "ನೀವು ಎಲ್ಲಿಗೆ ಹೋಗುತ್ತಿದ್ದೀರಿ?", replyText: "ನಾನು ಶಾಲೆಗೆ ಹೋಗುತ್ತಿದ್ದೇನೆ.", translation: "I am going to school." },
+        { id: 8, type: "translateSpeak", promptText: "She sings a song.", targetSentence: "ಸೀತಾ ಹಾಡು ಹಾಡುತ್ತಾಳೆ.", hint: "Translate to Kannada" },
+        { id: 9, type: "translateSpeak", promptText: "Today the weather is good.", targetSentence: "ಇಂದು ಹವಾಮಾನ ಚೆನ್ನಾಗಿದೆ.", hint: "Translate to Kannada" },
+        { id: 10, type: "translateSpeak", promptText: "I like to eat fruits.", targetSentence: "ನನಗೆ ಹಣ್ಣು ತಿನ್ನಲು ಇಷ್ಟ.", hint: "Translate to Kannada" }
+      ] : language === "Telugu" ? [
+        { id: 1, type: "listenRepeat", sentence: "రాము బడికి వెళతాడు.", englishTranslation: "Ram goes to school." },
+        { id: 2, type: "listenRepeat", sentence: "అతడు పుస్తకం చదువుతాడు.", englishTranslation: "He reads a book." },
+        { id: 3, type: "listenRepeat", sentence: "సీత పాట పాడుతుంది.", englishTranslation: "Sita sings a song." },
+        { id: 4, type: "listenRepeat", sentence: "ನೀరు చాలా చల్లగా ఉంది.", englishTranslation: "Water is very cold." },
+        { id: 5, type: "speakReply", promptText: "నమస్తే! మీరు ఎలా ఉన్నారు?", replyText: "నేను బాగున్నాను, ధన్యవాదాలు.", translation: "I am fine, thank you." },
+        { id: 6, type: "speakReply", promptText: "మీ పేరు ఏమిటి?", replyText: "నా పేరు రాహుల్.", translation: "My name is Rahul." },
+        { id: 7, type: "speakReply", promptText: "మీరు ఎక్కడికి వెళ్తున్నారు?", replyText: "నేను బడికి వెళ్తున్నాను.", translation: "I am going to school." },
+        { id: 8, type: "translateSpeak", promptText: "She sings a song.", targetSentence: "సీత పాట పాడుతుంది.", hint: "Translate to Telugu" },
+        { id: 9, type: "translateSpeak", promptText: "Today the weather is good.", targetSentence: "ఈరోజు వాతావరణం బాగుంది.", hint: "Translate to Telugu" },
+        { id: 10, type: "translateSpeak", promptText: "I like to eat fruits.", targetSentence: "నాకు పండ్లు తినడం ఇష్టం.", hint: "Translate to Telugu" }
+      ] : language === "Tamil" ? [
+        { id: 1, type: "listenRepeat", sentence: "ராம் பள்ளிக்குச் செல்கிறான்.", englishTranslation: "Ram goes to school." },
+        { id: 2, type: "listenRepeat", sentence: "அவன் புத்தகம் படிக்கிறான்.", englishTranslation: "He reads a book." },
+        { id: 3, type: "listenRepeat", sentence: "சீதா பாட்டு பாடுகிறாள்.", englishTranslation: "Sita sings a song." },
+        { id: 4, type: "listenRepeat", sentence: "தண்ணீர் மிகவும் குளிராக இருக்கிறது.", englishTranslation: "Water is very cold." },
+        { id: 5, type: "speakReply", promptText: "வணக்கம்! நீங்கள் எப்படி இருக்கிறீர்கள்?", replyText: "நான் நன்றாக இருக்கிறேன், நன்றி.", translation: "I am fine, thank you." },
+        { id: 6, type: "speakReply", promptText: "உங்கள் பெயர் என்ன?", replyText: "என் பெயர் ராகுல்.", translation: "My name is Rahul." },
+        { id: 7, type: "speakReply", promptText: "நீங்கள் எங்கே செல்கிறீர்கள்?", replyText: "நான் பள்ளிக்குச் செல்கிறேன்.", translation: "I am going to school." },
+        { id: 8, type: "translateSpeak", promptText: "She sings a song.", targetSentence: "சீதா பாட்டு பாடுகிறாள்.", hint: "Translate to Tamil" },
+        { id: 9, type: "translateSpeak", promptText: "Today the weather is good.", targetSentence: "இன்று வானிலை நன்றாக உள்ளது.", hint: "Translate to Tamil" },
+        { id: 10, type: "translateSpeak", promptText: "I like to eat fruits.", targetSentence: "எனக்கு பழங்கள் சாப்பிட பிடிக்கும்.", hint: "Translate to Tamil" }
+      ] : [
+        { id: 1, type: "listenRepeat", sentence: "The sun shines bright.", translation: "The sun shines bright." },
+        { id: 2, type: "listenRepeat", sentence: "I love reading books.", translation: "I love reading books." },
+        { id: 3, type: "listenRepeat", sentence: "Water is clean and fresh.", translation: "Water is clean and fresh." },
+        { id: 4, type: "listenRepeat", sentence: "Practice makes perfect.", translation: "Practice makes perfect." },
+        { id: 5, type: "speakReply", promptText: "Hello! How are you doing?", replyText: "I am doing well, thank you.", translation: "I am doing well, thank you." },
+        { id: 6, type: "speakReply", promptText: "What is your favorite subject?", replyText: "I really enjoy learning languages.", translation: "I really enjoy learning languages." },
+        { id: 7, type: "speakReply", promptText: "Would you like to read now?", replyText: "Yes, let us read a story together.", translation: "Yes, let us read a story together." },
+        { id: 8, type: "translateSpeak", promptText: "वह स्कूल जाता है।", targetSentence: "He goes to school.", hint: "Translate to English" },
+        { id: 9, type: "translateSpeak", promptText: "आज मौसम अच्छा है।", targetSentence: "Today the weather is good.", hint: "Translate to English" },
+        { id: 10, type: "translateSpeak", promptText: "मुझे फल खाना पसंद है।", targetSentence: "I like to eat fruits.", hint: "Translate to English" }
+      ];
+      return { questions: speakQuestions };
+    }
     return { questions: defaultQuestions };
-  }
+  });
 
   if (practiceType === "Read Practice") {
     const readingQuestions = language === "Hindi" ? [
@@ -1852,7 +1942,6 @@ const getFallbackPractice = (params) => {
       { id: 10, question: "Complete the sentence: Rahul visited the local ___ to read.", options: ["Library", "School", "Shop", "Garden"], correctIndex: 0, explanation: "He visited the local library." }
     ]
   };
-  })();
 
   const interfaceLang = params.preferredLanguage || params.interfaceLanguage || "English";
   const learningLang = params.language || "English";
@@ -2305,6 +2394,72 @@ const translateFallbackPractice = (practice, interfaceLang, learningLang) => {
       if (q.phrase === "ಶಾಲೆ" || q.phrase === "विद्यालय" || q.phrase === "పాఠశాల" || q.phrase === "பள்ளி") {
         q.phrase = translations.meaning_phrase_school || q.phrase;
         q.options = ["A place where students learn and study", "An institution for higher learning", "A place where people work"];
+      }
+    }
+
+    // Translate Speak Practice new types
+    if (q.type === "translateSpeak") {
+      if (q.targetSentence === "He goes to school." || q.targetSentence === "He goes to school") {
+        q.promptText = interfaceLang === "Hindi" ? "वह स्कूल जाता है।" :
+                       interfaceLang === "Kannada" ? "ಅವನು ಶಾಲೆಗೆ ಹೋಗುತ್ತಾನೆ." :
+                       interfaceLang === "Telugu" ? "అతడు బడికి వెళతాడు." :
+                       interfaceLang === "Tamil" ? "அவன் பள்ளிக்குச் செல்கிறான்." : "He goes to school.";
+        q.hint = interfaceLang === "Hindi" ? "साधारण वर्तमान काल" :
+                 interfaceLang === "Kannada" ? "ಸರಳ ವರ್ತಮಾನ ಕಾಲ" :
+                 interfaceLang === "Telugu" ? "సాధారణ వర్తమాన కాలం" :
+                 interfaceLang === "Tamil" ? "எளிய நிகழ்காலம்" : "Use simple present tense";
+      }
+      if (q.targetSentence === "Today the weather is good." || q.targetSentence === "Today the weather is good") {
+        q.promptText = interfaceLang === "Hindi" ? "आज मौसम अच्छा है।" :
+                       interfaceLang === "Kannada" ? "ಇಂದು ಹವಾಮಾನ ಚೆನ್ನಾಗಿದೆ." :
+                       interfaceLang === "Telugu" ? "ఈరోజు వాతావరణం బాగుంది." :
+                       interfaceLang === "Tamil" ? "இன்று வானிலை நன்றாக உள்ளது." : "Today the weather is good.";
+        q.hint = interfaceLang === "Hindi" ? "अनुवाद करें" :
+                 interfaceLang === "Kannada" ? "ಅನುವಾದಿಸಿ" :
+                 interfaceLang === "Telugu" ? "అనువదించండి" :
+                 interfaceLang === "Tamil" ? "மொழிபெயர்க்கவும்" : "Translate to learning language";
+      }
+      if (q.targetSentence === "I like to eat fruits." || q.targetSentence === "I like to eat fruits") {
+        q.promptText = interfaceLang === "Hindi" ? "मुझे फल खाना पसंद है।" :
+                       interfaceLang === "Kannada" ? "ನನಗೆ ಹಣ್ಣು ತಿನ್ನಲು ಇಷ್ಟ." :
+                       interfaceLang === "Telugu" ? "నాకు పండ్లు తినడం ఇష్టం." :
+                       interfaceLang === "Tamil" ? "எனக்கு பழங்கள் சாப்பிட பிடிக்கும்." : "I like to eat fruits.";
+        q.hint = interfaceLang === "Hindi" ? "पसंद (like) का प्रयोग करें" :
+                 interfaceLang === "Kannada" ? "ಇಷ್ಟ (like) ಬಳಸಿ" :
+                 interfaceLang === "Telugu" ? "ఇష్టం (like) ఉపయోగించండి" :
+                 interfaceLang === "Tamil" ? "விருப்பம் (like) பயன்படுத்தவும்" : "Translate and speak";
+      }
+      if (q.targetSentence === "वह गाना गाती है।" || q.targetSentence === "ಸೀತಾ ಹಾಡು ಹಾಡುತ್ತಾಳೆ." || q.targetSentence === "సీత పాట పాడుతుంది." || q.targetSentence === "சீதா பாட்டு பாடுகிறாள்.") {
+        q.promptText = interfaceLang === "English" ? "She sings a song." : q.promptText;
+        q.hint = interfaceLang === "English" ? "Translate to target language" : q.hint;
+      }
+      if (q.targetSentence === "आज मौसम अच्छा है।" || q.targetSentence === "ಇಂದು ಹವಾಮಾನ ಚೆನ್ನಾಗಿದೆ." || q.targetSentence === "ఈరోజు వాతావరణం బాగుంది." || q.targetSentence === "இன்று வானிலை நன்றாக உள்ளது.") {
+        q.promptText = interfaceLang === "English" ? "Today the weather is good." : q.promptText;
+        q.hint = interfaceLang === "English" ? "Translate to target language" : q.hint;
+      }
+      if (q.targetSentence === "मुझे फल खाना पसंद है।" || q.targetSentence === "ನನಗೆ ಹಣ್ಣು ತಿನ್ನಲು ಇಷ್ಟ." || q.targetSentence === "నాకు పండ్లు తినడం ఇష్టం." || q.targetSentence === "எனக்கு பழங்கள் சாப்பிட பிடிக்கும்.") {
+        q.promptText = interfaceLang === "English" ? "I like to eat fruits." : q.promptText;
+        q.hint = interfaceLang === "English" ? "Translate to target language" : q.hint;
+      }
+    }
+    if (q.type === "speakReply") {
+      if (q.replyText === "I am doing well, thank you." || q.replyText === "I am doing well, thank you") {
+        q.translation = interfaceLang === "Hindi" ? "मैं ठीक हूँ, धन्यवाद।" :
+                        interfaceLang === "Kannada" ? "ನಾನು ಚೆನ್ನಾಗಿದ್ದೇನೆ, ಧನ್ಯವಾದಗಳು." :
+                        interfaceLang === "Telugu" ? "నేను బాగున్నాను, ధన్యవాదాలు." :
+                        interfaceLang === "Tamil" ? "நான் நன்றாக இருக்கிறேன், நன்றி." : "I am doing well, thank you.";
+      }
+      if (q.replyText === "I really enjoy learning languages." || q.replyText === "I really enjoy learning languages") {
+        q.translation = interfaceLang === "Hindi" ? "मुझे भाषाएं सीखना बहुत पसंद है।" :
+                        interfaceLang === "Kannada" ? "ನನಗೆ ಭಾಷೆಗಳನ್ನು ಕಲಿಯುವುದು ನಿಜವಾಗಿಯೂ ಇಷ್ಟ." :
+                        interfaceLang === "Telugu" ? "నేను భాషలు నేర్చుకోవడాన్ని నిజంగా ఆనందిస్తాను." :
+                        interfaceLang === "Tamil" ? "நான் மொழிகளைக் கற்றுக்கொள்வதை மிகவும் ರசிக்கிறேன்." : "I really enjoy learning languages.";
+      }
+      if (q.replyText === "Yes, let us read a story together." || q.replyText === "Yes, let us read a story together") {
+        q.translation = interfaceLang === "Hindi" ? "हाँ, चलिए मिलकर एक कहानी पढ़ते हैं।" :
+                        interfaceLang === "Kannada" ? "ಹೌದು, ನಾವು ಒಟ್ಟಿಗೆ ಒಂದು ಕಥೆಯನ್ನು ಓದೋಣ." :
+                        interfaceLang === "Telugu" ? "అవును, మనం కలిసి ఒక కథ చదువుదాం." :
+                        interfaceLang === "Tamil" ? "ஆம், நாம் சேர்ந்து ஒரு கதையைப் படிப்போம்." : "Yes, let us read a story together.";
       }
     }
   });
