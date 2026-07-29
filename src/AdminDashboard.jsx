@@ -72,6 +72,7 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
     avgLiteracyLevel: 0,
     levelsCount: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
     langCount: {},
+    learningLangCount: {},
     activeLearners: 0,
     totalCompletedLessons: 0,
     completedAssessmentsPct: 0
@@ -109,8 +110,9 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
         let activeLearners = 0;
         let totalCompletedLessons = 0;
         let completedAssessmentsCount = 0;
-        const levelsCount = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+        const levelsCount = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
         const langCount = {};
+        const learningLangCount = {};
 
         data.forEach(user => {
           if (user.literacy_level) {
@@ -120,6 +122,9 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
           }
           if (user.preferred_language) {
             langCount[user.preferred_language] = (langCount[user.preferred_language] || 0) + 1;
+          }
+          if (user.learning_language) {
+            learningLangCount[user.learning_language] = (learningLangCount[user.learning_language] || 0) + 1;
           }
           if (user.streak > 0) {
             activeLearners++;
@@ -138,6 +143,7 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
           avgLiteracyLevel: literacyCount ? (literacySum / literacyCount).toFixed(1) : 0,
           levelsCount,
           langCount,
+          learningLangCount,
           activeLearners,
           totalCompletedLessons,
           completedAssessmentsPct: totalUsers ? Math.round((completedAssessmentsCount / totalUsers) * 100) : 0
@@ -654,6 +660,24 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
 
   const getLessonNameById = (lessonId) => {
     if (!lessonId) return "N/A";
+
+    const practiceMatch = lessonId.match(/^l(\d+)_(.+)$/);
+    if (practiceMatch) {
+      const level = practiceMatch[1];
+      const rawType = practiceMatch[2];
+      
+      let typeLabel = rawType;
+      if (rawType === "comp_practice") typeLabel = "Stories Practice";
+      else if (rawType === "speak_practice" || rawType === "speak") typeLabel = "Speak Practice";
+      else if (rawType === "write_practice" || rawType === "write") typeLabel = "Write Practice";
+      else if (rawType === "read_practice" || rawType === "read") typeLabel = "Read Practice";
+      else if (rawType === "words_practice" || rawType === "words") typeLabel = "Words Practice";
+      else if (rawType === "mistakes_practice") typeLabel = "Mistakes Practice";
+      else if (rawType === "perfect_pronunciation" || rawType === "pronunciation_practice") typeLabel = "Perfect Pronunciation";
+      
+      return `${typeLabel} (Level ${level})`;
+    }
+
     for (const section of localCurriculum) {
       for (const unit of section.units) {
         for (const lesson of unit.lessons) {
@@ -1130,15 +1154,29 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
                         </td>
                         <td>{user.age || "N/A"}</td>
                         <td>
-                          <div className="user-td-cell">
-                            <span>UI: <b>{user.preferred_language || "English"}</b></span>
-                            <span>Learning: <b>{user.learning_language || "English"}</b></span>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                              <span className="lang-chip ui-lang" style={{ background: 'var(--panel-strong)', padding: '2px 8px', borderRadius: '6px', fontSize: '0.72rem', fontWeight: 800, border: '1px solid var(--line)' }}>UI</span>
+                              <span style={{ fontWeight: 800, fontSize: '0.82rem' }}>{user.preferred_language || "English"}</span>
+                            </div>
+                            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                              <span className="lang-chip learn-lang" style={{ background: '#e0f2fe', color: '#0369a1', padding: '2px 8px', borderRadius: '6px', fontSize: '0.72rem', fontWeight: 800 }}>Learn</span>
+                              <span style={{ fontWeight: 800, fontSize: '0.82rem' }}>{user.learning_language || "English"}</span>
+                            </div>
                           </div>
                         </td>
                         <td>
-                          <div className="user-td-cell">
-                            <span>⭐ {user.xp || 0} XP</span>
-                            <span>🔥 {user.streak || 0} Streak</span>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                              <span style={{ fontSize: '0.95rem' }}>⭐</span>
+                              <span style={{ fontWeight: 850, color: '#d97706', fontSize: '0.85rem' }}>{user.xp || 0}</span>
+                              <span style={{ fontSize: '0.72rem', color: 'var(--muted)', fontWeight: 800 }}>XP</span>
+                            </div>
+                            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                              <span style={{ fontSize: '0.95rem' }}>🔥</span>
+                              <span style={{ fontWeight: 850, color: '#ea580c', fontSize: '0.85rem' }}>{user.streak || 0}</span>
+                              <span style={{ fontSize: '0.72rem', color: 'var(--muted)', fontWeight: 800 }}>Streak</span>
+                            </div>
                           </div>
                         </td>
                         <td>
@@ -2196,23 +2234,32 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
               </div>
 
               {/* Completed Lessons Roster */}
-              <div>
-                <h4 style={{ margin: '0 0 12px 0', fontSize: '0.95rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <BookOpen size={16} color="#10b981" /> Completed Course Lessons ({Array.isArray(viewingUserDetail.completed_lessons) ? viewingUserDetail.completed_lessons.length : 0})
-                </h4>
-                {Array.isArray(viewingUserDetail.completed_lessons) && viewingUserDetail.completed_lessons.length > 0 ? (
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                    {viewingUserDetail.completed_lessons.map(lesId => (
-                      <span key={lesId} style={{ background: 'rgba(16, 185, 129, 0.08)', color: '#059669', border: '1px solid rgba(16, 185, 129, 0.15)', padding: '6px 12px', borderRadius: '12px', fontSize: '0.78rem', fontWeight: 800 }}>
-                        {getLessonNameById(lesId)}
-                      </span>
-                    ))}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '20px', borderTop: '1px solid var(--line)', paddingTop: '20px', marginTop: '10px' }}>
+                <div style={{ background: 'rgba(16, 185, 129, 0.05)', border: '1px solid rgba(16, 185, 129, 0.15)', borderRadius: '16px', padding: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ fontSize: '3rem', fontWeight: 900, color: '#10b981', lineHeight: 1 }}>
+                    {Array.isArray(viewingUserDetail.completed_lessons) ? viewingUserDetail.completed_lessons.length : 0}
                   </div>
-                ) : (
-                  <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--muted)', fontStyle: 'italic' }}>
-                    Student has not completed any curriculum lessons yet.
-                  </p>
-                )}
+                  <div style={{ fontSize: '0.78rem', color: 'var(--muted)', fontWeight: 800, marginTop: '8px', textAlign: 'center' }}>Completed Lessons</div>
+                </div>
+                <div>
+                  <h4 style={{ margin: '0 0 10px 0', fontSize: '0.85rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <BookOpen size={16} color="#10b981" /> Recent Completed Lessons
+                  </h4>
+                  {Array.isArray(viewingUserDetail.completed_lessons) && viewingUserDetail.completed_lessons.length > 0 ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {viewingUserDetail.completed_lessons.slice(-4).reverse().map((lesId, idx) => (
+                        <div key={`${lesId}-${idx}`} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'var(--panel-strong)', padding: '8px 12px', borderRadius: '10px', fontSize: '0.8rem', fontWeight: 700, border: '1px solid var(--line)' }}>
+                          <span style={{ color: '#10b981' }}>✓</span>
+                          <span>{getLessonNameById(lesId)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--muted)', fontStyle: 'italic' }}>
+                      No lessons completed yet.
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
 
