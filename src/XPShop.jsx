@@ -121,6 +121,9 @@ export function applyTheme(themeId) {
   root.style.setProperty("--accent", theme.preview.accent);
   root.style.setProperty("--accent-dark", theme.preview.accentDark);
   root.style.setProperty("--accent-soft", theme.preview.accentSoft);
+  
+  // Also store in localStorage to persist immediately across reloads
+  localStorage.setItem("lisa_current_theme", themeId);
 }
 
 export function resetTheme() {
@@ -128,151 +131,17 @@ export function resetTheme() {
   root.style.removeProperty("--accent");
   root.style.removeProperty("--accent-dark");
   root.style.removeProperty("--accent-soft");
+  localStorage.removeItem("lisa_current_theme");
 }
 
 export function applyFont(fontFamily) {
-  document.documentElement.style.setProperty("font-family", fontFamily);
+  const root = document.documentElement;
+  root.style.setProperty("--font-family", fontFamily);
+  root.style.setProperty("font-family", fontFamily);
   document.body.style.fontFamily = fontFamily;
 }
 
-// ─── Avatar Builder ────────────────────────────────────────────────────────────
-const AVATAR_BG_COLORS = [
-  "#6366f1", "#8b5cf6", "#ec4899", "#ef4444", "#f97316",
-  "#eab308", "#22c55e", "#10b981", "#06b6d4", "#3b82f6",
-  "#1e293b", "#78716c", "#e86b6b", "#9333ea", "#0d9488",
-];
-const AVATAR_SHAPES = ["circle", "square", "rounded"];
 
-function AvatarBuilder({ t = (key) => key, currentAvatar, onSave, ownedAvatars, onClose }) {
-  const [selectedEmoji, setSelectedEmoji] = useState(() => {
-    if (currentAvatar?.type === "builder") return currentAvatar.emoji || "😊";
-    return "😊";
-  });
-  const [bgColor, setBgColor] = useState(() => {
-    if (currentAvatar?.type === "builder") return currentAvatar.bg || "#6366f1";
-    return "#6366f1";
-  });
-  const [shape, setShape] = useState(() => {
-    if (currentAvatar?.type === "builder") return currentAvatar.shape || "circle";
-    return "circle";
-  });
-
-  const EMOJI_OPTIONS = [
-    "😊", "😎", "🤩", "🥳", "😄", "😁", "🤓", "🧐", "😇", "🥰",
-    "😏", "🤔", "🤗", "😤", "😌", "🥸", "😝", "🤑", "😈", "👽",
-    "🤖", "💀", "👻", "🎭", "🦸", "🦹", "🧛", "🧟", "🧜", "🧚",
-  ];
-
-  const shapeStyle = {
-    circle: { borderRadius: "50%" },
-    square: { borderRadius: "8px" },
-    rounded: { borderRadius: "24px" },
-  };
-
-  const preview = {
-    type: "builder",
-    emoji: selectedEmoji,
-    bg: bgColor,
-    shape,
-  };
-
-  return (
-    <div className="avatar-builder">
-      <div className="avatar-builder-header">
-        <h3 className="avatar-builder-title">🎨 {t("customAvatarBuilder")}</h3>
-        <button className="avatar-builder-close" onClick={onClose}>✕</button>
-      </div>
-
-      {/* Preview */}
-      <div className="avatar-builder-preview-wrap">
-        <div
-          className="avatar-builder-preview"
-          style={{ background: bgColor, ...shapeStyle[shape] }}
-        >
-          <span style={{ fontSize: "3.5rem" }}>{selectedEmoji}</span>
-        </div>
-        <p className="avatar-builder-preview-label">{t("yourAvatarLabel")}</p>
-      </div>
-
-      {/* Emoji Picker */}
-      <div className="avatar-builder-section">
-        <label className="avatar-builder-label">{t("chooseEmoji")}</label>
-        <div className="avatar-emoji-grid">
-          {EMOJI_OPTIONS.map((em) => (
-            <button
-              key={em}
-              className={`avatar-emoji-btn ${selectedEmoji === em ? "selected" : ""}`}
-              onClick={() => setSelectedEmoji(em)}
-            >
-              {em}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Owned avatar emojis */}
-      {ownedAvatars.length > 0 && (
-        <div className="avatar-builder-section">
-          <label className="avatar-builder-label">{t("unlockedAvatars")}</label>
-          <div className="avatar-emoji-grid">
-            {ownedAvatars.map((id) => {
-              const av = SHOP_CATALOG.avatars.find(a => a.id === id);
-              if (!av) return null;
-              return (
-                <button
-                  key={id}
-                  className={`avatar-emoji-btn ${selectedEmoji === av.emoji ? "selected" : ""}`}
-                  onClick={() => setSelectedEmoji(av.emoji)}
-                >
-                  {av.emoji}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Background Color */}
-      <div className="avatar-builder-section">
-        <label className="avatar-builder-label">{t("backgroundColor")}</label>
-        <div className="avatar-color-grid">
-          {AVATAR_BG_COLORS.map((c) => (
-            <button
-              key={c}
-              className={`avatar-color-swatch ${bgColor === c ? "selected" : ""}`}
-              style={{ background: c }}
-              onClick={() => setBgColor(c)}
-            />
-          ))}
-        </div>
-      </div>
-
-      {/* Shape */}
-      <div className="avatar-builder-section">
-        <label className="avatar-builder-label">{t("shape")}</label>
-        <div className="avatar-shape-row">
-          {AVATAR_SHAPES.map((s) => (
-            <button
-              key={s}
-              className={`avatar-shape-btn ${shape === s ? "selected" : ""}`}
-              onClick={() => setShape(s)}
-              style={{ borderRadius: shapeStyle[s].borderRadius }}
-            >
-              <span style={{ background: bgColor, ...shapeStyle[s], display: "inline-flex", alignItems: "center", justifyContent: "center", width: 36, height: 36, fontSize: "1.2rem" }}>{selectedEmoji}</span>
-              <span style={{ fontSize: "0.75rem", marginTop: 4, display: "block" }}>{t(s + "Shape")}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <button className="avatar-builder-save-btn" onClick={() => onSave(preview)}>
-        {t("applyAvatar")}
-      </button>
-    </div>
-  );
-}
-
-// ─── Main XP Shop ──────────────────────────────────────────────────────────────
 export default function XPShop({
   t = (key) => key,
   userXp,
@@ -295,7 +164,7 @@ export default function XPShop({
   const [activeCategory, setActiveCategory] = useState("themes");
   const [toast, setToast] = useState(null);
   const [confirmItem, setConfirmItem] = useState(null);
-  const [showAvatarBuilder, setShowAvatarBuilder] = useState(false);
+
   const [previewTheme, setPreviewTheme] = useState(null);
 
   const owned = ownedItems || [];
@@ -495,44 +364,32 @@ export default function XPShop({
   );
 
   const renderAvatarsGrid = () => (
-    <>
-      {/* Custom Avatar Builder Card */}
-      <div className="shop-avatar-builder-cta" onClick={() => setShowAvatarBuilder(true)}>
-        <div className="shop-avatar-builder-icon">🎨</div>
-        <div>
-          <div className="shop-avatar-builder-title">{t("customAvatarBuilder")}</div>
-          <div className="shop-avatar-builder-desc">{t("customAvatarBuilderDesc")}</div>
-        </div>
-        <button className="shop-avatar-builder-btn">{t("openBuilderBtn")}</button>
-      </div>
-
-      <div className="shop-grid shop-grid-3" style={{ marginTop: 16 }}>
-        {SHOP_CATALOG.avatars.map((av) => {
-          const owned_flag = isOwned(av.id);
-          const active = currentAvatar?.id === av.id;
-          return (
-            <div
-              key={av.id}
-              className={`shop-item-card shop-avatar-card ${active ? "shop-item-active" : ""} ${owned_flag ? "shop-item-owned" : ""}`}
-            >
-              {active && <div className="shop-active-badge">✓</div>}
-              {owned_flag && !active && <div className="shop-owned-badge">{t("ownedLabel")}</div>}
-              <div className="shop-avatar-preview">{av.emoji}</div>
-              <div className="shop-item-name" style={{ textAlign: "center" }}>{t(av.id + "_name") || av.name}</div>
-              <div className="shop-item-footer" style={{ justifyContent: "center" }}>
-                <span className="shop-item-cost">⭐ {av.cost}</span>
-                <button
-                  className={`shop-buy-btn ${active ? "shop-btn-active" : owned_flag ? "shop-btn-equip" : userXp >= av.cost ? "" : "shop-btn-disabled"}`}
-                  onClick={() => handlePurchase(av)}
-                >
-                  {active ? "✓" : owned_flag ? t("useBtn") : t("buyBtn")}
-                </button>
-              </div>
+    <div className="shop-grid shop-grid-3">
+      {SHOP_CATALOG.avatars.map((av) => {
+        const owned_flag = isOwned(av.id);
+        const active = currentAvatar?.id === av.id;
+        return (
+          <div
+            key={av.id}
+            className={`shop-item-card shop-avatar-card ${active ? "shop-item-active" : ""} ${owned_flag ? "shop-item-owned" : ""}`}
+          >
+            {active && <div className="shop-active-badge">✓</div>}
+            {owned_flag && !active && <div className="shop-owned-badge">{t("ownedLabel")}</div>}
+            <div className="shop-avatar-preview">{av.emoji}</div>
+            <div className="shop-item-name" style={{ textAlign: "center" }}>{t(av.id + "_name") || av.name}</div>
+            <div className="shop-item-footer" style={{ justifyContent: "center" }}>
+              <span className="shop-item-cost">⭐ {av.cost}</span>
+              <button
+                className={`shop-buy-btn ${active ? "shop-btn-active" : owned_flag ? "shop-btn-equip" : userXp >= av.cost ? "" : "shop-btn-disabled"}`}
+                onClick={() => handlePurchase(av)}
+              >
+                {active ? "✓" : owned_flag ? t("useBtn") : t("buyBtn")}
+              </button>
             </div>
-          );
-        })}
-      </div>
-    </>
+          </div>
+        );
+      })}
+    </div>
   );
 
   const renderBadgesGrid = () => {
@@ -602,21 +459,6 @@ export default function XPShop({
                 {t("cancelBtn")}
               </button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Avatar Builder Modal */}
-      {showAvatarBuilder && (
-        <div className="shop-confirm-overlay">
-          <div className="shop-avatar-builder-modal">
-            <AvatarBuilder
-              t={t}
-              currentAvatar={currentAvatar}
-              ownedAvatars={owned.filter(id => id.startsWith("avatar_"))}
-              onSave={(avatar) => { onAvatarChange(avatar); setShowAvatarBuilder(false); showToast(t("avatarUpdatedToast") || "Avatar updated! ✨"); }}
-              onClose={() => setShowAvatarBuilder(false)}
-            />
           </div>
         </div>
       )}
