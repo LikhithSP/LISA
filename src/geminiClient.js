@@ -1140,24 +1140,27 @@ export const fetchWordOfDay = async (language = "English", context = {}, useFall
 };
 
 const buildPracticePrompt = (params) => {
-  const { practiceType, language, literacyLevel, literacyLevelName, mistakesList } = params;
+  const { practiceType, language, literacyLevel, literacyLevelName, mistakesList, interfaceLanguage } = params;
+  const targetLang = language || "English";
+  const uiLang = interfaceLanguage || "English";
 
   if (practiceType === "Perfect Pronunciation" || practiceType === "Speak Practice") {
-    return `You are LISA, an expert AI literacy tutor. Generate exactly 10 speaking/pronunciation practice questions in ${language} suitable for a learner at Literacy Level ${literacyLevel} (${literacyLevelName}).
+    return `You are LISA, an expert AI literacy tutor. Generate exactly 10 speaking/pronunciation practice questions in ${targetLang} suitable for a learner at Literacy Level ${literacyLevel} (${literacyLevelName}).
+The user's preferred interface language is ${uiLang}. Provide translation descriptions in ${uiLang}.
 The questions must be a mix of two types:
 1. Standard speak sentence:
    {
      "id": idx,
      "type": "speak",
-     "sentence": "A simple sentence to read aloud in ${language}",
-     "englishTranslation": "The English translation"
+     "sentence": "A simple sentence to read aloud in ${targetLang}",
+     "translation": "The translation in ${uiLang}"
    }
 2. "listeningTask": Choose the words you hear:
    {
      "id": idx,
      "type": "listeningTask",
-     "audioText": "A simple sentence or phrase in ${language} for the user to hear",
-     "tiles": ["Array of 6-8 words in ${language} containing all words from audioText plus 2-3 distractor words"]
+     "audioText": "A simple sentence or phrase in ${targetLang} for the user to hear",
+     "tiles": ["Array of 6-8 words in ${targetLang} containing all words from audioText plus 2-3 distractor words"]
    }
 
 Return ONLY valid JSON with this exact structure:
@@ -1169,37 +1172,38 @@ Return ONLY valid JSON with this exact structure:
   }
 
   if (practiceType === "Read Practice") {
-    return `You are LISA, an expert AI literacy tutor. Generate exactly 10 reading practice questions in ${language} suitable for a learner at Literacy Level ${literacyLevel} (${literacyLevelName}).
+    return `You are LISA, an expert AI literacy tutor. Generate exactly 10 reading practice questions in ${targetLang} suitable for a learner at Literacy Level ${literacyLevel} (${literacyLevelName}).
+The user's preferred interface language is ${uiLang}. All options, instructions, prompts, and explanations must be translated to or explained in ${uiLang} wherever applicable.
 The questions must be a mix of the following reading/comprehension activity types:
-1. "mcq": A multiple choice question in ${language} testing reading comprehension, grammar, or word usage.
-2. "meaning": Select the correct English translation/meaning of a target language word or short phrase.
+1. "mcq": A multiple choice question in ${targetLang} testing reading comprehension, grammar, or word usage. Explanation in ${uiLang}.
+2. "meaning": Select the correct translation/meaning of a target language word in ${uiLang}.
 3. "passage": A short reading passage with a multiple-choice comprehension question:
    {
      "id": idx,
      "type": "passage",
-     "passage": "A short reading passage of 2-4 simple sentences in ${language}",
-     "question": "A comprehension question about the passage in ${language}",
+     "passage": "A short reading passage of 2-4 simple sentences in ${targetLang}",
+     "question": "A comprehension question about the passage in ${targetLang} or ${uiLang}",
      "options": ["A", "B", "C", "D"],
      "correctIndex": 0,
-     "explanation": "Why this is correct"
+     "explanation": "Why this is correct, written in ${uiLang}"
    }
 4. "matchingPairs": Make correct pairs of words:
    {
      "id": idx,
      "type": "matchingPairs",
      "pairs": [
-       {"left": "word 1 in ${language}", "right": "its meaning/translation/definition in English"},
-       {"left": "word 2 in ${language}", "right": "its meaning/translation/definition in English"},
-       {"left": "word 3 in ${language}", "right": "its meaning/translation/definition in English"},
-       {"left": "word 4 in ${language}", "right": "its meaning/translation/definition in English"}
+       {"left": "word 1 in ${targetLang}", "right": "its meaning/translation/definition in ${uiLang}"},
+       {"left": "word 2 in ${targetLang}", "right": "its meaning/translation/definition in ${uiLang}"},
+       {"left": "word 3 in ${targetLang}", "right": "its meaning/translation/definition in ${uiLang}"},
+       {"left": "word 4 in ${targetLang}", "right": "its meaning/translation/definition in ${uiLang}"}
      ]
    }
 5. "imageChoice": Choose the correct picture:
    {
      "id": idx,
      "type": "imageChoice",
-     "word": "target word in ${language}",
-     "prompt": "instruction in ${language}, e.g. 'Tap the picture that means school'",
+     "word": "target word in ${targetLang}",
+     "prompt": "instruction in ${uiLang}, e.g. 'Tap the picture that means school'",
      "options": ["emoji1", "emoji2", "emoji3"],
      "correctIndex": 0
    }
@@ -1221,8 +1225,8 @@ Return ONLY valid JSON with this exact structure:
 Here is the history of mistakes they made:
 ${mistakesFormatted}
 
-Generate exactly 10 review questions in ${language} to help them practice and correct these mistakes (or general literacy review if no mistakes listed). Mix of multiple choice (mcq) and fill-in-the-blanks (fillBlank).
-Keep them simple and helpful for Level ${literacyLevel} (${literacyLevelName}).
+Generate exactly 10 review questions in ${targetLang} to help them practice and correct these mistakes (or general literacy review if no mistakes listed). Mix of multiple choice (mcq) and fill-in-the-blanks (fillBlank).
+Keep them simple and helpful for Level ${literacyLevel} (${literacyLevelName}). Interface language is ${uiLang}, so write instructions, hints, and explanations in ${uiLang}.
 
 Return ONLY valid JSON with this exact structure:
 {
@@ -1230,26 +1234,27 @@ Return ONLY valid JSON with this exact structure:
     {
       "id": 1,
       "type": "mcq",
-      "question": "Multiple choice question in ${language} targeting a mistake or rule",
+      "question": "Multiple choice question in ${targetLang} targeting a mistake or rule",
       "options": ["A", "B", "C", "D"],
       "correctIndex": 0,
-      "explanation": "Why this is correct"
+      "explanation": "Why this is correct in ${uiLang}"
     },
     {
       "id": 2,
       "type": "fillBlank",
-      "sentence": "A sentence in ${language} with ___ for the blank",
+      "sentence": "A sentence in ${targetLang} with ___ for the blank",
       "answer": "correct word to fill",
-      "hint": "helpful hint in ${language}"
+      "hint": "helpful hint in ${uiLang}"
     }
   ]
 } (Make sure there are exactly 10 items in the array in total)`;
   }
 
   if (practiceType === "Words Practice") {
-    return `You are LISA, an expert AI literacy tutor. Generate exactly 10 vocabulary/words practice questions in ${language} suitable for a learner at Literacy Level ${literacyLevel} (${literacyLevelName}).
+    return `You are LISA, an expert AI literacy tutor. Generate exactly 10 vocabulary/words practice questions in ${targetLang} suitable for a learner at Literacy Level ${literacyLevel} (${literacyLevelName}).
+The user's interface language is ${uiLang}.
 Mix of two types:
-1. "meaning": Select the correct English meaning/translation of a target language word.
+1. "meaning": Select the correct translation of a target language word in ${uiLang}.
 2. "spelling": Fill in the blank to complete the spelling of a target language word in a sentence context.
 
 Return ONLY valid JSON with this exact structure:
@@ -1258,54 +1263,55 @@ Return ONLY valid JSON with this exact structure:
     {
       "id": 1,
       "type": "meaning",
-      "phrase": "Word or short phrase in ${language}",
-      "options": ["Correct English translation", "incorrect distractor 1", "incorrect distractor 2"],
+      "phrase": "Word or short phrase in ${targetLang}",
+      "options": ["Correct translation in ${uiLang}", "incorrect distractor 1", "incorrect distractor 2"],
       "correctIndex": 0
     },
     {
       "id": 2,
       "type": "spelling",
-      "sentence": "A simple sentence in ${language} with a word missing letters, e.g. 'I read a bo___.' or target language equivalent with ___",
+      "sentence": "A simple sentence in ${targetLang} with a word missing letters, e.g. target language equivalent with ___",
       "answer": "The missing letters/word",
-      "hint": "Hint in ${language}"
+      "hint": "Hint in ${uiLang}"
     }
   ]
 } (Make sure there are exactly 10 items in the array)`;
   }
 
   if (practiceType === "Stories Practice") {
-    return `You are LISA, an expert AI literacy tutor. Generate a short, interesting, age-appropriate story (about 50-80 words, 3-5 sentences) in ${language} suitable for a learner at Literacy Level ${literacyLevel} (${literacyLevelName}).
-Make sure it is an engaging, structured story with characters or a narrative (e.g. beginning, middle, and end, or a simple fable/moral story) rather than just a simple informational paragraph.
-Then generate exactly 10 reading comprehension/vocabulary questions about this story.
+    return `You are LISA, an expert AI literacy tutor. Generate a short, interesting, age-appropriate story (about 50-80 words, 3-5 sentences) in ${targetLang} suitable for a learner at Literacy Level ${literacyLevel} (${literacyLevelName}).
+Make sure it is an engaging, structured story with characters or a narrative.
+Then generate exactly 10 reading comprehension/vocabulary questions about this story. Interface language is ${uiLang}, so write questions, options, and explanations in ${uiLang}.
 
 Return ONLY valid JSON with this exact structure:
 {
-  "story": "The complete story in ${language}",
+  "story": "The complete story in ${targetLang}",
   "questions": [
     {
       "id": 1,
-      "question": "Comprehension question in ${language} about the story",
+      "question": "Comprehension question in ${uiLang} about the story",
       "options": ["Option A", "Option B", "Option C", "Option D"],
       "correctIndex": 0,
-      "explanation": "Explanation of correct answer in ${language}"
+      "explanation": "Explanation of correct answer in ${uiLang}"
     }
   ]
 } (Make sure there are exactly 10 questions in the array)`;
   }
 
   if (practiceType === "Write Practice") {
-    return `You are LISA, an expert AI literacy tutor. Generate exactly 10 writing practice questions in ${language} suitable for a learner at Literacy Level ${literacyLevel} (${literacyLevelName}).
+    return `You are LISA, an expert AI literacy tutor. Generate exactly 10 writing practice questions in ${targetLang} suitable for a learner at Literacy Level ${literacyLevel} (${literacyLevelName}).
+The user's interface language is ${uiLang}. Write prompts, hints, and translation cues in ${uiLang}.
 The questions must be a mix of the following writing activity types:
-1. "fillBlank": A sentence in ${language} with a blank (___) for the learner to type the correct word.
-2. "unscramble": Shuffled letter tiles in ${language} that the learner rearranges to form a word.
-3. "writingActivity": A short writing prompt in ${language} for the learner to write a short response.
-4. "tracing": A letter or simple word in ${language} to trace.
+1. "fillBlank": A sentence in ${targetLang} with a blank (___) for the learner to type the correct word.
+2. "unscramble": Shuffled letter tiles in ${targetLang} that the learner rearranges to form a word.
+3. "writingActivity": A short writing prompt in ${uiLang} for the learner to write a short response in ${targetLang}.
+4. "tracing": A letter or simple word in ${targetLang} to trace.
 5. "translationTask": Arrange the words:
    {
      "id": idx,
      "type": "translationTask",
-     "prompt": "Arrange the words to form a sentence translating the following: ...",
-     "englishTranslation": "The correct translation sentence",
+     "prompt": "Arrange the words to form a sentence translating: [English sentence translated to ${uiLang}]",
+     "englishTranslation": "The correct target sentence in ${targetLang}",
      "tiles": ["shuffled", "words", "containing", "correct", "ones", "plus", "distractors"]
    }
 
@@ -1318,7 +1324,7 @@ Return ONLY valid JSON with this exact structure:
   }
 
   return "";
-};
+};;
 
 const getFallbackPractice = (params) => {
   const { practiceType, language } = params;

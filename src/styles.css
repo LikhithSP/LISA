@@ -12660,3 +12660,395 @@ select:focus {
 .admin-table-row-clickable:hover {
   background-color: var(--panel-strong) !important;
 }
+
+/* Glassmorphism enhancements for Flashcards */
+.flashcard-side {
+  background: rgba(255, 255, 255, 0.45) !important;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.35) !important;
+}
+
+[data-theme="dark"] .flashcard-side {
+  background: rgba(30, 30, 40, 0.55) !important;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Modernized Story Predictor Box */
+.story-predictor-box {
+  background: rgba(255, 255, 255, 0.6) !important;
+  backdrop-filter: blur(24px) saturate(190%);
+  -webkit-backdrop-filter: blur(24px) saturate(190%);
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="dark"] .story-predictor-box {
+  background: rgba(15, 15, 25, 0.7) !important;
+  backdrop-filter: blur(24px) saturate(190%);
+  -webkit-backdrop-filter: blur(24px) saturate(190%);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Solve & Correct Mistakes Modal Overlay */
+.duo-solve-modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+.duo-solve-modal {
+  background: var(--panel-strong);
+  border: 2px solid var(--line);
+  border-radius: 28px;
+  width: 90%;
+  max-width: 500px;
+  padding: 32px;
+  position: relative;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.15);
+  text-align: center;
+  animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.duo-solve-close {
+  position: absolute;
+  top: 20px; right: 20px;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.duo-solve-close:hover {
+  color: var(--text);
+}
+
+.duo-solve-icon {
+  font-size: 3rem;
+  margin-bottom: 12px;
+}
+
+.duo-solve-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.duo-solve-type {
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 1px;
+  margin-bottom: 20px;
+}
+
+.duo-solve-copy-box {
+  background: var(--bg);
+  padding: 16px;
+  border-radius: 16px;
+  margin-bottom: 20px;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.duo-solve-input-area {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.duo-solve-input {
+  width: 100%;
+  padding: 16px;
+  border-radius: 16px;
+  border: 2px solid var(--line);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-align: center;
+  transition: border-color 0.2s ease;
+}
+
+.duo-solve-input:focus {
+  border-color: var(--accent);
+  outline: none;
+}
+
+.duo-solve-feedback {
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 16px;
+  text-align: left;
+  animation: slideUp 0.2s ease;
+}
+
+.duo-solve-feedback.correct {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #10b981;
+}
+
+.duo-solve-feedback.incorrect {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+}
+
+.duo-row-action-hint {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin-top: 4px;
+}
+
+/* Pronunciation Assessment UI */
+.pronunciation-card-container {
+  background: var(--panel);
+  border: 2px solid var(--line);
+  border-radius: 28px;
+  padding: 32px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.05);
+  max-width: 600px;
+  margin: 30px auto;
+  animation: slideUp 0.3s ease;
+}
+
+.pronunciation-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.pronunciation-badge {
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+}
+
+.translation-toggle-btn {
+  background: var(--bg);
+  border: 1.5px solid var(--line);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.translation-toggle-btn.active, .translation-toggle-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.pronunciation-main-phrase {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.phrase-speak-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.tts-btn {
+  background: var(--bg);
+  border: 1.5px solid var(--line);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tts-btn:hover {
+  transform: scale(1.05);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.target-sentence-display {
+  font-size: 1.8rem;
+  font-weight: 800;
+  line-height: 1.4;
+  margin: 24px 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.word-span {
+  padding: 2px 6px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.word-span.neutral {
+  color: var(--text);
+}
+
+.word-span.correct {
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.15);
+  text-shadow: 0 0 1px rgba(16, 185, 129, 0.5);
+}
+
+.word-span.incorrect {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.15);
+  text-decoration: line-through;
+}
+
+.pronunciation-translation {
+  background: var(--bg);
+  padding: 14px;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  font-style: italic;
+  animation: fadeIn 0.2s ease;
+}
+
+.speech-mic-trigger-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin: 30px 0;
+}
+
+.mic-button {
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 16px 36px;
+  border-radius: 30px;
+  font-size: 1.15rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 8px 24px var(--accent-soft);
+  transition: all 0.2s ease;
+}
+
+.mic-button.recording {
+  background: #ef4444;
+  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.4);
+}
+
+.mic-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.recording-ripple-indicator {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+}
+
+.recording-ripple-indicator span {
+  width: 8px;
+  height: 8px;
+  background-color: #ef4444;
+  border-radius: 50%;
+  animation: recordRipple 1.2s infinite ease-in-out;
+}
+
+.recording-ripple-indicator span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.recording-ripple-indicator span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+.pronunciation-loading-box {
+  text-align: center;
+  padding: 48px;
+}
+
+.duo-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid var(--line);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 1s infinite linear;
+  margin: 0 auto 16px;
+}
+
+.score-badge {
+  background: var(--bg);
+  border: 1.5px solid var(--line);
+  border-radius: 16px;
+  padding: 16px;
+  text-align: center;
+  margin-bottom: 24px;
+  animation: slideUp 0.3s ease;
+}
+
+.score-badge.pass h4 {
+  color: #10b981;
+}
+
+.score-badge.fail h4 {
+  color: #f59e0b;
+}
+
+.spoken-text-preview {
+  margin-top: 8px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.pronunciation-footer-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1.5px solid var(--line);
+  padding-top: 24px;
+  margin-top: 20px;
+}
+
+@keyframes recordRipple {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.6); opacity: 1; }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes slideUp {
+  0% { transform: translateY(16px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}

@@ -681,6 +681,18 @@ function App() {
   const [streakCount, setStreakCount] = useState(0);
   const [wordOfDay, setWordOfDay] = useState(null);
   const [userMistakes, setUserMistakes] = useState([]);
+  const [activeSolveMistake, setActiveSolveMistake] = useState(null);
+  const [activeSolveInput, setActiveSolveInput] = useState("");
+  const [activeSolveFeedback, setActiveSolveFeedback] = useState(null);
+  const [pronunciationQuestions, setPronunciationQuestions] = useState([]);
+  const [pronunciationStep, setPronunciationStep] = useState(0);
+  const [isRecordingPronunciation, setIsRecordingPronunciation] = useState(false);
+  const [spokenText, setSpokenText] = useState("");
+  const [pronouncedWordsMatch, setPronouncedWordsMatch] = useState([]);
+  const [pronunciationScore, setPronunciationScore] = useState(null);
+  const [slowSpeed, setSlowSpeed] = useState(false);
+  const [showTranslation, setShowTranslation] = useState(false);
+  const [pronunciationLoading, setPronunciationLoading] = useState(false);
 
   const recentMistakes = useMemo(() => {
     const normalized = (userMistakes || []).map((m, idx) => ({
@@ -1551,6 +1563,12 @@ function App() {
       lessonCorrectAnsweredRef.current += 1;
       playChime("correct");
       triggerHaptic("correct");
+      if (lessonSession?.title === "Mistakes Practice") {
+        const currentQuestion = lessonAiContent?.questions?.[lessonStep];
+        if (currentQuestion && currentQuestion.originalMistakeId) {
+          removeUserMistake(currentQuestion.originalMistakeId);
+        }
+      }
     } else {
       playChime("incorrect");
       triggerHaptic("incorrect");
@@ -4508,11 +4526,164 @@ function App() {
       ...mistake
     };
     setUserMistakes(prev => {
-      const next = [item, ...prev].slice(0, 50);
+      const next = [item, ...prev].slice(0, 500);
       localStorage.setItem(`lisa_user_mistakes_${session.user.id}`, JSON.stringify(next));
       return next;
     });
   };
+
+  const removeUserMistake = (mistakeId) => {
+    if (!session?.user?.id || !mistakeId) return;
+    setUserMistakes(prev => {
+      const next = prev.filter(m => m.id !== mistakeId);
+      localStorage.setItem(`lisa_user_mistakes_${session.user.id}`, JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const handleDirectSolveCheck = () => {
+    if (!activeSolveMistake) return;
+    const isCorrect = activeSolveInput.trim().toLowerCase() === String(activeSolveMistake.correctAnswer || "").trim().toLowerCase();
+    
+    if (isCorrect) {
+      setActiveSolveFeedback("correct");
+      playChime("correct");
+      triggerHaptic("correct");
+      
+      const xpAwarded = 5;
+      const userId = session?.user?.id;
+      if (userId) {
+        const newXp = userXp + xpAwarded;
+        setUserXp(newXp);
+        localStorage.setItem(`lisa_user_xp_${userId}`, newXp);
+      }
+      
+      removeUserMistake(activeSolveMistake.id);
+      
+      setTimeout(() => {
+        setActiveSolveMistake(null);
+        setActiveSolveFeedback(null);
+        setActiveSolveInput("");
+      }, 1500);
+    } else {
+      setActiveSolveFeedback("incorrect");
+      playChime("incorrect");
+      triggerHaptic("incorrect");
+    }
+  };
+
+  const speakSentencePronunciation = (sentence) => {
+    if (!window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(sentence);
+    utterance.lang = getLocale(learningLanguage || "English");
+    utterance.rate = slowSpeed ? 0.6 : 1.0;
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const startListeningPronunciation = (targetText) => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Speech recognition is not supported in this browser. Please use Google Chrome or Edge.");
+      return;
+    }
+    
+    try {
+      window.speechSynthesis?.cancel();
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = getLocale(learningLanguage || "English");
+      
+      recognition.onstart = () => {
+        setIsRecordingPronunciation(true);
+        setSpokenText("");
+        setPronunciationScore(null);
+        setPronouncedWordsMatch([]);
+      };
+      
+      recognition.onerror = (e) => {
+        console.error("Pronunciation recognition error:", e);
+        setIsRecordingPronunciation(false);
+        alert("Failed to record. Please check microphone permissions and try again.");
+      };
+      
+      recognition.onend = () => {
+        setIsRecordingPronunciation(false);
+      };
+      
+      recognition.onresult = (event) => {
+        const resultText = event.results[0][0].transcript || "";
+        setSpokenText(resultText);
+        
+        const clean = (str) => str.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?।]/g, "").trim().split(/\s+/).filter(Boolean);
+        const targetWords = clean(targetText);
+        const spokenWords = clean(resultText);
+        
+        let correctCount = 0;
+        const matches = targetWords.map(tWord => {
+          const found = spokenWords.some(sWord => sWord === tWord || sWord.includes(tWord) || tWord.includes(sWord));
+          if (found) correctCount++;
+          return { word: tWord, isCorrect: found };
+        });
+        
+        const score = targetWords.length ? Math.round((correctCount / targetWords.length) * 100) : 0;
+        setPronouncedWordsMatch(matches);
+        setPronunciationScore(score);
+        
+        if (score >= 80) {
+          playChime("correct");
+          triggerHaptic("correct");
+          const xpAwarded = 10;
+          const userId = session?.user?.id;
+          if (userId) {
+            setUserXp(prev => {
+              const next = prev + xpAwarded;
+              localStorage.setItem(`lisa_user_xp_${userId}`, next);
+              return next;
+            });
+          }
+        } else {
+          playChime("incorrect");
+          triggerHaptic("incorrect");
+        }
+      };
+      
+      recognition.start();
+    } catch (e) {
+      console.error(e);
+      setIsRecordingPronunciation(false);
+    }
+  };
+
+  useEffect(() => {
+    if (practiceCollectionPage === "pronunciation") {
+      setPronunciationLoading(true);
+      const level = calculateProgressiveLevel(profile, completedLessons);
+      const levelName = level >= 9 ? "Advanced" : level >= 5 ? "Intermediate" : "Beginner";
+      
+      generatePracticeContent({
+        practiceType: "Perfect Pronunciation",
+        language: learningLanguage || "English",
+        literacyLevel: level,
+        literacyLevelName: levelName,
+        interfaceLanguage: selectedLanguage || "English",
+        useFallback: true
+      }).then(res => {
+        if (res && res.questions) {
+          setPronunciationQuestions(res.questions);
+        }
+        setPronunciationStep(0);
+        setSpokenText("");
+        setPronunciationScore(null);
+        setPronouncedWordsMatch([]);
+        setPronunciationLoading(false);
+      }).catch(e => {
+        console.error(e);
+        setPronunciationLoading(false);
+      });
+    }
+  }, [practiceCollectionPage, learningLanguage, selectedLanguage]);
 
   const openPracticeCollection = (page) => {
     setPracticeCollectionPage(page);
@@ -9106,16 +9277,70 @@ function App() {
                         type="button"
                         className="duo-mistake-row"
                         key={mistake.id || idx}
-                        onClick={() => startCollectionPractice("mistakes")}
+                        onClick={() => {
+                          setActiveSolveMistake(mistake);
+                          setActiveSolveInput("");
+                          setActiveSolveFeedback(null);
+                        }}
                       >
                         <span className="duo-broken-heart" aria-hidden="true">💔</span>
                         <span className="duo-mistake-copy">
                           <span className="duo-row-kicker">{mistake.prompt || mistake.type}</span>
                           <span className="duo-row-main">{mistake.text}</span>
+                          <span className="duo-row-action-hint">Tap to Solve & Correct</span>
                         </span>
                       </button>
                     ))}
                   </div>
+
+                  {activeSolveMistake && (
+                    <div className="duo-solve-modal-overlay">
+                      <div className="duo-solve-modal">
+                        <button type="button" className="duo-solve-close" onClick={() => { setActiveSolveMistake(null); setActiveSolveFeedback(null); setActiveSolveInput(""); }}>✕</button>
+                        <div className="duo-solve-icon">💔</div>
+                        <h3 className="duo-solve-title">Correct Your Mistake</h3>
+                        <p className="duo-solve-type">{activeSolveMistake.prompt || activeSolveMistake.type}</p>
+                        <div className="duo-solve-copy-box">
+                          <p className="duo-solve-question-text">{activeSolveMistake.text}</p>
+                        </div>
+
+                        <div className="duo-solve-input-area">
+                          <input
+                            type="text"
+                            className="duo-solve-input"
+                            placeholder="Type the correct answer here..."
+                            value={activeSolveInput}
+                            onChange={(e) => setActiveSolveInput(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") handleDirectSolveCheck();
+                            }}
+                            autoFocus
+                          />
+                          <button type="button" className="primary-btn duo-solve-check-btn" onClick={handleDirectSolveCheck}>Check Answer</button>
+                        </div>
+
+                        {activeSolveFeedback === "correct" && (
+                          <div className="duo-solve-feedback correct">
+                            <span className="feedback-icon">🎉</span>
+                            <div>
+                              <h4>Excellent Job!</h4>
+                              <p>Resolved and removed from mistakes list. +5 XP awarded!</p>
+                            </div>
+                          </div>
+                        )}
+
+                        {activeSolveFeedback === "incorrect" && (
+                          <div className="duo-solve-feedback incorrect">
+                            <span className="feedback-icon">💡</span>
+                            <div>
+                              <h4>Let's try again!</h4>
+                              <p>Think about the correct spelling or translation. Hint: "{activeSolveMistake.correctAnswer}"</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </section>
               </div>
             ) : practiceCollectionPage === "words" ? (
@@ -9154,12 +9379,173 @@ function App() {
                   </div>
                 </section>
               </div>
+            ) : practiceCollectionPage === "pronunciation" ? (
+              <div className="duo-practice-page pronunciation-env">
+                <button type="button" className="duo-practice-back" onClick={() => { setPracticeCollectionPage(null); window.speechSynthesis?.cancel(); }} aria-label="Back to practice">
+                  <span>←</span>
+                  <span>Practice</span>
+                </button>
+
+                <section className="duo-practice-hero">
+                  <div className="duo-hero-icon duo-hero-pronunciation" aria-hidden="true">
+                    <span>🗣️</span>
+                  </div>
+                  <h1>Perfect Pronunciation</h1>
+                  <p>Practice speaking clear and correct sentences in {learningLanguage || "English"}</p>
+                </section>
+
+                <div className="duo-practice-divider" />
+
+                {pronunciationLoading ? (
+                  <div className="pronunciation-loading-box">
+                    <div className="duo-spinner"></div>
+                    <p>Generating personalized speaking targets...</p>
+                  </div>
+                ) : pronunciationQuestions.length === 0 ? (
+                  <div className="pronunciation-empty-box">
+                    <p>No speaking questions available at this level. Try changing your level or language.</p>
+                  </div>
+                ) : (() => {
+                  const currentQuestion = pronunciationQuestions[pronunciationStep];
+                  if (!currentQuestion) return null;
+                  
+                  return (
+                    <div className="pronunciation-card-container">
+                      <div className="pronunciation-card-header">
+                        <span className="pronunciation-badge">SENTENCE {pronunciationStep + 1} OF {pronunciationQuestions.length}</span>
+                        <button
+                          type="button"
+                          className={`translation-toggle-btn ${showTranslation ? "active" : ""}`}
+                          onClick={() => setShowTranslation(!showTranslation)}
+                        >
+                          {showTranslation ? "Hide Translation" : "Show Translation"}
+                        </button>
+                      </div>
+
+                      <div className="pronunciation-main-phrase">
+                        <div className="phrase-speak-buttons">
+                          <button
+                            type="button"
+                            className="tts-btn normal"
+                            onClick={() => {
+                              setSlowSpeed(false);
+                              speakSentencePronunciation(currentQuestion.sentence);
+                            }}
+                            title="Hear normal speed"
+                          >
+                            🔊 Normal Voice
+                          </button>
+                          <button
+                            type="button"
+                            className="tts-btn slow"
+                            onClick={() => {
+                              setSlowSpeed(true);
+                              speakSentencePronunciation(currentQuestion.sentence);
+                            }}
+                            title="Hear slow speed"
+                          >
+                            🐢 Slow Voice
+                          </button>
+                        </div>
+
+                        <div className="target-sentence-display">
+                          {pronouncedWordsMatch.length > 0 ? (
+                            pronouncedWordsMatch.map((m, idx) => (
+                              <span
+                                key={idx}
+                                className={`word-span ${m.isCorrect ? "correct" : "incorrect"}`}
+                              >
+                                {m.word}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="word-span neutral">{currentQuestion.sentence}</span>
+                          )}
+                        </div>
+
+                        {showTranslation && (
+                          <div className="pronunciation-translation">
+                            <p>{currentQuestion.translation || currentQuestion.englishTranslation}</p>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="pronunciation-feedback-area">
+                        {pronunciationScore !== null && (
+                          <div className={`score-badge ${pronunciationScore >= 80 ? "pass" : "fail"}`}>
+                            <h4>{pronunciationScore >= 80 ? "Superb Pronunciation! 🎉" : "Keep practicing! 💪"}</h4>
+                            <p>Score: {pronunciationScore}% {pronunciationScore >= 80 ? "(+10 XP Awarded)" : ""}</p>
+                            {spokenText && <p className="spoken-text-preview">You said: "<i>{spokenText}</i>"</p>}
+                          </div>
+                        )}
+
+                        <div className="speech-mic-trigger-container">
+                          <button
+                            type="button"
+                            className={`mic-button ${isRecordingPronunciation ? "recording" : ""}`}
+                            onClick={() => startListeningPronunciation(currentQuestion.sentence)}
+                          >
+                            {isRecordingPronunciation ? "🎙️ Listening..." : "🎤 Tap to Speak"}
+                          </button>
+                          {isRecordingPronunciation && (
+                            <div className="recording-ripple-indicator">
+                              <span></span><span></span><span></span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="pronunciation-footer-actions">
+                        {pronunciationStep > 0 && (
+                          <button
+                            type="button"
+                            className="secondary-btn"
+                            onClick={() => {
+                              setPronunciationStep(prev => prev - 1);
+                              setPronunciationScore(null);
+                              setPronouncedWordsMatch([]);
+                              setSpokenText("");
+                            }}
+                          >
+                            Previous
+                          </button>
+                        )}
+                        {pronunciationStep < pronunciationQuestions.length - 1 ? (
+                          <button
+                            type="button"
+                            className="primary-btn"
+                            onClick={() => {
+                              setPronunciationStep(prev => prev + 1);
+                              setPronunciationScore(null);
+                              setPronouncedWordsMatch([]);
+                              setSpokenText("");
+                            }}
+                          >
+                            Next
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            className="primary-btn finish-pronunciation-btn"
+                            onClick={() => {
+                              setPracticeCollectionPage(null);
+                              window.speechSynthesis?.cancel();
+                            }}
+                          >
+                            Finish Practice
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
             ) : (
               <div className="practice-grid-layout">
                 <div className="practice-content-column">
                   <div className="practice-section">
                     <h2 className="practice-section-title">{t("practiceTodaysReview")}</h2>
-                    <div className="perfect-pronunciation-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_read_practice`, title: "Perfect Pronunciation", desc: "Speak out sentences aloud" })}>
+                    <div className="perfect-pronunciation-card" onClick={() => { setPracticeCollectionPage("pronunciation"); window.scrollTo({ top: 0, behavior: "smooth" }); }}>
                       <div className="perfect-pronunciation-info">
                         <h3 className="perfect-pronunciation-title">{t("practicePerfectPronunciation")}</h3>
                         <p className="perfect-pronunciation-desc">{t("practicePerfectPronunciationDesc")}</p>
