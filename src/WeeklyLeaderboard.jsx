@@ -151,18 +151,29 @@ export default function WeeklyLeaderboard({ t = (key) => key, session, profile, 
         id: currentUserId || "me",
         name: currentUserName,
         avatar: profile ? resolveAvatar(profile, canUsePhoto) : fallbackAvatar(currentUserName),
-        weeklyXp: weeklyXp || 0,
+        weeklyXp: weeklyXp !== undefined && weeklyXp !== null ? weeklyXp : 0,
         isCurrentUser: true,
       });
     } else {
-      me.weeklyXp = weeklyXp || me.weeklyXp;
+      me.weeklyXp = (weeklyXp !== undefined && weeklyXp !== null) ? weeklyXp : me.weeklyXp;
       me.name = currentUserName;
       me.avatar = profile ? resolveAvatar(profile, canUsePhoto) : me.avatar;
     }
 
     rows.sort((a, b) => b.weeklyXp - a.weeklyXp);
 
-    const currentUserRank = rows.findIndex((u) => u.isCurrentUser) + 1;
+    // Compute dense ranks correctly
+    let currentRank = 1;
+    for (let i = 0; i < rows.length; i++) {
+      if (i > 0 && rows[i].weeklyXp < rows[i - 1].weeklyXp) {
+        currentRank = i + 1;
+      }
+      rows[i].rank = currentRank;
+    }
+
+    const meIndex = rows.findIndex((u) => u.isCurrentUser);
+    const currentUserRank = meIndex !== -1 ? rows[meIndex].rank : 1;
+
     return { sorted: rows, currentUserRank };
   }, [allProfiles, currentUserId, currentUserName, weeklyXp, canUsePhoto, profile]);
 
@@ -254,8 +265,8 @@ export default function WeeklyLeaderboard({ t = (key) => key, session, profile, 
         <>
           <div className="weekly-leaderboard-podium">
             {leaderboardData.sorted.slice(0, 3).map((user, idx) => {
-              const rank = idx + 1;
-              const podiumOrder = rank === 1 ? 1 : rank === 2 ? 0 : 2;
+              const rank = user.rank || (idx + 1);
+              const podiumOrder = idx === 0 ? 1 : idx === 1 ? 0 : 2; // Keep visual layout of 2nd, 1st, 3rd podium columns
               return (
                 <div
                   key={user.id}
@@ -278,7 +289,7 @@ export default function WeeklyLeaderboard({ t = (key) => key, session, profile, 
 
           <div className="weekly-leaderboard-list">
             {leaderboardData.sorted.slice(3, 10).map((user, idx) => {
-              const rank = idx + 4;
+              const rank = user.rank || (idx + 4);
               return (
                 <div
                   key={user.id}

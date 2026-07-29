@@ -635,6 +635,19 @@ function App() {
   const [activeTab, setActiveTab] = useState("login"); // "login", "register", "forgot"
   const [dashboardTab, setDashboardTab] = useState("dashboard"); // "dashboard", "learn", "practice", "profile", "shop", "leaderboard", "analytics"
   const [practiceCollectionPage, setPracticeCollectionPage] = useState(null); // null, "mistakes", "words"
+  const [profileSubTab, setProfileSubTab] = useState("stats"); // "stats", "avatar", "settings"
+  const [builderEmoji, setBuilderEmoji] = useState("😊");
+  const [builderBg, setBuilderBg] = useState("#6366f1");
+  const [builderShape, setBuilderShape] = useState("circle");
+
+  useEffect(() => {
+    const resolved = resolveProfileAvatar(profileAvatar);
+    if (resolved && resolved.type === "builder") {
+      setBuilderEmoji(resolved.emoji || "😊");
+      setBuilderBg(resolved.bg || "#6366f1");
+      setBuilderShape(resolved.shape || "circle");
+    }
+  }, [profileAvatar]);
   const [showPersonalizedPath, setShowPersonalizedPath] = useState(true);
 
   // XP Shop state — loaded per-user from Supabase (profiles.shop_data).
@@ -6951,6 +6964,42 @@ function App() {
     }
   };
 
+  const handleSaveAvatarBuilder = async (builderObj) => {
+    if (!session?.user?.id) return;
+    setSubmitting(true);
+    try {
+      const avatarStr = JSON.stringify(builderObj);
+      setProfileAvatar(builderObj);
+      localStorage.setItem(`lisa_profile_avatar_${session.user.id}`, avatarStr);
+      
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("shop_data")
+        .eq("id", session.user.id)
+        .single();
+        
+      const currentShopData = profileData?.shop_data || {};
+      const updatedShopData = {
+        ...currentShopData,
+        avatar: builderObj
+      };
+      
+      await supabase
+        .from("profiles")
+        .update({
+          avatar_url: avatarStr,
+          avatar_emoji: builderObj.emoji,
+          shop_data: updatedShopData
+        })
+        .eq("id", session.user.id);
+        
+      alert("Avatar saved successfully! ✨");
+    } catch (e) {
+      console.error("Avatar save error:", e);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   // Profile Edit Submission
   const handleSaveProfileEdit = async (e) => {
@@ -9773,138 +9822,347 @@ style={(() => {
                 </div>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px" }}>
-                <div className="achievements-card" style={{ margin: 0, padding: "24px" }}>
-                  <h3 style={{ fontSize: "1.2rem", fontWeight: 800, marginBottom: "20px" }}>{t("profileUpdateSettings")}</h3>
-                  <form onSubmit={handleSaveProfileEdit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                    <label className="profile-dropdown-label">
-                      {t("profileFullName")}
-                      <input
-                        type="text"
-                        required
-                        value={editFullName}
-                        onChange={(e) => setEditFullName(e.target.value)}
-                        style={{ width: "100%", boxSizing: "border-box" }}
-                      />
-                    </label>
-                    <label className="profile-dropdown-label">
-                      {t("profileAge")}
-                      <input
-                        type="number"
-                        min="5"
-                        max="120"
-                        required
-                        value={editAge}
-                        onChange={(e) => setEditAge(e.target.value)}
-                        style={{ width: "100%", boxSizing: "border-box" }}
-                      />
-                    </label>
-                    <label className="profile-dropdown-label">
-                      {t("interfaceLanguage")}
-                      <select
-                        required
-                        value={editPreferredLang}
-                        onChange={(e) => setEditPreferredLang(e.target.value)}
-                        style={{ width: "100%", boxSizing: "border-box" }}
-                      >
-                        {languages.map((l) => (
-                          <option key={l} value={l}>{t(l + "Option")}</option>
-                        ))}
-                      </select>
-                    </label>
-                    <label className="profile-dropdown-label">
-                      {t("learningLanguage")}
-                      <select
-                        required
-                        value={editLearningLang}
-                        onChange={(e) => setEditLearningLang(e.target.value)}
-                        style={{ width: "100%", boxSizing: "border-box" }}
-                      >
-                        {languages.map((l) => (
-                          <option key={l} value={l}>{t(l + "Option")}</option>
-                        ))}
-                      </select>
-                    </label>
-                    <label className="profile-dropdown-label">
-                      {t("profileEducationStatus")}
-                      <select
-                        required
-                        value={editEdLevel}
-                        onChange={(e) => setEditEdLevel(e.target.value)}
-                        style={{ width: "100%", boxSizing: "border-box" }}
-                      >
-                        {educationLevels.map((ed) => (
-                          <option key={ed} value={ed}>{t(ed + "Option")}</option>
-                        ))}
-                      </select>
-                    </label>
-                    <label className="profile-dropdown-label">
-                      {t("profileExperienceStatus")}
-                      <select
-                        required
-                        value={editExpLevel}
-                        onChange={(e) => setEditExpLevel(e.target.value)}
-                        style={{ width: "100%", boxSizing: "border-box" }}
-                      >
-                        {experienceLevels.map((exp) => (
-                          <option key={exp} value={exp}>{t(experienceLevelOptionKeys[exp] || exp)}</option>
-                        ))}
-                      </select>
-                    </label>
-                    <button type="submit" className="primary-btn" disabled={submitting}>
-                      {submitting ? t("profileSaving") : t("profileSaveChanges")}
-                    </button>
-                  </form>
-                </div>
+              {/* Duolingo-like Tabbed Profile Sub-navigation */}
+              <div className="profile-sub-tabs">
+                <button
+                  type="button"
+                  className={`profile-sub-tab-btn ${profileSubTab === "stats" ? "active" : ""}`}
+                  onClick={() => setProfileSubTab("stats")}
+                >
+                  📊 Stats & Badges
+                </button>
+                <button
+                  type="button"
+                  className={`profile-sub-tab-btn ${profileSubTab === "avatar" ? "active" : ""}`}
+                  onClick={() => setProfileSubTab("avatar")}
+                >
+                  🎨 Avatar Creator
+                </button>
+                <button
+                  type="button"
+                  className={`profile-sub-tab-btn ${profileSubTab === "settings" ? "active" : ""}`}
+                  onClick={() => setProfileSubTab("settings")}
+                >
+                  ⚙️ Account Settings
+                </button>
+              </div>
 
-                <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-                  <div className="current-level-card" style={{ margin: 0, padding: "24px", background: '#5e4a87' }}>
-                    <h3 className="current-level-title">{t("profileDevControl")}</h3>
-                    <p style={{ fontSize: "0.85rem", color: "#ffffff", marginBottom: "16px" }}>{t("profileDevControlDesc")}</p>
-                    <div className="ai-toggle-container" style={{ marginBottom: "16px" }} title={aiEnabled ? "AI ON — lessons & word of day use AI" : "AI OFF — lessons & word of day use fallback"}>
-                      <button
-                        type="button"
-                        className={`ai-toggle-btn ${aiEnabled ? "ai-on" : "ai-off"}`}
-                        onClick={toggleAiMode}
-                        aria-pressed={aiEnabled}
-                        aria-label={aiEnabled ? "Turn AI off (development mode)" : "Turn AI on"}
-                        style={{ width: "100%" }}
-                      >
-                        <span className="ai-toggle-dot" />
-                        <span className="ai-toggle-label">{aiEnabled ? "AI ON" : "AI OFF"}</span>
-                      </button>
+              <div className="profile-tab-content-area">
+                {profileSubTab === "stats" && (
+                  <div className="profile-stats-dashboard">
+                    <div className="profile-stats-grid">
+                      <div className="profile-stat-card streak">
+                        <div className="stat-icon">🔥</div>
+                        <div className="stat-content">
+                          <div className="stat-val">{streakCount} {streakCount === 1 ? "Day" : "Days"}</div>
+                          <div className="stat-lbl">Day Streak</div>
+                        </div>
+                      </div>
+                      <div className="profile-stat-card xp">
+                        <div className="stat-icon">💎</div>
+                        <div className="stat-content">
+                          <div className="stat-val">{userXp.toLocaleString()}</div>
+                          <div className="stat-lbl">Total XP</div>
+                        </div>
+                      </div>
+                      <div className="profile-stat-card lessons">
+                        <div className="stat-icon">🏆</div>
+                        <div className="stat-content">
+                          <div className="stat-val">{completedLessons.length}</div>
+                          <div className="stat-lbl">Lessons Done</div>
+                        </div>
+                      </div>
+                      <div className="profile-stat-card active-time">
+                        <div className="stat-icon">⏱️</div>
+                        <div className="stat-content">
+                          <div className="stat-val">{Math.round(dailyTimeSpent / 60)}m</div>
+                          <div className="stat-lbl">Active Today</div>
+                        </div>
+                      </div>
                     </div>
-                    <button
-                      type="button"
-                      className="secondary-btn"
-                      style={{ borderColor: "#ff1a1a", color: "#ff1a1a", width: "100%", marginBottom: "12px" }}
-                      onClick={() => handleResetAssessmentStatus()}
-                    >
-                      {t("profileResetAssessment")}
-                    </button>
-                    <button
-                      type="button"
-                      className="secondary-btn"
-                      style={{ borderColor: "#e67e22", color: "#e67e22", width: "100%" }}
-                      onClick={() => handleResetLessons()}
-                    >
-                      {t("profileResetLessons")}
-                    </button>
-                  </div>
 
-                  <div className="current-level-card" style={{ margin: 0, padding: "24px", background: '#7a1f1f', border: '1px solid #ff4d4d' }}>
-                    <h3 className="current-level-title" style={{ color: '#ff8a8a' }}>{t("profileDangerZone")}</h3>
-                    <p style={{ fontSize: "0.85rem", color: "#ffd9d9", marginBottom: "16px" }}>{t("profileDeleteAccountDesc")}</p>
-                    <button
-                      type="button"
-                      className="primary-btn"
-                      style={{ background: "#ff1a1a", borderColor: "#ff1a1a", color: "#ffffff", width: "100%" }}
-                      onClick={() => { setDeleteConfirmText(""); setDeleteError(""); setDeleteModalOpen(true); }}
-                    >
-                      {t("profileDeleteAccount")}
-                    </button>
+                    <div className="profile-badges-container">
+                      <h3 className="profile-section-title">Equipped Badges</h3>
+                      <div className="profile-badges-grid">
+                        {profileBadges.length === 0 ? (
+                          <div className="profile-badges-empty">
+                            <span className="empty-icon">🛡️</span>
+                            <p>No badges equipped yet. Purchase profile badges in the XP Shop to display them here!</p>
+                          </div>
+                        ) : (
+                          profileBadges.map((badgeId) => {
+                            const badge = SHOP_CATALOG.badges.find(b => b.id === badgeId);
+                            if (!badge) return null;
+                            return (
+                              <div key={badgeId} className="profile-badge-item" title={badge.desc}>
+                                <span className="profile-badge-icon">{badge.icon}</span>
+                                <div className="profile-badge-meta">
+                                  <span className="profile-badge-name">{badge.name}</span>
+                                  <span className="profile-badge-rarity">{badge.rarity}</span>
+                                </div>
+                              </div>
+                            );
+                          })
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </div>
+                )}
+
+                {profileSubTab === "avatar" && (
+                  <div className="profile-avatar-creator-tab">
+                    <div className="avatar-creator-grid">
+                      {/* Left Pane: Preview */}
+                      <div className="avatar-creator-preview-card">
+                        <div
+                          className="avatar-creator-large-preview"
+                          style={{
+                            background: builderBg,
+                            borderRadius: builderShape === "square" ? "16px" : builderShape === "rounded" ? "48px" : "50%"
+                          }}
+                        >
+                          <span>{builderEmoji}</span>
+                        </div>
+                        <button
+                          type="button"
+                          className="primary-btn avatar-creator-save-btn"
+                          disabled={submitting}
+                          onClick={() => handleSaveAvatarBuilder({
+                            type: "builder",
+                            emoji: builderEmoji,
+                            bg: builderBg,
+                            shape: builderShape
+                          })}
+                        >
+                          {submitting ? "Saving..." : "Save & Set Avatar"}
+                        </button>
+                      </div>
+
+                      {/* Right Pane: Controls */}
+                      <div className="avatar-creator-options-card">
+                        {/* 1. Emoji Selection */}
+                        <div className="avatar-creator-section">
+                          <h4>Choose Face Emoji</h4>
+                          <div className="avatar-options-emoji-grid">
+                            {[
+                              "😊", "😎", "🤩", "🥳", "😄", "😁", "🤓", "🧐", "😇", "🥰",
+                              "😏", "🤔", "🤗", "😤", "😌", "🥸", "😝", "🤑", "😈", "👽",
+                              "🤖", "💀", "👻", "🎭", "🦸", "🦹", "🧛", "🧟", "🧜", "🧚"
+                            ].map((em) => (
+                              <button
+                                key={em}
+                                type="button"
+                                className={`avatar-option-btn ${builderEmoji === em ? "active" : ""}`}
+                                onClick={() => setBuilderEmoji(em)}
+                              >
+                                {em}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Presets Unlocked */}
+                        {shopOwnedItems.filter(id => id.startsWith("avatar_")).length > 0 && (
+                          <div className="avatar-creator-section">
+                            <h4>Unlocked presets</h4>
+                            <div className="avatar-options-emoji-grid">
+                              {shopOwnedItems.filter(id => id.startsWith("avatar_")).map((id) => {
+                                const itemObj = SHOP_CATALOG.avatars.find(a => a.id === id);
+                                if (!itemObj) return null;
+                                return (
+                                  <button
+                                    key={id}
+                                    type="button"
+                                    className={`avatar-option-btn ${builderEmoji === itemObj.emoji ? "active" : ""}`}
+                                    onClick={() => setBuilderEmoji(itemObj.emoji)}
+                                  >
+                                    {itemObj.emoji}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* 2. Background Color */}
+                        <div className="avatar-creator-section">
+                          <h4>Background Color</h4>
+                          <div className="avatar-options-color-grid">
+                            {[
+                              "#6366f1", "#8b5cf6", "#ec4899", "#ef4444", "#f97316",
+                              "#eab308", "#22c55e", "#10b981", "#06b6d4", "#3b82f6",
+                              "#1e293b", "#78716c", "#e86b6b", "#9333ea", "#0d9488"
+                            ].map((col) => (
+                              <button
+                                key={col}
+                                type="button"
+                                className={`avatar-option-color ${builderBg === col ? "active" : ""}`}
+                                style={{ background: col }}
+                                onClick={() => setBuilderBg(col)}
+                                aria-label={`Select color ${col}`}
+                              />
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* 3. Shape selection */}
+                        <div className="avatar-creator-section">
+                          <h4>Border Shape</h4>
+                          <div className="avatar-options-shape-row">
+                            {["circle", "rounded", "square"].map((sh) => (
+                              <button
+                                key={sh}
+                                type="button"
+                                className={`avatar-option-shape-btn ${builderShape === sh ? "active" : ""}`}
+                                onClick={() => setBuilderShape(sh)}
+                              >
+                                {sh.toUpperCase()}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {profileSubTab === "settings" && (
+                  <div className="profile-settings-tab">
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px" }}>
+                      <div className="profile-settings-card">
+                        <h3 className="profile-section-title">{t("profileUpdateSettings")}</h3>
+                        <form onSubmit={handleSaveProfileEdit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                          <label className="profile-dropdown-label">
+                            {t("profileFullName")}
+                            <input
+                              type="text"
+                              required
+                              value={editFullName}
+                              onChange={(e) => setEditFullName(e.target.value)}
+                              className="settings-text-input"
+                            />
+                          </label>
+                          <label className="profile-dropdown-label">
+                            {t("profileAge")}
+                            <input
+                              type="number"
+                              min="5"
+                              max="120"
+                              required
+                              value={editAge}
+                              onChange={(e) => setEditAge(e.target.value)}
+                              className="settings-text-input"
+                            />
+                          </label>
+                          <label className="profile-dropdown-label">
+                            {t("interfaceLanguage")}
+                            <select
+                              required
+                              value={editPreferredLang}
+                              onChange={(e) => setEditPreferredLang(e.target.value)}
+                              className="settings-select-input"
+                            >
+                              {languages.map((l) => (
+                                <option key={l} value={l}>{t(l + "Option")}</option>
+                              ))}
+                            </select>
+                          </label>
+                          <label className="profile-dropdown-label">
+                            {t("learningLanguage")}
+                            <select
+                              required
+                              value={editLearningLang}
+                              onChange={(e) => setEditLearningLang(e.target.value)}
+                              className="settings-select-input"
+                            >
+                              {languages.map((l) => (
+                                <option key={l} value={l}>{t(l + "Option")}</option>
+                              ))}
+                            </select>
+                          </label>
+                          <label className="profile-dropdown-label">
+                            {t("profileEducationStatus")}
+                            <select
+                              required
+                              value={editEdLevel}
+                              onChange={(e) => setEditEdLevel(e.target.value)}
+                              className="settings-select-input"
+                            >
+                              {educationLevels.map((ed) => (
+                                <option key={ed} value={ed}>{t(ed + "Option")}</option>
+                              ))}
+                            </select>
+                          </label>
+                          <label className="profile-dropdown-label">
+                            {t("profileExperienceStatus")}
+                            <select
+                              required
+                              value={editExpLevel}
+                              onChange={(e) => setEditExpLevel(e.target.value)}
+                              className="settings-select-input"
+                            >
+                              {experienceLevels.map((exp) => (
+                                <option key={exp} value={exp}>{t(experienceLevelOptionKeys[exp] || exp)}</option>
+                              ))}
+                            </select>
+                          </label>
+                          <button type="submit" className="primary-btn settings-save-btn" disabled={submitting}>
+                            {submitting ? t("profileSaving") : t("profileSaveChanges")}
+                          </button>
+                        </form>
+                      </div>
+
+                      <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
+                        <div className="current-level-card dev-control-card" style={{ margin: 0, padding: "24px" }}>
+                          <h3 className="current-level-title">{t("profileDevControl")}</h3>
+                          <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "16px" }}>{t("profileDevControlDesc")}</p>
+                          <div className="ai-toggle-container" style={{ marginBottom: "16px" }} title={aiEnabled ? "AI ON — lessons & word of day use AI" : "AI OFF — lessons & word of day use fallback"}>
+                            <button
+                              type="button"
+                              className={`ai-toggle-btn ${aiEnabled ? "ai-on" : "ai-off"}`}
+                              onClick={toggleAiMode}
+                              aria-pressed={aiEnabled}
+                              aria-label={aiEnabled ? "Turn AI off (development mode)" : "Turn AI on"}
+                              style={{ width: "100%" }}
+                            >
+                              <span className="ai-toggle-dot" />
+                              <span className="ai-toggle-label">{aiEnabled ? "AI ON" : "AI OFF"}</span>
+                            </button>
+                          </div>
+                          <button
+                            type="button"
+                            className="secondary-btn dev-action-btn reset-assessment"
+                            style={{ width: "100%", marginBottom: "12px" }}
+                            onClick={() => handleResetAssessmentStatus()}
+                          >
+                            {t("profileResetAssessment")}
+                          </button>
+                          <button
+                            type="button"
+                            className="secondary-btn dev-action-btn reset-lessons"
+                            style={{ width: "100%" }}
+                            onClick={() => handleResetLessons()}
+                          >
+                            {t("profileResetLessons")}
+                          </button>
+                        </div>
+
+                        <div className="current-level-card danger-zone-card" style={{ margin: 0, padding: "24px" }}>
+                          <h3 className="current-level-title">{t("profileDangerZone")}</h3>
+                          <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "16px" }}>{t("profileDeleteAccountDesc")}</p>
+                          <button
+                            type="button"
+                            className="primary-btn delete-account-btn"
+                            style={{ width: "100%" }}
+                            onClick={() => { setDeleteConfirmText(""); setDeleteError(""); setDeleteModalOpen(true); }}
+                          >
+                            {t("profileDeleteAccount")}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
