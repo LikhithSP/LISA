@@ -1851,6 +1851,16 @@ function App() {
     // OVERRIDE: Words Practice (Flashcards)
     if (practiceType === "Words Practice") {
       const card = currentQuestion;
+      const tapToReveal = selectedLanguage === "Hindi" ? "अनुवाद देखने के लिए टैप करें" :
+                          selectedLanguage === "Kannada" ? "ಅನುವಾದ ತಿಳಿಯಲು ಒತ್ತಿ" :
+                          selectedLanguage === "Telugu" ? "అర్థాన్ని తెలుసుకోవడానికి నొక్కండి" :
+                          selectedLanguage === "Tamil" ? "பொருளை அறிய தட்டவும்" : "TAP TO REVEAL MEANING";
+
+      const tapToFlipBack = selectedLanguage === "Hindi" ? "वापस पलटने के लिए टैप करें" :
+                            selectedLanguage === "Kannada" ? "ಹಿಂದಕ್ಕೆ ತಿರುಗಿಸಲು ಒತ್ತಿ" :
+                            selectedLanguage === "Telugu" ? "ವೆనక్కి తిప్పడానికి నొక్కండి" :
+                            selectedLanguage === "Tamil" ? "பின்னால் திருப்ப தட்டவும்" : "TAP TO FLIP BACK";
+
       return (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', paddingBottom: '140px' }}>
           <div className="ai-lesson-step-header" style={{ marginBottom: '10px', textAlign: 'center', width: '100%' }}>
@@ -1876,7 +1886,7 @@ function App() {
                 >
                   🔊
                 </button>
-                <p style={{ marginTop: '30px', color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 600 }}>TAP TO REVEAL MEANING</p>
+                <p style={{ marginTop: '30px', color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 600 }}>{tapToReveal}</p>
               </div>
 
               {/* Side B: Cartoon illustration (emoji), Example sentence, Translation */}
@@ -1887,7 +1897,7 @@ function App() {
                 <div className="flashcard-example-box">
                   <p style={{ margin: 0, fontWeight: 600, color: 'var(--text)' }}>"{card.sentence}"</p>
                 </div>
-                <p style={{ marginTop: '20px', color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 600 }}>TAP TO FLIP BACK</p>
+                <p style={{ marginTop: '20px', color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 600 }}>{tapToFlipBack}</p>
               </div>
             </div>
           </div>
@@ -1922,6 +1932,21 @@ function App() {
       const dialogue = ai.dialogue || [];
       const activeLine = dialogue[storyLineIndex];
       const isQuestion = activeLine?.type === "question";
+
+      const finishStoryText = selectedLanguage === "Hindi" ? "कहानी समाप्त करें" :
+                              selectedLanguage === "Kannada" ? "ಕಥೆ ಮುಗಿಸಿ" :
+                              selectedLanguage === "Telugu" ? "కథను ముగించండి" :
+                              selectedLanguage === "Tamil" ? "கதையை முடிக்கவும்" : "FINISH STORY";
+
+      const tapToContinueText = selectedLanguage === "Hindi" ? "जारी रखने के लिए टैप करें →" :
+                                selectedLanguage === "Kannada" ? "ಮುಂದುವರೆಯಲು ಒತ್ತಿ →" :
+                                selectedLanguage === "Telugu" ? "కొనసాగించడానికి నొక్కండి →" :
+                                selectedLanguage === "Tamil" ? "தொடர தட்டவும் →" : "Tap to Continue →";
+
+      const chooseCorrectOptionText = selectedLanguage === "Hindi" ? "जारी रखने के लिए सही विकल्प चुनें!" :
+                                      selectedLanguage === "Kannada" ? "ಮುಂದುವರೆಯಲು ಸರಿಯಾದ ಆಯ್ಕೆಯನ್ನು ಆರಿಸಿ!" :
+                                      selectedLanguage === "Telugu" ? "కొనసాగించడానికి సరైన ఎంపికను ఎంచుకోండి!" :
+                                      selectedLanguage === "Tamil" ? "தொடர சரியான விருப்பத்தை தேர்வு செய்யவும்!" : "Choose the correct option to continue!";
 
       const handleStoryContinue = () => {
         if (isQuestion || storyQuestionIdx !== null) return;
@@ -2055,7 +2080,7 @@ function App() {
                     })}
                   </div>
                   {storyQuestionFeedback && !storyQuestionFeedback.isCorrect && (
-                    <p style={{ color: '#ef4444', fontWeight: 'bold', marginTop: '12px' }}>Choose the correct option to continue!</p>
+                    <p style={{ color: '#ef4444', fontWeight: 'bold', marginTop: '12px' }}>{chooseCorrectOptionText}</p>
                   )}
                 </div>
               )}
@@ -2068,7 +2093,7 @@ function App() {
                   disabled={storyQuestionIdx !== null}
                   onClick={handleStoryContinue}
                 >
-                  {storyLineIndex === dialogue.length - 1 ? "FINISH STORY" : "Tap to Continue →"}
+                  {storyLineIndex === dialogue.length - 1 ? finishStoryText : tapToContinueText}
                 </button>
               </div>
             </div>

@@ -1373,367 +1373,47 @@ Return ONLY valid JSON with this exact structure:
   }
 
   if (practiceType === "Mistakes Practice") {
-    const mistakesFormatted = mistakesList && mistakesList.length > 0
-      ? mistakesList.map((m, idx) => `${idx + 1}. Type: ${m.type}, Prompt/Question: ${m.question || m.sentence || m.phrase || m.audioText}, Correct Answer: ${m.correctAnswer || m.answer || m.englishTranslation}`).join("\n")
-      : "No specific mistake history yet.";
-
-    return `You are LISA, an expert AI literacy tutor. The user wants to review and correct their past mistakes.
-Here is the history of mistakes they made:
-${mistakesFormatted}
-
-Generate exactly 10 review questions in ${targetLang} to help them practice and correct these mistakes (or general literacy review if no mistakes listed). Mix of multiple choice (mcq) and fill-in-the-blanks (fillBlank).
-Keep them simple and helpful for Level ${literacyLevel} (${literacyLevelName}). Interface language is ${uiLang}, so write instructions, hints, and explanations in ${uiLang}.
-
-Return ONLY valid JSON with this exact structure:
-{
-  "questions": [
-    {
-      "id": 1,
-      "type": "mcq",
-      "question": "Multiple choice question in ${targetLang} targeting a mistake or rule",
-      "options": ["A", "B", "C", "D"],
-      "correctIndex": 0,
-      "explanation": "Why this is correct in ${uiLang}"
-    },
-    {
-      "id": 2,
-      "type": "fillBlank",
-      "sentence": "A sentence in ${targetLang} with ___ for the blank",
-      "answer": "correct word to fill",
-      "hint": "helpful hint in ${uiLang}"
-    }
-  ]
-} (Make sure there are exactly 10 items in the array in total)`;
-  }
-
-  if (practiceType === "Words Practice") {
-    return `You are LISA, an expert AI literacy tutor. Generate exactly 10 vocabulary/words practice questions in ${targetLang} suitable for a learner at Literacy Level ${literacyLevel} (${literacyLevelName}).
-The user's interface language is ${uiLang}.
-Mix of two types:
-1. "meaning": Select the correct translation of a target language word in ${uiLang}.
-2. "spelling": Fill in the blank to complete the spelling of a target language word in a sentence context.
-
-Return ONLY valid JSON with this exact structure:
-{
-  "questions": [
-    {
-      "id": 1,
-      "type": "meaning",
-      "phrase": "Word or short phrase in ${targetLang}",
-      "options": ["Correct translation in ${uiLang}", "incorrect distractor 1", "incorrect distractor 2"],
-      "correctIndex": 0
-    },
-    {
-      "id": 2,
-      "type": "spelling",
-      "sentence": "A simple sentence in ${targetLang} with a word missing letters, e.g. target language equivalent with ___",
-      "answer": "The missing letters/word",
-      "hint": "Hint in ${uiLang}"
-    }
-  ]
-} (Make sure there are exactly 10 items in the array)`;
-  }
-
-  if (practiceType === "Stories Practice") {
-    return `You are LISA, an expert AI literacy tutor. Generate a short, interesting, age-appropriate story (about 50-80 words, 3-5 sentences) in ${targetLang} suitable for a learner at Literacy Level ${literacyLevel} (${literacyLevelName}).
-Make sure it is an engaging, structured story with characters or a narrative.
-Then generate exactly 10 reading comprehension/vocabulary questions about this story. Interface language is ${uiLang}, so write questions, options, and explanations in ${uiLang}.
-
-Return ONLY valid JSON with this exact structure:
-{
-  "story": "The complete story in ${targetLang}",
-  "questions": [
-    {
-      "id": 1,
-      "question": "Comprehension question in ${uiLang} about the story",
-      "options": ["Option A", "Option B", "Option C", "Option D"],
-      "correctIndex": 0,
-      "explanation": "Explanation of correct answer in ${uiLang}"
-    }
-  ]
-} (Make sure there are exactly 10 questions in the array)`;
-  }
-
-  if (practiceType === "Write Practice") {
-    return `You are LISA, an expert AI literacy tutor. Generate exactly 10 writing practice questions in ${targetLang} suitable for a learner at Literacy Level ${literacyLevel} (${literacyLevelName}).
-The user's interface language is ${uiLang}. Write prompts, hints, and translation cues in ${uiLang}.
-The questions must be a mix of the following writing activity types:
-1. "fillBlank": A sentence in ${targetLang} with a blank (___) for the learner to type the correct word.
-2. "unscramble": Shuffled letter tiles in ${targetLang} that the learner rearranges to form a word.
-3. "writingActivity": A short writing prompt in ${uiLang} for the learner to write a short response in ${targetLang}.
-4. "tracing": A letter or simple word in ${targetLang} to trace.
-5. "translationTask": Arrange the words:
-   {
-     "id": idx,
-     "type": "translationTask",
-     "prompt": "Arrange the words to form a sentence translating: [English sentence translated to ${uiLang}]",
-     "englishTranslation": "The correct target sentence in ${targetLang}",
-     "tiles": ["shuffled", "words", "containing", "correct", "ones", "plus", "distractors"]
-   }
-
-Return ONLY valid JSON with this exact structure:
-{
-  "questions": [
-    ...
-  ]
-} (Make sure there are exactly 10 items in the array, using a mix of these types)`;
-  }
-
-  return "";
-};;
-
-const getFallbackPractice = (params) => {
-  const { practiceType, language } = params;
-  
-  const rawPractice = (() => {
-    if (practiceType === "Perfect Pronunciation") {
-      const defaultQuestions = language === "Hindi" ? [
-        { id: 1, type: "speak", sentence: "राम स्कूल जाता है।", englishTranslation: "Ram goes to school." },
-        { id: 2, type: "speak", sentence: "वह किताब पढ़ता है।", englishTranslation: "He reads a book." },
-        { id: 3, type: "speak", sentence: "सीता गाना गाती है।", englishTranslation: "Sita sings a song." },
-        { id: 4, type: "speak", sentence: "आज मौसम अच्छा है।", englishTranslation: "Today the weather is good." },
-        { id: 5, type: "speak", sentence: "मुझे फल खाना पसंद है।", englishTranslation: "I like to eat fruits." },
-        { id: 6, type: "speak", sentence: "यह मेरी पुस्तक है।", englishTranslation: "This is my book." },
-        { id: 7, type: "speak", sentence: "हम सब मिलकर खेलेंगे।", englishTranslation: "We will all play together." },
-        { id: 8, type: "speak", sentence: "पानी बहुत ठंडा है।", englishTranslation: "The water is very cold." },
-        { id: 9, type: "speak", sentence: "पेड़ पर पक्षी हैं।", englishTranslation: "Birds are on the tree." },
-        { id: 10, type: "speak", sentence: "समय बहुत मूल्यवान है।", englishTranslation: "Time is very valuable." }
-      ] : language === "Kannada" ? [
-        { id: 1, type: "speak", sentence: "ರಾಮ್ ಶಾಲೆಗೆ ಹೋಗುತ್ತಾನೆ.", englishTranslation: "Ram goes to school." },
-        { id: 2, type: "speak", sentence: "ಅವನು ಪುಸ್ತಕ ಓದುತ್ತಾನೆ.", englishTranslation: "He reads a book." },
-        { id: 3, type: "speak", sentence: "ಸೀತಾ ಹಾಡು ಹಾಡುತ್ತಾಳೆ.", englishTranslation: "Sita sings a song." },
-        { id: 4, type: "speak", sentence: "ಇಂದು ಹವಾಮಾನ ಚೆನ್ನಾಗಿದೆ.", englishTranslation: "Today the weather is good." },
-        { id: 5, type: "speak", sentence: "ನನಗೆ ಹಣ್ಣು ತಿನ್ನಲು ಇಷ್ಟ.", englishTranslation: "I like to eat fruits." },
-        { id: 6, type: "speak", sentence: "ಇದು ನನ್ನ ಪುಸ್ತಕ.", englishTranslation: "This is my book." },
-        { id: 7, type: "speak", sentence: "ನಾವೆಲ್ಲರೂ ಒಟ್ಟಿಗೆ ಆಡೋಣ.", englishTranslation: "Let's all play together." },
-        { id: 8, type: "speak", sentence: "ನೀರು ತುಂಬಾ ತಣ್ಣಗಿದೆ.", englishTranslation: "The water is very cold." },
-        { id: 9, type: "speak", sentence: "ಮರದ ಮೇಲೆ ಹಕ್ಕಿಗಳಿವೆ.", englishTranslation: "Birds are on the tree." },
-        { id: 10, type: "speak", sentence: "ಸಮಯ ತುಂಬಾ ಅಮೂಲ್ಯವಾಗಿದೆ.", englishTranslation: "Time is very precious." }
-      ] : language === "Telugu" ? [
-        { id: 1, type: "speak", sentence: "రాము బడికి వెళతాడు.", englishTranslation: "Ram goes to school." },
-        { id: 2, type: "speak", sentence: "అతడు పుస్తకం చదువుతాడు.", englishTranslation: "He reads a book." },
-        { id: 3, type: "speak", sentence: "సీత పాట పాడుతుంది.", englishTranslation: "Sita sings a song." },
-        { id: 4, type: "speak", sentence: "ఈరోజు వాతావరణం బాగుంది.", englishTranslation: "Today the weather is good." },
-        { id: 5, type: "speak", sentence: "నాకు పండ్లు తినడం ఇష్టం.", englishTranslation: "I like to eat fruits." },
-        { id: 6, type: "speak", sentence: "ఇది నా పుస్తకం.", englishTranslation: "This is my book." },
-        { id: 7, type: "speak", sentence: "మనమందరం కలిసి ఆడుకుందాం.", englishTranslation: "Let's all play together." },
-        { id: 8, type: "speak", sentence: "నీరు చాలా చల్లగా ఉంది.", englishTranslation: "Water is very cold." },
-        { id: 9, type: "speak", sentence: "చెట్టు మీద పక్షులు ఉన్నాయి.", englishTranslation: "Birds are on the tree." },
-        { id: 10, type: "speak", sentence: "సమయం చాలా విలువైనది.", englishTranslation: "Time is very precious." }
-      ] : language === "Tamil" ? [
-        { id: 1, type: "speak", sentence: "ராம் பள்ளிக்குச் செல்கிறான்.", englishTranslation: "Ram goes to school." },
-        { id: 2, type: "speak", sentence: "அவன் புத்தகம் படிக்கிறான்.", englishTranslation: "He reads a book." },
-        { id: 3, type: "speak", sentence: "சீதா பாட்டு பாடுகிறாள்.", englishTranslation: "Sita sings a song." },
-        { id: 4, type: "speak", sentence: "இன்று வானிலை நன்றாக உள்ளது.", englishTranslation: "Today the weather is good." },
-        { id: 5, type: "speak", sentence: "எனக்கு பழங்கள் சாப்பிட பிடிக்கும்.", englishTranslation: "I like to eat fruits." },
-        { id: 6, type: "speak", sentence: "இது எனது புத்தகம்.", englishTranslation: "This is my book." },
-        { id: 7, type: "speak", sentence: "நாம் அனைவரும் சேர்ந்து விளையாடுவோம்.", englishTranslation: "We will all play together." },
-        { id: 8, type: "speak", sentence: "தண்ணீர் மிகவும் குளிராக இருக்கிறது.", englishTranslation: "Water is very cold." },
-        { id: 9, type: "speak", sentence: "மரத்தின் மேல் பறவைகள் இருக்கின்றன.", englishTranslation: "Birds are on the tree." },
-        { id: 10, type: "speak", sentence: "நேரம் மிகவும் மதிப்புமிக்கது.", englishTranslation: "Time is very valuable." }
-      ] : [
-        { id: 1, type: "speak", sentence: "The sun shines bright.", englishTranslation: "The sun shines bright." },
-        { id: 2, type: "speak", sentence: "I love reading books.", englishTranslation: "I love reading books." },
-        { id: 3, type: "speak", sentence: "We go to school.", englishTranslation: "We go to school." },
-        { id: 4, type: "speak", sentence: "Water is clean and fresh.", englishTranslation: "Water is clean and fresh." },
-        { id: 5, type: "speak", sentence: "She speaks very kindly.", englishTranslation: "She speaks very kindly." },
-        { id: 6, type: "speak", sentence: "This is my favorite story.", englishTranslation: "This is my favorite story." },
-        { id: 7, type: "speak", sentence: "Let's play together today.", englishTranslation: "Let's play together today." },
-        { id: 8, type: "speak", sentence: "The trees are green.", englishTranslation: "The trees are green." },
-        { id: 9, type: "speak", sentence: "Birds fly high in the sky.", englishTranslation: "Birds fly high in the sky." },
-        { id: 10, type: "speak", sentence: "Practice makes perfect.", englishTranslation: "Practice makes perfect." }
-      ];
-      return { questions: defaultQuestions };
-    }
-
-    if (practiceType === "Speak Practice" || practiceType === "Speak") {
-      const speakQuestions = language === "Hindi" ? [
-        { id: 1, type: "listenRepeat", sentence: "राम स्कूल जाता है।", englishTranslation: "Ram goes to school." },
-        { id: 2, type: "listenRepeat", sentence: "वह किताब पढ़ता है।", englishTranslation: "He reads a book." },
-        { id: 3, type: "listenRepeat", sentence: "सीता गाना गाती है।", englishTranslation: "Sita sings a song." },
-        { id: 4, type: "listenRepeat", sentence: "पानी बहुत ठंडा है।", englishTranslation: "The water is very cold." },
-        { id: 5, type: "speakReply", promptText: "नमस्ते! आप कैसे हैं?", replyText: "मैं ठीक हूँ, धन्यवाद।", translation: "I am fine, thank you." },
-        { id: 6, type: "speakReply", promptText: "आपका नाम क्या है?", replyText: "मेरा नाम राहुल है।", translation: "My name is Rahul." },
-        { id: 7, type: "speakReply", promptText: "आप कहाँ जा रहे हैं?", replyText: "मैं स्कूल जा रहा हूँ।", translation: "I am going to school." },
-        { id: 8, type: "translateSpeak", promptText: "She sings a song.", targetSentence: "वह गाना गाती है।", hint: "Translate to Hindi" },
-        { id: 9, type: "translateSpeak", promptText: "Today the weather is good.", targetSentence: "आज मौसम अच्छा है।", hint: "Translate to Hindi" },
-        { id: 10, type: "translateSpeak", promptText: "I like to eat fruits.", targetSentence: "मुझे फल खाना पसंद है।", hint: "Translate to Hindi" }
-      ] : language === "Kannada" ? [
-        { id: 1, type: "listenRepeat", sentence: "ರಾಮ್ ಶಾಲೆಗೆ ಹೋಗುತ್ತಾನೆ.", englishTranslation: "Ram goes to school." },
-        { id: 2, type: "listenRepeat", sentence: "ಅವನು ಪುಸ್ತಕ ಓದುತ್ತಾನೆ.", englishTranslation: "He reads a book." },
-        { id: 3, type: "listenRepeat", sentence: "ಸೀತಾ ಹಾಡು ಹಾಡುತ್ತಾಳೆ.", englishTranslation: "Sita sings a song." },
-        { id: 4, type: "listenRepeat", sentence: "ನೀರು ತುಂಬಾ ತಣ್ಣಗಿದೆ.", englishTranslation: "The water is very cold." },
-        { id: 5, type: "speakReply", promptText: "ನಮಸ್ಕಾರ! ನೀವು ಹೇಗಿದ್ದೀರಿ?", replyText: "ನಾನು ಚೆನ್ನಾಗಿದ್ದೇನೆ, ಧನ್ಯವಾದಗಳು.", translation: "I am fine, thank you." },
-        { id: 6, type: "speakReply", promptText: "ನಿಮ್ಮ ಹೆಸರೇನು?", replyText: "ನನ್ನ ಹೆಸರು ರಾಹುಲ್.", translation: "My name is Rahul." },
-        { id: 7, type: "speakReply", promptText: "ನೀವು ಎಲ್ಲಿಗೆ ಹೋಗುತ್ತಿದ್ದೀರಿ?", replyText: "ನಾನು ಶಾಲೆಗೆ ಹೋಗುತ್ತಿದ್ದೇನೆ.", translation: "I am going to school." },
-        { id: 8, type: "translateSpeak", promptText: "She sings a song.", targetSentence: "ಸೀತಾ ಹಾಡು ಹಾಡುತ್ತಾಳೆ.", hint: "Translate to Kannada" },
-        { id: 9, type: "translateSpeak", promptText: "Today the weather is good.", targetSentence: "ಇಂದು ಹವಾಮಾನ ಚೆನ್ನಾಗಿದೆ.", hint: "Translate to Kannada" },
-        { id: 10, type: "translateSpeak", promptText: "I like to eat fruits.", targetSentence: "ನನಗೆ ಹಣ್ಣು ತಿನ್ನಲು ಇಷ್ಟ.", hint: "Translate to Kannada" }
-      ] : language === "Telugu" ? [
-        { id: 1, type: "listenRepeat", sentence: "రాము బడికి వెళతాడు.", englishTranslation: "Ram goes to school." },
-        { id: 2, type: "listenRepeat", sentence: "అతడు పుస్తకం చదువుతాడు.", englishTranslation: "He reads a book." },
-        { id: 3, type: "listenRepeat", sentence: "సీత పాట పాడుతుంది.", englishTranslation: "Sita sings a song." },
-        { id: 4, type: "listenRepeat", sentence: "ನೀరు చాలా చల్లగా ఉంది.", englishTranslation: "Water is very cold." },
-        { id: 5, type: "speakReply", promptText: "నమస్తే! మీరు ఎలా ఉన్నారు?", replyText: "నేను బాగున్నాను, ధన్యవాదాలు.", translation: "I am fine, thank you." },
-        { id: 6, type: "speakReply", promptText: "మీ పేరు ఏమిటి?", replyText: "నా పేరు రాహుల్.", translation: "My name is Rahul." },
-        { id: 7, type: "speakReply", promptText: "మీరు ఎక్కడికి వెళ్తున్నారు?", replyText: "నేను బడికి వెళ్తున్నాను.", translation: "I am going to school." },
-        { id: 8, type: "translateSpeak", promptText: "She sings a song.", targetSentence: "సీత పాట పాడుతుంది.", hint: "Translate to Telugu" },
-        { id: 9, type: "translateSpeak", promptText: "Today the weather is good.", targetSentence: "ఈరోజు వాతావరణం బాగుంది.", hint: "Translate to Telugu" },
-        { id: 10, type: "translateSpeak", promptText: "I like to eat fruits.", targetSentence: "నాకు పండ్లు తినడం ఇష్టం.", hint: "Translate to Telugu" }
-      ] : language === "Tamil" ? [
-        { id: 1, type: "listenRepeat", sentence: "ராம் பள்ளிக்குச் செல்கிறான்.", englishTranslation: "Ram goes to school." },
-        { id: 2, type: "listenRepeat", sentence: "அவன் புத்தகம் படிக்கிறான்.", englishTranslation: "He reads a book." },
-        { id: 3, type: "listenRepeat", sentence: "சீதா பாட்டு பாடுகிறாள்.", englishTranslation: "Sita sings a song." },
-        { id: 4, type: "listenRepeat", sentence: "தண்ணீர் மிகவும் குளிராக இருக்கிறது.", englishTranslation: "Water is very cold." },
-        { id: 5, type: "speakReply", promptText: "வணக்கம்! நீங்கள் எப்படி இருக்கிறீர்கள்?", replyText: "நான் நன்றாக இருக்கிறேன், நன்றி.", translation: "I am fine, thank you." },
-        { id: 6, type: "speakReply", promptText: "உங்கள் பெயர் என்ன?", replyText: "என் பெயர் ராகுல்.", translation: "My name is Rahul." },
-        { id: 7, type: "speakReply", promptText: "நீங்கள் எங்கே செல்கிறீர்கள்?", replyText: "நான் பள்ளிக்குச் செல்கிறேன்.", translation: "I am going to school." },
-        { id: 8, type: "translateSpeak", promptText: "She sings a song.", targetSentence: "சீதா பாட்டு பாடுகிறாள்.", hint: "Translate to Tamil" },
-        { id: 9, type: "translateSpeak", promptText: "Today the weather is good.", targetSentence: "இன்று வானிலை நன்றாக உள்ளது.", hint: "Translate to Tamil" },
-        { id: 10, type: "translateSpeak", promptText: "I like to eat fruits.", targetSentence: "எனக்கு பழங்கள் சாப்பிட பிடிக்கும்.", hint: "Translate to Tamil" }
-      ] : [
-        { id: 1, type: "listenRepeat", sentence: "The sun shines bright.", translation: "The sun shines bright." },
-        { id: 2, type: "listenRepeat", sentence: "I love reading books.", translation: "I love reading books." },
-        { id: 3, type: "listenRepeat", sentence: "Water is clean and fresh.", translation: "Water is clean and fresh." },
-        { id: 4, type: "listenRepeat", sentence: "Practice makes perfect.", translation: "Practice makes perfect." },
-        { id: 5, type: "speakReply", promptText: "Hello! How are you doing?", replyText: "I am doing well, thank you.", translation: "I am doing well, thank you." },
-        { id: 6, type: "speakReply", promptText: "What is your favorite subject?", replyText: "I really enjoy learning languages.", translation: "I really enjoy learning languages." },
-        { id: 7, type: "speakReply", promptText: "Would you like to read now?", replyText: "Yes, let us read a story together.", translation: "Yes, let us read a story together." },
-        { id: 8, type: "translateSpeak", promptText: "वह स्कूल जाता है।", targetSentence: "He goes to school.", hint: "Translate to English" },
-        { id: 9, type: "translateSpeak", promptText: "आज मौसम अच्छा है।", targetSentence: "Today the weather is good.", hint: "Translate to English" },
-        { id: 10, type: "translateSpeak", promptText: "मुझे फल खाना पसंद है।", targetSentence: "I like to eat fruits.", hint: "Translate to English" }
-      ];
-      return { questions: speakQuestions };
-    }
-    return { questions: defaultQuestions };
-  });
-
-  if (practiceType === "Read Practice") {
-    const readingQuestions = language === "Hindi" ? [
-      { id: 1, type: "mcq", question: "सूरज किस दिशा से उगता है?", options: ["पूर्व", "पश्चिम", "उत्तर", "दक्षिण"], correctIndex: 0, explanation: "सूरज पूर्व से उगता है।" },
-      { id: 2, type: "meaning", phrase: "पुस्तकालय", options: ["A place with books to read or borrow", "A place where students study", "A place to buy things"], correctIndex: 0 },
-      { id: 3, type: "passage", passage: "एक जंगल में एक शेर रहता था। वह बहुत शक्तिशाली था। सभी जानवर उससे डरते थे।", question: "शेर कहाँ रहता था?", options: ["जंगल में", "गुफा में", "चिड़ियाघर में", "पहाड़ पर"], correctIndex: 0, explanation: "पहली पंक्ति बताती है कि शेर जंगल में रहता था।" },
-      { id: 4, type: "matchingPairs", pairs: [{ left: "विद्यालय", right: "School" }, { left: "बाज़ार", right: "Market" }, { left: "मित्र", right: "Friend" }, { left: "घर", right: "Home" }] },
-      { id: 5, type: "imageChoice", word: "किताब", prompt: "किताब (Book) के लिए सही चित्र चुनें:", options: ["📚", "🍎", "🏫"], correctIndex: 0 },
-      { id: 6, type: "mcq", question: "हमारा राष्ट्रीय पक्षी कौन सा है?", options: ["मोर", "तोता", "कबूतर", "चिड़िया"], correctIndex: 0, explanation: "भारत का राष्ट्रीय पक्षी मोर है।" },
-      { id: 7, type: "meaning", phrase: "विद्यालय", options: ["A place where students learn and study", "An institution for higher learning", "A place where people work"], correctIndex: 0 },
-      { id: 8, type: "passage", passage: "राजू के पास एक सुंदर कुत्ता है। उसका नाम शेरू है। राजू उसके साथ खेलता है।", question: "राजू के कुत्ते का नाम क्या है?", options: ["शेरू", "कालू", "मोती", "टॉमी"], correctIndex: 0, explanation: "राजू के कुत्ते का नाम शेरू है।" },
-      { id: 9, type: "matchingPairs", pairs: [{ left: "जल", right: "Water" }, { left: "अग्नि", right: "Fire" }, { left: "वायु", right: "Air" }, { left: "आकाश", right: "Sky" }] },
-      { id: 10, type: "imageChoice", word: "सूरज", prompt: "सूरज (Sun) के लिए सही चित्र चुनें:", options: ["🌞", "🌙", "⭐"], correctIndex: 0 }
-    ] : language === "Kannada" ? [
-      { id: 1, type: "mcq", question: "ಸೂರ್ಯನು ಯಾವ ದಿಕ್ಕಿನಲ್ಲಿ ಉದಯಿಸುತ್ತಾನೆ?", options: ["ಪೂರ್ವ", "ಪಶ್ಚಿಮ", "ಉತ್ತರ", "ದಕ್ಷಿಣ"], correctIndex: 0, explanation: "ಸೂರ್ಯನು ಪೂರ್ವದಲ್ಲಿ ಉದಯಿಸುತ್ತಾನೆ." },
-      { id: 2, type: "meaning", phrase: "ಗ್ರಂಥಾಲಯ", options: ["A place with books to read or borrow", "A place where students study", "A place to buy things"], correctIndex: 0 },
-      { id: 3, type: "passage", passage: "ಒಂದು ಕಾಡಿನಲ್ಲಿ ಸಿಂಹವಿತ್ತು. ಅದು ತುಂಬಾ ಬಲಶಾಲಿಯಾಗಿತ್ತು. ಎಲ್ಲಾ ಪ್ರಾಣಿಗಳು ಅದಕ್ಕೆ ಹೆದರುತ್ತಿದ್ದವು.", question: "ಸಿಂಹ ಎಲ್ಲ ಇತ್ತು?", options: ["ಕಾಡಿನಲ್ಲಿ", "ಗುಹೆಯಲ್ಲಿ", "ಮೃಗಾಲಯದಲ್ಲಿ", "ಬೆಟ್ಟದ ಮೇಲೆ"], correctIndex: 0, explanation: "ಸಿಂಹ ಕಾಡಿನಲ್ಲಿ ಇತ್ತು." },
-      { id: 4, type: "matchingPairs", pairs: [{ left: "ಶಾಲೆ", right: "School" }, { left: "ಮಾರುಕಟ್ಟೆ", right: "Market" }, { left: "ಸ್ನೇಹಿತ", right: "Friend" }, { left: "ಮನೆ", right: "Home" }] },
-      { id: 5, type: "imageChoice", word: "ಪುಸ್ತಕ", prompt: "ಪುಸ್ತಕ (Book) ಕ್ಕೆ ಸರಿಯಾದ ಚಿತ್ರವನ್ನು ಆರಿಸಿ:", options: ["📚", "🍎", "🏫"], correctIndex: 0 },
-      { id: 6, type: "mcq", question: "ನಮ್ಮ ರಾಷ್ಟ್ರೀಯ ಪಕ್ಷಿ ಯಾವುದು?", options: ["ನವಿಲು", "ಗಿಳಿ", "ಪಾರಿವಾಳ", "ಗುಬ್ಬಚ್ಚಿ"], correctIndex: 0, explanation: "ನಮ್ಮ ರಾಷ್ಟ್ರೀಯ ಪಕ್ಷಿ ನವಿಲು." },
-      { id: 7, type: "meaning", phrase: "ಶಾಲೆ", options: ["A place where students learn and study", "An institution for higher learning", "A place where people work"], correctIndex: 0 },
-      { id: 8, type: "passage", passage: "ರಾಜು ಬಳಿ ಒಂದು ಸುಂದರ ನಾಯಿ ಇದೆ. ಅದರ ಹೆಸರು ಶೇರು. ರಾಜು ಅದರೊಂದಿಗೆ ಆಟವಾಡುತ್ತಾನೆ.", question: "ರಾಜು ನಾಯಿಯ ಹೆಸರೇನು?", options: ["ಶೇರು", "ಕಾಲು", "ಮೋತಿ", "ಟಾಮಿ"], correctIndex: 0, explanation: "ನಾಯಿಯ ಹೆಸರು ಶೇರು." },
-      { id: 9, type: "matchingPairs", pairs: [{ left: "ನೀರು", right: "Water" }, { left: "ಬೆಂಕಿ", right: "Fire" }, { left: "ಗಾಳಿ", right: "Air" }, { left: "ಆಕಾಶ", right: "Sky" }] },
-      { id: 10, type: "imageChoice", word: "ಸೂರ್ಯ", prompt: "ಸೂರ್ಯ (Sun) ನಿಗೆ ಸರಿಯಾದ ಚಿತ್ರವನ್ನು ಆರಿಸಿ:", options: ["🌞", "🌙", "⭐"], correctIndex: 0 }
-    ] : language === "Telugu" ? [
-      { id: 1, type: "mcq", question: "సూర్యుడు ఏ దిశలో ఉదయిస్తాడు?", options: ["తూర్పు", "పడమర", "ఉత్తరం", "దక్షిణం"], correctIndex: 0, explanation: "సూర్యుడు తూర్పున ఉదయిస్తాడు." },
-      { id: 2, type: "meaning", phrase: "గ్రంథాలయం", options: ["A place with books to read or borrow", "A place where students study", "A place to buy things"], correctIndex: 0 },
-      { id: 3, type: "passage", passage: "ఒక అడవిలో సింహం ఉండేది. అది చాలా శక్తివంతమైనది. జంతువులన్నీ దానికి భయపడేవి.", question: "సింహం ఎక్కడ ఉండేది?", options: ["అడవిలో", "గుహలో", "జూలో", "కొండపై"], correctIndex: 0, explanation: "సింహం అడవిలో ఉండేది." },
-      { id: 4, type: "matchingPairs", pairs: [{ left: "పాఠశాల", right: "School" }, { left: "మార్కెట్", right: "Market" }, { left: "స్నేహితుడు", right: "Friend" }, { left: "ఇల్లు", right: "Home" }] },
-      { id: 5, type: "imageChoice", word: "పుస్తకం", prompt: "పుస్తకం (Book) కొరకు సరైన చిత్రాన్ని ఎంచుకోండి:", options: ["📚", "🍎", "🏫"], correctIndex: 0 },
-      { id: 6, type: "mcq", question: "మన జాతీయ పక్షి ఏది?", options: ["నెమలి", "చిలుక", "పావురం", "పిచ్చుక"], correctIndex: 0, explanation: "నెమలి మన జాతీయ పక్షి." },
-      { id: 7, type: "meaning", phrase: "పాఠశాల", options: ["A place where students learn and study", "An institution for higher learning", "A place where people work"], correctIndex: 0 },
-      { id: 8, type: "passage", passage: "రాజు దగ్గర ఒక అందమైన కుక్క ఉంది. దాని పేరు షేరు. రాజు దానితో ఆడుకుంటాడు.", question: "రాజు కుక్క పేరు ఏమిటి?", options: ["షేరు", "కాలు", "మోతీ", "టామీ"], correctIndex: 0, explanation: "రాజు కుక్క పేరు షేరు." },
-      { id: 9, type: "matchingPairs", pairs: [{ left: "నీరు", right: "Water" }, { left: "నిప్పు", right: "Fire" }, { left: "గాలి", right: "Air" }, { left: "ఆకాశం", right: "Sky" }] },
-      { id: 10, type: "imageChoice", word: "సూర్యుడు", prompt: "సూర్యుడు (Sun) కొరకు సరైన చిత్రాన్ని ఎంచుకోండి:", options: ["🌞", "🌙", "⭐"], correctIndex: 0 }
-    ] : language === "Tamil" ? [
-      { id: 1, type: "mcq", question: "சூரியன் எந்த திசையில் உதிக்கிறது?", options: ["கிழக்கு", "மேற்கு", "வடக்கு", "தெற்கு"], correctIndex: 0, explanation: "சூரியன் கிழக்கில் உதிக்கிறது." },
-      { id: 2, type: "meaning", phrase: "நூலகம்", options: ["A place with books to read or borrow", "A place where students study", "A place to buy things"], correctIndex: 0 },
-      { id: 3, type: "passage", passage: "ஒரு காட்டில் ஒரு சிங்கம் வாழ்ந்தது. அது மிகவும் பலசாலி. அனைத்து விலங்குகளும் அதைக் கண்டு அஞ்சின.", question: "சிங்கம் எங்கு வாழ்ந்தது?", options: ["காட்டில்", "குகையில்", "மிருகக்காட்சிசாலையில்", "மலையில்"], correctIndex: 0, explanation: "சிங்கம் காட்டில் வாழ்ந்தது." },
-      { id: 4, type: "matchingPairs", pairs: [{ left: "பள்ளி", right: "School" }, { left: "சந்தை", right: "Market" }, { left: "நண்பன்", right: "Friend" }, { left: "வீடு", right: "Home" }] },
-      { id: 5, type: "imageChoice", word: "புத்தகம்", prompt: "புத்தகம் (Book) க்கான சரியான படத்தை தேர்வு செய்யவும்:", options: ["📚", "🍎", "🏫"], correctIndex: 0 },
-      { id: 6, type: "mcq", question: "நமது தேசிய பறவை எது?", options: ["மயில்", "கிளி", "புறா", "சிட்டுக்குருவி"], correctIndex: 0, explanation: "நமது தேசிய பறவை மயில்." },
-      { id: 7, type: "meaning", phrase: "பள்ளி", options: ["A place where students learn and study", "An institution for higher learning", "A place where people work"], correctIndex: 0 },
-      { id: 8, type: "passage", passage: "ராஜுவிடம் ஒரு அழகான நாய் உள்ளது. அதன் பெயர் ஷேரு. ராஜு அதனுடன் விளையாடுகிறான்.", question: "ராஜுவின் நாயின் பெயர் என்ன?", options: ["ஷேரு", "காலும்", "மோதி", "டாமி"], correctIndex: 0, explanation: "நாயின் பெயர் ஷேரு." },
-      { id: 9, type: "matchingPairs", pairs: [{ left: "தண்ணீர்", right: "Water" }, { left: "நெருப்பு", right: "Fire" }, { left: "காற்று", right: "Air" }, { left: "வானம்", right: "Sky" }] },
-      { id: 10, type: "imageChoice", word: "சூரியன்", prompt: "சூரியன் (Sun) க்கான சரியான படத்தை தேர்வு செய்யவும்:", options: ["🌞", "🌙", "⭐"], correctIndex: 0 }
-    ] : [
-      { id: 1, type: "mcq", question: "From which direction does the sun rise?", options: ["East", "West", "North", "South"], correctIndex: 0, explanation: "The sun rises in the east." },
-      { id: 2, type: "meaning", phrase: "Library", options: ["A place with books to read or borrow", "A place where students study", "A place to buy things"], correctIndex: 0 },
-      { id: 3, type: "passage", passage: "A lion lived in a forest. It was very strong. All animals were afraid of it.", question: "Where did the lion live?", options: ["In the forest", "In a cave", "In the zoo", "On the hill"], correctIndex: 0, explanation: "The lion lived in the forest." },
-      { id: 4, type: "matchingPairs", pairs: [{ left: "School", right: "A place to learn" }, { left: "Market", right: "A place to buy things" }, { left: "Friend", right: "A person you like" }, { left: "Home", right: "Where you live" }] },
-      { id: 5, type: "imageChoice", word: "Book", prompt: "Choose the correct picture for Book:", options: ["📚", "🍎", "🏫"], correctIndex: 0 },
-      { id: 6, type: "mcq", question: "What is our national bird?", options: ["Peacock", "Parrot", "Pigeon", "Sparrow"], correctIndex: 0, explanation: "The national bird is the peacock." },
-      { id: 7, type: "meaning", phrase: "School", options: ["A place where students learn and study", "An institution for higher learning", "A place where people work"], correctIndex: 0 },
-      { id: 8, type: "passage", passage: "Raju has a beautiful dog. Its name is Sheru. Raju plays with it.", question: "What is Raju's dog name?", options: ["Sheru", "Kalu", "Moti", "Tommy"], correctIndex: 0, explanation: "The dog name is Sheru." },
-      { id: 9, type: "matchingPairs", pairs: [{ left: "Water", right: "Liquid to drink" }, { left: "Fire", right: "Hot flame" }, { left: "Air", right: "Gas to breathe" }, { left: "Sky", right: "Blue space above" }] },
-      { id: 10, type: "imageChoice", word: "Sun", prompt: "Choose the correct picture for Sun:", options: ["🌞", "🌙", "⭐"], correctIndex: 0 }
-    ];
-    return { questions: readingQuestions };
-  }
-
-  if (practiceType === "Mistakes Practice") {
     let list = (params.mistakesList && params.mistakesList.length > 0) ? [...params.mistakesList] : [];
     if (list.length === 0) {
-      list = [
-        { id: 1, type: "fillBlank", sentence: "The sun rises in the ___.", answer: "east", hint: "A direction", clue: "Opposite of west" },
-        { id: 2, type: "unscramble", hint: "Where we study", emoji: "🏫", answer: "SCHOOL", tiles: ["L","O","C","S","H","O"], clue: "An educational institution" },
-        { id: 3, type: "fillBlank", sentence: "We should drink clean ___ every day.", answer: "water", hint: "Essential liquid", clue: "H2O" },
-        { id: 4, type: "unscramble", hint: "A sweet red fruit", emoji: "🍎", answer: "APPLE", tiles: ["P","L","A","P","E"], clue: "Keep the doctor away" }
+      list = language === "Hindi" ? [
+        { id: 1, type: "fillBlank", sentence: "सूरज पूर्व से ___ है।", answer: "उगता", hint: "दिशा" },
+        { id: 2, type: "unscramble", hint: "अध्ययन का स्थान", emoji: "🏫", answer: "स्कूल", tiles: ["कू", "स", "ल"] },
+        { id: 3, type: "speak", sentence: "नई भाषा सीखना मजेदार है।" },
+        { id: 4, type: "translateToLearning", englishSentence: "She reads a book", targetSentence: "वह किताब पढ़ती है", tiles: ["वह", "किताब", "पढ़ती", "है", "लड़का", "पानी"] },
+        { id: 5, type: "mcq", question: "इनमें से कौन सा संज्ञा है?", options: ["दौड़ना", "किताब", "सुंदर", "धीरे-धीरे"], correctIndex: 1, explanation: "किताब एक वस्तु है, इसलिए संज्ञा है।" }
+      ] : language === "Kannada" ? [
+        { id: 1, type: "fillBlank", sentence: "ಸೂರ್ಯನು ಪೂರ್ವದಲ್ಲಿ ___.", answer: "ಉದಯಿಸುತ್ತಾನೆ", hint: "ದಿಕ್ಕು" },
+        { id: 2, type: "unscramble", hint: "ಕಲಿಯುವ ಸ್ಥಳ", emoji: "🏫", answer: "ಶಾಲೆ", tiles: ["ಲೆ", "ಶಾ"] },
+        { id: 3, type: "speak", sentence: "ಹೊಸ ಭಾಷೆ ಕಲಿಯುವುದು ಮೋಜಿನ ಸಂಗತಿ." },
+        { id: 4, type: "translateToLearning", englishSentence: "She reads a book", targetSentence: "ಅವಳು ಪುಸ್ತಕ ಓದುತ್ತಾಳೆ", tiles: ["ಅವಳು", "ಪುಸ್ತಕ", "ಓದುತ್ತಾಳೆ", "ಅವರು", "ನೀರು"] },
+        { id: 5, type: "mcq", question: "ಇವುಗಳಲ್ಲಿ ಯಾವುದು ನಾಮಪದ?", options: ["ಓಡು", "ಪುಸ್ತಕ", "ಸುಂದರ", "ಮೆಲ್ಲನೆ"], correctIndex: 1, explanation: "ಪುಸ್ತಕ ನಾಮಪದವಾಗಿದೆ." }
+      ] : language === "Telugu" ? [
+        { id: 1, type: "fillBlank", sentence: "సూర్యుడు తూర్పున ___.", answer: "ఉదయిస్తాడు", hint: "దిశ" },
+        { id: 2, type: "unscramble", hint: "మనం చదువుకునే చోటు", emoji: "🏫", answer: "బడి", tiles: ["డి", "బ"] },
+        { id: 3, type: "speak", sentence: "కొత్త భాష నేర్చుకోవడం సరదాగా ఉంటుంది." },
+        { id: 4, type: "translateToLearning", englishSentence: "She reads a book", targetSentence: "ఆమె పుస్తకం చదువుతుంది", tiles: ["ఆమె", "పుస్తకం", "చదువుతుంది", "నీరు", "ఆపిల్"] },
+        { id: 5, type: "mcq", question: "వీటిలో నామవాచకం ఏది?", options: ["పరుగెత్తడం", "పుస్తకం", "అందమైన", "మెల్లగా"], correctIndex: 1, explanation: "పుస్తకం నామవాచకం." }
+      ] : language === "Tamil" ? [
+        { id: 1, type: "fillBlank", sentence: "சூரியன் கிழக்கில் ___.", answer: "உதிக்கிறது", hint: "திசை" },
+        { id: 2, type: "unscramble", hint: "நாங்கள் படிக்கும் இடம்", emoji: "🏫", answer: "பள்ளி", tiles: ["ளி", "பல்"] },
+        { id: 3, type: "speak", sentence: "புதிய மொழியைக் கற்பது வேடிக்கையானது." },
+        { id: 4, type: "translateToLearning", englishSentence: "She reads a book", targetSentence: "அவள் புத்தகம் படிக்கிறாள்", tiles: ["அவள்", "புத்தகம்", "படிக்கிறாள்", "தண்ணீர்", "பழம்"] },
+        { id: 5, type: "mcq", question: "இவற்றில் பெயர்ச்சொல் எது?", options: ["ஓடுதல்", "புத்தகம்", "அழகு", "மெதுவாக"], correctIndex: 1, explanation: "புத்தகம் பெயர்ச்சொல் ஆகும்." }
+      ] : [
+        { id: 1, type: "fillBlank", sentence: "The sun rises in the ___.", answer: "east", hint: "A cardinal direction" },
+        { id: 2, type: "unscramble", hint: "Where we study", emoji: "🏫", answer: "SCHOOL", tiles: ["L","O","C","S","H","O"] },
+        { id: 3, type: "speak", sentence: "Learning a new language is fun." },
+        { id: 4, type: "translateToLearning", englishSentence: "She reads a book", targetSentence: "She reads a book", tiles: ["She", "reads", "a", "book", "water", "apple"] },
+        { id: 5, type: "mcq", question: "Which of these is a noun?", options: ["run", "book", "beautiful", "slowly"], correctIndex: 1, explanation: "Book is a noun." }
       ];
     }
+
     const finalQuestions = [];
     for (let i = 0; i < 10; i++) {
       const original = list[i % list.length];
-      
-      let mappedType = original.type || "fillBlank";
-      if (mappedType !== "fillBlank" && mappedType !== "unscramble") {
-        mappedType = i % 2 === 0 ? "fillBlank" : "unscramble";
-      }
-
-      let sentence = original.sentence || original.text || "";
-      let answer = original.answer || "";
-      let tiles = original.tiles || [];
-      let hint = original.hint || "";
-
-      if (mappedType === "fillBlank") {
-        if (!sentence.includes("___")) {
-          if (answer && sentence.toLowerCase().includes(answer.toLowerCase())) {
-            const regex = new RegExp(`\\b${answer}\\b`, 'i');
-            sentence = sentence.replace(regex, "___");
-          } else {
-            const words = sentence.split(/\s+/).filter(Boolean);
-            if (words.length > 0) {
-              const targetIdx = Math.floor(words.length / 2);
-              answer = words[targetIdx].replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g, "");
-              words[targetIdx] = "___";
-              sentence = words.join(" ");
-            } else {
-              sentence = "We should learn ___ every day.";
-              answer = "words";
-            }
-          }
-        }
-      }
-
-      if (mappedType === "unscramble") {
-        if (!answer) {
-          const words = sentence.split(/\s+/).filter(Boolean);
-          answer = (words[0] || "LEARN").replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g, "");
-        }
-        if (!tiles || tiles.length === 0) {
-          tiles = answer.toUpperCase().split("");
-          for (let k = tiles.length - 1; k > 0; k--) {
-            const j = Math.floor(Math.random() * (k + 1));
-            [tiles[k], tiles[j]] = [tiles[j], tiles[k]];
-          }
-        }
-      }
-
       finalQuestions.push({
-        id: i + 1,
-        type: mappedType,
-        sentence: sentence,
-        answer: answer,
-        tiles: tiles,
-        hint: hint || "Recent mistake review",
-        clue: original.clue || original.hint || (answer ? `Starts with "${answer[0].toUpperCase()}"` : "Review your mistake")
+        ...original,
+        id: i + 1
       });
     }
     return { questions: finalQuestions };
@@ -1741,27 +1421,60 @@ const getFallbackPractice = (params) => {
 
   if (practiceType === "Words Practice") {
     const list = language === "Hindi" ? [
-      { id: 1, word: "किताब", emoji: "📚", translation: "Book", sentence: "यह एक अच्छी किताब है। (This is a good book.)" },
-      { id: 2, word: "स्कूल", emoji: "🏫", translation: "School", sentence: "बच्चे स्कूल जा रहे हैं। (Children are going to school.)" },
-      { id: 3, word: "सेब", emoji: "🍎", translation: "Apple", sentence: "सेब लाल और मीठा है। (The apple is red and sweet.)" },
-      { id: 4, word: "पानी", emoji: "💧", translation: "Water", sentence: "साफ पानी पीना स्वास्थ्य के लिए अच्छा है। (Drinking clean water is good for health.)" },
-      { id: 5, word: "सूरज", emoji: "☀️", translation: "Sun", sentence: "सूरज पूर्व से उगता है। (The sun rises in the east.)" },
-      { id: 6, word: "दोस्त", emoji: "🧑‍🤝‍🧑", translation: "Friend", sentence: "वह मेरा सबसे अच्छा दोस्त है। (He is my best friend.)" },
-      { id: 7, word: "घर", emoji: "🏠", translation: "House", sentence: "हमारा घर बहुत सुंदर है। (Our house is very beautiful.)" },
-      { id: 8, word: "पेड़", emoji: "🌳", translation: "Tree", sentence: "पेड़ हमें छाया देता है। (The tree gives us shade.)" },
-      { id: 9, word: "फल", emoji: "🍌", translation: "Fruit", sentence: "ताजे फल खाएं। (Eat fresh fruits.)" },
-      { id: 10, word: "खुश", emoji: "😊", translation: "Happy", sentence: "वह आज बहुत खुश है। (He is very happy today.)" },
+      { id: 1, word: "किताब", emoji: "📚", translation: "Book", sentence: "यह एक अच्छी किताब है।" },
+      { id: 2, word: "स्कूल", emoji: "🏫", translation: "School", sentence: "बच्चे स्कूल जा रहे हैं।" },
+      { id: 3, word: "सेब", emoji: "🍎", translation: "Apple", sentence: "सेब लाल और मीठा है।" },
+      { id: 4, word: "पानी", emoji: "💧", translation: "Water", sentence: "साफ पानी पीना स्वास्थ्य के लिए अच्छा है।" },
+      { id: 5, word: "सूरज", emoji: "☀️", translation: "Sun", sentence: "सूरज पूर्व से उगता है।" },
+      { id: 6, word: "दोस्त", emoji: "🧑‍🤝‍🧑", translation: "Friend", sentence: "वह मेरा सबसे अच्छा दोस्त है।" },
+      { id: 7, word: "घर", emoji: "🏠", translation: "House", sentence: "हमारा घर बहुत सुंदर है।" },
+      { id: 8, word: "पेड़", emoji: "🌳", translation: "Tree", sentence: "पेड़ हमें छाया देता है।" },
+      { id: 9, word: "फल", emoji: "🍌", translation: "Fruit", sentence: "ताजे फल खाएं।" },
+      { id: 10, word: "खुश", emoji: "😊", translation: "Happy", sentence: "वह आज बहुत खुश है।" }
+    ] : language === "Kannada" ? [
+      { id: 1, word: "ಪುಸ್ತಕ", emoji: "📚", translation: "Book", sentence: "ಇದು ಒಂದು ಪುಸ್ತಕ." },
+      { id: 2, word: "ಶಾಲೆ", emoji: "🏫", translation: "School", sentence: "ಮಕ್ಕಳು ಶಾಲೆಗೆ ಹೋಗುತ್ತಿದ್ದಾರೆ." },
+      { id: 3, word: "ಸೇಬು", emoji: "🍎", translation: "Apple", sentence: "ಸೇಬು ಕೆಂಪು ಮತ್ತು ಸಿಹಿಯಾಗಿದೆ." },
+      { id: 4, word: "ನೀರು", emoji: "💧", translation: "Water", sentence: "ನಾವು ಸ್ವಚ್ಛವಾದ ನೀರನ್ನು ಕುಡಿಯಬೇಕು." },
+      { id: 5, word: "ಸूरिया", emoji: "☀️", translation: "Sun", sentence: "ಸೂರ್ಯನು ತುಂಬಾ ಪ್ರಕಾಶಮಾನವಾಗಿದ್ದಾನೆ." },
+      { id: 6, word: "ಸ್ನೇಹಿತ", emoji: "🧑‍🤝‍🧑", translation: "Friend", sentence: "ಅವನು ನನ್ನ ಉತ್ತಮ ಸ್ನೇಹಿತ." },
+      { id: 7, word: "ಮನೆ", emoji: "🏠", translation: "House", sentence: "ಅವರು ದೊಡ್ಡ ಮನೆಯಲ್ಲಿ ವಾಸಿಸುತ್ತಿದ್ದಾರೆ." },
+      { id: 8, word: "ಮರ", emoji: "🌳", translation: "Tree", sentence: "ಪಕ್ಷಿಗಳು ಮರದ ಮೇಲಿವೆ." },
+      { id: 9, word: "ಹಣ್ಣು", emoji: "🍌", translation: "Fruit", sentence: "ನನಗೆ ತಾಜಾ ಹಣ್ಣು ತಿನ್ನಲು ಇಷ್ಟ." },
+      { id: 10, word: "ಸಂತೋಷ", emoji: "😊", translation: "Happy", sentence: "ಅವಳು ಸಂತೋಷದ ಕುಟುಂಬವನ್ನು ಹೊಂದಿದ್ದಾಳೆ." }
+    ] : language === "Telugu" ? [
+      { id: 1, word: "పుస్తకం", emoji: "📚", translation: "Book", sentence: "ఇది ఒక మంచి పుస్తకం." },
+      { id: 2, word: "బడి", emoji: "🏫", translation: "School", sentence: "పిల్లలు బడికి వెళ్తున్నారు." },
+      { id: 3, word: "ఆపిల్", emoji: "🍎", translation: "Apple", sentence: "ఆపిల్ ఎర్రగా మరియు తీయ్యగా ఉంది." },
+      { id: 4, word: "నీరు", emoji: "💧", translation: "Water", sentence: "మనం శుభ్రమైన నీరు తాగాలి." },
+      { id: 5, word: "సూర్యుడు", emoji: "☀️", translation: "Sun", sentence: "ఈరోజు సూర్యుడు చాలా ప్రకాశవంతంగా ఉన్నాడు." },
+      { id: 6, word: "స్నేహితుడు", emoji: "🧑‍🤝‍🧑", translation: "Friend", sentence: "అతడు నా ప్రాణ స్నేహితుడు." },
+      { id: 7, word: "ఇల్లు", emoji: "🏠", translation: "House", sentence: "వారు ఒక పెద్ద ఇంట్లో నివసిస్తున్నారు." },
+      { id: 8, word: "చెట్టు", emoji: "🌳", translation: "Tree", sentence: "పక్షులు చెట్టు మీద ఉన్నాయి." },
+      { id: 9, word: "పండు", emoji: "🍌", translation: "Fruit", sentence: "నాకు తాజా పండు తినడం ఇష్టం." },
+      { id: 10, word: "సంతోషం", emoji: "😊", translation: "Happy", sentence: "ఆమె సంతోషకరమైన కుటుంబాన్ని కలిగి ఉంది." }
+    ] : language === "Tamil" ? [
+      { id: 1, word: "புத்தகம்", emoji: "📚", translation: "Book", sentence: "இது ஒரு நல்ல புத்தகம்." },
+      { id: 2, word: "பள்ளி", emoji: "🏫", translation: "School", sentence: "குழந்தைகள் பள்ளிக்குச் செல்கிறார்கள்." },
+      { id: 3, word: "ஆப்பிள்", emoji: "🍎", translation: "Apple", sentence: "ஆப்பிள் சிகப்பாகவும் இனிப்பாகவும் இருக்கிறது." },
+      { id: 4, word: "தண்ணீர்", emoji: "💧", translation: "Water", sentence: "நாம் சுத்தமான தண்ணீர் குடிக்க வேண்டும்." },
+      { id: 5, word: "சூரியன்", emoji: "☀️", translation: "Sun", sentence: "இன்று சூரியன் மிகவும் பிரகாசமாக உள்ளது." },
+      { id: 6, word: "நண்பன்", emoji: "🧑‍🤝‍🧑", translation: "Friend", sentence: "அவன் என் சிறந்த நண்பன்." },
+      { id: 7, word: "வீடு", emoji: "🏠", translation: "House", sentence: "அவர்கள் ஒரு பெரிய வீட்டில் வாழ்கிறார்கள்." },
+      { id: 8, word: "மரம்", emoji: "🌳", translation: "Tree", sentence: "பறவைகள் மரத்தின் மேல் இருக்கின்றன." },
+      { id: 9, word: "பழம்", emoji: "🍌", translation: "Fruit", sentence: "எனக்கு புதிய பழம் சாப்பிட பிடிக்கும்." },
+      { id: 10, word: "மகிழ்ச்சி", emoji: "😊", translation: "Happy", sentence: "அவள் ஒரு மகிழ்ச்சியான குடும்பத்தைக் கொண்டிருக்கிறாள்." }
     ] : [
-      { id: 1, word: "Book", emoji: "📚", translation: "किताब / ಪುಸ್ತಕ", sentence: "This is a good book." },
-      { id: 2, word: "School", emoji: "🏫", translation: "स्कूल / ಶಾಲೆ", sentence: "Children are going to school." },
-      { id: 3, word: "Apple", emoji: "🍎", translation: "सेब / ಸೇಬು", sentence: "The apple is red and sweet." },
-      { id: 4, word: "Water", emoji: "💧", translation: "पानी / ನೀರು", sentence: "We should drink clean water." },
-      { id: 5, word: "Sun", emoji: "☀️", translation: "सूरज / ಸೂರ್ಯ", sentence: "The sun is very bright today." },
-      { id: 6, word: "Friend", emoji: "🧑‍🤝‍🧑", translation: "मित्र / ಸ್ನೇಹಿತ", sentence: "He is my best friend." },
-      { id: 7, word: "House", emoji: "🏠", translation: "घर / ಮನೆ", sentence: "They live in a big house." },
-      { id: 8, word: "Tree", emoji: "🌳", translation: "पेड़ / ಮರ", sentence: "The birds are on the tree." },
-      { id: 9, word: "Fruit", emoji: "🍌", translation: "फल / ಹಣ್ಣು", sentence: "I love eating fresh fruit." },
-      { id: 10, word: "Happy", emoji: "😊", translation: "खुश / ಸಂತೋಷ", sentence: "She has a happy family." },
+      { id: 1, word: "Book", emoji: "📚", translation: "Book", sentence: "This is a good book." },
+      { id: 2, word: "School", emoji: "🏫", translation: "School", sentence: "Children are going to school." },
+      { id: 3, word: "Apple", emoji: "🍎", translation: "Apple", sentence: "The apple is red and sweet." },
+      { id: 4, word: "Water", emoji: "💧", translation: "Water", sentence: "We should drink clean water." },
+      { id: 5, word: "Sun", emoji: "☀️", translation: "Sun", sentence: "The sun is very bright today." },
+      { id: 6, word: "Friend", emoji: "🧑‍🤝‍🧑", translation: "Friend", sentence: "He is my best friend." },
+      { id: 7, word: "House", emoji: "🏠", translation: "House", sentence: "They live in a big house." },
+      { id: 8, word: "Tree", emoji: "🌳", translation: "Tree", sentence: "The birds are on the tree." },
+      { id: 9, word: "Fruit", emoji: "🍌", translation: "Fruit", sentence: "I love eating fresh fruit." },
+      { id: 10, word: "Happy", emoji: "😊", translation: "Happy", sentence: "She has a happy family." }
     ];
     return { questions: list };
   }
@@ -2364,6 +2077,70 @@ const translateFallbackPractice = (practice, interfaceLang, learningLang) => {
   if (!translations) return practice;
   
   practice.questions.forEach(q => {
+    // Translate Words Practice translations
+    if (q.word && q.translation && q.sentence) {
+      if (q.translation === "Book") {
+        q.translation = interfaceLang === "Hindi" ? "किताब" :
+                        interfaceLang === "Kannada" ? "ಪುಸ್ತಕ" :
+                        interfaceLang === "Telugu" ? "పుస్తకం" :
+                        interfaceLang === "Tamil" ? "புத்தகம்" : "Book";
+      }
+      if (q.translation === "Sun") {
+        q.translation = interfaceLang === "Hindi" ? "सूरज" :
+                        interfaceLang === "Kannada" ? "ಸೂರ್ಯ" :
+                        interfaceLang === "Telugu" ? "సూర్యుడు" :
+                        interfaceLang === "Tamil" ? "சூரியன்" : "Sun";
+      }
+      if (q.translation === "Water") {
+        q.translation = interfaceLang === "Hindi" ? "पानी" :
+                        interfaceLang === "Kannada" ? "ನೀರು" :
+                        interfaceLang === "Telugu" ? "ನೀరు" :
+                        interfaceLang === "Tamil" ? "தண்ணீர்" : "Water";
+      }
+      if (q.translation === "Tree") {
+        q.translation = interfaceLang === "Hindi" ? "पेड़" :
+                        interfaceLang === "Kannada" ? "ಮರ" :
+                        interfaceLang === "Telugu" ? "చెట్టు" :
+                        interfaceLang === "Tamil" ? "மரம்" : "Tree";
+      }
+      if (q.translation === "Fruit") {
+        q.translation = interfaceLang === "Hindi" ? "फल" :
+                        interfaceLang === "Kannada" ? "ಹಣ್ಣು" :
+                        interfaceLang === "Telugu" ? "పండు" :
+                        interfaceLang === "Tamil" ? "பழம்" : "Fruit";
+      }
+      if (q.translation === "Home") {
+        q.translation = interfaceLang === "Hindi" ? "घर" :
+                        interfaceLang === "Kannada" ? "ಮನೆ" :
+                        interfaceLang === "Telugu" ? "ఇల్లు" :
+                        interfaceLang === "Tamil" ? "வீடு" : "Home";
+      }
+      if (q.translation === "School") {
+        q.translation = interfaceLang === "Hindi" ? "स्कूल" :
+                        interfaceLang === "Kannada" ? "ಶಾಲೆ" :
+                        interfaceLang === "Telugu" ? "బడి" :
+                        interfaceLang === "Tamil" ? "பள்ளி" : "School";
+      }
+      if (q.translation === "Car") {
+        q.translation = interfaceLang === "Hindi" ? "गाड़ी" :
+                        interfaceLang === "Kannada" ? "ಕಾರು" :
+                        interfaceLang === "Telugu" ? "కారు" :
+                        interfaceLang === "Tamil" ? "கார்" : "Car";
+      }
+      if (q.translation === "Flower") {
+        q.translation = interfaceLang === "Hindi" ? "फूल" :
+                        interfaceLang === "Kannada" ? "ಹೂವು" :
+                        interfaceLang === "Telugu" ? "పువ్వు" :
+                        interfaceLang === "Tamil" ? "பூ" : "Flower";
+      }
+      if (q.translation === "Bird") {
+        q.translation = interfaceLang === "Hindi" ? "पक्षी" :
+                        interfaceLang === "Kannada" ? "ಹಕ್ಕಿ" :
+                        interfaceLang === "Telugu" ? "పక్షి" :
+                        interfaceLang === "Tamil" ? "பறவை" : "Bird";
+      }
+    }
+  
     if (q.question === "ಸೂರ್ಯನು ಯಾವ ದಿಕ್ಕಿನಲ್ಲಿ ಉದಯಿಸುತ್ತಾನೆ?" || q.question === "सूरज किस दिशा से उगता है?" || q.question === "సూర్యుడు ఏ దిశలో ఉదయిస్తాడు?" || q.question === "சூரியன் எந்த திசையில் உதிக்கிறது?") {
       q.question = interfaceLang === "English" ? "From which direction does the sun rise?" : (translations.sun_direction_q || q.question);
       q.explanation = interfaceLang === "English" ? "The sun rises in the east." : q.explanation;
@@ -2463,6 +2240,26 @@ const translateFallbackPractice = (practice, interfaceLang, learningLang) => {
       }
     }
   });
+  
+  
+  if (practice.dialogue) {
+    practice.dialogue.forEach(q => {
+      if (q.type === "question") {
+        if (q.question === "What does Ana want?" || q.question === "अना क्या चाहती है?" || q.question === "ಅನಾ ಏನು ಬಯಸುತ್ತಾಳೆ?" || q.question === "అనా ఏమి కోరుకుంటుంది?" || q.question === "அனா என்ன விரும்புகிறாள்?") {
+          q.question = interfaceLang === "Hindi" ? "अना क्या चाहती है?" :
+                       interfaceLang === "Kannada" ? "ಅನಾ ಏನು ಬಯಸುತ್ತಾಳೆ?" :
+                       interfaceLang === "Telugu" ? "అనా ఏమి కోరుకుంటుంది?" :
+                       interfaceLang === "Tamil" ? "அனா என்ன விரும்புகிறாள்?" : "What does Ana want?";
+        }
+        if (q.question === "What fruit is on the tree?" || q.question === "पेड़ पर कौन सा फल है?" || q.question === "ಮರದಲ್ಲಿ ಯಾವ ಹಣ್ಣು ಇದೆ?" || q.question === "చెట్టు మీద ఏ పండు ఉంది?" || q.question === "மரத்தில் என்ன பழம் உள்ளது?") {
+          q.question = interfaceLang === "Hindi" ? "पेड़ पर कौन सा फल है?" :
+                       interfaceLang === "Kannada" ? "ಮರದಲ್ಲಿ ಯಾವ ಹಣ್ಣು ಇದೆ?" :
+                       interfaceLang === "Telugu" ? "చెట్టు మీద ఏ పండు ఉంది?" :
+                       interfaceLang === "Tamil" ? "மரத்தில் என்ன பழம் உள்ளது?" : "What fruit is on the tree?";
+        }
+      }
+    });
+  }
   
   return practice;
 };
