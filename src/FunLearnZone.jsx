@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { generatePracticeContent } from "./geminiClient";
+
 
 const playChime = (type) => {
   try {
@@ -175,7 +177,8 @@ const WORD_SPRINT_WORDS_BY_LANG = {
   ]
 };
 
-function WordSprintGame({ t = (key) => key, learningLanguage = "English", onXpEarned, onClose }) {
+function WordSprintGame({ t = (key) => key, learningLanguage = "English", interfaceLanguage = "English", speakText, onXpEarned, onClose }) {
+  const [loading, setLoading] = useState(false);
   const [phase, setPhase] = useState("intro");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [input, setInput] = useState("");
@@ -193,18 +196,49 @@ function WordSprintGame({ t = (key) => key, learningLanguage = "English", onXpEa
   const currentWord = words[currentIndex];
 
   const startGame = () => {
-    const list = WORD_SPRINT_WORDS_BY_LANG[learningLanguage] || WORD_SPRINT_WORDS_BY_LANG["English"];
-    const shuffled = [...list].sort(() => Math.random() - 0.5);
-    setWords(shuffled);
-    setCurrentIndex(0);
-    setInput("");
-    setScore(0);
-    setCombo(0);
-    setMaxCombo(0);
-    setSkipped(0);
-    setTimeLeft(60);
-    setPhase("playing");
-    setTimeout(() => inputRef.current?.focus(), 100);
+    setLoading(true);
+    generatePracticeContent({
+      practiceType: "Word Sprint",
+      language: learningLanguage || "English",
+      literacyLevel: 5,
+      literacyLevelName: "Intermediate",
+      interfaceLanguage: interfaceLanguage || "English",
+      useFallback: false
+    }).then(res => {
+      let list = [];
+      if (res && res.questions) {
+        list = res.questions;
+      } else {
+        list = WORD_SPRINT_WORDS_BY_LANG[learningLanguage] || WORD_SPRINT_WORDS_BY_LANG["English"];
+      }
+      const shuffled = [...list].sort(() => Math.random() - 0.5).slice(0, 10);
+      setWords(shuffled);
+      setCurrentIndex(0);
+      setInput("");
+      setScore(0);
+      setCombo(0);
+      setMaxCombo(0);
+      setSkipped(0);
+      setTimeLeft(60);
+      setPhase("playing");
+      setLoading(false);
+      setTimeout(() => inputRef.current?.focus(), 100);
+    }).catch(e => {
+      console.warn("Failed to load Word Sprint from AI, using fallbacks:", e);
+      const list = WORD_SPRINT_WORDS_BY_LANG[learningLanguage] || WORD_SPRINT_WORDS_BY_LANG["English"];
+      const shuffled = [...list].sort(() => Math.random() - 0.5).slice(0, 10);
+      setWords(shuffled);
+      setCurrentIndex(0);
+      setInput("");
+      setScore(0);
+      setCombo(0);
+      setMaxCombo(0);
+      setSkipped(0);
+      setTimeLeft(60);
+      setPhase("playing");
+      setLoading(false);
+      setTimeout(() => inputRef.current?.focus(), 100);
+    });
   };
 
   useEffect(() => {
@@ -326,8 +360,8 @@ function WordSprintGame({ t = (key) => key, learningLanguage = "English", onXpEa
           <div className="flz-rule">{t("wordSprintRule2")}</div>
           <div className="flz-rule">{t("wordSprintRule3")}</div>
         </div>
-        <button className="flz-start-btn" onClick={startGame}>
-          {t("startSprintBtn")}
+        <button className="flz-start-btn" onClick={startGame} disabled={loading}>
+          {loading ? "Loading..." : t("startSprintBtn")}
         </button>
       </div>
     );
@@ -377,7 +411,7 @@ function WordSprintGame({ t = (key) => key, learningLanguage = "English", onXpEa
         {combo >= 2 && (
           <div className="flz-combo-chip">🔥 x{combo} Combo!</div>
         )}
-        <div className="flz-word-count">{currentIndex}/{words.length}</div>
+        <div className="flz-word-count">{currentIndex + 1}/{words.length}</div>
       </div>
       {currentWord && (
         <div className={`flz-word-card ${feedback || ""}`}>
@@ -509,7 +543,8 @@ function scrambleTiles(tiles) {
   return arr;
 }
 
-function WordScrambleGame({ t = (key) => key, learningLanguage = "English", onXpEarned, onClose }) {
+function WordScrambleGame({ t = (key) => key, learningLanguage = "English", interfaceLanguage = "English", onXpEarned, onClose }) {
+  const [loading, setLoading] = useState(false);
   const [phase, setPhase] = useState("intro");
   const [wordIdx, setWordIdx] = useState(0);
   const [words, setWords] = useState([]);
@@ -557,14 +592,41 @@ function WordScrambleGame({ t = (key) => key, learningLanguage = "English", onXp
   }, [learningLanguage]);
 
   const startGame = () => {
-    const list = SCRAMBLE_WORDS_BY_LANG[learningLanguage] || SCRAMBLE_WORDS_BY_LANG["English"];
-    const shuffled = [...list].sort(() => Math.random() - 0.5).slice(0, 8);
-    wordsRef.current = shuffled;
-    setWords(shuffled);
-    setWordIdx(0);
-    setScore(0);
-    setPhase("playing");
-    loadWord(shuffled, 0);
+    setLoading(true);
+    generatePracticeContent({
+      practiceType: "Word Scramble",
+      language: learningLanguage || "English",
+      literacyLevel: 5,
+      literacyLevelName: "Intermediate",
+      interfaceLanguage: interfaceLanguage || "English",
+      useFallback: false
+    }).then(res => {
+      let list = [];
+      if (res && res.questions) {
+        list = res.questions;
+      } else {
+        list = SCRAMBLE_WORDS_BY_LANG[learningLanguage] || SCRAMBLE_WORDS_BY_LANG["English"];
+      }
+      const shuffled = [...list].sort(() => Math.random() - 0.5).slice(0, 10);
+      wordsRef.current = shuffled;
+      setWords(shuffled);
+      setWordIdx(0);
+      setScore(0);
+      setPhase("playing");
+      setLoading(false);
+      loadWord(shuffled, 0);
+    }).catch(e => {
+      console.warn("Failed to load Word Scramble from AI, using fallbacks:", e);
+      const list = SCRAMBLE_WORDS_BY_LANG[learningLanguage] || SCRAMBLE_WORDS_BY_LANG["English"];
+      const shuffled = [...list].sort(() => Math.random() - 0.5).slice(0, 10);
+      wordsRef.current = shuffled;
+      setWords(shuffled);
+      setWordIdx(0);
+      setScore(0);
+      setPhase("playing");
+      setLoading(false);
+      loadWord(shuffled, 0);
+    });
   };
 
   const goNext = useCallback((correct) => {
@@ -784,7 +846,8 @@ const MEMORY_PAIRS_BY_LANG = {
   ]
 };
 
-function MemoryMatchGame({ t = (key) => key, learningLanguage = "English", onXpEarned, onClose }) {
+function MemoryMatchGame({ t = (key) => key, learningLanguage = "English", speakText, onXpEarned, onClose }) {
+  const [loading, setLoading] = useState(false);
   const [phase, setPhase] = useState("intro");
   const [cards, setCards] = useState([]);
   const [flipped, setFlipped] = useState([]);
@@ -797,18 +860,50 @@ function MemoryMatchGame({ t = (key) => key, learningLanguage = "English", onXpE
   const list = MEMORY_PAIRS_BY_LANG[learningLanguage] || MEMORY_PAIRS_BY_LANG["English"];
 
   const startGame = () => {
-    const pairs = list.flatMap((p) => [
-      { ...p, type: "emoji", cardId: `${p.id}-emoji` },
-      { ...p, type: "word", cardId: `${p.id}-word` },
-    ]);
-    const shuffled = pairs.sort(() => Math.random() - 0.5);
-    setCards(shuffled);
-    setFlipped([]);
-    setMatched([]);
-    setMoves(0);
-    setTimeLeft(90);
-    setCanFlip(true);
-    setPhase("playing");
+    setLoading(true);
+    generatePracticeContent({
+      practiceType: "Memory Match",
+      language: learningLanguage || "English",
+      literacyLevel: 5,
+      literacyLevelName: "Intermediate",
+      interfaceLanguage: "English",
+      useFallback: false
+    }).then(res => {
+      let listData = [];
+      if (res && res.questions) {
+        listData = res.questions;
+      } else {
+        listData = list;
+      }
+      const pairs = listData.flatMap((p) => [
+        { ...p, type: "emoji", cardId: p.id + "-emoji" },
+        { ...p, type: "word", cardId: p.id + "-word" },
+      ]);
+      const shuffled = pairs.sort(() => Math.random() - 0.5);
+      setCards(shuffled);
+      setFlipped([]);
+      setMatched([]);
+      setMoves(0);
+      setTimeLeft(90);
+      setCanFlip(true);
+      setPhase("playing");
+      setLoading(false);
+    }).catch(e => {
+      console.warn("Failed to load Memory Match from AI, using fallbacks:", e);
+      const pairs = list.flatMap((p) => [
+        { ...p, type: "emoji", cardId: p.id + "-emoji" },
+        { ...p, type: "word", cardId: p.id + "-word" },
+      ]);
+      const shuffled = pairs.sort(() => Math.random() - 0.5);
+      setCards(shuffled);
+      setFlipped([]);
+      setMatched([]);
+      setMoves(0);
+      setTimeLeft(90);
+      setCanFlip(true);
+      setPhase("playing");
+      setLoading(false);
+    });
   };
 
   useEffect(() => {
@@ -836,6 +931,9 @@ function MemoryMatchGame({ t = (key) => key, learningLanguage = "English", onXpE
   const handleCardClick = (card) => {
     if (!canFlip) return;
     playChime("click");
+    if (card.type === "word" && speakText) {
+      speakText(card.word, 0.9, learningLanguage);
+    }
     if (flipped.includes(card.cardId)) return;
     if (matched.includes(card.id)) return;
     const newFlipped = [...flipped, card.cardId];
@@ -881,7 +979,7 @@ function MemoryMatchGame({ t = (key) => key, learningLanguage = "English", onXpE
           <div className="flz-rule">{t("memoryMatchRule2")}</div>
           <div className="flz-rule">{t("memoryMatchRule3")}</div>
         </div>
-        <button className="flz-start-btn" onClick={startGame}>{t("startMatchingBtn")}</button>
+        <button className="flz-start-btn" onClick={startGame} disabled={loading}>{loading ? "Loading..." : t("startMatchingBtn")}</button>
       </div>
     );
   }
@@ -960,7 +1058,7 @@ function MemoryMatchGame({ t = (key) => key, learningLanguage = "English", onXpE
 }
 
 // ─── Fun & Learn Zone Shell ────────────────────────────────────────────────────
-export default function FunLearnZone({ t = (key) => key, learningLanguage = "English", onXpEarned }) {
+export default function FunLearnZone({ t = (key) => key, learningLanguage = "English", interfaceLanguage = "English", speakText, onXpEarned }) {
   const [activeGame, setActiveGame] = useState(null);
   const [xpToast, setXpToast] = useState(null);
 
@@ -1051,13 +1149,13 @@ export default function FunLearnZone({ t = (key) => key, learningLanguage = "Eng
       {activeGame && (
         <div className="flz-active-game-panel">
           {activeGame === "sprint" && (
-            <WordSprintGame t={t} learningLanguage={learningLanguage} onXpEarned={handleXpEarned} onClose={() => setActiveGame(null)} />
+            <WordSprintGame t={t} learningLanguage={learningLanguage} interfaceLanguage={interfaceLanguage} speakText={speakText} onXpEarned={handleXpEarned} onClose={() => setActiveGame(null)} />
           )}
           {activeGame === "scramble" && (
-            <WordScrambleGame t={t} learningLanguage={learningLanguage} onXpEarned={handleXpEarned} onClose={() => setActiveGame(null)} />
+            <WordScrambleGame t={t} learningLanguage={learningLanguage} interfaceLanguage={interfaceLanguage} onXpEarned={handleXpEarned} onClose={() => setActiveGame(null)} />
           )}
           {activeGame === "memory" && (
-            <MemoryMatchGame t={t} learningLanguage={learningLanguage} onXpEarned={handleXpEarned} onClose={() => setActiveGame(null)} />
+            <MemoryMatchGame t={t} learningLanguage={learningLanguage} speakText={speakText} onXpEarned={handleXpEarned} onClose={() => setActiveGame(null)} />
           )}
         </div>
       )}
