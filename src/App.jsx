@@ -634,6 +634,11 @@ function App() {
   const [isEditingCover, setIsEditingCover] = useState(false);
   const [activeTab, setActiveTab] = useState("login"); // "login", "register", "forgot"
   const [dashboardTab, setDashboardTab] = useState("dashboard"); // "dashboard", "learn", "practice", "profile", "shop", "leaderboard", "analytics"
+  const switchDashboardTab = (tab) => {
+    playChime("tab");
+    triggerHaptic("tab");
+    setDashboardTab(tab);
+  };
   const [practiceCollectionPage, setPracticeCollectionPage] = useState(null); // null, "mistakes", "words"
   const [profileSubTab, setProfileSubTab] = useState("stats"); // "stats", "avatar", "settings"
   const [builderEmoji, setBuilderEmoji] = useState("😊");
@@ -1517,8 +1522,16 @@ function App() {
     if (typeof navigator !== "undefined" && navigator.vibrate) {
       if (type === "correct") {
         navigator.vibrate([60, 40, 60]);
-      } else {
+      } else if (type === "incorrect") {
         navigator.vibrate([120, 80, 120]);
+      } else if (type === "complete" || type === "success") {
+        navigator.vibrate([80, 50, 80, 50, 120]);
+      } else if (type === "buy" || type === "cash") {
+        navigator.vibrate([40, 40, 60]);
+      } else if (type === "click" || type === "pop") {
+        navigator.vibrate([30]);
+      } else if (type === "tab") {
+        navigator.vibrate([20]);
       }
     }
   };
@@ -1544,6 +1557,60 @@ function App() {
           osc.start(now + idx * 0.08);
           osc.stop(now + idx * 0.08 + 0.4);
         });
+      } else if (type === "complete" || type === "success") {
+        const now = ctx.currentTime;
+        const freqs = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99, 1046.50]; // C4, E4, G4, C5, E5, G5, C6
+        freqs.forEach((f, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = "triangle";
+          osc.frequency.setValueAtTime(f, now + idx * 0.1);
+          gain.gain.setValueAtTime(0.15, now + idx * 0.1);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.1 + 0.5);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now + idx * 0.1);
+          osc.stop(now + idx * 0.1 + 0.6);
+        });
+      } else if (type === "buy" || type === "cash") {
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(880, now);
+        osc.frequency.setValueAtTime(1760, now + 0.08);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.3);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.35);
+      } else if (type === "click" || type === "pop") {
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(600, now);
+        osc.frequency.exponentialRampToValueAtTime(900, now + 0.06);
+        gain.gain.setValueAtTime(0.08, now);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.08);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.08);
+      } else if (type === "tab") {
+        const now = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(400, now);
+        osc.frequency.setValueAtTime(300, now + 0.04);
+        gain.gain.setValueAtTime(0.06, now);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.06);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.06);
       } else {
         const now = ctx.currentTime;
         const osc1 = ctx.createOscillator();
@@ -4711,6 +4778,8 @@ function App() {
   };
 
   const completeLesson = async (lessonId, xpAwarded) => {
+    playChime("complete");
+    triggerHaptic("complete");
 
     if (!session?.user?.id) return;
     const userId = session.user.id;
@@ -4798,6 +4867,8 @@ function App() {
 
   // AI-powered lesson session starter
   const startLessonSession = async (lesson, sectionInfo, unitInfo) => {
+    playChime("click");
+    triggerHaptic("click");
     setLessonLoading(true);
     setLessonStep(0);
     setLessonHearts(3);
@@ -8495,7 +8566,7 @@ function App() {
               <button
                 type="button"
                 className={`indicator-pill shop-pill ${dashboardTab === "shop" ? "active" : ""}`}
-                onClick={() => setDashboardTab("shop")}
+                onClick={() => switchDashboardTab("shop")}
                 title="XP Shop"
                 style={{ background: '#f59e0b15', color: '#f59e0b', padding: '6px 10px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
               >
@@ -8508,7 +8579,7 @@ function App() {
               <button
                 type="button"
                 className={`indicator-pill leaderboard-pill ${dashboardTab === "leaderboard" ? "active" : ""}`}
-                onClick={() => setDashboardTab("leaderboard")}
+                onClick={() => switchDashboardTab("leaderboard")}
                 title="Leaderboard"
                 style={{ background: '#f59e0b15', color: '#f59e0b', padding: '6px 10px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
               >
@@ -8540,7 +8611,7 @@ function App() {
                   <button
                     type="button"
                     className={`sidebar-item ${dashboardTab === "admin" ? "active" : ""}`}
-                    onClick={() => setDashboardTab("admin")}
+                    onClick={() => switchDashboardTab("admin")}
                     style={{ display: 'inline-flex', alignItems: 'center' }}
                   >
                     <span style={{ marginRight: '6px' }}>🔒</span> Admin Portal
@@ -8560,7 +8631,7 @@ function App() {
                   <button
                     type="button"
                     className={`sidebar-item ${dashboardTab === "dashboard" ? "active" : ""}`}
-                    onClick={() => setDashboardTab("dashboard")}
+                    onClick={() => switchDashboardTab("dashboard")}
                   >
                     <DashboardIcon style={{ marginRight: 0, width: 18, height: 18 }} /> {t("sidebarDashboard")}
                   </button>
@@ -8568,7 +8639,7 @@ function App() {
                   <button
                     type="button"
                     className={`sidebar-item ${dashboardTab === "learn" ? "active" : ""}`}
-                    onClick={() => setDashboardTab("learn")}
+                    onClick={() => switchDashboardTab("learn")}
                   >
                     <LearnIcon style={{ marginRight: 0, width: 18, height: 18 }} /> {t("sidebarLearn")}
                   </button>
@@ -8576,7 +8647,7 @@ function App() {
                   <button
                     type="button"
                     className={`sidebar-item ${dashboardTab === "practice" ? "active" : ""}`}
-                    onClick={() => setDashboardTab("practice")}
+                    onClick={() => switchDashboardTab("practice")}
                   >
                     <PracticeIcon style={{ marginRight: 0, width: 18, height: 18 }} /> {t("sidebarPractice")}
                   </button>
@@ -8584,7 +8655,7 @@ function App() {
                   <button
                     type="button"
                     className={`sidebar-item ${dashboardTab === "profile" ? "active" : ""}`}
-                    onClick={() => setDashboardTab("profile")}
+                    onClick={() => switchDashboardTab("profile")}
                     style={{ display: 'inline-flex', alignItems: 'center' }}
                   >
                     {(() => {
@@ -10174,6 +10245,8 @@ style={(() => {
                 <XPShop
                   t={t}
                   onPurchaseItem={(item, newXp, newOwned) => {
+                    playChime("buy");
+                    triggerHaptic("buy");
                     setUserXp(newXp);
                     const userId = session?.user?.id;
                     if (userId) {
