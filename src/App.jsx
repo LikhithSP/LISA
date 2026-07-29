@@ -5814,11 +5814,32 @@ function App() {
         }
       }
     );
-
     return () => {
       subscription.unsubscribe();
     };
   }, []);
+
+  const [curriculumVersion, setCurriculumVersion] = useState(0);
+
+  // Load custom curriculum configuration from admin's profile JSON column in Supabase (100% DB-driven)
+  useEffect(() => {
+    const fetchCustomCurriculum = async () => {
+      try {
+        const { data, error } = await supabase.from("profiles").select("shop_data");
+        if (data && !error) {
+          const adminProf = data.find(p => p.shop_data && p.shop_data.custom_curriculum);
+          if (adminProf && Array.isArray(adminProf.shop_data.custom_curriculum)) {
+            CURRICULUM_SECTIONS.length = 0;
+            CURRICULUM_SECTIONS.push(...adminProf.shop_data.custom_curriculum);
+            setCurriculumVersion(v => v + 1);
+          }
+        }
+      } catch (e) {
+        console.error("Failed to load custom curriculum from Supabase:", e);
+      }
+    };
+    fetchCustomCurriculum();
+  }, [session]);
 
   // Update document title dynamically based on the current page/state
   useEffect(() => {
@@ -6372,6 +6393,10 @@ function App() {
   const fallbackSpeechSynthesis = (text, locale, rate) => {
     if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
+      // Workaround for Chrome bug where SpeechSynthesis gets stuck paused
+      if (window.speechSynthesis.paused) {
+        window.speechSynthesis.resume();
+      }
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = locale;
       if (typeof rate === "number") utterance.rate = rate;
@@ -7323,12 +7348,7 @@ function App() {
 
 
     const speakWord = (text) => {
-      if (typeof window !== "undefined" && window.speechSynthesis) {
-        const u = new SpeechSynthesisUtterance(text);
-        u.lang = getLocale(selectedLanguage);
-        window.speechSynthesis.cancel();
-        window.speechSynthesis.speak(u);
-      }
+      speakText(text, 0.9, learningLanguage || "English");
     };
 
     if (session?.user?.email !== "admin@gmail.com" && (!hasDiagnosed || assessmentState !== "not_started")) {
@@ -8534,7 +8554,7 @@ function App() {
                       <button
                         type="button"
                         className="word-of-day-speak word-of-day-speak-inline"
-                        onClick={() => speakText(wordOfDay.meaning || "")}
+                        onClick={() => speakText(wordOfDay.meaning || "", 0.9, selectedLanguage || "English")}
                         aria-label="Listen to meaning"
                       >
                         🔊
@@ -8548,7 +8568,7 @@ function App() {
                       <button
                         type="button"
                         className="word-of-day-speak word-of-day-speak-inline"
-                        onClick={() => speakText(wordOfDay.example || "")}
+                        onClick={() => speakText(wordOfDay.example || "", 0.9, learningLanguage || "English")}
                         aria-label="Listen to example"
                       >
                         🔊
