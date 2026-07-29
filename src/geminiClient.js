@@ -156,13 +156,13 @@ const getAgeContext = (age) => {
 const buildPrompt = (params) => {
   const {
     age, educationLevel, language, learningLanguage: paramLearningLang,
-    interfaceLanguage: paramInterfaceLang, literacyLevel, literacyLevelName,
+    interfaceLanguage: paramInterfaceLang, preferredLanguage: paramPrefLang, literacyLevel, literacyLevelName,
     weakAreas, sectionNum, sectionTitle, unitNum, unitTitle,
     lessonNum, lessonTitle, difficulty
   } = params;
 
   const learningLanguage = paramLearningLang || language || "English";
-  const interfaceLanguage = paramInterfaceLang || language || "English";
+  const interfaceLanguage = paramInterfaceLang || paramPrefLang || language || "English";
   const ageCtx = getAgeContext(age);
   const weakList = (weakAreas || []).join(", ") || "general literacy";
 
@@ -589,8 +589,9 @@ const extractJSON = (text) => {
 const getFallbackLesson = (params) => {
   const { language, sectionTitle, unitTitle, lessonTitle } = params;
 
-  if (language === "Hindi") {
-    return {
+  const rawLesson = (() => {
+    if (language === "Hindi") {
+      return {
       lessonTitle: lessonTitle || "साक्षरता पाठ",
       skillFocus: sectionTitle || "पढ़ना और लिखना",
       explanation: `यह पाठ ${unitTitle || "बुनियादी बातें"} के बारे में है। इसमें आप बुनियादी साक्षरता कौशल सीखेंगे।`,
@@ -1021,6 +1022,11 @@ const getFallbackLesson = (params) => {
     aiFeedbackPositive: "Excellent work! You are making great progress.",
     aiFeedbackNegative: "Good try! Review the lesson and attempt again. You can do it!"
   };
+  })();
+
+  const interfaceLang = params.preferredLanguage || params.interfaceLanguage || "English";
+  const learningLang = params.learningLanguage || params.language || "English";
+  return translateFallback(rawLesson, interfaceLang, learningLang);
 };
 const getFallbackWordOfDay = (language = "English") => {
   if (language === "Hindi") {
@@ -1140,9 +1146,9 @@ export const fetchWordOfDay = async (language = "English", context = {}, useFall
 };
 
 const buildPracticePrompt = (params) => {
-  const { practiceType, language, literacyLevel, literacyLevelName, mistakesList, interfaceLanguage } = params;
+  const { practiceType, language, literacyLevel, literacyLevelName, mistakesList, interfaceLanguage, preferredLanguage } = params;
   const targetLang = language || "English";
-  const uiLang = interfaceLanguage || "English";
+  const uiLang = interfaceLanguage || preferredLanguage || "English";
 
   if (practiceType === "Perfect Pronunciation" || practiceType === "Speak Practice") {
     return `You are LISA, an expert AI literacy tutor. Generate exactly 10 speaking/pronunciation practice questions in ${targetLang} suitable for a learner at Literacy Level ${literacyLevel} (${literacyLevelName}).
@@ -1329,8 +1335,9 @@ Return ONLY valid JSON with this exact structure:
 const getFallbackPractice = (params) => {
   const { practiceType, language } = params;
   
-  if (practiceType === "Perfect Pronunciation" || practiceType === "Speak Practice") {
-    const defaultQuestions = language === "Hindi" ? [
+  const rawPractice = (() => {
+    if (practiceType === "Perfect Pronunciation" || practiceType === "Speak Practice") {
+      const defaultQuestions = language === "Hindi" ? [
       { id: 1, type: "speak", sentence: "राम स्कूल जाता है।", englishTranslation: "Ram goes to school." },
       { id: 2, type: "speak", sentence: "वह किताब पढ़ता है।", englishTranslation: "He reads a book." },
       { id: 3, type: "speak", sentence: "सीता गाना गाती है।", englishTranslation: "Sita sings a song." },
@@ -1723,7 +1730,12 @@ const getFallbackPractice = (params) => {
       { id: 10, question: "Complete the sentence: Rahul visited the local ___ to read.", options: ["Library", "School", "Shop", "Garden"], correctIndex: 0, explanation: "He visited the local library." }
     ]
   };
-};;
+  })();
+
+  const interfaceLang = params.preferredLanguage || params.interfaceLanguage || "English";
+  const learningLang = params.language || "English";
+  return translateFallbackPractice(rawPractice, interfaceLang, learningLang);
+};
 
 export const generatePracticeContent = async (params) => {
   // Development mode OFF: skip the AI call and return the static fallback practice content.
@@ -1844,4 +1856,336 @@ Options: ${JSON.stringify(optionsArray)}`;
     console.error("Translation error for MCQ:", questionText, err);
     return { question: questionText, options: optionsArray };
   }
+};
+
+const FALLBACK_TRANSLATIONS = {
+  "English": {
+    "noun_question": "Which of these is a noun?",
+    "noun_exp": "Book is the name of an object, so it is a noun.",
+    "verb_question": "He _____ to school.",
+    "verb_exp": "With masculine singular subject, 'goes' (ಹೋಗುತ್ತಾನೆ / जाता है) is used.",
+    "fill_blank_hint": "A game played with a ball",
+    "reading_question_ram": "Where does Ram go every morning?",
+    "meaning_phrase_santosha": "Happiness",
+    "meaning_options_santosha": ["Feeling good and cheerful", "Being sad", "Being tired", "Being hungry"],
+    "unscramble_hint_apple": "A red color fruit",
+    "image_choice_car": "Tap the picture of the car",
+    "complete_chat_q": "Choose the correct response to complete the conversation",
+    "scenario_text": "You are buying a book at a local shop. The shopkeeper smiles and hands you the book.",
+    "scenario_q": "What should you say to the shopkeeper?",
+    "match_school": "The place where we learn",
+    "match_book": "We read it for knowledge",
+    "match_boy": "A young male child",
+    "match_water": "A clear liquid we drink",
+    "tracing_q": "Write the word 'home'",
+    "listen_word_q": "Which word did you hear?",
+    "listen_passage_q": "What does Ram like to do at school?",
+    "explanation_kannada": "This lesson is about basics. Here you will learn basic literacy skills.",
+    "explanation_hindi": "This lesson is about basics. Here you will learn basic literacy skills.",
+    "explanation_telugu": "This lesson is about basics. Here you will learn basic literacy skills.",
+    "explanation_tamil": "This lesson is about basics. Here you will learn basic literacy skills.",
+    "translate_prompt": "Arrange the words to form a sentence.",
+    "meaning_phrase_library": "Library",
+    "meaning_phrase_school": "School"
+  },
+  "Hindi": {
+    "noun_question": "इनमें से कौन सा एक संज्ञा (Noun) है?",
+    "noun_exp": "किताब एक वस्तु का नाम है, इसलिए यह संज्ञा है।",
+    "verb_question": "वह स्कूल _____ है।",
+    "verb_exp": "पुल्लिंग एकवचन कर्ता के साथ 'जाता है' का प्रयोग होता है।",
+    "fill_blank_hint": "गेंद के साथ खेला जाने वाला खेल",
+    "reading_question_ram": "राम हर सुबह कहाँ जाता है?",
+    "meaning_phrase_santosha": "खुशी / संतोष",
+    "meaning_options_santosha": ["अच्छा और प्रसन्न महसूस करना", "उदास होना", "थका हुआ होना", "भूखा होना"],
+    "unscramble_hint_apple": "एक लाल रंग का फल",
+    "image_choice_car": "कार वाले चित्र पर टैप करें",
+    "complete_chat_q": "बातचीत पूरी करने के लिए सही प्रतिक्रिया चुनें",
+    "scenario_text": "आप एक स्थानीय दुकान पर एक किताब खरीद रहे हैं। दुकानदार मुस्कुराता है और आपको किताब देता है।",
+    "scenario_q": "आपको दुकानदार से क्या कहना चाहिए?",
+    "match_school": "वह स्थान जहाँ हम सीखते हैं",
+    "match_book": "हम इसे ज्ञान के लिए पढ़ते हैं",
+    "match_boy": "एक युवा लड़का",
+    "match_water": "एक साफ तरल जिसे हम पीते हैं",
+    "tracing_q": "शब्द 'घर' लिखें",
+    "listen_word_q": "आपने कौन सा शब्द सुना?",
+    "listen_passage_q": "राम स्कूल में क्या करना पसंद करता है?",
+    "explanation_kannada": "यह पाठ बुनियादी साक्षरता कौशल के बारे में है। यहाँ आप बुनियादी बातें सीखेंगे।",
+    "explanation_hindi": "यह पाठ बुनियादी साक्षरता कौशल के बारे में है। यहाँ आप बुनियादी बातें सीखेंगे।",
+    "explanation_telugu": "यह पाठ बुनियादी साक्षरता कौशल के बारे में है। यहाँ आप बुनियादी बातें सीखेंगे।",
+    "explanation_tamil": "यह पाठ बुनियादी साक्षरता कौशल के बारे में है। यहाँ आप बुनियादी बातें सीखेंगे।",
+    "translate_prompt": "एक वाक्य बनाने के लिए शब्दों को व्यवस्थित करें।",
+    "meaning_phrase_library": "पुस्तकालय",
+    "meaning_phrase_school": "विद्यालय"
+  },
+  "Kannada": {
+    "noun_question": "ಇವುಗಳಲ್ಲಿ ಯಾವುದು ನಾಮಪದ (Noun)?",
+    "noun_exp": "ಪುಸ್ತಕ ಒಂದು ವಸ್ತುವಿನ ಹೆಸರು, ಆದ್ದರಿಂದ ಇದು ನಾಮಪದ.",
+    "verb_question": "ಅವನು ಶಾಲೆಗೆ _____.",
+    "verb_exp": "ಪುಲ್ಲಿಂಗ ಏಕವಚನ ಕರ್ತೃವಿನೊಂದಿಗೆ 'ಹೋಗುತ್ತಾನೆ' ಬಳಸಲಾಗುತ್ತದೆ.",
+    "fill_blank_hint": "ಚೆಂಡಿನ ಆಟ",
+    "reading_question_ram": "ರಾಮ್ ಪ್ರತಿದಿನ ಬೆಳಿಗ್ಗೆ ಎಲ್ಲಿಗೆ ಹೋಗುತ್ತಾನೆ?",
+    "meaning_phrase_santosha": "ಸಂತೋಷ",
+    "meaning_options_santosha": ["ಉತ್ತಮ ಮತ್ತು ಪ್ರಸನ್ನವಾಗಿರುವುದು", "ದುಃಖವಾಗಿರುವುದು", "ಸುಸ್ತಾಗಿರುವುದು", "ಹಸಿದಿರುವುದು"],
+    "unscramble_hint_apple": "ಒಂದು ಕೆಂಪು ಹಣ್ಣು",
+    "image_choice_car": "ಕಾರು ಇರುವ ಚಿತ್ರವನ್ನು ಟ್ಯಾಪ್ ಮಾಡಿ",
+    "complete_chat_q": "ಸಂಭಾಷಣೆಯನ್ನು ಪೂರ್ಣಗೊಳಿಸಲು ಸರಿಯಾದ ಉತ್ತರವನ್ನು ಆರಿಸಿ",
+    "scenario_text": "ನೀವು ಸ್ಥಳೀಯ ಅಂಗಡಿಯೊಂದರಲ್ಲಿ ಪುಸ್ತಕವನ್ನು ಖರೀದಿಸುತ್ತಿದ್ದೀರಿ. ಅಂಗಡಿಯವನು ಮುಗುಳ್ನಕ್ಕು ನಿಮಗೆ ಪುಸ್ತಕವನ್ನು ನೀಡುತ್ತಾನೆ.",
+    "scenario_q": "ನೀವು ಅಂಗಡಿಯವನಿಗೆ ಏನು ಹೇಳಬೇಕು?",
+    "match_school": "ನಾವು ಕಲಿಯುವ ಸ್ಥಳ",
+    "match_book": "ನಾವು ಜ್ಞಾನಕ್ಕಾಗಿ ಓದುತ್ತೇವೆ",
+    "match_boy": "ಕಿರಿಯ ಗಂಡು ಮಗು",
+    "match_water": "ನಾವು ಕುಡಿಯುವ ದ್ರವ",
+    "tracing_q": "ಮನೆ ಪದವನ್ನು ಬರೆಯಿರಿ",
+    "listen_word_q": "ನೀವು ಯಾವ ಪದವನ್ನು ಕೇಳಿದ್ದೀರಿ?",
+    "listen_passage_q": "ರಾಮ್ ಶಾಲೆಯಲ್ಲಿ ಏನು ಮಾಡಲು ಇಷ್ಟಪಡುತ್ತಾನೆ?",
+    "explanation_kannada": "ಈ ಪಾಠವು ಮೂಲಭೂತ ಸಂಗತಿಗಳು ಬಗ್ಗೆ ಇದೆ. ಇಲ್ಲಿ ನೀವು ಮೂಲ ಸಾಕ್ಷರತಾ ಕೌಶಲ್ಯಗಳನ್ನು ಕಲಿಯುವಿರಿ.",
+    "explanation_hindi": "ಈ ಪಾಠವು ಮೂಲಭೂತ ಸಂಗತಿಗಳು ಬಗ್ಗೆ ಇದೆ. ಇಲ್ಲಿ ನೀವು ಮೂಲ ಸಾಕ್ಷರತಾ ಕೌಶಲ್ಯಗಳನ್ನು ಕಲಿಯುವಿರಿ.",
+    "explanation_telugu": "ಈ ಪಾಠವು ಮೂಲಭೂತ ಸಂಗತಿಗಳು ಬಗ್ಗೆ ಇದೆ. ಇಲ್ಲಿ ನೀವು ಮೂಲ ಸಾಕ್ಷರತಾ ಕೌಶಲ್ಯಗಳನ್ನು ಕಲಿಯುವಿರಿ.",
+    "explanation_tamil": "ಈ ಪಾಠವು ಮೂಲಭೂತ ಸಂಗತಿಗಳು ಬಗ್ಗೆ ಇದೆ. ಇಲ್ಲಿ ನೀವು ಮೂಲ ಸಾಕ್ಷರತಾ ಕೌಶಲ್ಯಗಳನ್ನು ಕಲಿಯುವಿರಿ.",
+    "translate_prompt": "ಒಂದು ವಾಕ್ಯವನ್ನು ರೂಪಿಸಲು ಪದಗಳನ್ನು ಜೋಡಿಸಿ.",
+    "meaning_phrase_library": "ಗ್ರಂಥಾಲಯ",
+    "meaning_phrase_school": "ಶಾಲೆ"
+  },
+  "Tamil": {
+    "noun_question": "இவற்றில் எது பெயர்ச்சொல் (Noun)?",
+    "noun_exp": "புத்தகம் ஒரு பொருளின் பெயர், எனவே இது பெயர்ச்சொல்.",
+    "verb_question": "அவன் பள்ளிக்கு _____.",
+    "verb_exp": "ஆண்பால் ஒருமை எழுவாயுடன் 'செல்கிறான்' பயன்படுத்தப்படுகிறது.",
+    "fill_blank_hint": "பந்து விளையாட்டு",
+    "reading_question_ram": "ராம் தினமும் காலையில் எங்கே செல்கிறான்?",
+    "meaning_phrase_santosha": "மகிழ்ச்சி",
+    "meaning_options_santosha": ["நன்றாகவும் மகிழ்ச்சியாகவும் உணர்வது", "சோகமாக இருப்பது", "சோர்வாக இருப்பது", "பசியாக இருப்பது"],
+    "unscramble_hint_apple": "ஒரு சிவப்பு பழம்",
+    "image_choice_car": "கார் இருக்கும் படத்தை தட்டவும்",
+    "complete_chat_q": "உரையாடலை முடிக்க சரியான பதிலைத் தேர்ந்தெடுக்கவும்",
+    "scenario_text": "நீங்கள் ஒரு உள்ளூர் கடையில் புத்தகம் வாங்குகிறீர்கள். கடைக்காரர் புன்னகைத்து உங்களுக்கு புத்தகத்தை தருகிறார்.",
+    "scenario_q": "நீங்கள் கடைக்காரரிடம் என்ன சொல்ல வேண்டும்?",
+    "match_school": "நாங்கள் படிக்கும் இடம்",
+    "match_book": "நாங்கள் அறிவுக்காகப் படிக்கிறோம்",
+    "match_boy": "ஒரு இளம் ஆண் குழந்தை",
+    "match_water": "நாங்கள் குடிக்கும் திரவம்",
+    "tracing_q": "வீடு வார்த்தையை எழுதவும்",
+    "listen_word_q": "நீங்கள் எந்த வார்த்தையைக் கேட்டீர்கள்?",
+    "listen_passage_q": "ராம் பள்ளியில் என்ன செய்ய விரும்புகிறான்?",
+    "explanation_kannada": "இந்த பாடம் அடிப்படை திறன்களைப் பற்றியது. இங்கே நீங்கள் அடிப்படைகளைக் கற்றுக்கொள்வீர்கள்.",
+    "explanation_hindi": "இந்த பாடம் அடிப்படை திறன்களைப் பற்றியது. இங்கே நீங்கள் அடிப்படைகளைக் கற்றுக்கொள்வீர்கள்.",
+    "explanation_telugu": "இந்த பாடம் அடிப்படை திறன்களைப் பற்றியது. இங்கே நீங்கள் அடிப்படைகளைக் கற்றுக்கொள்வீர்கள்.",
+    "explanation_tamil": "இந்த பாடம் அடிப்படை திறன்களைப் பற்றியது. இங்கே நீங்கள் அடிப்படைகளைக் கற்றுக்கொள்வீர்கள்.",
+    "translate_prompt": "ஒரு வாக்கியத்தை உருவாக்க வார்த்தைகளை ஒழுங்கமைக்கவும்.",
+    "meaning_phrase_library": "நூலகம்",
+    "meaning_phrase_school": "பள்ளி"
+  },
+  "Telugu": {
+    "noun_question": "వీటిలో నామవాచకం (Noun) ఏది?",
+    "noun_exp": "పుస్తకం అనేది ఒక వస్తువు పేరు, కాబట్టి ఇది నామవాచకం.",
+    "verb_question": "అతడు బడికి _____.",
+    "verb_exp": "పుంలింగ ఏకవచన కర్తతో 'వెళతాడు' ఉపయోగించబడుతుంది.",
+    "fill_blank_hint": "బంతితో ఆడే ఆట",
+    "reading_question_ram": "రాము ప్రతిరోజు ఉదయం ఎక్కడికి వెళతాడు?",
+    "meaning_phrase_santosha": "సంతోషం",
+    "meaning_options_santosha": ["మంచిగా మరియు ఆనందంగా ఉండటం", "బాధగా ఉండటం", "అలసిపోవడం", "ఆకలిగా ఉండటం"],
+    "unscramble_hint_apple": "ఒక ఎర్రని పండు",
+    "image_choice_car": "కారు ఉన్న చిత్రాన్ని నొక్కండి",
+    "complete_chat_q": "సంభాషణను పూర్తి చేయడానికి సరైన సమాధానాన్ని ఎంచుకోండి",
+    "scenario_text": "మీరు ఒక స్థానిక దుకాణంలో పుస్తకాన్ని కొనుగోలు చేస్తున్నారు. దుకాణదారుడు నవ్వుతూ మీకు పుస్తకాన్ని ఇస్తాడు.",
+    "scenario_q": "మీరు దుకాణదారునికి ఏమి చెప్పాలి?",
+    "match_school": "మనం నేర్చుకునే స్థలం",
+    "match_book": "మనం జ్ఞానం కోసం చదువుతాము",
+    "match_boy": "ఒక చిన్న మగ बच्चा",
+    "match_water": "మనం త్రాగే ద్రవం",
+    "tracing_q": "ఇల్లు పదాన్ని రాయండి",
+    "listen_word_q": "మీరు ఏ పదాన్ని విన్నారు?",
+    "listen_passage_q": "రాము బడిలో ఏమి చేయడానికి ఇష్టపడతాడు?",
+    "explanation_kannada": "ఈ పాఠం ప్రాథమిక అక్షరాస్యత నైపుణ్యాల గురించి. ఇక్కడ మీరు ప్రాథమిక విషయాలు నేర్చుకుంటారు.",
+    "explanation_hindi": "ఈ పాఠం ప్రాథమిక అక్షరాస్యత నైపుణ్యాల గురించి. ఇక్కడ మీరు ప్రాథమిక విషయాలు నేర్చుకుంటారు.",
+    "explanation_telugu": "ఈ పాఠం ప్రాథమిక అక్షరాస్యత నైపుణ్యాల గురించి. ఇక్కడ మీరు ప్రాథమిక విషయాలు నేర్చుకుంటారు.",
+    "explanation_tamil": "ఈ పాఠం ప్రాథమిక అక్షరాస్యత నైపుణ్యాల గురించి. ఇక్కడ మీరు ప్రాథమిక విషయాలు నేర్చుకుంటారు.",
+    "translate_prompt": "ఒక వాక్యాన్ని రూపొందించడానికి పదాలను అమర్చండి.",
+    "meaning_phrase_library": "గ్రంథాలయం",
+    "meaning_phrase_school": "పాఠశాల"
+  }
+};
+
+const translateFallback = (lesson, interfaceLang, learningLang) => {
+  if (!lesson || interfaceLang === learningLang) return lesson;
+  
+  const translations = FALLBACK_TRANSLATIONS[interfaceLang];
+  if (!translations) return lesson;
+  
+  // Override explanation
+  if (lesson.explanation && lesson.explanation.includes("ಈ ಪಾಠವು")) {
+    lesson.explanation = translations.explanation_kannada || lesson.explanation;
+  } else if (lesson.explanation && lesson.explanation.includes("यह पाठ")) {
+    lesson.explanation = translations.explanation_hindi || lesson.explanation;
+  } else if (lesson.explanation && lesson.explanation.includes("ఈ పాఠం")) {
+    lesson.explanation = translations.explanation_telugu || lesson.explanation;
+  } else if (lesson.explanation && lesson.explanation.includes("இந்த பாடம்")) {
+    lesson.explanation = translations.explanation_tamil || lesson.explanation;
+  }
+  
+  // Override MCQs
+  if (Array.isArray(lesson.mcqs)) {
+    lesson.mcqs.forEach(m => {
+      if (m.question === "ಇವುಗಳಲ್ಲಿ ಯಾವುದು ನಾಮಪದ (Noun)?" || m.question === "इनमें से कौन सा एक संज्ञा (Noun) है?" || m.question === "వీటిలో నామవాచకం (Noun) ఏది?" || m.question === "இவற்றில் எது பெயர்ச்சொல் (Noun)?") {
+        m.question = translations.noun_question;
+        m.explanation = translations.noun_exp;
+      } else if (m.question === "ಅವನು ಶಾಲೆಗೆ _____." || m.question === "वह स्कूल _____ है।" || m.question === "అతడు బడికి _____." || m.question === "அவன் பள்ளிக்கு _____.") {
+        m.question = translations.verb_question;
+        m.explanation = translations.verb_exp;
+      }
+    });
+  }
+  
+  // Override Fill Blanks
+  if (Array.isArray(lesson.fillBlanks)) {
+    lesson.fillBlanks.forEach(f => {
+      if (f.hint === "ಚೆಂಡಿನ ಆಟ" || f.hint === "एक गोल आकार की गेंद वाला खेल" || f.hint === "బంతితో ఆడే ఆట" || f.hint === "பந்து விளையாட்டு") {
+        f.hint = translations.fill_blank_hint;
+      }
+    });
+  }
+  
+  // Override Reading Passage Question
+  if (lesson.readingQuestion === "ರಾಮ್ ಪ್ರತಿದಿನ ಬೆಳಿಗ್ಗೆ ಎಲ್ಲಿಗೆ ಹೋಗುತ್ತಾನೆ?" || lesson.readingQuestion === "राम हर सुबह कहाँ जाता है?" || lesson.readingQuestion === "రాము ప్రతిరోజు ఉదయం ఎక్కడికి వెళతాడు?" || lesson.readingQuestion === "ராம் தினமும் காலையில் எங்கே செல்கிறான்?") {
+    lesson.readingQuestion = translations.reading_question_ram;
+  }
+  
+  // Override Meaning Question
+  if (lesson.meaningQuestion) {
+    if (lesson.meaningQuestion.phrase === "ಸಂತೋಷ" || lesson.meaningQuestion.phrase === "खुश" || lesson.meaningQuestion.phrase === "ಸಂತೋಷಂ" || lesson.meaningQuestion.phrase === "மகிழ்ச்சಿ") {
+      lesson.meaningQuestion.options = translations.meaning_options_santosha;
+    }
+  }
+  
+  // Override Translation Task Prompt
+  if (lesson.translationTask) {
+    if (lesson.translationTask.prompt === "ಒಂದು ವಾಕ್ಯವನ್ನು ರೂಪಿಸಲು ಪದಗಳನ್ನು ಜೋಡಿಸಿ." || lesson.translationTask.prompt === "एक वाक्य बनाने के लिए शब्दों को व्यवस्थित करें।" || lesson.translationTask.prompt === "ఒక వాక్యాన్ని రూపొందించడానికి పదాలను అమర్చండి." || lesson.translationTask.prompt === "ஒரு వాக்கியத்தை உருவாக்க வார்த்தைகளை ஒழுங்கமைக்கவும்.") {
+      lesson.translationTask.prompt = translations.translate_prompt;
+    }
+  }
+  
+  // Override Matching Pairs
+  if (Array.isArray(lesson.matchingPairs)) {
+    lesson.matchingPairs.forEach(p => {
+      if (p.right === "ನಾವು ಕಲಿಯುವ ಸ್ಥಳ" || p.right === "वह स्थान जहाँ हम सीखते हैं" || p.right === "మనం నేర్చుకునే స్థలం" || p.right === "நாங்கள் படிக்கும் இடம்") {
+        p.right = translations.match_school;
+      } else if (p.right === "ನಾವು ಜ್ಞಾನಕ್ಕಾಗಿ ಓದುತ್ತೇವೆ" || p.right === "हम इसे ज्ञान के लिए पढ़ते हैं" || p.right === "మనం జ్ఞానం కోసం చదువుతాము" || p.right === "நாங்கள் அறிவுக்காகப் படிக்கிறோம்") {
+        p.right = translations.match_book;
+      } else if (p.right === "ಕಿರಿಯ ಗಂಡು ಮಗು" || p.right === "एक युवा पुरुष बच्चा" || p.right === "ఒక చిన్న మగ बच्चा" || p.right === "ஒரு இளம் ஆண் குழந்தை") {
+        p.right = translations.match_boy;
+      } else if (p.right === "ನಾವು ಕುಡಿಯುವ ದ್ರವ" || p.right === "एक साफ तरल जिसे हम पीते हैं" || p.right === "మనం త్రాగే ద్రవం" || p.right === "நாங்கள் குடிக்கும் திரவம்") {
+        p.right = translations.match_water;
+      }
+    });
+  }
+  
+  // Override Unscramble Hint
+  if (Array.isArray(lesson.unscramble)) {
+    lesson.unscramble.forEach(u => {
+      if (u.hint === "ಒಂದು ಕೆಂಪು ಹಣ್ಣು" || u.hint === "एक लाल फल" || u.hint === "ఒక ఎర్రని పండు" || u.hint === "ஒரு சிவப்பு பழம்") {
+        u.hint = translations.unscramble_hint_apple;
+      }
+    });
+  }
+  
+  // Override Image Choice Prompt
+  if (Array.isArray(lesson.imageChoice)) {
+    lesson.imageChoice.forEach(i => {
+      if (i.prompt === "ಕಾರು ಇರುವ ಚಿತ್ರವನ್ನು ಟ್ಯಾಪ್ ಮಾಡಿ" || i.prompt === "गाड़ी वाले चित्र पर टैप करें" || i.prompt === "కారు ఉన్న చిత్రాన్ని నొక్కండి" || i.prompt === "கார் இருக்கும் படத்தை தட்டவும்") {
+        i.prompt = translations.image_choice_car;
+      }
+    });
+  }
+  
+  // Override Tracing Question
+  if (Array.isArray(lesson.tracing)) {
+    lesson.tracing.forEach(t => {
+      if (t.question === "ಮನೆ ಪದವನ್ನು ಬರೆಯಿರಿ" || t.question === "घर शब्द को ट्रेस करें" || t.question === "ఇల్లు పదాన్ని రాయండి" || t.question === "வீடு வார்த்தையை எழுதவும்") {
+        t.question = translations.tracing_q;
+      }
+    });
+  }
+  
+  // Override Listen Word MCQ
+  if (lesson.listenWordMCQ) {
+    if (lesson.listenWordMCQ.question === "ನೀವು ಯಾವ ಪದವನ್ನು ಕೇಳಿದ್ದೀರಿ?" || lesson.listenWordMCQ.question === "आपने कौन सा शब्द सुना?" || lesson.listenWordMCQ.question === "మీరు ఏ పదాన్ని విన్నారు?" || lesson.listenWordMCQ.question === "நீங்கள் எந்த வார்த்தையைக் கேட்டீர்கள்?") {
+      lesson.listenWordMCQ.question = translations.listen_word_q;
+    }
+  }
+  
+  // Override Listen Passage MCQ
+  if (lesson.listenPassageMCQ) {
+    if (lesson.listenPassageMCQ.question === "ರಾಮ್ ಶಾಲೆಯಲ್ಲಿ ಏನು ಮಾಡಲು ಇಷ್ಟಪಡುತ್ತಾನೆ?" || lesson.listenPassageMCQ.question === "राम स्कूल में क्या करना पसंद करता है?" || lesson.listenPassageMCQ.question === "రాము బడిలో ఏమి చేయడానికి ఇష్టపడతాడు?" || lesson.listenPassageMCQ.question === "ராம் பள்ளியில் என்ன செய்ய விரும்புகிறான்?") {
+      lesson.listenPassageMCQ.question = translations.listen_passage_q;
+    }
+  }
+  
+  // Override Chat Complete
+  if (lesson.chatComplete) {
+    if (lesson.chatComplete.scenario && (lesson.chatComplete.scenario.includes("ನಮಸ್ತೆ") || lesson.chatComplete.scenario.includes("नमस्ते") || lesson.chatComplete.scenario.includes("నమస్తే") || lesson.chatComplete.scenario.includes("வணக்கம்"))) {
+      lesson.chatComplete.scenario = "Anna: Hello! How are you?\nYou: ___";
+    }
+    if (lesson.chatComplete.question === "ಸಂಭಾಷಣೆಯನ್ನು ಪೂರ್ಣಗೊಳಿಸಲು ಸರಿಯಾದ ಉತ್ತರವನ್ನು ಆರಿಸಿ" || lesson.chatComplete.question === "बातचीत पूरी करने के लिए सही प्रतिक्रिया चुनें" || lesson.chatComplete.question === "సంభాషణను పూర్తి చేయడానికి సరైన సమాధానాన్ని ఎంచుకోండి" || lesson.chatComplete.question === "உரையாடலை முடிக்க சரியான பதிலைத் தேர்ந்தெடுக்கவும்") {
+      lesson.chatComplete.question = translations.complete_chat_q;
+    }
+  }
+  
+  // Override Scenario
+  if (lesson.scenario) {
+    if (lesson.scenario.scenario === "ನೀವು ಸ್ಥಳೀಯ ಅಂಗಡಿಯೊಂದರಲ್ಲಿ ಪುಸ್ತಕವನ್ನು ಖರೀದಿಸುತ್ತಿದ್ದೀರಿ. ಅಂಗಡಿಯವನು ಮುಗುಳ್ನಕ್ಕು ನಿಮಗೆ ಪುಸ್ತಕವನ್ನು ನೀಡುತ್ತಾನೆ." ||
+        lesson.scenario.scenario === "आप एक स्थानीय दुकान पर एक किताब खरीद रहे हैं। दुकानदार मुस्कुराता है और आपको किताब देता है।" ||
+        lesson.scenario.scenario === "మీరు ఒక స్థానిక దుకాణంలో పుస్తకాన్ని కొనుగోలు చేస్తున్నారు. దుకాణదారుడు నవ్వుతూ మీకు పుస్తకాన్ని ఇస్తాడు." ||
+        lesson.scenario.scenario === "நீங்கள் ஒரு உள்ளூர் கடையில் புத்தகம் வாங்குகிறீர்கள். கடைக்காரர் புன்னகைத்து உங்களுக்கு புத்தகத்தை தருகிறார்.") {
+      lesson.scenario.scenario = translations.scenario_text;
+    }
+    if (lesson.scenario.question === "ನೀವು ಅಂಗಡಿಯವನಿಗೆ ಏನು ಹೇಳಬೇಕು?" || lesson.scenario.question === "आपको दुकानदार से क्या कहना चाहिए?" || lesson.scenario.question === "మీరు దుకాణదారునికి ఏమి చెప్పాలి?" || lesson.scenario.question === "நீங்கள் கடைக்காரரிடம் என்ன சொல்ல வேண்டும்?") {
+      lesson.scenario.question = translations.scenario_q;
+    }
+  }
+  
+  return lesson;
+};
+
+const translateFallbackPractice = (practice, interfaceLang, learningLang) => {
+  if (!practice || !practice.questions || interfaceLang === learningLang) return practice;
+  
+  const translations = FALLBACK_TRANSLATIONS[interfaceLang];
+  if (!translations) return practice;
+  
+  practice.questions.forEach(q => {
+    if (q.question === "ಸೂರ್ಯನು ಯಾವ ದಿಕ್ಕಿನಲ್ಲಿ ಉದಯಿಸುತ್ತಾನೆ?" || q.question === "सूरज किस दिशा से उगता है?" || q.question === "సూర్యుడు ఏ దిశలో ఉదయిస్తాడు?" || q.question === "சூரியன் எந்த திசையில் உதிக்கிறது?") {
+      q.question = interfaceLang === "English" ? "From which direction does the sun rise?" : (translations.sun_direction_q || q.question);
+      q.explanation = interfaceLang === "English" ? "The sun rises in the east." : q.explanation;
+    }
+    if (q.question === "ನಮ್ಮ ರಾಷ್ಟ್ರೀಯ ಪಕ್ಷಿ ಯಾವುದು?" || q.question === "हमारा राष्ट्रीय पक्षी कौन सा है?" || q.question === "మన జాతీయ పక్షి ఏది?" || q.question === "நமது தேசிய பறவை எது?") {
+      q.question = interfaceLang === "English" ? "What is our national bird?" : q.question;
+      q.explanation = interfaceLang === "English" ? "The national bird is the peacock." : q.explanation;
+    }
+    if (q.passage && (q.passage.includes("ಸಿಂಹವಿತ್ತು") || q.passage.includes("शेर") || q.passage.includes("సింహం") || q.passage.includes("சிங்கம்"))) {
+      q.question = interfaceLang === "English" ? "Where did the lion live?" : q.question;
+      q.explanation = interfaceLang === "English" ? "The lion lived in the forest." : q.explanation;
+    }
+    if (q.passage && (q.passage.includes("ನಾಯಿ") || q.passage.includes("कुत्ता") || q.passage.includes("కుక్క") || q.passage.includes("நாய்"))) {
+      q.question = interfaceLang === "English" ? "What is Raju's dog name?" : q.question;
+      q.explanation = interfaceLang === "English" ? "The dog name is Sheru." : q.explanation;
+    }
+    if (q.prompt && (q.prompt.includes("ಪುಸ್ತಕ") || q.prompt.includes("किताब") || q.prompt.includes("పుస్తకం") || q.prompt.includes("புத்தகம்"))) {
+      q.prompt = interfaceLang === "English" ? "Choose the correct picture for Book:" : q.prompt;
+    }
+    if (q.prompt && (q.prompt.includes("ಸೂರ್ಯ") || q.prompt.includes("सूरज") || q.prompt.includes("సూర్యుడు") || q.prompt.includes("சூரியன்"))) {
+      q.prompt = interfaceLang === "English" ? "Choose the correct picture for Sun:" : q.prompt;
+    }
+    if (q.type === "meaning") {
+      if (q.phrase === "ಗ್ರಂಥಾಲಯ" || q.phrase === "पुस्तकालय" || q.phrase === "గ్రంథాలయం" || q.phrase === "நூலகம்") {
+        q.phrase = translations.meaning_phrase_library || q.phrase;
+        q.options = ["A place with books to read or borrow", "A place where students study", "A place to buy things"];
+      }
+      if (q.phrase === "ಶಾಲೆ" || q.phrase === "विद्यालय" || q.phrase === "పాఠశాల" || q.phrase === "பள்ளி") {
+        q.phrase = translations.meaning_phrase_school || q.phrase;
+        q.options = ["A place where students learn and study", "An institution for higher learning", "A place where people work"];
+      }
+    }
+  });
+  
+  return practice;
 };
