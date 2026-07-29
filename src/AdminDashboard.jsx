@@ -822,116 +822,55 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
             </div>
 
             <div className="admin-charts-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
-              {/* SVG Vertical Bar Chart for Literacy Levels */}
+              {/* Horizontal Progress Bars for Literacy Levels */}
               <div className="admin-chart-box" style={{ background: 'var(--panel-strong)', border: '1px solid var(--line)', borderRadius: '24px', padding: '24px' }}>
-                <h4 style={{ margin: '0 0 16px 0', fontSize: '1.1rem', fontWeight: 900, color: 'var(--text)' }}>Literacy Level Distribution</h4>
-                {(() => {
-                  const counts = [1, 2, 3, 4, 5].map(lvl => stats.levelsCount[lvl] || 0);
-                  const maxCount = Math.max(...counts, 1);
-                  const chartHeight = 180;
-                  const chartWidth = 320;
-                  const barWidth = 36;
-                  const spacing = (chartWidth - (barWidth * 5)) / 6;
-
-                  return (
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                      <svg width="100%" height="240" viewBox={`0 0 ${chartWidth + 40} 240`} style={{ overflow: 'visible' }}>
-                        <defs>
-                          <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="var(--accent)" />
-                            <stop offset="100%" stopColor="#df7f3d" />
-                          </linearGradient>
-                        </defs>
-                        
-                        {/* Horizontal Gridlines */}
-                        {[0, 0.25, 0.5, 0.75, 1].map((ratio, idx) => {
-                          const y = chartHeight - (ratio * chartHeight) + 15;
-                          const gridVal = Math.round(ratio * maxCount);
-                          return (
-                            <g key={idx}>
-                              <line x1="30" y1={y} x2={chartWidth + 30} y2={y} stroke="var(--line)" strokeWidth="1" strokeDasharray="4 4" />
-                              <text x="22" y={y + 4} fill="var(--muted)" fontSize="10" fontWeight="800" textAnchor="end">{gridVal}</text>
-                            </g>
-                          );
-                        })}
-
-                        {/* Bars and labels */}
-                        {[1, 2, 3, 4, 5].map((lvl, index) => {
-                          const count = stats.levelsCount[lvl] || 0;
-                          const barHeight = (count / maxCount) * chartHeight;
-                          const x = spacing + index * (barWidth + spacing) + 30;
-                          const y = chartHeight - barHeight + 15;
-
-                          return (
-                            <g key={lvl} style={{ transition: 'all 0.3s ease' }}>
-                              {/* Hover tooltip area */}
-                              <title>{`Level ${lvl}: ${count} students`}</title>
-                              
-                              {/* Rounded top rect for bar */}
-                              <rect
-                                x={x}
-                                y={y}
-                                width={barWidth}
-                                height={barHeight}
-                                rx="8"
-                                fill="url(#barGrad)"
-                                style={{ cursor: 'pointer' }}
-                              />
-                              
-                              {/* Count Text on top of the bar */}
-                              {count > 0 && (
-                                <text
-                                  x={x + barWidth / 2}
-                                  y={y - 6}
-                                  fill="var(--text)"
-                                  fontSize="10"
-                                  fontWeight="900"
-                                  textAnchor="middle"
-                                >
-                                  {count}
-                                </text>
-                              )}
-
-                              {/* Bottom labels */}
-                              <text
-                                x={x + barWidth / 2}
-                                y={chartHeight + 35}
-                                fill="var(--text)"
-                                fontSize="10.5"
-                                fontWeight="900"
-                                textAnchor="middle"
-                              >
-                                Lvl {lvl}
-                              </text>
-                            </g>
-                          );
-                        })}
-                        {/* Baseline */}
-                        <line x1="30" y1={chartHeight + 15} x2={chartWidth + 30} y2={chartHeight + 15} stroke="var(--line)" strokeWidth="2" />
-                      </svg>
-                    </div>
-                  );
-                })()}
+                <h4 style={{ margin: '0 0 20px 0', fontSize: '1.1rem', fontWeight: 900, color: 'var(--text)' }}>Current Level</h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  {[1, 2, 3, 4, 5, 6].map(lvl => {
+                    const count = stats.levelsCount[lvl] || 0;
+                    const totalUsers = stats.totalUsers || 1;
+                    const pct = Math.round((count / totalUsers) * 100);
+                    
+                    return (
+                      <div key={lvl} style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', fontWeight: 800 }}>
+                          <span style={{ color: 'var(--text)' }}>Level {lvl}</span>
+                          <span style={{ color: 'var(--accent)' }}>{count} student{count !== 1 ? 's' : ''} ({pct}%)</span>
+                        </div>
+                        <div style={{ height: '8px', background: 'var(--bg)', borderRadius: '999px', overflow: 'hidden', border: '1px solid var(--line)' }}>
+                          <div 
+                            style={{ 
+                              height: '100%', 
+                              width: `${pct}%`, 
+                              background: 'linear-gradient(90deg, var(--accent) 0%, #df7f3d 100%)', 
+                              borderRadius: '999px',
+                              transition: 'width 0.5s ease-in-out'
+                            }} 
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
 
-              {/* SVG Donut Chart for Languages */}
+              {/* SVG Donut Chart for Preferred Learning Languages */}
               <div className="admin-chart-box" style={{ background: 'var(--panel-strong)', border: '1px solid var(--line)', borderRadius: '24px', padding: '24px' }}>
-                <h4 style={{ margin: '0 0 16px 0', fontSize: '1.1rem', fontWeight: 900, color: 'var(--text)' }}>Preferred Interface Languages</h4>
+                <h4 style={{ margin: '0 0 16px 0', fontSize: '1.1rem', fontWeight: 900, color: 'var(--text)' }}>Preferred Learning Languages</h4>
                 {(() => {
-                  const langData = Object.entries(stats.langCount).filter(([_, count]) => count > 0);
+                  const langData = Object.entries(stats.learningLangCount || {}).filter(([_, count]) => count > 0);
                   const totalUsers = langData.reduce((acc, curr) => acc + curr[1], 0) || 0;
                   
                   if (totalUsers === 0) {
                     return (
                       <div style={{ height: '240px', display: 'grid', placeItems: 'center', color: 'var(--muted)', fontStyle: 'italic' }}>
-                        No language metrics configuration available.
+                        No learning language metrics available.
                       </div>
                     );
                   }
 
-                  const colors = ["#3b82f6", "#f59e0b", "#10b981", "#8b5cf6", "#ef4444", "#14b8a6"];
+                  const colors = ["#0284c7", "#f59e0b", "#10b981", "#8b5cf6", "#ef4444", "#14b8a6"];
                   
-                  // Helper function to convert percentage coordinates
                   const getCoords = (percent) => {
                     const angle = (percent * 2 * Math.PI) - (Math.PI / 2);
                     const x = Math.cos(angle);
@@ -954,7 +893,6 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
                           
                           const largeArc = pct > 0.5 ? 1 : 0;
                           
-                          // outer radius 80, inner radius 50
                           const pathData = [
                             `M ${startX * 82} ${startY * 82}`,
                             `A 82 82 0 ${largeArc} 1 ${endX * 82} ${endY * 82}`,
@@ -978,7 +916,6 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
                             </path>
                           );
                         })}
-                        {/* Center Hole Details */}
                         <circle r="46" fill="var(--panel-strong)" />
                         <text x="0" y="-4" fill="var(--text)" fontSize="14" fontWeight="950" textAnchor="middle" style={{ transform: 'rotate(90deg)', transformOrigin: '0 0' }}>
                           {totalUsers}
