@@ -312,6 +312,23 @@ const getLiteracyLevel = (userProfile) => {
   return null;
 };
 
+const getDynamicLessonDescription = (lesson, unit, interfaceLang) => {
+  if (!lesson) return "";
+  const unitTitle = unit?.title || "Basics";
+  const lessonTitle = lesson?.title || "Lesson";
+  
+  if (interfaceLang === "Hindi") {
+    return `"${lessonTitle}" सीखें और अभ्यास करें ताकि आपका ${unitTitle} कौशल बेहतर हो सके।`;
+  } else if (interfaceLang === "Kannada") {
+    return `${unitTitle} ಕೌಶಲ್ಯಗಳನ್ನು ಉತ್ತಮಗೊಳಿಸಲು "${lessonTitle}" ಕಲಿಯಿರಿ ಮತ್ತು ಅಭ್ಯಾಸ ಮಾಡಿ.`;
+  } else if (interfaceLang === "Tamil") {
+    return `${unitTitle} திறன்களை மேம்படுத்த "${lessonTitle}" பாடத்தைக் கற்று பயிற்சி பெறுங்கள்.`;
+  } else if (interfaceLang === "Telugu") {
+    return `${unitTitle} నైపుణ్యాలను మెరుగుపరచడానికి "${lessonTitle}" నేర్చుకోండి మరియు సాధన చేయండి.`;
+  }
+  return `Learn and practice "${lessonTitle}" to improve your ${unitTitle} skills.`;
+};
+
 const calculateProgressiveLevel = (userProfile, completedLessonsList) => {
   const allLessonsList = [];
   CURRICULUM_SECTIONS.forEach((sec) => {
@@ -1565,9 +1582,11 @@ function App() {
   const [lessonSpeakIsListening, setLessonSpeakIsListening] = useState(false);
   const [lessonSpeakTranscript, setLessonSpeakTranscript] = useState("");
 
-  // Lesson accuracy tracking
+  // Lesson accuracy and time tracking
   const lessonTotalAnsweredRef = useRef(0);
   const lessonCorrectAnsweredRef = useRef(0);
+  const lessonStartTimeRef = useRef(null);
+  const [lessonTimeTaken, setLessonTimeTaken] = useState(0);
   const triggerHaptic = (type) => {
     if (typeof navigator !== "undefined" && navigator.vibrate) {
       if (type === "correct") {
@@ -1693,6 +1712,14 @@ function App() {
       lessonCorrectAnsweredRef.current += 1;
       playChime("correct");
       triggerHaptic("correct");
+      
+      // Calculate dynamic XP
+      const isExam = lessonSession?.lessonId?.endsWith("l5") || lessonSession?.lessonNum === 5;
+      const totalXp = isExam ? 60 : 30;
+      const totalQuestions = lessonAiContent?.questions?.length || 10;
+      const xpPerQuestion = totalXp / totalQuestions;
+      setLessonXpEarned(Math.round(lessonCorrectAnsweredRef.current * xpPerQuestion));
+
       if (lessonSession?.title === "Mistakes Practice") {
         const currentQuestion = lessonAiContent?.questions?.[lessonStep];
         if (currentQuestion && currentQuestion.originalMistakeId) {
@@ -2122,10 +2149,33 @@ function App() {
               )}
               {" "}({`Step ${lessonStep + 1} of ${ai.questions?.length || 8}`})
             </span>
-            <span style={{ display: 'flex', gap: '4px', fontSize: '1.25rem', color: '#ef4444' }}>
-              {Array.from({ length: 3 }).map((_, idx) => (
-                <span key={idx} style={{ textShadow: '0 2px 0 rgba(0,0,0,0.1)' }}>{idx < lessonHearts ? "❤️" : "🖤"}</span>
-              ))}
+            <span style={{ 
+              display: 'flex', 
+              gap: '6px', 
+              fontSize: '1.4rem', 
+              alignItems: 'center',
+              background: 'rgba(239, 68, 68, 0.08)',
+              padding: '4px 10px',
+              borderRadius: '20px',
+              border: '1px solid rgba(239, 68, 68, 0.15)',
+              boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.05)'
+            }}>
+              {Array.from({ length: 3 }).map((_, idx) => {
+                const hasHeart = idx < lessonHearts;
+                return (
+                  <span 
+                    key={idx} 
+                    style={{ 
+                      filter: hasHeart ? 'none' : 'grayscale(100%) opacity(0.3)',
+                      transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                      transform: hasHeart ? 'scale(1)' : 'scale(0.85)',
+                      display: 'inline-block'
+                    }}
+                  >
+                    ❤️
+                  </span>
+                );
+              })}
             </span>
           </div>
 
@@ -4999,6 +5049,9 @@ function App() {
     setStoryQuestionFeedback(null);
     lessonTotalAnsweredRef.current = 0;
     lessonCorrectAnsweredRef.current = 0;
+    lessonStartTimeRef.current = Date.now();
+    setLessonTimeTaken(0);
+    setLessonXpEarned(0);
     setLessonAccuracy(null);
     // All lessons (regular + practice) now use the unified renderPracticeSession renderer.
     const isPractice = true;
@@ -5084,11 +5137,18 @@ function App() {
       const accuracy = totalAnswered > 0 ? Math.round((correctAnswered / totalAnswered) * 100) : 100;
       setLessonAccuracy(accuracy);
 
-      const isExam = lessonSession?.lessonId?.endsWith("l5");
+      const isExam = lessonSession?.lessonId?.endsWith("l5") || lessonSession?.lessonNum === 5;
       const totalXp = isExam ? 60 : 30;
-
-      setLessonXpEarned(totalXp);
-      completeLesson(lessonSession?.lessonId, totalXp);
+      const totalQuestions = lessonAiContent?.questions?.length || 10;
+      const xpPerQuestion = totalXp / totalQuestions;
+      const finalXpEarned = Math.min(totalXp, Math.round(correctAnswered * xpPerQuestion));
+      
+      setLessonXpEarned(finalXpEarned);
+      
+      const elapsedSeconds = lessonStartTimeRef.current ? Math.round((Date.now() - lessonStartTimeRef.current) / 1000) : 60;
+      setLessonTimeTaken(elapsedSeconds);
+      
+      completeLesson(lessonSession?.lessonId, finalXpEarned);
       setLessonSession(prev => prev ? { ...prev, status: "completed" } : null);
     }
   };
@@ -9385,7 +9445,7 @@ function App() {
                                   return prevCompleted || personalizedUnlocked;
                                 })();
                                 const status = isCompleted ? "completed" : isUnlocked ? "unlocked" : "locked";
-                                const lessonXp = lIdx === 4 ? 60 : 15;
+                                const lessonXp = lIdx === 4 ? 60 : 30;
 
                                 // Calculate snaking offset class
                                 // Path: Center -> Right -> Center -> Left -> Repeat
@@ -9446,7 +9506,7 @@ function App() {
                                         <p className="duo-popover-desc">
                                           {lIdx === 4
                                             ? (t("learnUnitExamDesc") || "A comprehensive unit exam testing skills from the first 4 lessons.")
-                                            : (t("learnLessonDesc") || "Personalized AI lesson targeting your curriculum goals.")}
+                                            : getDynamicLessonDescription(lesson, unit, selectedLanguage)}
                                         </p>
 
                                         <button
@@ -10590,7 +10650,7 @@ style={(() => {
                   <div className="lesson-progress-bar" style={{ width: lessonSession?.status === "completed" ? "100%" : `${(lessonStep / (lessonAiContent?.questions?.length || 18)) * 100}%` }}></div>
                 </div>
                 <div className="lesson-overlay-controls">
-                  <div style={{ fontWeight: 800, whiteSpace: "nowrap" }}>XP +15</div>
+                  <div style={{ fontWeight: 800, whiteSpace: "nowrap" }}>XP +{lessonXpEarned}</div>
                   {renderThemeToggle()}
                 </div>
               </div>
@@ -10651,6 +10711,18 @@ style={(() => {
                         {lessonAccuracy !== null ? `${lessonAccuracy}%` : "100%"}
                       </div>
                       <div className="lesson-complete-stat-sub">accuracy</div>
+                    </div>
+                    <div className="lesson-complete-stat-box time-box">
+                      <div className="lesson-complete-stat-label">Time Taken</div>
+                      <div className="lesson-complete-stat-icon">⏱️</div>
+                      <div className="lesson-complete-stat-value">
+                        {(() => {
+                          const mins = Math.floor(lessonTimeTaken / 60);
+                          const secs = lessonTimeTaken % 60;
+                          return mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+                        })()}
+                      </div>
+                      <div className="lesson-complete-stat-sub">completed in</div>
                     </div>
                   </div>
                   <div className="lesson-complete-continue-row">
