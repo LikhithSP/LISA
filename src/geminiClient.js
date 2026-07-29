@@ -152,6 +152,101 @@ const getAgeContext = (age) => {
   return       { group: "senior", contextName: "a senior citizen", contextExample: "Lakshmi visits the hospital for a check-up." };
 };
 
+// ─── Curriculum-driven content guidance ──────────────────────────────────────
+// Maps Section titles to specific content generation instructions.
+// This tells the AI *what kind of content* is appropriate per section.
+// Use __LANG__ as a placeholder for the learning language (replaced at build time).
+const SECTION_CONTENT_GUIDANCE = {
+  "Letter Recognition": `
+    Focus ONLY on individual letters of the __LANG__ alphabet.
+    - MCQs test: identifying a letter in a word, matching letter shapes, or naming the letter sound.
+    - Fill blanks: a word with a missing letter (not missing words).
+    - Matching pairs: letter ↔ the sound it makes or a word starting with that letter.
+    - Unscramble: letter tiles to form a 2-3 letter word.
+    - Tracing: a single letter (1 character only).
+    - Listening: identify a spoken letter or a word starting with a specific letter.
+    - Do NOT generate grammar questions or sentence comprehension.`,
+
+  "Word Building": `
+    Focus ONLY on short __LANG__ words (2-5 letters) relevant to the specific lesson title.
+    - If lesson is "Three-Letter Words", every word used must be exactly 3 letters.
+    - MCQs: choose the correct spelling of a word, or pick which word matches a picture.
+    - Fill blanks: fill in a missing letter inside a word, not a missing word in a sentence.
+    - Matching: word ↔ picture emoji or word ↔ English meaning.
+    - Unscramble: rearrange letter tiles to form the target word.
+    - Tracing: practice writing one of the lesson's words.
+    - Do NOT generate reading passages or advanced grammar.`,
+
+  "Vocabulary Development": `
+    Focus ONLY on vocabulary words from the specific unit topic (e.g. Family, School, Community).
+    - Use 4-6 vocabulary words that all belong to the lesson topic category.
+    - MCQs: "What is the word for ___ in __LANG__?" with 4 options.
+    - Fill blanks: a simple sentence with a key vocabulary word blanked out.
+    - Matching pairs: __LANG__ vocabulary word ↔ English meaning or emoji.
+    - Image choice: match a __LANG__ word to its emoji picture.
+    - Listening: hear a vocabulary word, select the correct word from options.
+    - All vocabulary must be relevant to the lesson title only.`,
+
+  "Reading Words": `
+    Focus ONLY on reading and recognizing __LANG__ words from the specific lesson category.
+    - Sight words lesson: use high-frequency common words only.
+    - Action words lesson: use only verbs.
+    - Describing words lesson: use only adjectives.
+    - MCQs: identify the word that matches a picture or meaning.
+    - Fill blanks: a simple sentence with the target word type blanked out.
+    - Reading passage: 2-3 sentences using only lesson-relevant word types.
+    - Matching: word ↔ picture or word ↔ definition.`,
+
+  "Reading Sentences": `
+    Focus ONLY on reading and understanding simple __LANG__ sentences.
+    - Keep sentences short (5-8 words) and directly relevant to the lesson topic.
+    - Reading passage: 3-4 sentences covering the lesson topic scenario.
+    - MCQs: comprehension questions about who, what, where in the sentences.
+    - Fill blanks: complete a sentence by choosing the correct word.
+    - Speaking: practice saying one key sentence from the lesson topic.
+    - Chat complete: a simple 2-line dialogue relevant to the lesson (greetings, requests, etc.).`,
+
+  "Reading Comprehension": `
+    Focus ONLY on reading comprehension at the paragraph level.
+    - Reading passage: 4-6 sentences forming a coherent short text relevant to the lesson title.
+    - Questions must test comprehension of the passage (main idea, key details, sequence).
+    - MCQs: inference or direct-retrieval questions from the passage.
+    - Listening passage: read a 2-3 sentence excerpt, answer a comprehension question.
+    - Do NOT test vocabulary in isolation — all content must link back to the reading passage.`,
+
+  "Writing Fundamentals": `
+    Focus ONLY on writing practice for __LANG__.
+    - Tracing: a letter or short word (1-4 chars) relevant to the lesson title.
+    - Unscramble: arrange letter tiles to form a word from the lesson.
+    - Fill blanks: complete a word with a missing letter or syllable.
+    - Writing task (writeThisTask): a simple word or phrase to write out.
+    - Do NOT generate advanced reading comprehension.`,
+
+  "Grammar Foundations": `
+    Focus ONLY on the specific grammar concept in the lesson title (e.g. Nouns, Verbs, Subject).
+    - Every example, question, and sentence must demonstrate the grammar concept.
+    - MCQs: identify the noun/verb/subject in a sentence.
+    - Fill blanks: choose the grammatically correct word for a blank.
+    - Arrange words (translationTask): rearrange tiles into a grammatically correct sentence.
+    - All sentences used must be simple and directly illustrate the grammar point.`,
+
+  "Listening & Pronunciation": `
+    Focus ONLY on listening and speaking activities.
+    - listenWordMCQ: the user hears a word and selects which word they heard.
+    - listenPassageMCQ: the user hears 2-3 sentences and answers a comprehension question.
+    - Speaking (speakSentence): one natural sentence for the learner to practice aloud.
+    - Pronunciation focus: words or sentences matching the lesson title (e.g. Difficult Sounds).
+    - MCQs should test auditory recognition, not reading comprehension.`,
+
+  "Greetings & Introductions": `
+    Focus ONLY on conversational phrases for greetings and introductions.
+    - All content must be practical phrases used in real greetings or introductions.
+    - Chat complete: a 2-line conversational exchange using greeting/introduction phrases.
+    - Scenario: a real-world situation where the learner must greet or introduce themselves.
+    - MCQs: choose the correct greeting or response for a given situation.
+    - Speaking: practice saying a greeting or introduction aloud.`
+};
+
 // ─── Prompt builder ───────────────────────────────────────────────────────────
 const buildPrompt = (params) => {
   const {
@@ -164,112 +259,138 @@ const buildPrompt = (params) => {
   const learningLanguage = paramLearningLang || language || "English";
   const interfaceLanguage = paramInterfaceLang || paramPrefLang || language || "English";
   const ageCtx = getAgeContext(age);
-  const weakList = (weakAreas || []).join(", ") || "general literacy";
 
-  return `You are LISA, an expert AI literacy tutor. Generate a complete, structured lesson for a learner with the following profile:
+  // Get curriculum-specific content guidance and replace __LANG__ placeholder
+  const rawGuidance = SECTION_CONTENT_GUIDANCE[sectionTitle] || `
+    Focus ONLY on the topic: "${lessonTitle}" within "${unitTitle}".
+    Every question, word, sentence, and example must be directly related to this specific topic.`;
+  const sectionGuidance = rawGuidance.replace(/__LANG__/g, learningLanguage);
 
-LEARNER PROFILE:
+  return `You are LISA, an AI literacy tutor. Your job is to generate a lesson that STRICTLY follows the curriculum hierarchy below.
+
+══════════════════════════════════════════
+CURRICULUM — SOURCE OF TRUTH
+══════════════════════════════════════════
+Section ${sectionNum}: ${sectionTitle}
+Unit ${unitNum}: ${unitTitle}
+Lesson ${lessonNum}: ${lessonTitle}
+
+This lesson is EXCLUSIVELY about: "${lessonTitle}"
+under the unit "${unitTitle}" in the section "${sectionTitle}".
+
+══════════════════════════════════════════
+LEARNER PROFILE
+══════════════════════════════════════════
+- Learning Language (content language): ${learningLanguage}
+- Interface Language (instructions/UI language): ${interfaceLanguage}
 - Age: ${age} (${ageCtx.contextName})
 - Education Level: ${educationLevel}
-- Interface Language (Site UI & Instructions): ${interfaceLanguage}
-- Learning Language (Target Language to Learn): ${learningLanguage}
 - Literacy Level: Level ${literacyLevel} — ${literacyLevelName}
-- Weak Areas: ${weakList}
 
-LESSON DETAILS:
-- Section ${sectionNum}: ${sectionTitle}
-- Unit ${unitNum}: ${unitTitle}
-- Lesson ${lessonNum}: ${lessonTitle}
-- Difficulty: ${difficulty}
+══════════════════════════════════════════
+SECTION-SPECIFIC CONTENT RULES
+══════════════════════════════════════════
+${sectionGuidance}
 
-IMPORTANT RULES:
-1. Target literacy content (target words, letters, sentences, reading passages, dictation sentences, unscramble tiles) MUST be in ${learningLanguage}.
-2. Instructions, explanations, hints, guidance, and question prompts MUST be given in ${interfaceLanguage} so the learner understands what to do while learning ${learningLanguage}.
-3. Adapt ALL context examples to be age-appropriate. Example for this learner's age: "${ageCtx.contextExample}"
-4. Keep language simple and encouraging. Do not use jargon.
-5. The lesson must directly target the weak skill: ${weakList}.
-6. For "unscramble": "tiles" must be the individual letters of "answer" shuffled into a random order, written in the ${learningLanguage} script. The letters must NOT be adjacent in a way that spells the answer or starts with it.
-7. For "imageChoice": provide exactly 3 emoji options where "correctIndex" points to the emoji that matches "word".
-8. For "tracing": provide a short letter/word (3-4 characters max) to practice writing in ${learningLanguage}, a short "info" fact in ${interfaceLanguage}, and the "sound" text in ${learningLanguage}.
-9. For "translationTask" and "arrangeWords": Shuffled tiles MUST NOT be able to form any other grammatically correct sentence other than the correct one.
+══════════════════════════════════════════
+STRICT RULES — FOLLOW EXACTLY
+══════════════════════════════════════════
+1. ALL learning content (words, sentences, passages, options) MUST be about "${lessonTitle}" only.
+   Do NOT generate content about unrelated topics.
+2. Target content (words, letters, sentences, passages) MUST be written in ${learningLanguage}.
+3. All instructions, question prompts, hints, and explanations MUST be in ${interfaceLanguage}.
+4. Every example, MCQ, fill-blank, matching pair, and listening task must directly test the "${lessonTitle}" concept.
+5. Do NOT generate questions about grammar topics not in this lesson, do NOT use unrelated vocabulary.
+6. Age-appropriate example for context: "${ageCtx.contextExample}"
+7. For "unscramble": tiles must be individual letters of the answer word, shuffled so they do NOT spell the answer in order.
+8. For "imageChoice": exactly 3 emoji options; correctIndex points to the emoji matching the word.
+9. For "tracing": provide a single short word or letter (1-4 chars max) from the lesson topic.
+10. For "translationTask" tiles: shuffled English words must NOT form any other grammatically correct sentence.
+11. The lessonTitle field in the JSON MUST be: "${lessonTitle}"
+12. The skillFocus field in the JSON must reflect the specific skill being practiced in this exact lesson.
 
-Return ONLY valid JSON with this exact structure (no markdown, no backticks):
+══════════════════════════════════════════
+OUTPUT FORMAT
+══════════════════════════════════════════
+Return ONLY valid JSON — no markdown fences, no backticks, no explanatory text before or after:
 {
-  "lessonTitle": "string",
-  "skillFocus": "string",
-  "explanation": "string (2-3 paragraphs explaining the concept clearly in ${interfaceLanguage})",
+  "lessonTitle": "${lessonTitle}",
+  "skillFocus": "string describing the exact skill practiced in this lesson",
+  "explanation": "string (2-3 paragraphs in ${interfaceLanguage} explaining the '${lessonTitle}' concept with examples from ${learningLanguage})",
   "examples": [
-    {"text": "string", "translation": "string (English translation if not English)"},
-    {"text": "string", "translation": "string"},
-    {"text": "string", "translation": "string"}
+    {"text": "string in ${learningLanguage} directly about ${lessonTitle}", "translation": "string (${interfaceLanguage} meaning)"},
+    {"text": "string in ${learningLanguage} directly about ${lessonTitle}", "translation": "string"},
+    {"text": "string in ${learningLanguage} directly about ${lessonTitle}", "translation": "string"}
   ],
-  "guidedPractice": "string (step-by-step guided exercise description in ${interfaceLanguage})",
+  "guidedPractice": "string (step-by-step exercise in ${interfaceLanguage} about ${lessonTitle})",
   "mcqs": [
-    {"question": "string", "options": ["A", "B", "C", "D"], "correctIndex": 0, "explanation": "string"}
+    {"question": "string in ${interfaceLanguage} testing ${lessonTitle}", "options": ["A in ${learningLanguage}", "B", "C", "D"], "correctIndex": 0, "explanation": "string in ${interfaceLanguage}"},
+    {"question": "string in ${interfaceLanguage} testing ${lessonTitle}", "options": ["A in ${learningLanguage}", "B", "C", "D"], "correctIndex": 0, "explanation": "string in ${interfaceLanguage}"}
   ],
   "fillBlanks": [
-    {"sentence": "string with ___ for blank in ${learningLanguage}", "answer": "string in ${learningLanguage}", "hint": "string in ${interfaceLanguage}", "options": ["correct_answer", "distractor 1", "distractor 2", "distractor 3"]}
+    {"sentence": "string with ___ for blank in ${learningLanguage}, related to ${lessonTitle}", "answer": "string in ${learningLanguage}", "hint": "string in ${interfaceLanguage}", "options": ["correct_answer", "distractor 1", "distractor 2", "distractor 3"]}
   ],
-  "readingPassage": "string (short reading text of 3-5 sentences in ${learningLanguage})",
-  "readingQuestion": "string (one comprehension question about the passage in ${interfaceLanguage})",
+  "readingPassage": "string (3-5 sentences in ${learningLanguage} about ${lessonTitle} topic)",
+  "readingQuestion": "string (comprehension question in ${interfaceLanguage} about the passage)",
   "readingAnswer": "string (correct answer in ${learningLanguage})",
-  "speakSentence": "string (a full sentence in ${learningLanguage} for the user to practice speaking)",
-  "speakSentenceEmoji": "string (a single emoji representing the speak sentence topic)",
+  "readingOptions": ["correct answer in ${learningLanguage}", "wrong option 2", "wrong option 3", "wrong option 4"],
+  "speakSentence": "string (a natural sentence in ${learningLanguage} related to ${lessonTitle})",
+  "speakSentenceEmoji": "string (a single emoji matching the speakSentence topic)",
   "meaningQuestion": {
-    "phrase": "string (a simple common target language word in ${learningLanguage})",
-    "options": ["correct meaning as a short sentence in ${interfaceLanguage}", "incorrect meaning sentence distractor 1", "incorrect meaning sentence distractor 2", "incorrect meaning sentence distractor 3"],
+    "phrase": "string (a ${learningLanguage} word from the ${lessonTitle} topic)",
+    "options": ["correct meaning in ${interfaceLanguage}", "wrong meaning 1", "wrong meaning 2", "wrong meaning 3"],
     "correctIndex": 0
   },
   "translationTask": {
-    "sentence": "string (a sentence in ${learningLanguage})",
-    "prompt": "string (a short instruction telling the learner to arrange the word tiles into a sentence, e.g. 'Arrange the words to form a sentence'. DO NOT reveal the answer or the exact sentence in the prompt)",
+    "sentence": "string (a sentence in ${learningLanguage} relevant to ${lessonTitle})",
+    "prompt": "string (instruction in ${interfaceLanguage}, e.g. 'Arrange the words to form a sentence')",
     "englishTranslation": "string (correct English translation)",
-    "tiles": ["array of 6-8 English words containing all words from englishTranslation plus 2-3 distractor words, in any shuffled (non sentence) order. Shuffled tiles MUST NOT form any other meaningful sentence."]
+    "tiles": ["array of 6-8 English words: all words from englishTranslation plus 2-3 distractor words, shuffled so they do NOT form the sentence in order"]
   },
   "matchingPairs": [
-    {"left": "a ${learningLanguage} word 1", "right": "its simple meaning/translation 1 in ${interfaceLanguage}"},
-    {"left": "a ${learningLanguage} word 2", "right": "its simple meaning/translation 2 in ${interfaceLanguage}"},
-    {"left": "a ${learningLanguage} word 3", "right": "its simple meaning/translation 3 in ${interfaceLanguage}"},
-    {"left": "a ${learningLanguage} word 4", "right": "its simple meaning/translation 4 in ${interfaceLanguage}"}
+    {"left": "${learningLanguage} word from ${lessonTitle}", "right": "meaning/translation in ${interfaceLanguage}"},
+    {"left": "${learningLanguage} word from ${lessonTitle}", "right": "meaning/translation in ${interfaceLanguage}"},
+    {"left": "${learningLanguage} word from ${lessonTitle}", "right": "meaning/translation in ${interfaceLanguage}"},
+    {"left": "${learningLanguage} word from ${lessonTitle}", "right": "meaning/translation in ${interfaceLanguage}"}
   ],
   "listeningTask": {
-    "audioText": "string (a simple sentence or phrase in ${learningLanguage} for the user to listen to)",
-    "tiles": ["array of 6-8 words in ${learningLanguage} containing all words from audioText plus 2-3 distractor words"]
+    "audioText": "string (a sentence/phrase in ${learningLanguage} about ${lessonTitle})",
+    "tiles": ["array of 6-8 words in ${learningLanguage}: all words from audioText plus 2-3 distractor words"]
   },
   "unscramble": [
-    {"hint": "string (a clue in ${interfaceLanguage})", "emoji": "string (a single emoji hint)", "answer": "WORD_IN_TARGET_LANG", "tiles": ["array of letter tiles for word in any shuffled order"]}
+    {"hint": "string clue in ${interfaceLanguage} about ${lessonTitle}", "emoji": "string (single emoji hint)", "answer": "WORD_IN_${learningLanguage.toUpperCase()}", "tiles": ["individual letter tiles for answer word, shuffled"]}
   ],
   "imageChoice": [
-    {"word": "string (the target word in ${learningLanguage})", "prompt": "string (instruction in ${interfaceLanguage})", "options": ["emoji1","emoji2","emoji3"], "correctIndex": 0}
+    {"word": "string (${learningLanguage} word from ${lessonTitle})", "prompt": "string (instruction in ${interfaceLanguage})", "options": ["emoji1","emoji2","emoji3"], "correctIndex": 0}
   ],
   "tracing": [
-    {"kind": "target short word/letter in ${learningLanguage} (3-4 characters max)", "question": "string (a simple question/prompt in ${interfaceLanguage})", "sound": "pronunciation text in ${learningLanguage}"}
+    {"kind": "short word or letter in ${learningLanguage} from ${lessonTitle} (1-4 chars max)", "question": "string (prompt in ${interfaceLanguage})", "sound": "pronunciation in ${learningLanguage}"}
   ],
   "listenWordMCQ": {
-    "audioText": "string (a single target word in ${learningLanguage})",
-    "question": "string (question in ${interfaceLanguage}, e.g. 'Which word did you hear?')",
-    "options": ["correct target word in ${learningLanguage}", "distractor 1", "distractor 2", "distractor 3"],
+    "audioText": "string (a single ${learningLanguage} word from ${lessonTitle})",
+    "question": "string (e.g. 'Which word did you hear?' in ${interfaceLanguage})",
+    "options": ["correct word in ${learningLanguage}", "distractor 1", "distractor 2", "distractor 3"],
     "correctIndex": 0
   },
   "listenPassageMCQ": {
-    "audioText": "string (2-3 simple sentences in ${learningLanguage})",
-    "question": "string (question in ${interfaceLanguage} about the passage)",
-    "options": ["correct option in ${learningLanguage}", "distractor 1", "distractor 2", "distractor 3"],
+    "audioText": "string (2-3 sentences in ${learningLanguage} about ${lessonTitle})",
+    "question": "string (comprehension question in ${interfaceLanguage})",
+    "options": ["correct answer", "distractor 1", "distractor 2", "distractor 3"],
     "correctIndex": 0
   },
   "chatComplete": {
-    "scenario": "string (a short chat dialogue snippet in ${learningLanguage} showing a previous speaker's message and a missing response represented by B: ___, e.g. 'A: Hello! How are you?\nB: ___')",
+    "scenario": "string (a short 2-line dialogue in ${learningLanguage} relevant to ${lessonTitle}, with B: ___)",
     "question": "string (prompt in ${interfaceLanguage}, e.g. 'Complete the conversation:')",
     "options": ["correct response in ${learningLanguage}", "wrong option 1", "wrong option 2", "wrong option 3"],
     "correctIndex": 0
   },
   "scenario": {
-    "scenario": "string (a short real-world scenario description in ${learningLanguage})",
+    "scenario": "string (a real-world situation in ${learningLanguage} related to ${lessonTitle})",
     "question": "string (question/prompt in ${interfaceLanguage})",
     "options": ["correct action in ${learningLanguage}", "wrong option 1", "wrong option 2", "wrong option 3"],
     "correctIndex": 0
   },
-  "aiFeedbackPositive": "string (encouraging message for correct answers in ${interfaceLanguage})",
+  "aiFeedbackPositive": "string (encouraging message in ${interfaceLanguage})",
   "aiFeedbackNegative": "string (gentle corrective message in ${interfaceLanguage})"
 }`;
 };
@@ -515,7 +636,8 @@ const convertToUnifiedQuestions = (lesson, params) => {
 };
 
 export const generateLessonContent = async (params) => {
-  const cacheKey = `lesson_${params.sectionNum}_${params.unitNum}_${params.lessonNum}_${params.learningLanguage || params.language}_${params.literacyLevel}`;
+  const lessonTitleKey = (params.lessonTitle || "").replace(/\s+/g, "_").toLowerCase();
+  const cacheKey = `lesson_${params.sectionNum}_${params.unitNum}_${params.lessonNum}_${params.learningLanguage || params.language}_${params.interfaceLanguage || params.preferredLanguage || "en"}_${lessonTitleKey}`;
 
   if (params.useFallback) {
     return convertToUnifiedQuestions(getFallbackLesson(params), params);
