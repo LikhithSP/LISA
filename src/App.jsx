@@ -8961,7 +8961,7 @@ function App() {
                             await saveNotifState(newRead, newDismissed);
                           }}
                         >
-                          Clear All
+                          Read All
                         </button>
                       )}
                     </div>
@@ -8971,15 +8971,11 @@ function App() {
                       <p className="notif-empty">No notifications yet.</p>
                     ) : (
                       notifications.map((n) => {
-                        const isUnread = !readNotifIds.includes(n.id);
                         return (
-                          <div key={n.id} className={`notif-card ${isUnread ? 'notif-unread' : ''}`} style={{ borderLeft: `4px solid ${n.color}` }}>
-                            <span className="notif-icon" style={{ backgroundColor: lightenColor(n.color, 0.15) }}>{n.icon}</span>
+                          <div key={n.id} className="notif-card" style={{ background: lightenColor(n.color) }}>
+                            <span className="notif-icon" style={{ color: n.color }}>{n.icon}</span>
                             <div className="notif-content">
-                              <div className="notif-title">
-                                {n.title}
-                                {isUnread && <span className="notif-unread-dot" />}
-                              </div>
+                              <div className="notif-title">{n.title}</div>
                               <div className="notif-message">{n.message}</div>
                             </div>
                             <button
@@ -8990,10 +8986,10 @@ function App() {
                                 const newDismissed = [...new Set([...dismissedNotifIds, n.id])];
                                 await saveNotifState(newRead, newDismissed);
                               }}
-                              aria-label={`Clear ${n.title}`}
-                              title="Clear"
+                              aria-label={`Mark ${n.title} as read`}
+                              title="Mark as read"
                             >
-                              Clear
+                              Read
                             </button>
                           </div>
                         );
@@ -9187,11 +9183,25 @@ function App() {
                   <div className="daily-quests-card" style={{ margin: 0 }}>
                     <div className="daily-quests-header">
                       <h3>{t("dashboardDailyQuests")}</h3>
-                      {activeQuests.length > 0 && activeQuests.every(q => getQuestProgress(q).completed) ? (
-                        <span className="daily-quests-timer" style={{ background: '#d1fae5', color: '#10b981' }}>✓ ALL COMPLETED</span>
-                      ) : (
-                        <span className="daily-quests-timer">{timeLeftStr.toUpperCase()} LEFT</span>
-                      )}
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <span className="quest-xp-reward-badge" style={{
+                          background: '#fef3c7',
+                          color: '#b45309',
+                          fontSize: '0.75rem',
+                          fontWeight: '800',
+                          padding: '3px 8px',
+                          borderRadius: '999px',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '3px',
+                          border: '1px solid #fde68a'
+                        }}>⚡ +30 XP Reward</span>
+                        {activeQuests.length > 0 && activeQuests.every(q => getQuestProgress(q).completed) ? (
+                          <span className="daily-quests-timer" style={{ background: '#d1fae5', color: '#10b981' }}>✓ ALL COMPLETED</span>
+                        ) : (
+                          <span className="daily-quests-timer">{timeLeftStr.toUpperCase()} LEFT</span>
+                        )}
+                      </div>
                     </div>
                     <div className="quest-list" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                       {activeQuests.map((quest) => {
@@ -12944,7 +12954,7 @@ style={(() => {
               border: '2px solid var(--line)',
               borderRadius: '24px',
               width: '100%',
-              maxWidth: '550px',
+              maxWidth: '850px',
               maxHeight: '92vh',
               overflowY: 'auto',
               padding: '30px',
@@ -12964,12 +12974,12 @@ style={(() => {
                   cursor: 'pointer'
                 }}
               >✕</button>
-              <h3 style={{ margin: '0 0 20px', fontSize: '1.6rem', fontWeight: '800' }}>{t("profileAllAchievements")}</h3>
+              <h3 style={{ margin: '0 0 25px', fontSize: '1.8rem', fontWeight: '800' }}>{t("profileAllAchievements")}</h3>
               
-              <h4 style={{ margin: '15px 0 10px', fontSize: '1.1rem', fontWeight: '800', color: 'var(--accent)' }}>
+              <h4 style={{ margin: '20px 0 15px', fontSize: '1.25rem', fontWeight: '800', color: 'var(--accent)' }}>
                 🏆 {t("dashboardAchievements") || "Curriculum Achievements"}
               </h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '24px' }}>
+              <div className="achievements-modal-grid">
                 {ACHIEVEMENT_DEFS.map((a) => {
                   let earned = false;
                   let progress = 0;
@@ -13004,38 +13014,44 @@ style={(() => {
                   }
                   return { ...a, earned, progress };
                 }).map((a) => (
-                  <div key={a.id} className={`achievement-row ${a.earned ? "earned" : ""}`} style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '12px', border: '2px solid var(--line)', borderRadius: '16px', background: 'var(--panel-strong)', opacity: a.earned ? 1 : 0.55 }}>
-                    <div className="achievement-badge-box" style={{ background: a.earned ? a.color : '#d1d5db', width: '50px', height: '50px', borderRadius: '12px', display: 'grid', placeItems: 'center', fontSize: '1.5rem', flexShrink: 0, filter: a.earned ? 'none' : 'grayscale(1)' }}>
-                      <span className="achievement-badge-icon">{a.earned ? a.icon : '🔒'}</span>
+                  <div key={a.id} className={`achievement-card-modern ${a.earned ? "earned" : "locked"}`}>
+                    <div className="achievement-card-icon-wrap" style={{ background: a.earned ? a.color : 'var(--line)', filter: a.earned ? 'none' : 'grayscale(1)' }}>
+                      <span className="achievement-card-icon">{a.earned ? a.icon : '🔒'}</span>
                     </div>
-                    <div style={{ flexGrow: 1 }}>
-                      <div style={{ fontWeight: '800', color: a.earned ? 'var(--text)' : 'var(--muted)' }}>{translatedAchievements[a.id]?.title || a.title}</div>
-                      <p style={{ margin: '4px 0 0', fontSize: '0.9rem', color: 'var(--text-muted)' }}>{translatedAchievements[a.id]?.desc || a.desc}</p>
-                      <div className="achievement-progress-track" style={{ height: '8px', background: 'var(--line)', borderRadius: '4px', overflow: 'hidden', marginTop: '8px' }}>
-                        <div className="achievement-progress-fill" style={{ width: `${a.progress}%`, height: '100%', background: '#facc15' }}></div>
+                    <div className="achievement-card-details">
+                      <div className="achievement-card-title">{translatedAchievements[a.id]?.title || a.title}</div>
+                      <p className="achievement-card-desc">{translatedAchievements[a.id]?.desc || a.desc}</p>
+                      <div className="achievement-card-progress-container">
+                        <div className="achievement-card-progress-track">
+                          <div className="achievement-card-progress-fill" style={{ width: `${a.progress}%`, background: a.earned ? a.color : '#a1a1aa' }}></div>
+                        </div>
+                        <span className="achievement-card-progress-text">{a.progress}%</span>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
 
-              <h4 style={{ margin: '15px 0 10px', fontSize: '1.1rem', fontWeight: '800', color: 'var(--accent)' }}>
+              <h4 style={{ margin: '30px 0 15px', fontSize: '1.25rem', fontWeight: '800', color: 'var(--accent)' }}>
                 🛒 {t("xpShopTitle") || "XP Shop Badges"}
               </h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div className="achievements-modal-grid">
                 {SHOP_CATALOG.badges.map((b) => {
                   const earned = shopOwnedItems.includes(b.id);
                   const color = b.rarity === "legendary" ? "#d97706" : b.rarity === "rare" ? "#3b82f6" : "#6b7280";
                   return (
-                    <div key={b.id} className={`achievement-row ${earned ? "earned" : ""}`} style={{ display: 'flex', alignItems: 'center', gap: '16px', padding: '12px', border: '2px solid var(--line)', borderRadius: '16px', background: 'var(--panel-strong)', opacity: earned ? 1 : 0.55 }}>
-                      <div className="achievement-badge-box" style={{ background: earned ? color : '#d1d5db', width: '50px', height: '50px', borderRadius: '12px', display: 'grid', placeItems: 'center', fontSize: '1.5rem', flexShrink: 0, filter: earned ? 'none' : 'grayscale(1)' }}>
-                        <span className="achievement-badge-icon">{earned ? b.icon : '🔒'}</span>
+                    <div key={b.id} className={`achievement-card-modern ${earned ? "earned" : "locked"}`}>
+                      <div className="achievement-card-icon-wrap" style={{ background: earned ? color : 'var(--line)', filter: earned ? 'none' : 'grayscale(1)' }}>
+                        <span className="achievement-card-icon">{earned ? b.icon : '🔒'}</span>
                       </div>
-                      <div style={{ flexGrow: 1 }}>
-                        <div style={{ fontWeight: '800', color: earned ? 'var(--text)' : 'var(--muted)' }}>{t(b.id + "_name") || b.name}</div>
-                        <p style={{ margin: '4px 0 0', fontSize: '0.9rem', color: 'var(--text-muted)' }}>{t(b.id + "_desc") || b.desc}</p>
-                        <div className="achievement-progress-track" style={{ height: '8px', background: 'var(--line)', borderRadius: '4px', overflow: 'hidden', marginTop: '8px' }}>
-                          <div className="achievement-progress-fill" style={{ width: earned ? '100%' : '0%', height: '100%', background: '#facc15' }}></div>
+                      <div className="achievement-card-details">
+                        <div className="achievement-card-title">{t(b.id + "_name") || b.name}</div>
+                        <p className="achievement-card-desc">{t(b.id + "_desc") || b.desc}</p>
+                        <div className="achievement-card-progress-container">
+                          <div className="achievement-card-progress-track">
+                            <div className="achievement-card-progress-fill" style={{ width: earned ? '100%' : '0%', background: color }}></div>
+                          </div>
+                          <span className="achievement-card-progress-text">{earned ? '100%' : '0%'}</span>
                         </div>
                       </div>
                     </div>
