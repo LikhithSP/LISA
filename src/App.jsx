@@ -78,6 +78,10 @@ const drawTracingGuide = (canvas, item) => {
   ctx.strokeRect(1, 1, canvas.width - 2, canvas.height - 2);
 
   const text = (item.kind === "playground" ? "playground" : (item.letter || item.word || "A")).toString();
+  if (text.trim() === "ಮನೆ") {
+    // Hide tracing guide for the word ಮನೆ so user writes from memory
+    return;
+  }
   ctx.save();
   ctx.globalAlpha = 0.18;
   ctx.fillStyle = "#0284c7";
@@ -86,6 +90,52 @@ const drawTracingGuide = (canvas, item) => {
   ctx.textBaseline = "middle";
   ctx.fillText(text, canvas.width / 2, canvas.height / 2);
   ctx.restore();
+};
+
+const evaluateDrawingAccuracy = (userCanvas, targetText) => {
+  if (!userCanvas || !targetText) return 0;
+  
+  // Create a hidden canvas to render the guide text
+  const hiddenCanvas = document.createElement("canvas");
+  hiddenCanvas.width = userCanvas.width || 300;
+  hiddenCanvas.height = userCanvas.height || 300;
+  const hCtx = hiddenCanvas.getContext("2d");
+  
+  // Draw the target text in a thick font on the hidden canvas
+  hCtx.fillStyle = "black";
+  hCtx.font = `bold ${Math.floor(hiddenCanvas.width * 0.28)}px sans-serif`;
+  hCtx.textAlign = "center";
+  hCtx.textBaseline = "middle";
+  hCtx.fillText(targetText, hiddenCanvas.width / 2, hiddenCanvas.height / 2);
+  
+  // Get image data
+  const userCtx = userCanvas.getContext("2d");
+  const userData = userCtx.getImageData(0, 0, userCanvas.width, userCanvas.height).data;
+  const guideData = hCtx.getImageData(0, 0, hiddenCanvas.width, hiddenCanvas.height).data;
+  
+  let overlap = 0;
+  let userPixels = 0;
+  let guidePixels = 0;
+  
+  for (let i = 0; i < userData.length; i += 4) {
+    const userAlpha = userData[i + 3];
+    const guideAlpha = guideData[i + 3];
+    
+    const isUserPainted = userAlpha > 100;
+    const isGuidePainted = guideAlpha > 50;
+    
+    if (isUserPainted) userPixels++;
+    if (isGuidePainted) guidePixels++;
+    if (isUserPainted && isGuidePainted) overlap++;
+  }
+  
+  if (userPixels === 0) return 0;
+  
+  const union = userPixels + guidePixels - overlap;
+  const score = union > 0 ? (overlap / union) * 100 : 0;
+  
+  const scaledScore = Math.min(100, Math.round(score * 4.0));
+  return scaledScore;
 };
 
 const DashboardIcon = ({ className, style }) => (
@@ -1668,6 +1718,8 @@ function App() {
   const [lessonImageChoiceFeedback, setLessonImageChoiceFeedback] = useState(null);
   const [lessonTracingIndex, setLessonTracingIndex] = useState(0);
   const [lessonTracingDone, setLessonTracingDone] = useState(false);
+  const [lessonTracingFeedback, setLessonTracingFeedback] = useState(null);
+  const [lessonTracingAccuracy, setLessonTracingAccuracy] = useState(null);
   const tracingCanvasRef = useRef(null);
 
   // Redraw the tracing guide whenever the tracing step or item changes
@@ -1696,6 +1748,20 @@ function App() {
       }
     }
   }, [lessonSession, storyLineIndex, lessonAiContent]);
+
+  // Automatically read passage when a passage question type is rendered
+  useEffect(() => {
+    const currentQuestion = lessonAiContent?.questions?.[lessonStep];
+    if (currentQuestion && currentQuestion.type === "passage") {
+      const passageText = currentQuestion.passage;
+      if (passageText) {
+        const timer = setTimeout(() => {
+          speakText(passageText, 1.0);
+        }, 600);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [lessonStep, lessonAiContent]);
 
   const renderPracticeSession = (ai) => {
     const currentQuestion = ai.questions?.[lessonStep] || {};
@@ -1743,6 +1809,8 @@ function App() {
       setLessonUnscrambleFeedback(null);
       setLessonUnscrambleSelected([]);
       setLessonTracingDone(false);
+      setLessonTracingFeedback(null);
+      setLessonTracingAccuracy(null);
       setLessonWritingText("");
       setLessonMatchCompleted([]);
       setLessonMatchSelectedLeft(null);
@@ -2159,7 +2227,7 @@ function App() {
                       type="button"
                       onClick={() => speakText(lt.audioText || lt.sentence || "", 1.0)}
                       className="duo-listen-btn"
-                      style={{ width: '80px', height: '80px', borderRadius: '24px', fontSize: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      style={{ width: '100px', height: '100px', borderRadius: '28px', fontSize: '3.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                     >
                       🔊
                     </button>
@@ -2168,7 +2236,7 @@ function App() {
                       type="button"
                       onClick={() => speakText(lt.audioText || lt.sentence || "", 0.2)}
                       className="duo-listen-btn"
-                      style={{ width: '60px', height: '60px', borderRadius: '18px', background: '#0284c7', borderBottomColor: '#0369a1', fontSize: '1.4rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      style={{ width: '80px', height: '80px', borderRadius: '24px', background: '#0284c7', borderBottomColor: '#0369a1', fontSize: '2.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                       title="Listen slowly"
                     >
                       🐢
@@ -2579,7 +2647,7 @@ function App() {
                           style={{
                             width: '130px',
                             height: '130px',
-                            fontSize: '4.5rem',
+                            fontSize: '6rem',
                             padding: '10px'
                           }}
                         >
@@ -3737,11 +3805,43 @@ function App() {
                     <button type="button" onClick={clearCanvas} style={{ background: 'var(--panel-strong)', border: '2px solid var(--line)', borderRadius: '12px', padding: '12px 20px', fontWeight: '800', cursor: 'pointer', fontSize: '1rem' }}>↺ Clear</button>
                   </div>
 
-                  <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
-                    <button type="button" className="primary-btn" style={{ padding: '12px 40px', borderRadius: '12px' }}
-                      onClick={handleNext}
-                      disabled={!lessonTracingDone}>Continue</button>
-                  </div>
+                  {!lessonTracingFeedback ? (
+                    <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
+                      <button type="button" className="duo-check-btn"
+                        onClick={() => {
+                          const targetText = (currentQuestion.letter || currentQuestion.word || "A").toString();
+                          const score = evaluateDrawingAccuracy(tracingCanvasRef.current, targetText);
+                          setLessonTracingAccuracy(score);
+                          setLessonTracingFeedback(score >= 20 ? "correct" : "incorrect");
+                          const correct = score >= 20;
+                          if (correct) recordDailyCorrect();
+                          recordLessonAnswer(correct);
+                        }}
+                        disabled={!lessonTracingDone}>Check Writing</button>
+                    </div>
+                  ) : (
+                    <div style={{
+                      position: 'absolute',
+                      bottom: 0, left: 0, right: 0,
+                      background: lessonTracingFeedback === "correct" ? '#d1fae5' : '#fee2e2',
+                      borderTop: `2px solid ${lessonTracingFeedback === "correct" ? '#10b981' : '#ef4444'}`,
+                      padding: '20px 40px',
+                      zIndex: 100,
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                    }}>
+                      <div>
+                        <h4 style={{ margin: 0, color: lessonTracingFeedback === "correct" ? '#065f46' : '#991b1b', fontWeight: '800', fontSize: '1.2rem' }}>
+                          {lessonTracingFeedback === "correct" ? `Excellent! (Accuracy: ${lessonTracingAccuracy}%)` : `Incorrect (Accuracy: ${lessonTracingAccuracy}%)`}
+                        </h4>
+                        <p style={{ margin: '4px 0 0', color: lessonTracingFeedback === "correct" ? '#047857' : '#b91c1c', fontSize: '0.95rem' }}>
+                          {lessonTracingFeedback === "correct" ? 'Your handwriting matches the word!' : 'Try to write it closer to the target shape next time.'}
+                        </p>
+                      </div>
+                      <button type="button" className="primary-btn" onClick={handleNext}>Continue</button>
+                    </div>
+                  )}
                 </div>
               );
             }
@@ -3999,6 +4099,7 @@ function App() {
                       type="button"
                       onClick={() => speakText(audioText, 1.0)}
                       style={{
+                        margin: '0 auto',
                         width: '80px',
                         height: '80px',
                         borderRadius: '24px',
@@ -4921,7 +5022,7 @@ function App() {
     const storedSkillScores = (() => {
       try {
         const stored = getStoredAssessmentState(session?.user?.id);
-        return stored?.skill_scores || profile?.skill_scores || {};
+        return stored?.skill_scores || profile?.skill_scores || profile?.attempts_history?.[0]?.skillScores || {};
       } catch { return {}; }
     })();
     const weakAreas = getWeakSkills(storedSkillScores);
@@ -6998,16 +7099,42 @@ function App() {
       localStorage.setItem("lisa_attempts_history", JSON.stringify(updatedHistory));
 
       // Update Supabase profile
-      await supabase.from("profiles").update({
-        literacy_level: diagnosedLevel,
-        assessment_completed: true,
-        skill_scores: skillScores,
-        attempts_history: updatedHistory,
-        xp: nextUserXp,
-        daily_xp: nextDailyXp,
-        daily_correct_answers: nextDailyCorrect,
-        daily_quest_date: today
-      }).eq("id", session.user.id);
+      try {
+        const { error: updateErr } = await supabase.from("profiles").update({
+          literacy_level: diagnosedLevel,
+          assessment_completed: true,
+          skill_scores: skillScores,
+          attempts_history: updatedHistory,
+          xp: nextUserXp,
+          daily_xp: nextDailyXp,
+          daily_correct_answers: nextDailyCorrect,
+          daily_quest_date: today
+        }).eq("id", session.user.id);
+        
+        if (updateErr) {
+          console.warn("First update failed, retrying without skill_scores column:", updateErr.message);
+          await supabase.from("profiles").update({
+            literacy_level: diagnosedLevel,
+            assessment_completed: true,
+            attempts_history: updatedHistory,
+            xp: nextUserXp,
+            daily_xp: nextDailyXp,
+            daily_correct_answers: nextDailyCorrect,
+            daily_quest_date: today
+          }).eq("id", session.user.id);
+        }
+      } catch (dbErr) {
+        console.warn("Direct DB update failed, trying fallback:", dbErr);
+        await supabase.from("profiles").update({
+          literacy_level: diagnosedLevel,
+          assessment_completed: true,
+          attempts_history: updatedHistory,
+          xp: nextUserXp,
+          daily_xp: nextDailyXp,
+          daily_correct_answers: nextDailyCorrect,
+          daily_quest_date: today
+        }).eq("id", session.user.id);
+      }
 
       // Update local state
       setProfile(prev => ({
@@ -7566,7 +7693,7 @@ function App() {
     const currentLevelNum = calculateProgressiveLevel(profile, completedLessons);
     const currentLang = selectedLanguage || "English";
 
-    const storedSkills = (() => { try { const s = getStoredAssessmentState(session?.user?.id); return s?.skill_scores || profile?.skill_scores || {}; } catch { return {}; } })();
+    const storedSkills = (() => { try { const s = getStoredAssessmentState(session?.user?.id); return s?.skill_scores || profile?.skill_scores || profile?.attempts_history?.[0]?.skillScores || {}; } catch { return {}; } })();
     const weakSkillLabels = getWeakSkills(storedSkills);
     const pathRecommendations = generateLearningPath(storedSkills);
     const recommendedSectionIds = pathRecommendations.map(p => p.sectionId);
@@ -9130,7 +9257,7 @@ function App() {
 
           {/* 3.1. Learn Tab — Duolingo-style Continuous Curriculum Path */}
           {dashboardTab === "learn" && (() => {
-            const storedSkills = (() => { try { const s = getStoredAssessmentState(session?.user?.id); return s?.skill_scores || profile?.skill_scores || {}; } catch { return {}; } })();
+            const storedSkills = (() => { try { const s = getStoredAssessmentState(session?.user?.id); return s?.skill_scores || profile?.skill_scores || profile?.attempts_history?.[0]?.skillScores || {}; } catch { return {}; } })();
             const weakSkillLabels = getWeakSkills(storedSkills);
 
             const hasDiagnosed = hasCompletedAssessment(profile, session?.user?.id);
@@ -10428,7 +10555,7 @@ style={(() => {
               skillScores={(() => {
                 try {
                   const stored = getStoredAssessmentState(session?.user?.id);
-                  return stored?.skill_scores || profile?.skill_scores || {};
+                  return stored?.skill_scores || profile?.skill_scores || profile?.attempts_history?.[0]?.skillScores || {};
                 } catch {
                   return {};
                 }
@@ -12177,9 +12304,9 @@ style={(() => {
                               type="button"
                               onClick={() => speakText(lt.audioText, 1.0)}
                               style={{
-                                width: '80px',
-                                height: '80px',
-                                borderRadius: '24px',
+                                width: '100px',
+                                height: '100px',
+                                borderRadius: '28px',
                                 background: '#38bdf8',
                                 border: 'none',
                                 cursor: 'pointer',
@@ -12189,16 +12316,16 @@ style={(() => {
                                 boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
                               }}
                             >
-                              <span style={{ fontSize: '2.5rem' }}>🔊</span>
+                              <span style={{ fontSize: '3.5rem' }}>🔊</span>
                             </button>
 
                             <button
                               type="button"
                               onClick={() => speakText(lt.audioText, 0.2)}
                               style={{
-                                width: '60px',
-                                height: '60px',
-                                borderRadius: '18px',
+                                width: '80px',
+                                height: '80px',
+                                borderRadius: '24px',
                                 background: '#0284c7',
                                 border: 'none',
                                 cursor: 'pointer',
@@ -12209,7 +12336,7 @@ style={(() => {
                               }}
                               title="Listen slowly"
                             >
-                              <span style={{ fontSize: '1.8rem' }}>🐢</span>
+                              <span style={{ fontSize: '2.5rem' }}>🐢</span>
                             </button>
                           </div>
 
@@ -12514,7 +12641,7 @@ style={(() => {
                               } else if (selected) { border = '2px solid var(--accent)'; bg = 'rgba(var(--accent-rgb),0.05)'; }
                               return (
                                 <button key={oIdx} type="button" onClick={() => { if (!isChecked) setLessonImageChoiceSel(oIdx); }} disabled={isChecked}
-                                  style={{ border, background: bg, borderRadius: '20px', padding: '24px 10px', fontSize: '3.5rem', cursor: isChecked ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                  style={{ border, background: bg, borderRadius: '20px', padding: '24px 10px', fontSize: '5.5rem', cursor: isChecked ? 'default' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                   {opt}
                                 </button>
                               );
@@ -12550,6 +12677,8 @@ style={(() => {
                                     setLessonImageChoiceSel(null);
                                     setLessonTracingIndex(0);
                                     setLessonTracingDone(false);
+                                    setLessonTracingFeedback(null);
+                                    setLessonTracingAccuracy(null);
                                     setLessonStep(12);
                                   }}>Continue</button>
                               </div>
@@ -12630,13 +12759,43 @@ style={(() => {
                             <button type="button" onClick={clearCanvas} style={{ background: 'var(--panel-strong)', border: '2px solid var(--line)', borderRadius: '12px', padding: '12px 20px', fontWeight: '800', cursor: 'pointer', fontSize: '1rem' }}>↺ Clear</button>
                           </div>
 
-                          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
-                            <button type="button" className="primary-btn" style={{ padding: '12px 40px', borderRadius: '12px' }}
-                              onClick={() => {
-                                advanceLessonStep();
-                              }}
-                              disabled={!lessonTracingDone}>Continue</button>
-                          </div>
+                          {!lessonTracingFeedback ? (
+                            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
+                              <button type="button" className="duo-check-btn"
+                                onClick={() => {
+                                  const targetText = (item.letter || item.word || "A").toString();
+                                  const score = evaluateDrawingAccuracy(tracingCanvasRef.current, targetText);
+                                  setLessonTracingAccuracy(score);
+                                  setLessonTracingFeedback(score >= 20 ? "correct" : "incorrect");
+                                  const correct = score >= 20;
+                                  if (correct) recordDailyCorrect();
+                                  recordLessonAnswer(correct);
+                                }}
+                                disabled={!lessonTracingDone}>Check Writing</button>
+                            </div>
+                          ) : (
+                            <div style={{
+                              position: 'absolute',
+                              bottom: 0, left: 0, right: 0,
+                              background: lessonTracingFeedback === "correct" ? '#d1fae5' : '#fee2e2',
+                              borderTop: `2px solid ${lessonTracingFeedback === "correct" ? '#10b981' : '#ef4444'}`,
+                              padding: '20px 40px',
+                              zIndex: 100,
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center'
+                            }}>
+                              <div>
+                                <h4 style={{ margin: 0, color: lessonTracingFeedback === "correct" ? '#065f46' : '#991b1b', fontWeight: '800', fontSize: '1.2rem' }}>
+                                  {lessonTracingFeedback === "correct" ? `Excellent! (Accuracy: ${lessonTracingAccuracy}%)` : `Incorrect (Accuracy: ${lessonTracingAccuracy}%)`}
+                                </h4>
+                                <p style={{ margin: '4px 0 0', color: lessonTracingFeedback === "correct" ? '#047857' : '#b91c1c', fontSize: '0.95rem' }}>
+                                  {lessonTracingFeedback === "correct" ? 'Your handwriting matches the word!' : 'Try to write it closer to the target shape next time.'}
+                                </p>
+                              </div>
+                              <button type="button" className="primary-btn" onClick={advanceLessonStep}>Continue</button>
+                            </div>
+                          )}
                         </div>
                       );
                     })()}

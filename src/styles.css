@@ -12423,9 +12423,9 @@ select:focus {
 
 /* Primary actions buttons */
 .duo-check-btn {
-  background: #58cc02 !important;
+  background: var(--accent) !important;
   border: none !important;
-  border-bottom: 4px solid #58a700 !important;
+  border-bottom: 4px solid var(--accent-dark) !important;
   color: white !important;
   border-radius: 16px !important;
   padding: 14px 44px !important;
@@ -12440,7 +12440,7 @@ select:focus {
 }
 
 .duo-check-btn:hover:not(:disabled) {
-  background: #61e002 !important;
+  background: var(--accent-dark) !important;
 }
 
 .duo-check-btn:active:not(:disabled) {
