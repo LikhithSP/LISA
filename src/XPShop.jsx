@@ -115,7 +115,17 @@ export const SHOP_CATALOG = {
 
 // Theme application helper
 export function applyTheme(themeId) {
-  const theme = SHOP_CATALOG.themes.find(t => t.id === themeId);
+  let themes = SHOP_CATALOG.themes;
+  try {
+    const cached = localStorage.getItem("lisa_global_shop_catalog");
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (parsed && Array.isArray(parsed.themes)) {
+        themes = parsed.themes;
+      }
+    }
+  } catch (e) {}
+  const theme = themes.find(t => t.id === themeId);
   if (!theme) return;
   const root = document.documentElement;
   root.style.setProperty("--accent", theme.preview.accent);
@@ -160,7 +170,9 @@ export default function XPShop({
   activeProfileBadges,
   onBadgesChange,
   onPurchaseItem,
+  catalog
 }) {
+  const currentCatalog = catalog || SHOP_CATALOG;
   const [activeCategory, setActiveCategory] = useState("themes");
   const [toast, setToast] = useState(null);
   const [confirmItem, setConfirmItem] = useState(null);
@@ -212,11 +224,11 @@ export default function XPShop({
       applyTheme(item.id);
     } else if (item.id.startsWith("font_")) {
       onFontChange(item.id);
-      applyFont(SHOP_CATALOG.fonts.find(f => f.id === item.id)?.family || "'Inter', sans-serif");
+      applyFont(currentCatalog.fonts.find(f => f.id === item.id)?.family || "'Inter', sans-serif");
     } else if (item.id.startsWith("banner_")) {
       onBannerChange(item.id);
     } else if (item.id.startsWith("avatar_")) {
-      const av = SHOP_CATALOG.avatars.find(a => a.id === item.id);
+      const av = currentCatalog.avatars.find(a => a.id === item.id);
       if (av) {
         onAvatarChange({ type: "emoji", emoji: av.emoji, id: item.id });
       }
@@ -242,7 +254,7 @@ export default function XPShop({
 
   const renderThemesGrid = () => (
     <div className="shop-grid shop-grid-2">
-      {SHOP_CATALOG.themes.map((theme) => {
+      {currentCatalog.themes.map((theme) => {
         const owned_flag = isOwned(theme.id);
         const active = currentTheme === theme.id;
         const prev = previewTheme === theme.id;
@@ -290,7 +302,7 @@ export default function XPShop({
 
   const renderFontsGrid = () => (
     <div className="shop-grid shop-grid-2">
-      {SHOP_CATALOG.fonts.map((font) => {
+      {currentCatalog.fonts.map((font) => {
         const owned_flag = isOwned(font.id) || font.cost === 0;
         const active = currentFont === font.id || (!currentFont && font.id === "font_default");
         return (
@@ -328,7 +340,7 @@ export default function XPShop({
 
   const renderBannersGrid = () => (
     <div className="shop-grid shop-grid-2">
-      {SHOP_CATALOG.banners.map((banner) => {
+      {currentCatalog.banners.map((banner) => {
         const owned_flag = isOwned(banner.id);
         const active = currentBanner === banner.id;
         return (
@@ -365,7 +377,7 @@ export default function XPShop({
 
   const renderAvatarsGrid = () => (
     <div className="shop-grid shop-grid-3">
-      {SHOP_CATALOG.avatars.map((av) => {
+      {currentCatalog.avatars.map((av) => {
         const owned_flag = isOwned(av.id);
         const active = currentAvatar?.id === av.id;
         return (
@@ -398,7 +410,7 @@ export default function XPShop({
       <>
         <p className="shop-badge-hint">{t("badgeHint")}</p>
         <div className="shop-grid shop-grid-3">
-          {SHOP_CATALOG.badges.map((badge) => {
+          {currentCatalog.badges.map((badge) => {
             const owned_flag = isOwned(badge.id);
             const active = activeBadges.includes(badge.id);
             const rarityColors = { common: "#6b7280", rare: "#3b82f6", legendary: "#f59e0b" };
