@@ -481,7 +481,7 @@ export const assessmentQuestions = {
       },
       {
         "id": "child_l5_2",
-        "question": "Read the story above again. What object did the puppy chew?",
+        "question": "Read this short story again:\n\nBobby has a little puppy named Bruno. Bruno likes to chew on soft toys. Yesterday, Bruno chewed Bobby's red ball.\n\nWhat object did the puppy chew?",
         "options": [
           "Shoes",
           "Soft doll",
@@ -536,7 +536,7 @@ export const assessmentQuestions = {
       },
       {
         "id": "child_l5_7",
-        "question": "Read the diary entry again. What plant seed was planted?",
+        "question": "Read this diary entry again:\n\nMonday: Planted a sunflower seed. Wednesday: Sprout came out. Friday: Two small leaves appeared.\n\nWhat plant seed was planted?",
         "options": [
           "Tulip",
           "Rose",
@@ -569,7 +569,7 @@ export const assessmentQuestions = {
       },
       {
         "id": "child_l5_10",
-        "question": "Read the classroom poster again. How many boys are in the class?",
+        "question": "Read this classroom poster again:\n\nOur class has 12 boys and 14 girls. We have a pet turtle named Shelly.\n\nHow many boys are in the class?",
         "options": [
           "14",
           "26",
@@ -1061,7 +1061,7 @@ export const assessmentQuestions = {
       },
       {
         "id": "teen_l5_2",
-        "question": "Read the library warning again. What is the fine per day for late returns?",
+        "question": "Read this library warning again:\n\nLibrary books must be returned within 7 days. A fine of 5 rupees per day is charged for late returns.\n\nWhat is the fine per day for late returns?",
         "options": [
           "2 rupees",
           "10 rupees",
@@ -1083,7 +1083,7 @@ export const assessmentQuestions = {
       },
       {
         "id": "teen_l5_4",
-        "question": "Read the announcement again. When will the sports day move to Monday?",
+        "question": "Read this school announcement again:\n\nThe school sports day is scheduled for Friday. In case of heavy rain, it will be moved to Monday.\n\nWhen will the sports day move to Monday?",
         "options": [
           "In case of heavy rain",
           "If teachers are busy",
@@ -1127,7 +1127,7 @@ export const assessmentQuestions = {
       },
       {
         "id": "teen_l5_8",
-        "question": "Read the student identity card again. What is the roll number of Rahul?",
+        "question": "Read this student identity card again:\n\nName: Rahul Sharma. Age: 16. School: Model High School. Roll No: 24.\n\nWhat is the roll number of Rahul?",
         "options": [
           "16",
           "30",
@@ -1641,7 +1641,7 @@ export const assessmentQuestions = {
       },
       {
         "id": "adult_l5_2",
-        "question": "Read the office instruction again. What happens if an employee arrives late without approval?",
+        "question": "Read this office instruction again:\n\nAll employees must log their attendance before 9:30 AM. Late arrivals will be marked as half-day leave unless approved.\n\nWhat happens if an employee arrives late without approval?",
         "options": [
           "Salary is increased",
           "Marked as present",
@@ -1663,7 +1663,7 @@ export const assessmentQuestions = {
       },
       {
         "id": "adult_l5_4",
-        "question": "Read the store refund policy again. What document must you present to get a refund?",
+        "question": "Read this store refund policy again:\n\nRefunds are only given within 14 days of purchase. The original bill must be presented for all refunds.\n\nWhat document must you present to get a refund?",
         "options": [
           "Original bill",
           "Visiting card",
@@ -1696,7 +1696,7 @@ export const assessmentQuestions = {
       },
       {
         "id": "adult_l5_7",
-        "question": "Read the doctor notice again. What should you do before taking the cough syrup?",
+        "question": "Read this doctor notice again:\n\nTake two spoons of cough syrup three times a day. Shake the bottle well before use.\n\nWhat should you do before taking the cough syrup?",
         "options": [
           "Boil the syrup",
           "Shake the bottle well",
@@ -1729,7 +1729,7 @@ export const assessmentQuestions = {
       },
       {
         "id": "adult_l5_10",
-        "question": "Read the railway announcement again. What is the new arrival time of the train?",
+        "question": "Read this railway announcement again:\n\nThe train to Mumbai is delayed by two hours due to fog. It will now arrive at 11:00 AM.\n\nWhat is the new arrival time of the train?",
         "options": [
           "11:00 AM",
           "12:00 PM",
@@ -2221,7 +2221,7 @@ export const assessmentQuestions = {
       },
       {
         "id": "senior_l5_2",
-        "question": "Read the medical label again. When should you take the capsules?",
+        "question": "Read this medical label again:\n\nTake 1 capsule twice daily, once in the morning and once at night after food.\n\nWhen should you take the capsules?",
         "options": [
           "After food",
           "Before bath",
@@ -2243,7 +2243,7 @@ export const assessmentQuestions = {
       },
       {
         "id": "senior_l5_4",
-        "question": "Read the letter again. What time is the visitor arriving?",
+        "question": "Read this family letter again:\n\nDear Grandpa, I will visit you on Saturday evening at 4 PM. Please keep the gate unlocked.\n\nWhat time is the visitor arriving?",
         "options": [
           "6 PM",
           "10 AM",
@@ -2265,7 +2265,7 @@ export const assessmentQuestions = {
       },
       {
         "id": "senior_l5_6",
-        "question": "Read the park notice again. When does the track close in the morning?",
+        "question": "Read this park notice again:\n\nThe senior citizen walking track is open from 6:00 AM to 9:00 AM daily. Please do not run on this track.\n\nWhen does the track close in the morning?",
         "options": [
           "6:00 AM",
           "8:00 AM",
@@ -2287,7 +2287,7 @@ export const assessmentQuestions = {
       },
       {
         "id": "senior_l5_8",
-        "question": "Read the doctor recipe again. How many drops should you use?",
+        "question": "Read this doctor recipe again:\n\nUse three drops of eye drops in left eye. Do it before going to sleep.\n\nHow many drops should you use?",
         "options": [
           "One drop",
           "Four drops",
@@ -2309,7 +2309,7 @@ export const assessmentQuestions = {
       },
       {
         "id": "senior_l5_10",
-        "question": "Read the news bulletin again. Why is the market closed?",
+        "question": "Read this news bulletin again:\n\nThe local market will remain closed on Wednesday for cleanliness drive. It will reopen on Thursday.\n\nWhy is the market closed?",
         "options": [
           "Rain warning",
           "Holiday festival",
@@ -2418,11 +2418,11 @@ export const assessmentQuestionsByLanguage = {
         { "id": "hi_l1_3", "question": "Identify the letter 'म'. / 'ಮ' ಅಕ್ಷರವನ್ನು ಗುರುತಿಸಿ. / अक्षर 'म' को पहचानें। / 'మ' అక్షరాన్ని గుర్తించండి. / 'ம' எழுத்தைக் கண்டறியவும்.", "options": ["म", "न", "र", "ल"], "correctIndex": 0 },
         { "id": "hi_l1_4", "question": "Which is the Hindi letter 'क'? / ಕನ್ನಡದ 'ಕ' ಅಕ್ಷರ ಯಾವುದು? / हिंदी अक्षर 'क' को खोजें। / తెలుగు అక్షరం 'క' ను కనుగొనండి. / தமிழ் எழுத்து 'க' ஐக் கண்டறியவும்.", "options": ["थ", "द", "त", "ध"], "correctIndex": 2 },
         { "id": "hi_l1_5", "question": "Complete the sequence: अ, आ, इ, __ / ಅನುಕ್ರಮವನ್ನು ಪೂರ್ಣಗೊಳಿಸಿ: ಅ, ಆ, ಇ, __ / क्रम पूरा करें: अ, आ, इ, __ / క్రమాన్ని పూర్తి చేయండి: అ, ఆ, ఇ, __ / வரிசையை முடிக்க: அ, ஆ, இ, __", "options": ["उ", "ई", "ऊ", "ऋ"], "correctIndex": 1 },
-        { "id": "hi_l1_6", "question": "Find the letter matching 'र'. / 'ರ' ಗೆ ಹೊಂದಿಕೆಯಾಗುವ ಅಕ್ಷರವನ್ನು ಹುಡುಕಿ. / 'र' अक्षर को खोजें। / 'ర' అక్షరాన్ని కనుగొనండి. / 'ர' எழுத்தைக் கண்டறியவும்.", "options": ["म", "न", "र", "ल"], "correctIndex": 2 },
+        { "id": "hi_l1_6", "question": "Find the letter matching 'र'. / 'ರ' ಗೆ ಹೊಂದಿಕೆಯಾಗುವ ಅಕ್ಷರವನ್ನು ಹುಡುಕಿ. / 'र' अक्षर को खोजें। / 'ర' అక్షరాన్ని కనుగొनండి. / 'ர' எழுத்தைக் கண்டறியவும்.", "options": ["म", "न", "र", "ल"], "correctIndex": 2 },
         { "id": "hi_l1_7", "question": "Which letter is different from the others? / ಯಾವ ಅಕ್ಷರವು ಇತರರಿಗಿಂತ ಭಿನ್ನವಾಗಿದೆ? / कौन सा अक्षर अन्य से भिन्न है? / వేరేగా ఉన్న అక్షరం ఏది? / மற்றவற்றிலிருந்து மாறுபட்ட எழுத்து எது?", "options": ["क", "क", "क", "म"], "correctIndex": 3 },
-        { "id": "hi_l1_8", "question": "Identify the letter 'न'. / 'ನ' ಅಕ್ಷರವನ್ನು ಗುರುತಿಸಿ. / अक्षर 'न' को पहचानें। / 'న' అక్షరాన్ని గుర్తించండి. / 'ந' எழுத்தைக் கண்டறியவும்.", "options": ["न", "व", "म", "र"], "correctIndex": 0 },
+        { "id": "hi_l1_8", "question": "Identify the letter 'न'. / 'ನ' ಅಕ್ಷರವನ್ನು ಗುರುತಿಸಿ. / अक्षर 'न' को पहचानें। / 'ನ' ಅಕ್ಷరాన్ని గుర్తించండి. / 'ந' எழுத்தைக் கண்டறியவும்.", "options": ["न", "व", "म", "र"], "correctIndex": 0 },
         { "id": "hi_l1_9", "question": "Find the vowel letter 'उ'. / 'ಉ' ಸ್ವರ ಅಕ್ಷರವನ್ನು ಹುಡುಕಿ. / स्वर 'उ' को खोजें। / 'ఉ' అచ్చును కనుగొనండి. / 'உ' உயிர் எழுத்தைக் கண்டறியவும்.", "options": ["उ", "ऊ", "ऋ", "ए"], "correctIndex": 0 },
-        { "id": "hi_l1_10", "question": "Which letter shape is 'ओ'? / ಯಾವ ಅಕ್ಷರದ ಆಕಾರ 'ಒ' ಆಗಿದೆ? / कौन सी आकृति 'ओ' अक्षर की है? / 'ఓ' ఆకారంలో ఉన్న అక్షరం ఏది? / 'ஓ' வடிவத்தைக் கொண்ட எழுத்து எது?", "options": ["अ", "ओ", "ं", "ः"], "correctIndex": 1 }
+        { "id": "hi_l1_10", "question": "Which letter shape is 'ओ'? / ಯಾವ ಅಕ್ಷರದ ಆಕಾರ 'ಒ' ಆಗಿದೆ? / कौन सी आकृति 'ओ' अक्षर की है? / 'ఓ' ఆకారంలో ఉన్న అಕ್ಷరం ఏది? / 'ஓ' வடிவத்தைக் கொண்ட எழுத்து எது?", "options": ["अ", "ओ", "ं", "ः"], "correctIndex": 1 }
       ]
     },
     "child_level_2": {
@@ -2430,15 +2430,15 @@ export const assessmentQuestionsByLanguage = {
       "description": "Test checking capability at Level 2 for Hindi learners.",
       "questions": [
         { "id": "hi_l2_1", "question": "Which letter makes the starting sound of 'कमल' (Lotus)? / 'ಮರ' ಪದದ ಆರಂಭಿಕ ಧ್ವನಿಯನ್ನು ಉಂಟುಮಾಡುವ ಅಕ್ಷರ ಯಾವುದು? / 'कमल' शब्द की शुरुआत किस अक्षर से होती है? / 'అమ్మ' ఏ అక్షరంతో ప్రారంభమవుతుంది? / 'அம்மா' எந்த எழுத்தில் தொடங்குகிறது?", "options": ["क", "म", "ल", "र"], "correctIndex": 0 },
-        { "id": "hi_l2_2", "question": "Identify the missing letter in: 'अ_ार' (Pomegranate)? / 'ಅ_ಸ' ಪದದಲ್ಲಿ ಬಿಟ್ಟುಹೋದ ಅಕ್ಷರವನ್ನು ಗುರುತಿಸಿ. / 'अ_ार' (अनार) में छूटा हुआ अक्षर पहचानें। / 'ప_క' లో ఖాళీగా ఉన్న అక్షరం ఏది? / 'ப_ம்' என்பதில் விடுபட்ட எழுத்து என்ன?", "options": ["घर", "पेड़", "नदी", "फूल"], "correctIndex": 0 },
-        { "id": "hi_l2_3", "question": "Which word means 'House' in Hindi? / ಕನ್ನಡದಲ್ಲಿ 'ಮನೆ' ಎಂದರೆ ಯಾವ ಪದ? / हिंदी में 'घर' का क्या अर्थ है? / తెలుగులో 'ఇల్లు' అనగా ఏమి? / தமிழில் 'வீடு' என்பதன் பொருள் என்ன?", "options": ["अनार", "आम", "इमली", "ईख"], "correctIndex": 0 },
-        { "id": "hi_l2_4", "question": "Find the word starting with 'अ'. / 'ಅ' ಯಿಂದ ಪ್ರಾರಂಭವಾಗುವ ಪದವನ್ನು ಹುಡುಕಿ. / 'अ' से शुरू होने वाला शब्द खोजें। / 'ఆ' తో ప్రారంభమయ్యే పదాన్ని కనుగొనండి. / 'ஆ' வில் தொடங்கும் சொல்லைக் கண்டறியவும்.", "options": ["पर", "पानी", "दूध", "रोटी"], "correctIndex": 0 },
-        { "id": "hi_l2_5", "question": "Which word rhymes with 'मर'? / 'ಮರ' ಪದಕ್ಕೆ ಪ್ರಾಸ ಪದ ಯಾವುದು? / 'घर' से मिलता-जुलता शब्द कौन सा है? / 'పలక' తో రైమ్ అయ్యే పదం ఏది? / 'பல்' என்ற சொல்லுடன் ஒலியமைப்பில் ஒத்த சொல் எது?", "options": ["न", "म", "क", "र"], "correctIndex": 0 },
-        { "id": "hi_l2_6", "question": "What sound does the letter 'क' make in 'कमल'? / 'ಕಮಲ' ಪದದಲ್ಲಿ 'ಕ' ಅಕ್ಷರವು ಯಾವ ಧ್ವನಿಯನ್ನು ಮಾಡುತ್ತದೆ? / 'पानी' में 'प' ध्वनि कौन सा अक्षर बनाता है? / 'పాలు' లో 'ప' ధ్వనిని ఇచ్చే అక్షరం ఏది? / 'பால்' என்பதில் 'பா' ஒலியைத் தரும் எழுத்து எது?", "options": ["प", "फ", "ब", "भ"], "correctIndex": 0 },
-        { "id": "hi_l2_7", "question": "Identify the Hindi word for 'Sun'. / 'ಸೂರ್ಯ' ಗಾಗಿ ಕನ್ನಡ ಪದವನ್ನು ಗುರುತಿಸಿ. / हिंदी में 'सूरज' को क्या कहते हैं? / తెలుగులో 'సూర్యుడు' అంటే ఏమిటి? / தமிழில் 'சூரியன்' என்பது என்ன?", "options": ["छ", "क", "प", "ल"], "correctIndex": 0 },
-        { "id": "hi_l2_8", "question": "Which letter completes the word: 'म_ली' (Fish)? / 'ಹಾ_ು' ಪದವನ್ನು ಪೂರ್ಣಗೊಳಿಸುವ ಅಕ್ಷರ ಯಾವುದು? / 'म_ली' (मछली) में छूटा हुआ अक्षर पहचानें। / 'చే_ు' లో ఖాళీ అక్షరాన్ని గుర్తించండి. / 'மீ_்' என்பதில் விடுபட்ட எழுத்து என்ன?", "options": ["सेब", "केला", "आम", "अंगूर"], "correctIndex": 0 },
-        { "id": "hi_l2_9", "question": "Which word starts with the 'स' sound? / 'ಬ' ಧ್ವನಿಯಿಂದ ಪ್ರಾರಂಭವಾಗುವ ಪದ ಯಾವುದು? / कौन सा शब्द 'स' से शुरू होता है? / 'చ' తో ప్రారంభమయ్యే పదం ఏది? / 'ச' வில் தொடங்கும் சொல் எது?", "options": ["सूरज", "चांद", "तारा", "बादल"], "correctIndex": 0 },
-        { "id": "hi_l2_10", "question": "Identify the missing letter in: 'म_ली' (Fish). / 'ಹಾ_ು' ಪದದಲ್ಲಿ ಬಿಟ್ಟುಹೋದ ಅಕ್ಷರವನ್ನು ಗುರುತಿಸಿ. / 'कल' से मिलता-जुलता शब्द कौन सा है? / 'గాలి' తో రైమ్ అయ్యే పదం ఏది? / 'காற்று' உடன் ஒலியமைப்பில் ஒத்த சொல் எது?", "options": ["जल", "काम", "रात", "दिन"], "correctIndex": 0 }
+        { "id": "hi_l2_2", "question": "Identify the missing letter in: 'अ_ार' (Pomegranate)? / 'ಅ_ಸ' ಪದದಲ್ಲಿ ಬಿಟ್ಟುಹೋದ ಅಕ್ಷರವನ್ನು ಗುರುತಿಸಿ. / 'अ_ार' (अनार) में छूटा हुआ अक्षर पहचानें। / 'ప_క' లో ఖాళీగా ఉన్న అಕ್ಷరం ఏది? / 'ப_ம்' என்பதில் விடுபட்ட எழுத்து என்ன?", "options": ["न", "म", "क", "र"], "correctIndex": 0 },
+        { "id": "hi_l2_3", "question": "Which word means 'House' in Hindi? / ಕನ್ನಡದಲ್ಲಿ 'ಮನೆ' ಎಂದರೆ ಯಾವ ಪದ? / हिंदी में 'घर' का क्या अर्थ है? / తెలుగులో 'ఇల్లు' అనగా ఏమి? / தமிழில் 'வீடு' என்பதன் பொருள் என்ன?", "options": ["घर", "पेड़", "नदी", "फूल"], "correctIndex": 0 },
+        { "id": "hi_l2_4", "question": "Find the word starting with 'अ'. / 'ಅ' ಯಿಂದ ಪ್ರಾರಂಭವಾಗುವ ಪದವನ್ನು ಹುಡುಕಿ. / 'अ' से शुरू होने वाला शब्द खोजें। / 'ఆ' తో ప్రారంభమయ్యే పదాన్ని కనుగొనండి. / 'ఆ' வில் தொடங்கும் சொல்லைக் கண்டறியவும்.", "options": ["अनार", "आम", "इमली", "ईख"], "correctIndex": 0 },
+        { "id": "hi_l2_5", "question": "Which word rhymes with 'मर'? / 'ಮರ' ಪದಕ್ಕೆ ಪ್ರಾಸ ಪದ ಯಾವುದು? / 'घर' से मिलता-जुलता शब्द कौन सा है? / 'పలక' తో రైమ్ అయ్యే పదం ఏది? / 'பல்' என்ற சொல்லுடன் ஒலியமைப்பில் ஒத்த சொல் எது?", "options": ["पर", "पानी", "दूध", "रोटी"], "correctIndex": 0 },
+        { "id": "hi_l2_6", "question": "What sound does the letter 'क' make in 'कमल'? / 'ಕಮಲ' ಪದದಲ್ಲಿ 'ಕ' ಅಕ್ಷರವು ಯಾವ ಧ್ವನಿಯನ್ನು ಮಾಡುತ್ತದೆ? / 'पानी' में 'प' ध्वनि कौन सा अक्षर बनाता है? / 'పాలు' లో 'ప' ధ్వనిని ఇచ్చే అక్షరం ఏది? / 'பாலும்' என்பதில் 'பா' ஒலியைத் தரும் எழுத்து எது?", "options": ["प", "फ", "ब", "भ"], "correctIndex": 0 },
+        { "id": "hi_l2_7", "question": "Identify the Hindi word for 'Sun'. / 'ಸೂರ್ಯ' ಗಾಗಿ ಕನ್ನಡ ಪದವನ್ನು ಗುರುತಿಸಿ. / हिंदी में 'सूरज' को क्या कहते हैं? / తెలుగులో 'సూర్యుడు' అంటే ఏమిటి? / தமிழில் 'சூரியன்' என்பது என்ன?", "options": ["सूरज", "चांद", "तारा", "बादल"], "correctIndex": 0 },
+        { "id": "hi_l2_8", "question": "Which letter completes the word: 'म_ली' (Fish)? / 'ಹಾ_ು' ಪದವನ್ನು ಪೂರ್ಣಗೊಳಿಸುವ ಅಕ್ಷರ ಯಾವುದು? / 'म_ली' (मछली) में छूटा हुआ अक्षर पहचानें। / 'చే_ು' లో ఖాళీ అక్షరాన్ని గుర్తించండి. / 'மீ_்' என்பதில் விடுபட்ட எழுத்து क्या?", "options": ["छ", "क", "प", "ल"], "correctIndex": 0 },
+        { "id": "hi_l2_9", "question": "Which word starts with the 'स' sound? / 'ಬ' ಧ್ವನಿಯಿಂದ ಪ್ರಾರಂಭವಾಗುವ ಪದ ಯಾವುದು? / कौन सा शब्द 'स' से शुरू होता है? / 'చ' తో ప్రారంభమయ్యే పదం ఏది? / 'ச' வில் தொடங்கும் சொல் எது?", "options": ["सेब", "केला", "आम", "अंगूर"], "correctIndex": 0 },
+        { "id": "hi_l2_10", "question": "Identify the missing letter in: 'म_ली' (Fish). / 'ಹಾ_ು' ಪದದಲ್ಲಿ ಬಿಟ್ಟುಹೋದ ಅಕ್ಷರವನ್ನು ಗುರುತಿಸಿ. / 'कल' से मिलता-जुलता शब्द कौन सा है? / 'ಗಾಲಿ' ತೋ ರೈಮ್ ಆಯ್ಯೇ ಪದ ಏದಿ? / 'காற்று' உடன் ஒலியமைப்பில் ஒத்த சொல் எது?", "options": ["जल", "काम", "रात", "दिन"], "correctIndex": 0 }
       ]
     },
     "child_level_3": {
@@ -2448,29 +2448,29 @@ export const assessmentQuestionsByLanguage = {
         { "id": "hi_l3_1", "question": "Which word completes: 'मैं ____ पीता हूँ' (I drink ____)? / 'ನಾನು ____ ಕುಡಿಯುತ್ತೇನೆ' ಎಂಬ ವಾಕ್ಯವನ್ನು ಪೂರ್ಣಗೊಳಿಸುವ ಪದ ಯಾವುದು? / वाक्य पूरा करें: 'मैं ____ पीता हूँ' / వాక్యమును పూర్తి చేయండి: 'నేను ____ తాగుతాను' / வாக்கியத்தை நிரப்புக: 'நான் ____ குடிக்கிறேன்'", "options": ["पानी", "किताब", "पेड़", "घर"], "correctIndex": 0 },
         { "id": "hi_l3_2", "question": "Identify the action word (Verb) in Hindi: / ಕನ್ನಡದಲ್ಲಿ ಕ್ರಿಯಾಪದವನ್ನು ಗುರುತಿಸಿ: / क्रिया शब्द (Verb) को पहचानें: / క్రియను (Verb) గుర్తించండి: / வினைச்சொல்லைக் (Verb) கண்டறியவும்:", "options": ["दौड़ना", "घर", "पेड़", "किताब"], "correctIndex": 0 },
         { "id": "hi_l3_3", "question": "Which word means 'Book' in Hindi? / ಕನ್ನಡದಲ್ಲಿ 'ಪುಸ್ತಕ' ಎಂದರೆ ಏನು? / हिंदी में 'किताब' का क्या अर्थ है? / తెలుగులో 'పుస్తకం' అంటే ఏమిటి? / தமிழில் 'புத்தகம்' என்றால் என்ன?", "options": ["किताब", "कलम", "स्कूल", "घर"], "correctIndex": 0 },
-        { "id": "hi_l3_4", "question": "What is the opposite of 'दिन' (Day) in Hindi? / ಕನ್ನಡದಲ್ಲಿ 'ಹಗಲು' ಪದದ ವಿರುದ್ಧ ಪದ ಯಾವುದು? / 'दिन' का विलोम शब्द हिंदी में क्या है? / 'పగలు' కు వ్యతిరేಕ పదం ఏది? / தமிழில் 'பகல்' என்பதன் எதிர்ச்சொல் என்ன?", "options": ["रात", "सुबह", "शाम", "दोपहर"], "correctIndex": 0 },
-        { "id": "hi_l3_5", "question": "Find the word related to 'School': / 'ಶಾಲೆ'ಗೆ ಸಂಬಂಧಿಸಿದ ಪದವನ್ನು ಹುಡುಕಿ: / कौन सा शब्द 'पानी' को दर्शाता है? / నీటిని తెలిపే పదం ఏది? / நீரைக் குறிக்கும் சொல் எது?", "options": ["पानी", "आग", "हवा", "मिट्टी"], "correctIndex": 0 },
-        { "id": "hi_l3_6", "question": "Which word means 'Water' in Hindi? / ಕನ್ನಡದಲ್ಲಿ 'ನೀರು' ಎಂದರೆ ಯಾವ ಅರ್ಥ? / इनमें से कौन सा एक फल है? / వీటిలో పండు ఏది? / இவற்றுள் பழம் எது?", "options": ["आम", "कुर्सी", "मेज", "किताब"], "correctIndex": 0 },
-        { "id": "hi_l3_7", "question": "Identify the word for 'Tree' in Hindi: / ಕನ್ನಡದಲ್ಲಿ 'ಮರ' ಪದವನ್ನು ಗುರುತಿಸಿ: / वाक्य पूरा करें: 'राम ____ खाता है' / పూర్తి చేయండి: 'రాము ____ తింటున్నాడు' / நிரப்புக: 'ராம் ____ சாப்பிடுகிறான்'", "options": ["खाना", "पानी", "घर", "किताब"], "correctIndex": 0 },
-        { "id": "hi_l3_8", "question": "Which word means 'Apple' in Hindi? / ಕನ್ನಡದಲ್ಲಿ 'ಸೇಬು' ಎಂದರೆ ಏನು? / संज्ञा शब्द (Noun) को पहचानें: / నామవాచకాన్ని (Noun) గుర్తించండి: / பெயர்ச்சொல்லைக் (Noun) கண்டறியவும்:", "options": ["लड़का", "दौड़ना", "खाना", "सोना"], "correctIndex": 0 },
-        { "id": "hi_l3_9", "question": "Find the noun word in Hindi: / ಕನ್ನಡದಲ್ಲಿ ನಾಮಪದವನ್ನು ಹುಡುಕಿ: / हिंदी में 'लाल' रंग क्या है? / 'ఎరుపు' రంగును తెలుగులో ఏమంటారు? / தமிழில் 'சிவப்பு' நிறம் என்ன?", "options": ["लाल", "नीला", "पीला", "हरा"], "correctIndex": 0 },
-        { "id": "hi_l3_10", "question": "Which word means 'Flower' in Hindi? / ಕನ್ನಡದಲ್ಲಿ 'ಹೂವು' ಎಂದರೆ ಯಾವ ಅರ್ಥ? / हिंदी में 'कुत्ता' का क्या अर्थ है? / తెలుగులో 'కుక్క' అంటే ఏమిటి? / தமிழில் 'நாய்' என்பதன் பொருள் என்ன?", "options": ["कुत्ता", "बिल्ली", "गाय", "बंदर"], "correctIndex": 0 }
+        { "id": "hi_l3_4", "question": "What is the opposite of 'दिन' (Day) in Hindi? / ಕನ್ನಡದಲ್ಲಿ 'ಹಗಲು' ಪದದ ವಿರುದ್ಧ ಪದ ಯಾವುದು? / 'दिन' का विलोम शब्द हिंदी में क्या है? / 'పగలు' కు వ్యతిరేక పదం ఏది? / தமிழில் 'பகல்' என்பதன் எதிர்ச்சொல் என்ன?", "options": ["रात", "सुबह", "शाम", "दोपहर"], "correctIndex": 0 },
+        { "id": "hi_l3_5", "question": "Find the word related to 'School': / 'ಶಾಲೆ'ಗೆ ಸಂಬಂಧಿಸಿದ ಪದವನ್ನು ಹುಡುಕಿ: / कौन सा शब्द 'स्कूल' को दर्शाता है? / పాఠశాలకు సంబంధించిన పదం ఏది? / பள்ளியோடு தொடர்புடைய சொல் எது?", "options": ["स्कूल", "जंगल", "समुद्र", "आसमान"], "correctIndex": 0 },
+        { "id": "hi_l3_6", "question": "Which word means 'Water' in Hindi? / ಕನ್ನಡದಲ್ಲಿ 'ನೀರು' ಎಂದರೆ ಯಾವ ಅರ್ಥ? / हिंदी में 'पानी' का क्या अर्थ है? / తెలుగులో 'నీరు' అంటే ఏమిటి? / தமிழில் 'தண்ணீர்' என்பதன் பொருள் என்ன?", "options": ["पानी", "दूध", "हवा", "आग"], "correctIndex": 0 },
+        { "id": "hi_l3_7", "question": "Identify the word for 'Tree' in Hindi: / ಕನ್ನಡದಲ್ಲಿ 'ಮರ' ಪದವನ್ನು ಗುರುತಿಸಿ: / हिंदी में 'पेड़' को पहचानें: / తెలుగులో 'చెట్టు' ను గుర్తించండి: / தமிழில் 'மரம்' என்பதை அடையாளம் காணவும்:", "options": ["पेड़", "पौधा", "फूल", "पत्ती"], "correctIndex": 0 },
+        { "id": "hi_l3_8", "question": "Which word means 'Apple' in Hindi? / ಕನ್ನಡದಲ್ಲಿ 'ಸೇಬು' ಎಂದರೆ ಏನು? / हिंदी में 'सेब' का क्या अर्थ है? / తెలుగులో 'ఆపిల్' అంటే ఏమిటి? / தமிழில் 'ஆப்பிள்' என்றால் என்ன?", "options": ["सेब", "केला", "आम", "संतरा"], "correctIndex": 0 },
+        { "id": "hi_l3_9", "question": "Find the noun word in Hindi: / ಕನ್ನಡದಲ್ಲಿ ನಾಮಪದವನ್ನು ಹುಡುಕಿ: / हिंदी में संज्ञा शब्द (Noun) को पहचानें: / తెలుగులో నామవాచకాన్ని గుర్తించండి: / தமிழில் பெயர்ச்சொல்லைக் கண்டறியவும்:", "options": ["राम", "दौड़ना", "पीना", "चलना"], "correctIndex": 0 },
+        { "id": "hi_l3_10", "question": "Which word means 'Flower' in Hindi? / ಕನ್ನಡದಲ್ಲಿ 'ಹೂವು' ಎಂದರೆ ಯಾವ ಅರ್ಥ? / हिंदी में 'फूल' का क्या अर्थ है? / తెలుగులో 'పువ్వు' అంటే ఏమిటి? / தமிழில் 'பூ' என்பதன் பொருள் என்ன?", "options": ["फूल", "पत्ती", "पेड़", "फल"], "correctIndex": 0 }
       ]
     },
     "child_level_4": {
       "title": "Hindi Level 4 Assessment",
       "description": "Test checking capability at Level 4 for Hindi learners.",
       "questions": [
-        { "id": "hi_l4_1", "question": "Read: 'बच्चे स्कूल में पढ़ते हैं.' What are children doing? / 'ಮಕ್ಕಳು ಶಾಲೆಯಲ್ಲಿ ಓದುತ್ತಾರೆ.' ಮಕ್ಕಳು ಏನು ಮಾಡುತ್ತಿದ್ದಾರೆ? / हिंदी में कौन सा नोटिस 'DANGER' का अर्थ देता है? / 'STOP' అనే గుర్తుకు తెలుగు అర్థం ఏమిటి? / தமிழில் 'STOP' என்பதன் அர்த்தம் என்ன?", "options": ["खतरा", "स्वागत", "प्रवेश", "निकास"], "correctIndex": 0 },
-        { "id": "hi_l4_2", "question": "Select the correct sentence structure in Hindi: / ಕನ್ನಡದಲ್ಲಿ ಸರಿಯಾದ ವಾಕ್ಯ ರಚನೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ: / नोटिस पढ़ें: 'कृपया शांत रहें।' क्या निर्देश दिया गया है? / సూచన చదవండి: 'దయచేసి నిశ్శబ్దంగా ఉండండి.' ఏం చేయాలి? / அறிவிப்பைப் படிக்கவும்: 'தயவுசெய்து அமைதியாக இருங்கள்.' என்ன செய்ய வேண்டும்?", "options": ["शांति बनाए रखें", "शोर मचाएं", "दौड़ें", "सो जाएं"], "correctIndex": 0 },
-        { "id": "hi_l4_3", "question": "Which sign means 'STOP' in Hindi? / ಕನ್ನಡದಲ್ಲಿ 'STOP' ಎನ್ನುವುದರ ಸೂಚನೆ ಯಾವುದು? / हिंदी में 'EXIT' का क्या अर्थ है? / తెలుగులో 'EXIT' అనగా ఏమి? / தமிழில் 'EXIT' என்பதன் அர்த்தம் என்ன?", "options": ["निकास", "प्रवेश", "खतरा", "रुकें"], "correctIndex": 0 },
-        { "id": "hi_l4_4", "question": "What does 'खतरा' (Danger) indicate on a sign? / ಸೂಚನೆಯಲ್ಲಿ 'ಅಪಾಯ' ಎಂದರೆ ಏನು ಸೂಚಿಸುತ್ತದೆ? / वाक्य पूरा करें: 'पक्षी ____ में उड़ते हैं' / పూర్తి చేయండి: 'పక్షులు ____ లో ఎగురుతాయి' / நிரப்புக: 'பறவைகள் ____ பறக்கின்றன'", "options": ["आसमान", "पानी", "जमीन", "घर"], "correctIndex": 0 },
-        { "id": "hi_l4_5", "question": "Which sentence describes the sun rising? / ಸೂರ್ಯ ಮೂಡುವುದನ್ನು ಯಾವ ವಾಕ್ಯ ವಿವರಿಸುತ್ತದೆ? / 'NO PARKING' संकेत का क्या अर्थ है? / 'NO PARKING' అనగా అర్థం ఏమిటి? / 'NO PARKING' என்பதன் அர்த்தம் என்ன?", "options": ["पार्किंग मना है", "रुकें", "खतरा", "स्वागत है"], "correctIndex": 0 },
-        { "id": "hi_l4_6", "question": "Read: 'कुत्ता भौंकता है.' What does the dog do? / 'ನಾಯಿ ಬೊಗಳುತ್ತದೆ.' ನಾಯಿ ಏನು ಮಾಡುತ್ತದೆ? / वाक्य पूरा करें: 'मैं रोज़ स्कूल ____ हूँ' / పూర్తి చేయండి: 'నేను రోజు బడికి ____' / நிரப்புக: 'நான் தினமும் பள்ளிக்கு ____'", "options": ["जाता", "खाता", "पीता", "सोता"], "correctIndex": 0 },
-        { "id": "hi_l4_7", "question": "Which sign means 'SCHOOL AHEAD'? / 'SCHOOL AHEAD' ಸೂಚನೆ ಯಾವುದು? / 'SILENCE' संकेत का क्या अर्थ है? / 'DANGER' సూచన అర్థం ఏమిటి? / 'DANGER' என்பதன் அர்த்தம் என்ன?", "options": ["शांत रहें", "बोलें", "गाएं", "हंसें"], "correctIndex": 0 },
-        { "id": "hi_l4_8", "question": "Complete: 'मैं प्रतिदिन ____ जाता हूँ' (I go to ____ everyday). / 'ನಾನು ಪ್ರತಿದಿನ ____ ಹೋಗುತ್ತೇನೆ' ಎಂಬ ವಾಕ್ಯವನ್ನು ಪೂರ್ಣಗೊಳಿಸಿ. / सूरज ढलने को कौन सा वाक्य दर्शाता है? / సూర్యుడు అస్తమించడాన్ని ఏ వాక్యం తెలుపుతుంది? / சூரியன் மறைவதை எந்த வாக்கியம் விவரிக்கிறது?", "options": ["सूरज डूबता है", "चांद निकलता है", "बारिश होती है", "हवा चलती है"], "correctIndex": 0 },
-        { "id": "hi_l4_9", "question": "Read: 'हरी बत्ती पर वाहन चलना चाहिए.' When should vehicles move? / 'ಹಸಿರು ದೀಪ ಬೆಳಗಿದಾಗ ವಾಹನ ಚಲಿಸಬೇಕು.' ವಾಹನಗಳು ಯಾವಾಗ ಚಲಿಸಬೇಕು? / 'अस्पताल का रास्ता' का क्या अर्थ है? / 'ఆసుపత్రికి దారి' అనగా ఏమి? / 'மருத்துவமனைக்கு வழி' என்பதன் ஆங்கில அர்த்தம் என்ன?", "options": ["Way to hospital", "Way to school", "Way to home", "Way to park"], "correctIndex": 0 },
-        { "id": "hi_l4_10", "question": "What does 'कूड़ेदान' mean? / 'ಕಸದ ಬುಟ್ಟಿ' ಎಂದರೆ ಏನು? / वाक्य पूरा करें: 'मुझे प्यास लगी है, मुझे ____ चाहिए' / పూర్తి చేయండి: 'నాకు దాహంగా ఉంది, నాకు ____ కావాలి' / நிரப்புக: 'எனக்கு தாகமாக இருக்கிறது, எனக்கு ____ வேண்டும்'", "options": ["पानी", "किताब", "जूता", "बैग"], "correctIndex": 0 }
+        { "id": "hi_l4_1", "question": "Read: 'बच्चे स्कूल में पढ़ते हैं.' What are children doing? / 'ಮಕ್ಕಳು ಶಾಲೆಯಲ್ಲಿ ಓದುತ್ತಾರೆ.' ಮಕ್ಕಳು ಏನು ಮಾಡುತ್ತಿದ್ದಾರೆ? / पढ़ें: 'बच्चे स्कूल में पढ़ते हैं।' बच्चे क्या कर रहे हैं? / పిల్లలు బడిలో చదువుకుంటున్నారు. పిల్లలు ఏం చేస్తున్నారు? / படிக்கவும்: 'குழந்தைகள் பள்ளியில் படிக்கிறார்கள்.' குழந்தைகள் என்ன செய்கிறார்கள்?", "options": ["पढ़ रहे हैं", "खेल रहे हैं", "कूद रहे हैं", "सो रहे हैं"], "correctIndex": 0 },
+        { "id": "hi_l4_2", "question": "Select the correct sentence structure in Hindi: / ಕನ್ನಡದಲ್ಲಿ ಸರಿಯಾದ ವಾಕ್ಯ ರಚನೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ: / हिंदी में सही वाक्य संरचना का चयन करें: / తెలుగులో సరైన వాక్య నిర్మాణాన్ని ఎంచుకోండి: / தமிழில் சரியான வாக்கிய அமைப்பைத் தேர்ந்தெடுக்கவும்:", "options": ["राम फल खाता है।", "खाता है फल राम।", "फल खाता है राम।", "राम खाता है फल।"], "correctIndex": 0 },
+        { "id": "hi_l4_3", "question": "Which sign means 'STOP' in Hindi? / ಕನ್ನಡದಲ್ಲಿ 'STOP' ಎನ್ನುವುದರ ಸೂಚನೆ ಯಾವುದು? / हिंदी में 'STOP' का क्या अर्थ है? / తెలుగులో 'STOP' అనగా ఏమి? / தமிழில் 'STOP' என்பதன் அர்த்தம் என்ன?", "options": ["रुकें", "चलें", "धीме", "सावधान"], "correctIndex": 0 },
+        { "id": "hi_l4_4", "question": "What does 'खतरा' (Danger) indicate on a sign? / ಸೂಚನೆಯಲ್ಲಿ 'ಅಪಾಯ' ಎಂದರೆ ಏನು ಸೂಚಿಸುತ್ತದೆ? / संकेत पर 'खतरा' (Danger) क्या दर्शाता है? / గుర్తుపై 'ప్రమాదం' (Danger) దేనిని సూచిస్తుంది? / பலகையில் 'அபாயம்' (Danger) என்பது எதைக்குறிக்கிறது?", "options": ["खतरनाक स्थान", "विश्राम गृह", "स्वागत", "मुफ्त"], "correctIndex": 0 },
+        { "id": "hi_l4_5", "question": "Which sentence describes the sun rising? / ಸೂರ್ಯ ಮೂಡುವುದನ್ನು ಯಾವ ವಾಕ್ಯ ವಿವರಿಸುತ್ತದೆ? / कौन सा वाक्य सूर्योदय का वर्णन करता है? / సూర్యోదయాన్ని వివరించే వాక్యం ఏది? / சூரிய உதயத்தை விவரிக்கும் வாக்கியம் எது?", "options": ["सूरज उगता है।", "चांद चमकता है।", "बारिश होती है।", "हवा चलती है।"], "correctIndex": 0 },
+        { "id": "hi_l4_6", "question": "Read: 'कुत्ता भौंकता है.' What does the dog do? / 'ನಾಯಿ ಬೊಗಳುತ್ತದೆ.' ನಾಯಿ ಏನು ಮಾಡುತ್ತದೆ? / पढ़ें: 'कुत्ता भौंकता है।' कुत्ता क्या करता है? / పిల్లలు చదవండి: 'కుక్క మొరుగుతుంది.' కుక్క ఏం చేస్తుంది? / படிக்கவும்: 'நாய் குரைக்கிறது.' நாய் என்ன செய்கிறது?", "options": ["भौंकता है", "सोता है", "दौड़ता है", "कूदता है"], "correctIndex": 0 },
+        { "id": "hi_l4_7", "question": "Which sign means 'SCHOOL AHEAD'? / 'SCHOOL AHEAD' ಸೂಚನೆ ಯಾವುದು? / हिंदी में 'स्कूल आगे है' संकेत का क्या अर्थ है? / తెలుగులో 'SCHOOL AHEAD' సూచన అర్థం ఏమిటి? / தமிழில் 'பள்ளி அருகில் உள்ளது' என்பதன் அர்த்தம் என்ன?", "options": ["स्कूल क्षेत्र", "अस्पताल", "बस स्टैंड", "उद्यान"], "correctIndex": 0 },
+        { "id": "hi_l4_8", "question": "Complete: 'मैं प्रतिदिन ____ जाता हूँ' (I go to ____ everyday). / 'ನಾನು ಪ್ರತಿದಿನ ____ ಹೋಗುತ್ತೇನೆ' ಎಂಬ ವಾಕ್ಯವನ್ನು ಪೂರ್ಣಗೊಳಿಸಿ. / वाक्य पूरा करें: 'मैं प्रतिदिन ____ जाता हूँ' / పూర్తి చేయండి: 'నేను రోజు బడికి ____ వెళ్తాను' / நிரப்புக: 'நான் தினமும் பள்ளிக்கு ____ செல்கிறேன்'", "options": ["स्कूल", "पेड़", "किताब", "पानी"], "correctIndex": 0 },
+        { "id": "hi_l4_9", "question": "Read: 'हरी बत्ती पर वाहन चलना चाहिए.' When should vehicles move? / 'ಹಸಿರು ದೀಪ ಬೆಳಗಿದಾಗ ವಾಹನ ಚಲಿಸಬೇಕು.' ವಾಹನಗಳು ಯಾವಾಗ ಚಲಿಸಬೇಕು? / निर्देश पढ़ें: 'हरी बत्ती पर वाहन चलना चाहिए।' वाहनों को कब चलना चाहिए? / సూచన చదవండి: 'ఆకుపచ్చ లైట్ పడినప్పుడు वाहन कदलाली.' ఎప్పుడు వాహనం కదలాలి? / அறிவுறுத்தல்: 'பச்சை விளக்கு எரியும் போது வாகனம் செல்ல வேண்டும்.' வாகனம் எப்போது செல்ல வேண்டும்?", "options": ["हरी बत्ती", "लाल बत्ती", "पीली बत्ती", "नीली बत्ती"], "correctIndex": 0 },
+        { "id": "hi_l4_10", "question": "What does 'कूड़ेदान' mean? / 'ಕಸದ ಬುಟ್ಟಿ' ಎಂದರೆ ಏನು? / 'कूड़ेदान' का क्या अर्थ है? / 'చెత్తబుట్ట' అనగా ఏమిటి? / 'குப்பைத் தொட்டி' என்பதன் அர்த்தம் என்ன?", "options": ["कचरा डालने का स्थान", "पानी पीने का स्थान", "खेल का मैदान", "सोने का कमरा"], "correctIndex": 0 }
       ]
     },
     "child_level_5": {
@@ -2479,13 +2479,13 @@ export const assessmentQuestionsByLanguage = {
       "questions": [
         { "id": "hi_l5_1", "question": "Read notice: 'सावधान: आगे काम चल रहा है.' What is indicated? / 'ಎಚ್ಚರಿಕೆ: ಅಪಾಯಕಾರಿ ಸ್ಥಳ. ಪ್ರವೇಶ ನಿಷೇಧಿಸಲಾಗಿದೆ.' ಈ ಸೂಚನೆ ಏನು ತಿಳಿಸುತ್ತದೆ? / नोटिस पढ़ें: 'सावधान: आगे कार्य प्रगति पर है।' इसका क्या अर्थ है? / 'ఆగండి' బోర్డు చూసినప్పుడు ఏం చేయాలి? / 'நில்' பலகையைக் கண்டால் என்ன செய்ய வேண்டும்?", "options": ["कार्य प्रगति पर है", "सड़क बंद है", "विश्राम गृह", "दुकान खुली है"], "correctIndex": 0 },
         { "id": "hi_l5_2", "question": "What action should be taken when you see 'कूड़ेदान में डालें'? / 'ನಿಲ್ಲಿಸಿ' ಎಂಬ ಫಲಕವನ್ನು ನೋಡಿದಾಗ ಯಾವ ಕ್ರಮ ಕೈಗೊಳ್ಳಬೇಕು? / नोटिस पढ़ें: 'कचरा कूड़ेदान में डालें'। आपको क्या करना चाहिए? / సూచన చదవండి: 'చెత్తను చెత్తబుట్టలో వేయండి'. ఏం చేయాలి? / அறிவிப்பு: 'குப்பையை குப்பைத் தொட்டியில் போடவும்'. என்ன செய்ய வேண்டும்?", "options": ["कूड़ेदान में डालें", "सड़क पर फेंकें", "घर ले जाएं", "जला दें"], "correctIndex": 0 },
-        { "id": "hi_l5_3", "question": "Read notice: 'एक कौवा बहुत प्यासा था'. What is prohibited? / 'ಶಾಲಾ ಆವರಣದಲ್ಲಿ ಮೊಬೈಲ್ ಫೋನ್ ಬಳಕೆಯನ್ನು ನಿಷೇಧಿಸಲಾಗಿದೆ.' ಇಲ್ಲಿ ನಿಷೇಧಿಸಿರುವುದು ಯಾವುದು? / कहानी पढ़ें: 'एक कौवा बहुत प्यासा था'। किसे प्यास लगी थी? / कथा చదవండి: 'ఒక కాకికి బాగా దాహం వేసింది'. ఎవరికి దాహం వేసింది? / கதை: 'ஒரு காகத்திற்கு மிகவும் தாகமாக இருந்தது'. யாருக்கு தாகம் இருந்தது?", "options": ["कौवा", "कबूतर", "तोता", "मोर"], "correctIndex": 0 },
-        { "id": "hi_l5_4", "question": "Read notice: 'बिना टिकट यात्रा दंडनीय है'. What is punishable? / 'ಒಂದು ಕಾಡಿನಲ್ಲಿ ಒಂದು ಸಿಂಹವಿತ್ತು. ಅದು ತುಂಬಾ ಹಸಿವಿನಿಂದ ಇತ್ತು.' ಹಸಿವಿನಿಂದ ಇದ್ದದ್ದು ಯಾರು? / नोटिस पढ़ें: 'बिना टिकट यात्रा दंडनीय है'। क्या दंडनीय है? / నోటీసు చదవండి: 'టికెట్ లేకుండా ప్రయాణించడం నేరం'. నేరం ఏమిటి? / அறிவிப்பு: 'பயணச்சீட்டு இல்லாமல் பயணம் செய்வது குற்றம்'. குற்றம் எது?", "options": ["बिना टिकट यात्रा", "टिकट खरीदना", "बैठना", "सोना"], "correctIndex": 0 },
+        { "id": "hi_l5_3", "question": "Read notice: 'एक कौवा बहुत प्यासा था'. What is prohibited? / 'ಶಾಲಾ ಆವರಣದಲ್ಲಿ ಮೊಬೈಲ್ ಫೋನ್ ಬಳಕೆಯನ್ನು ನಿಷೇಧಿಸಲಾಗಿದೆ.' ಇಲ್ಲಿ ನಿಷೇಧಿಸಿರುವುದು ಯಾವುದು? / कहानी पढ़ें: 'एक कौवा बहुत प्यासा था'। किसे प्यास लगी थी? / కథ చదవండి: 'ఒక కాకికి బాగా దాహం వేసింది'. ఎవరికి దాహం వేసింది? / கதை: 'ஒரு காகத்திற்கு மிகவும் தாகமாக இருந்தது'. யாருக்கு தாகம் இருந்தது?", "options": ["कौवा", "कबूतर", "तोता", "मोर"], "correctIndex": 0 },
+        { "id": "hi_l5_4", "question": "Read notice: 'बिना टिकट यात्रा दंडनीय है'. What is punishable? / 'ಒಂದು ಕಾಡಿನಲ್ಲಿ ಒಂದು ಸಿಂಹವಿತ್ತು. ಅದು ತುಂಬಾ हताश था?' हताश कौन था? / नोटिस पढ़ें: 'बिना टिकट यात्रा दंडनीय है'। क्या दंडनीय है? / నోటీసు చదవండి: 'టికెట్ లేకుండా ప్రయాణించడం నేరం'. నేరం ఏమిటి? / அறிவிப்பு: 'பயணச்சீட்டு இல்லாமல் பயணம் செய்வது குற்றம்'. குற்றம் எது?", "options": ["बिना टिकट यात्रा", "टिकट खरीदना", "बैठना", "सोना"], "correctIndex": 0 },
         { "id": "hi_l5_5", "question": "Read rule: 'लाल बत्ती पर रुकें'. When should you stop? / 'ನಾಳೆ ಶಾಲೆಯಲ್ಲಿ ರಜಾದಿನ.' ರಜಾದಿನ ಯಾವಾಗ? / नियम पढ़ें: 'लाल बत्ती पर रुकें'। आपको कब रुकना चाहिए? / నియమం చదవండి: 'ఎర్ర లైట్ పడినప్పుడు ఆగండి'. ఎప్పుడు ఆగాలి? / விதி: 'சிவப்பு விளக்கு எரியும் போது நிற்கவும்'. எப்போது நிற்க வேண்டும்?", "options": ["लाल बत्ती", "हरी बत्ती", "पीली बत्ती", "नीली बत्ती"], "correctIndex": 0 },
-        { "id": "hi_l5_6", "question": "Read instruction: 'खाने से पहले हाथ धोएं'. When should you wash hands? / 'ಬೆಂಕಿಯಿಂದ ದೂರವಿರಿ.' ಯಾವುದರಿಂದ ದೂರವಿರಬೇಕು? / निर्देश पढ़ें: 'खाने से पहले हाथ धोएं'। हाथ कब धोने चाहिए? / సూచన చదవండి: 'భోజనానికి ముందు చేతులు ಕడుక్కోవాలి'. ఎప్పుడు ಕడుక్కోವాలి? / அறிவுறுத்தல்: 'சாப்பிடும் முன் கைகழுவவும்'. எப்போது கைகழுவ வேண்டும்?", "options": ["खाने से पहले", "सोने से पहले", "खेलने से पहले", "नहाने से पहले"], "correctIndex": 0 },
+        { "id": "hi_l5_6", "question": "Read instruction: 'खाने से पहले हाथ धोएं'. When should you wash hands? / 'ಬೆಂಕಿಯಿಂದ ದೂರವಿರಿ.' ಯಾವುದರಿಂದ ದೂರವಿರಬೇಕು? / निर्देश पढ़ें: 'खाने से पहले हाथ धोएं'। हाथ कब धोने चाहिए? / సూచన చదవండి: 'భోజనానికి ముందు చేతులు కడుక్కోవాలి'. ఎప్పుడు కడుక్కోవాలి? / அறிவுறுத்தல்: 'சாப்பிடும் முன் கைகழுவவும்'. எப்போது கைகழுவ வேண்டும்?", "options": ["खाने से पहले", "सोने से पहले", "खेलने से पहले", "नहाने से पहले"], "correctIndex": 0 },
         { "id": "hi_l5_7", "question": "Read notice: 'धूम्रपान निषेध है'. What is prohibited? / 'ಊಟ ಮಾಡುವ ಮುನ್ನ ಕೈ ತೊಳೆಯಿರಿ.' ಊಟಕ್ಕೆ ಮುಂಚೆ ಏನು ಮಾಡಬೇಕು? / नोटिस पढ़ें: 'धूम्रपान निषेध है'। क्या मना है? / నోటీసు చదవండి: 'పొగ త్రాగరాదు'. ఏది నిషిద్ధం? / அறிவிப்பு: 'புகைப்பிடிக்கக் கூடாது'. தடை செய்யப்பட்டது எது?", "options": ["धूम्रपान", "खाना", "पीना", "बोलना"], "correctIndex": 0 },
         { "id": "hi_l5_8", "question": "Read story: 'राम और श्याम अच्छे दोस्त हैं'. Who are friends? / 'ರೈಲು ನಿಲ್ದಾಣದಲ್ಲಿ ಧೂಮಪಾನ ನಿಷೇಧಿಸಲಾಗಿದೆ.' ಎಲ್ಲಿ ಧೂಮಪಾನ ನಿಷೇಧಿಸಲಾಗಿದೆ? / कहानी पढ़ें: 'राम और श्याम अच्छे दोस्त हैं'। दोस्त कौन हैं? / కథ చదవండి: 'రాము, శ్యామ్ మంచి స్నేహితులు'. స్నేహితులు ఎవరు? / கதை: 'ராமும் ஷ்யாமும் நல்ல நண்பர்கள்'. நண்பர்கள் யார்?", "options": ["राम और श्याम", "राम और मोहन", "श्याम और सीता", "गीता और सीता"], "correctIndex": 0 },
-        { "id": "hi_l5_9", "question": "Read warning: 'कुत्तों से सावधान'. Who should you beware of? / 'ಗ್ರಂಥಾಲಯದಲ್ಲಿ ನಿಶ್ಯಬ್ದವಾಗಿರಿ.' ಎಲ್ಲಿ ನಿಶ್ಯಬ್ದವಾಗಿರಬೇಕು? / चेतावनी पढ़ें: 'कुत्तों से सावधान'। किससे सावधान रहना चाहिए? / హెచ్చరిక చదవండి: 'కుక్కల పట్ల జాగ్రత్త'. దేనిపట్ల జాగ్రత్తగా ఉండాలి? / எச்சரிக்கை: 'நாய்கள் ஜாக்கிரதை'. யாரிடம் எச்சரிக்கையாக இருக்க வேண்டும்?", "options": ["कुत्तों", "बिल्लियों", "गायों", "पक्षियों"], "correctIndex": 0 },
+        { "id": "hi_l5_9", "question": "Read warning: 'कुत्तों से सावधान'. Who should you beware of? / 'ಗ್ರಂಥಾಲಯದಲ್ಲಿ ನಿಶ್ಯಬ್ದವಾಗಿರಿ.' ಎಲ್ಲಿ ನಿಶ್ಯಬ್ದವಾಗಿರಬೇಕು? / चेतावनी पढ़ें: 'कुत्तों से सावधान'। किससे सावधान रहना चाहिए? / హెచ్చరిక చదవండి: 'కుక్కల పట్ల జాగ్రత్త'. దేనిపట్ల జాగ్రತ್ತగా ఉండాలి? / எச்சரிக்கை: 'நாய்கள் ஜாக்கிரதை'. யாரிடம் எச்சரிக்கையாக இருக்க வேண்டும்?", "options": ["कुत्तों", "बिल्लियों", "गायों", "पक्षियों"], "correctIndex": 0 },
         { "id": "hi_l5_10", "question": "Read news: 'कल भारी बारिश होगी'. What will happen tomorrow? / 'ದಿನಾಲು ಹಾಲು ಕುಡಿಯುವುದು ಆರೋಗ್ಯಕ್ಕೆ ಒಳ್ಳೆಯದು.' ಆರೋಗ್ಯಕ್ಕೆ ಪ್ರತಿದಿನ ಒಳ್ಳೆಯದು ಯಾವುದು? / समाचार पढ़ें: 'कल भारी बारिश होगी'। कल क्या होगा? / వార్త చదవండి: 'రేపు భారీ వర్షం కురుస్తుంది'. రేపు ఏం జరుగుతుంది? / செய்தி: 'நாளை பலத்த மழை பெய்யும்'. நாளை என்ன நடக்கும்?", "options": ["भारी बारिश", "धूप", "बर्फ", "तूफान"], "correctIndex": 0 }
       ]
     }
