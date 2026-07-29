@@ -30,15 +30,24 @@ export const SKILL_TRANSLATION_KEYS = {
   writing_ability: "skillWritingAbility",
 };
 
-export const getStrongSkillKeys = (skillScores) =>
-  Object.entries(skillScores || {})
-    .filter(([_, v]) => typeof v === "number" && v >= 90)
-    .map(([k]) => k);
+export const getStrongSkillKeys = (skillScores) => {
+  const entries = Object.entries(skillScores || {}).filter(([_, v]) => typeof v === "number");
+  entries.sort((a, b) => b[1] - a[1]);
+  // Take top skills scoring >= 70, but if none, take the top 2
+  let strong = entries.filter(([_, v]) => v >= 70);
+  if (strong.length === 0 && entries.length > 0) {
+    strong = entries.slice(0, 2);
+  }
+  return strong.map(([k]) => k);
+};
 
-export const getWeakSkillKeys = (skillScores) =>
-  Object.entries(skillScores || {})
-    .filter(([_, v]) => typeof v === "number" && v < 35)
-    .map(([k]) => k);
+export const getWeakSkillKeys = (skillScores) => {
+  const entries = Object.entries(skillScores || {}).filter(([_, v]) => typeof v === "number");
+  entries.sort((a, b) => a[1] - b[1]);
+  // Take bottom skills scoring < 70, but if none, take none (user is perfect)
+  let weak = entries.filter(([_, v]) => v < 70);
+  return weak.slice(0, 3).map(([k]) => k);
+};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PROFICIENCY LEVELS (5-level system per spec)
@@ -948,6 +957,9 @@ export const computeSkillScores = (questions, selectedAnswers, readingAttempts, 
     skillBuckets[s] = { correct: 0, total: 0 };
   });
 
+  // Track scores for levels that were actually tested
+  const levelScores = { 1: [], 2: [], 3: [], 4: [], 5: [] };
+
   questions.forEach((q, idx) => {
     const skill = q.skill || "reading_comprehension";
     if (!skillBuckets[skill]) skillBuckets[skill] = { correct: 0, total: 0 };
@@ -956,6 +968,10 @@ export const computeSkillScores = (questions, selectedAnswers, readingAttempts, 
       const isCorrect = selectedAnswers[idx] === q.correctIndex ? 1 : 0;
       skillBuckets[skill].total += 1;
       skillBuckets[skill].correct += isCorrect;
+      
+      if (q.blockLevel) {
+        levelScores[q.blockLevel].push(isCorrect);
+      }
     } else if (q.type === "reading") {
       const attempt = readingAttempts[idx];
       const ratio = (attempt && attempt.totalWords > 0) ? attempt.matchedCount / attempt.totalWords : 0;
@@ -969,22 +985,71 @@ export const computeSkillScores = (questions, selectedAnswers, readingAttempts, 
     }
   });
 
+  // Compute actual percentages for tested skills
   const scores = {};
   Object.entries(skillBuckets).forEach(([skill, { correct, total }]) => {
-    if (total === 0) {
+    if (total > 0) {
+      scores[skill] = Math.round((correct / total) * 100);
+    } else {
       scores[skill] = null;
-      return;
     }
-    scores[skill] = Math.round((correct / total) * 100);
   });
 
-  const assessedScores = Object.values(scores).filter(v => typeof v === "number");
-  const avgAssessed = assessedScores.length > 0
-    ? Math.round(assessedScores.reduce((a, b) => a + b, 0) / assessedScores.length)
-    : 0;
+  // Average performance of levels that were actually tested
+  const testedLevels = Object.keys(levelScores).filter(lvl => levelScores[lvl].length > 0).map(Number);
+  const maxTestedLevel = testedLevels.length > 0 ? Math.max(...testedLevels) : 1;
+  const minTestedLevel = testedLevels.length > 0 ? Math.min(...testedLevels) : 1;
 
+  // Compute average correct ratio across all tested levels
+  let totalTestedCorrect = 0;
+  let totalTestedCount = 0;
+  testedLevels.forEach(lvl => {
+    totalTestedCorrect += levelScores[lvl].reduce((a, b) => a + b, 0);
+    totalTestedCount += levelScores[lvl].length;
+  });
+  const overallComprehensionAvg = totalTestedCount > 0 ? (totalTestedCorrect / totalTestedCount) : 0.5;
+
+  // Map skill to corresponding level
+  const skillToLevelMap = {
+    letter_recognition: 1,
+    word_recognition: 2,
+    vocabulary_recognition: 3,
+    sentence_understanding: 4,
+    reading_comprehension: 5,
+    practical_literacy: 4
+  };
+
+  // Fill in untested skills using hierarchical progression rules
+  Object.keys(skillToLevelMap).forEach(skill => {
+    if (scores[skill] !== null) return; // Already tested
+
+    const targetLevel = skillToLevelMap[skill];
+    if (targetLevel < minTestedLevel) {
+      // Lower level skill than tested: assume they mastered it since they bypassed/started higher
+      scores[skill] = Math.round(90 + (overallComprehensionAvg * 10));
+    } else if (targetLevel > maxTestedLevel) {
+      // Higher level skill than tested: did not reach this level or failed to advance
+      if (overallComprehensionAvg < 0.6) {
+        scores[skill] = Math.round(10 + (overallComprehensionAvg * 20));
+      } else {
+        scores[skill] = Math.round(35 + (overallComprehensionAvg * 15));
+      }
+    } else {
+      // Untested level between min and max (interpolate)
+      scores[skill] = Math.round(overallComprehensionAvg * 100);
+    }
+  });
+
+  // Ensure reading_ability and writing_ability are set
+  if (scores.reading_ability === null) {
+    scores.reading_ability = Math.round(overallComprehensionAvg * 100);
+  }
+  if (scores.writing_ability === null) {
+    scores.writing_ability = Math.round(overallComprehensionAvg * 100);
+  }
+
+  // Ensure all scores are bounded between 0 and 100
   Object.keys(scores).forEach(k => {
-    if (scores[k] === null) scores[k] = avgAssessed;
     scores[k] = Math.max(0, Math.min(100, scores[k]));
   });
 

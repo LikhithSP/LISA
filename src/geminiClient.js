@@ -18,6 +18,92 @@ const PRIMARY_MODEL  = import.meta.env.VITE_OPENROUTER_MODEL || "mistralai/mistr
 const FALLBACK_MODEL = import.meta.env.VITE_GEMINI_MODEL     || "gemini-2.0-flash";
 const GROQ_MODEL     = import.meta.env.VITE_GROQ_MODEL       || "groq/compound";
 
+// API Fetch Helper with Fallbacks
+const fetchAI = async (prompt, maxTokens = 4096) => {
+  if (PRIMARY_KEY) {
+    try {
+      console.log("Calling OpenRouter API...");
+      const response = await fetch(PRIMARY_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${PRIMARY_KEY}`,
+        },
+        body: JSON.stringify({
+          model: PRIMARY_MODEL,
+          messages: [{ role: "user", content: prompt }],
+          max_tokens: maxTokens,
+          temperature: 0.1
+        })
+      });
+      if (response.ok) {
+        const data = await response.json();
+        const text = data.choices?.[0]?.message?.content;
+        if (text) return text;
+      }
+      console.warn("OpenRouter API returned error status:", response.status);
+    } catch (e) {
+      console.warn("OpenRouter fetch failed, trying Gemini...", e);
+    }
+  }
+
+  if (FALLBACK_KEY) {
+    try {
+      console.log("Calling Gemini API...");
+      const response = await fetch(FALLBACK_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${FALLBACK_KEY}`
+        },
+        body: JSON.stringify({
+          model: FALLBACK_MODEL,
+          messages: [{ role: "user", content: prompt }],
+          max_tokens: maxTokens,
+          temperature: 0.1
+        })
+      });
+      if (response.ok) {
+        const data = await response.json();
+        const text = data.choices?.[0]?.message?.content;
+        if (text) return text;
+      }
+      console.warn("Gemini API returned error status:", response.status);
+    } catch (e) {
+      console.warn("Gemini fetch failed, trying Groq...", e);
+    }
+  }
+
+  if (GROQ_KEY) {
+    try {
+      console.log("Calling Groq API...");
+      const response = await fetch(GROQ_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${GROQ_KEY}`
+        },
+        body: JSON.stringify({
+          model: GROQ_MODEL,
+          messages: [{ role: "user", content: prompt }],
+          max_tokens: maxTokens,
+          temperature: 0.1
+        })
+      });
+      if (response.ok) {
+        const data = await response.json();
+        const text = data.choices?.[0]?.message?.content;
+        if (text) return text;
+      }
+      console.warn("Groq API returned error status:", response.status);
+    } catch (e) {
+      console.error("Groq fetch failed:", e);
+    }
+  }
+
+  throw new Error("All AI translation/content fetching providers failed or no keys configured.");
+};
+
 // ─── Tier Definitions (Duolingo cognitive-load tiers) ────────────────────────
 // Tier 1 Receptive — tap/recognition only, zero typing
 const RECEPTIVE_TYPES = ["mcq", "meaning", "matchPairs", "imageChoice", "listenWordMCQ", "listenPassageMCQ", "chatComplete", "scenario"];

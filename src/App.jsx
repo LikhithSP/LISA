@@ -4827,6 +4827,7 @@ function App() {
     let out = trQuestion;
     for (const w of words) {
       if (!/[a-zA-Z]/.test(w) || w.includes("_")) continue; // skip puzzle patterns / non-latin
+      if (w.length <= 1) continue; // skip single English characters (e.g. 'D', 'A', 'S' etc.)
       try {
         const native = (assessmentTranslations[lang] && assessmentTranslations[lang][w]) || (await translateTextContent(w, lang));
         if (native && out.includes(native)) {
@@ -6342,8 +6343,8 @@ function App() {
     return "en-US";
   };
 
-  const speakText = (text, rate) => {
-    const lang = learningLanguage || "English";
+  const speakText = (text, rate, overrideLang) => {
+    const lang = overrideLang || learningLanguage || "English";
     const r = typeof rate === "number" ? rate : 0.9;
 
     if (window.responsiveVoice) {
@@ -7621,7 +7622,7 @@ function App() {
                               <button
                                 type="button"
                                 className="tts-btn"
-                                onClick={() => speakText(compQuestionText)}
+                                onClick={() => speakText(compQuestionText, 1.0, selectedLanguage)}
                                 title="Listen to question"
                               >
                                 🔊 {t("listenBtn") || "Listen"}
@@ -7635,7 +7636,9 @@ function App() {
                                     key={idx}
                                     type="button"
                                     className={`option-btn ${isSelected ? "selected" : ""}`}
-                                    onClick={() => setSelectedAnswers({ ...selectedAnswers, [currentStep]: idx })}
+                                    onClick={() => {
+                                      setSelectedAnswers({ ...selectedAnswers, [currentStep]: idx });
+                                    }}
                                   >
                                     <span className="option-indicator">{String.fromCharCode(65 + idx)}</span>
                                     <span className="option-label">{opt}</span>
@@ -7816,10 +7819,47 @@ function App() {
                 const latestAttempt = historyAttempts[0];
                 const skillScores = latestAttempt?.skillScores || {};
                 const overallPercent = latestAttempt?.percentage || 0;
+                const currentLang = selectedLanguage || "English";
 
                 // Diagnostic skill analysis
                 const strongKeys = latestAttempt?.strongSkillKeys || getStrongSkillKeys(skillScores);
                 const weakKeys = latestAttempt?.weakSkillKeys || getWeakSkillKeys(skillScores);
+
+                // Get primary weak skill for recommendation
+                const primaryWeakSkill = weakKeys[0] || "reading_ability";
+                let duolingoPracticeTitle = "Spelling & Dictation Drills";
+                let duolingoPracticeRecommendation = "Listen to audio sentences and write out the exact words to reinforce writing correctness.";
+                let duolingoPracticeIcon = "✍️";
+
+                if (primaryWeakSkill === "letter_recognition") {
+                  duolingoPracticeTitle = "Alphabet & Letter Sound Drills";
+                  duolingoPracticeRecommendation = "Practice identifying sounds and connecting uppercase & lowercase letter shapes.";
+                  duolingoPracticeIcon = "🔠";
+                } else if (primaryWeakSkill === "word_recognition") {
+                  duolingoPracticeTitle = "Word Construction Practice";
+                  duolingoPracticeRecommendation = "Assemble letters to form vocabulary and practice recognizing basic sight words.";
+                  duolingoPracticeIcon = "🧩";
+                } else if (primaryWeakSkill === "vocabulary_recognition") {
+                  duolingoPracticeTitle = "Daily Vocabulary Building";
+                  duolingoPracticeRecommendation = "Learn words in context and build your core vocabulary base with visual image choices.";
+                  duolingoPracticeIcon = "📚";
+                } else if (primaryWeakSkill === "sentence_understanding") {
+                  duolingoPracticeTitle = "Sentence Structure Drills";
+                  duolingoPracticeRecommendation = "Unscramble word tiles and organize phrases into grammatically correct sentences.";
+                  duolingoPracticeIcon = "⛓️";
+                } else if (primaryWeakSkill === "reading_comprehension") {
+                  duolingoPracticeTitle = "Comprehension Challenges";
+                  duolingoPracticeRecommendation = "Read short paragraphs and answer comprehension questions to build analytical skills.";
+                  duolingoPracticeIcon = "📖";
+                } else if (primaryWeakSkill === "practical_literacy") {
+                  duolingoPracticeTitle = "Real-World Reading Missions";
+                  duolingoPracticeRecommendation = "Practice reading notices, road signs, instructions, and community warnings.";
+                  duolingoPracticeIcon = "🚗";
+                } else if (primaryWeakSkill === "reading_ability") {
+                  duolingoPracticeTitle = "Perfect Pronunciation Practice";
+                  duolingoPracticeRecommendation = "Read sentences aloud to train pronunciation with automated speech recognition feedback.";
+                  duolingoPracticeIcon = "🗣️";
+                }
 
                 // Recommend Daily Practice Time
                 let dailyPracticeTime = t("daily15min");
@@ -7833,6 +7873,8 @@ function App() {
                   icon: meta.icon,
                 }));
 
+                const placementInfo = getLevelCategoryAndDescription(currentLevelIndex, currentLang);
+                const weakSkillsText = weakKeys.map(k => t(SKILL_TRANSLATION_KEYS[k]) || SKILL_CATEGORIES[k]?.label || k).join(", ");
 
                 return (
                   <div className="results-card" style={{ maxWidth: '800px', margin: '20px auto' }}>
@@ -7840,14 +7882,14 @@ function App() {
                     <div className="results-hero-section">
                       <div className="results-hero-left">
                         <div className="results-percentage-circle">
-                          <span className="percent-val">{latestAttempt?.percentage ? latestAttempt.percentage : 0}%</span>
+                          <span className="percent-val">{overallPercent}%</span>
                         </div>
                         <span className="results-percent-text">{t("percentage")}</span>
                       </div>
 
                       <div className="results-hero-center-score">
                         <span className="hero-score-label">{t("overallScore")}</span>
-                        <span className="hero-score-val">{latestAttempt?.score || 0} / {latestAttempt?.maxScore || 70}</span>
+                        <span className="hero-score-val">{latestAttempt?.score || 0} / {latestAttempt?.maxScore || 40}</span>
                       </div>
 
                       <div className="results-hero-right">
@@ -7878,9 +7920,9 @@ function App() {
                     <div className="results-detail-row">
                       <div className="benchmark-card">
                         <div className="benchmark-badge-icon">🎖️</div>
-                        <h3 className="benchmark-title">{getLevelCategoryAndDescription(currentLevelIndex, currentLang).category}</h3>
+                        <h3 className="benchmark-title">{placementInfo.category}</h3>
                         <p className="benchmark-desc">
-                          {getLevelCategoryAndDescription(currentLevelIndex, currentLang).description}
+                          {placementInfo.description}
                         </p>
                       </div>
 
@@ -7954,22 +7996,146 @@ function App() {
                       </div>
                     </div>
 
+                    {/* Duolingo Daily Recommended Practice Card */}
+                    <div className="insights-card" style={{ marginTop: '24px' }}>
+                      <div className="insights-card-head">
+                        <span className="insights-card-icon">🔥</span>
+                        <h3>{selectedLanguage === "Hindi" ? "दैनिक अनुशंसित अभ्यास" : selectedLanguage === "Kannada" ? "ದೈನಂದಿನ ಶಿಫಾರಸು ಮಾಡಿದ ಅಭ್ಯಾಸ" : selectedLanguage === "Telugu" ? "రోజువారీ సిఫార్సు చేసిన అభ్యాసం" : selectedLanguage === "Tamil" ? "தினசரி பரிந்துரைக்கப்பட்ட பயிற்சி" : "Daily Recommended Practice"}</h3>
+                      </div>
+                      <div style={{ display: 'flex', gap: '16px', background: 'var(--hover-bg, #f8fafc)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-color, #e2e8f0)', marginTop: '12px' }}>
+                        <div style={{ fontSize: '2.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{duolingoPracticeIcon}</div>
+                        <div style={{ textAlign: 'left' }}>
+                          <h4 style={{ margin: '0 0 4px 0', fontSize: '1.1rem', fontWeight: 800 }}>{duolingoPracticeTitle}</h4>
+                          <p style={{ margin: '0 0 12px 0', fontSize: '0.92rem', color: 'var(--muted)', lineHeight: '1.4' }}>{duolingoPracticeRecommendation}</p>
+                          <div style={{ display: 'flex', gap: '16px', fontSize: '0.82rem', fontWeight: 800, color: 'var(--text)' }}>
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#f59e0b15', color: '#b45309', padding: '4px 10px', borderRadius: '999px' }}>🎯 Target: 30 XP Daily</span>
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#3b82f615', color: '#1d4ed8', padding: '4px 10px', borderRadius: '999px' }}>⏳ Commitment: {dailyPracticeTime}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
                     {/* Diagnostic Summary Analysis */}
-                    <div className="diagnostic-recommendation-box">
-                      <h4>{t("summaryTitle")}</h4>
-                      <p>
+                    <div className="diagnostic-recommendation-box" style={{ marginTop: '24px', padding: '20px', background: '#3b82f610', borderLeft: '5px solid var(--accent, #3b82f6)', borderRadius: '0 16px 16px 0', textAlign: 'left' }}>
+                      <h4 style={{ margin: '0 0 10px 0', fontWeight: 800, fontSize: '1.1rem' }}>{t("summaryTitle")}</h4>
+                      <div style={{ color: 'var(--text)', fontSize: '0.95rem' }}>
                         {(() => {
-                          if (overallPercent >= 85) {
-                            return t("summaryLevel4").replace("{percent}", overallPercent);
-                          } else if (overallPercent >= 60) {
-                            return t("summaryLevel3").replace("{percent}", overallPercent);
-                          } else if (overallPercent >= 35) {
-                            return t("summaryLevel2").replace("{percent}", overallPercent);
-                          } else {
-                            return t("summaryLevel1").replace("{percent}", overallPercent);
-                          }
+                          const weakSkillsJoined = weakKeys.map(k => t(SKILL_TRANSLATION_KEYS[k]) || SKILL_CATEGORIES[k]?.label || k).join(", ");
+                          return (
+                            <div style={{ lineHeight: '1.6' }}>
+                              <p style={{ margin: '0 0 10px 0' }}>
+                                {selectedLanguage === "Hindi" ? `शानदार प्रयास! आपने कुल 40 अंकों में से ${latestAttempt?.score || 0} अंक (${overallPercent}%) प्राप्त किए हैं।` :
+                                 selectedLanguage === "Kannada" ? `ಅದ್ಭುತ ಪ್ರಯತ್ನ! ನೀವು ಒಟ್ಟು 40 ಅಂಕಗಳಲ್ಲಿ ${latestAttempt?.score || 0} ಅಂಕಗಳನ್ನು (${overallPercent}%) ಗಳಿಸಿದ್ದೀರಿ.` :
+                                 selectedLanguage === "Telugu" ? `అద్భుతమైన ప్రయత్నం! మీరు మొత్తం 40 మార్కులకు ${latestAttempt?.score || 0} మార్కులు (${overallPercent}%) సాధించారు.` :
+                                 selectedLanguage === "Tamil" ? `அற்புதம்! நீங்கள் மொத்தம் 40 மதிப்பெண்களுக்கு ${latestAttempt?.score || 0} மதிப்பெண்கள் (${overallPercent}%) பெற்றுள்ளீர்கள்.` :
+                                 `Fantastic effort! You scored ${latestAttempt?.score || 0} out of 40 marks (${overallPercent}%).`}
+                              </p>
+                              <p style={{ margin: '0 0 10px 0' }}>
+                                {selectedLanguage === "Hindi" ? `आपके डायग्नोस्टिक परिणामों के अनुसार, आपका वर्तमान प्लेसमेंट स्तर ${placementInfo.category} है।` :
+                                 selectedLanguage === "Kannada" ? `ನಿಮ್ಮ ಡಯಾಗ್ನಾಸ್ಟಿಕ್ ಫಲಿತಾಂಶಗಳ ಪ್ರಕಾರ, ನಿಮ್ಮ ಪ್ರಸ್ತುತ ನಿಯೋಜನೆ ಮಟ್ಟ ${placementInfo.category} ಆಗಿದೆ.` :
+                                 selectedLanguage === "Telugu" ? `మీ డయాగ్నస్టిక్ ఫలితాల ప్రకారం, మీ ప్రస్తుత ప్లేస్‌మెంట్ స్థాయి ${placementInfo.category} గా ఉంది.` :
+                                 selectedLanguage === "Tamil" ? `உங்களது கண்டறியும் முடிவுகளின்படி, உங்களது தற்போதைய வேலை வாய்ப்பு நிலை ${placementInfo.category} ஆகும்.` :
+                                 `Based on your diagnostic results, your current placement level is ${placementInfo.category}.`}
+                              </p>
+                              {weakKeys.length > 0 && (
+                                <p style={{ margin: '0' }}>
+                                  {selectedLanguage === "Hindi" ? `हमने आपके विकास क्षेत्रों को लक्षित करते हुए एक व्यक्तिगत शिक्षण पथ तैयार किया है: ${weakSkillsJoined}।` :
+                                   selectedLanguage === "Kannada" ? `ನಿಮ್ಮ ಕಲಿಕೆಯ ಅಗತ್ಯವಿರುವ ಕ್ಷೇತ್ರಗಳನ್ನು ಗುರಿಯಾಗಿಸಿಕೊಂಡು ನಾವು ವೈಯಕ್ತಿಕಗೊಳಿಸಿದ ಕಲಿಕೆಯ ಮಾರ್ಗವನ್ನು ಸಿದ್ಧಪಡಿಸಿದ್ದೇವೆ: ${weakSkillsJoined}.` :
+                                   selectedLanguage === "Telugu" ? `మేము మీ అభివృద్ధి అవసరమైన అంశాలపై దృష్టి సారించి ఒక అభ్యాస మార్గాన్ని సిద్ధం చేసాము: ${weakSkillsJoined}.` :
+                                   selectedLanguage === "Tamil" ? `உங்களது வளர்ச்சிப் பகுதிகளை இலக்காகக் கொண்டு தனிப்பயனாக்கப்பட்ட கற்றல் பாதையை வடிவமைத்துள்ளோம்: ${weakSkillsJoined}.` :
+                                   `We have prepared a personalized learning path targeting your key growth areas: ${weakSkillsJoined}.`}
+                                </p>
+                              )}
+                            </div>
+                          );
                         })()}
-                      </p>
+                      </div>
+                    </div>
+
+                    {/* Visual Learning Path Roadmap */}
+                    <div className="personalized-path-container" style={{
+                      marginTop: '32px',
+                      background: 'var(--card-bg, #ffffff)',
+                      borderRadius: '20px',
+                      padding: '24px',
+                      boxShadow: '0 8px 30px rgba(0,0,0,0.06)',
+                      border: '1px solid var(--border-color, #e2e8f0)',
+                      textAlign: 'left'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+                        <span style={{ fontSize: '1.8rem' }}>🧭</span>
+                        <h3 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800 }}>{selectedLanguage === "Hindi" ? "आपका व्यक्तिगत शिक्षण पथ" : selectedLanguage === "Kannada" ? "ನಿಮ್ಮ ವೈಯಕ್ತಿಕಗೊಳಿಸಿದ ಕಲಿಕೆಯ ಮಾರ್ಗ" : selectedLanguage === "Telugu" ? "మీ వ్యక్తిగతీకరించిన అభ్యాస మార్గం" : selectedLanguage === "Tamil" ? "உங்கள் தனிப்பயனாக்கப்பட்ட கற்றல் பாதை" : "Your Personalized Learning Path"}</h3>
+                      </div>
+                      
+                      <div className="path-roadmap-timeline" style={{
+                        position: 'relative',
+                        paddingLeft: '32px',
+                        borderLeft: '3px dashed var(--accent, #3b82f6)'
+                      }}>
+                        {(() => {
+                          const pathSteps = latestAttempt?.learningPath || [];
+                          if (pathSteps.length === 0) {
+                            return <p style={{ fontStyle: 'italic', color: 'var(--muted)' }}>Loading path...</p>;
+                          }
+                          return pathSteps.map((step, sIdx) => {
+                            const section = CURRICULUM_SECTIONS.find(s => s.id === step.sectionId);
+                            const skillMeta = SKILL_CATEGORIES[step.skill] || { icon: "⭐️", color: "#3b82f6" };
+                            return (
+                              <div key={step.sectionId} className="roadmap-step-item" style={{
+                                position: 'relative',
+                                marginBottom: '24px',
+                              }}>
+                                {/* Dot */}
+                                <div style={{
+                                  position: 'absolute',
+                                  left: '-45px',
+                                  top: '2px',
+                                  width: '24px',
+                                  height: '24px',
+                                  borderRadius: '50%',
+                                  background: skillMeta.color || '#3b82f6',
+                                  color: '#ffffff',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  fontSize: '0.8rem',
+                                  fontWeight: 800,
+                                  border: '4px solid var(--card-bg, #ffffff)',
+                                  boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+                                }}>
+                                  {sIdx + 1}
+                                </div>
+                                <div style={{
+                                  background: 'var(--hover-bg, #f8fafc)',
+                                  padding: '16px',
+                                  borderRadius: '16px',
+                                  border: '1px solid var(--border-color, #e2e8f0)'
+                                }}>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                                    <h4 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, color: 'var(--text)' }}>
+                                      {t(`${step.sectionId}_title`) || section?.title || step.reason}
+                                    </h4>
+                                    <span style={{
+                                      fontSize: '0.75rem',
+                                      fontWeight: 800,
+                                      padding: '4px 10px',
+                                      borderRadius: '999px',
+                                      background: `${skillMeta.color}15`,
+                                      color: skillMeta.color,
+                                      textTransform: 'uppercase'
+                                    }}>
+                                      {t(SKILL_TRANSLATION_KEYS[step.skill]) || skillMeta.label}
+                                    </span>
+                                  </div>
+                                  <p style={{ margin: 0, fontSize: '0.88rem', color: 'var(--muted)', lineHeight: '1.4' }}>
+                                    {step.reason}
+                                  </p>
+                                </div>
+                              </div>
+                            );
+                          });
+                        })()}
+                      </div>
                     </div>
 
                     <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', marginTop: '32px' }}>
