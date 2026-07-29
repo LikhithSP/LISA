@@ -16,7 +16,7 @@ import {
   Layers 
 } from "lucide-react";
 
-export default function AdminDashboard({ session, t = (key) => key }) {
+export default function AdminDashboard({ session, t = (key) => key, shopCatalog, onShopCatalogChange }) {
   // Guard access
   const isAdmin = session?.user?.email === "admin@gmail.com";
 
@@ -29,7 +29,20 @@ export default function AdminDashboard({ session, t = (key) => key }) {
     );
   }
 
-  const [activeSubTab, setActiveSubTab] = useState("overview"); // "overview", "users", "words", "curriculum"
+  const [activeSubTab, setActiveSubTab] = useState("overview"); // "overview", "users", "words", "curriculum", "xpshop"
+
+  // States for XP Shop Management
+  const [localShopCatalog, setLocalShopCatalog] = useState(null);
+  const [activeShopCategory, setActiveShopCategory] = useState("themes");
+  const [editingShopItem, setEditingShopItem] = useState(null);
+  const [isAddingShopItem, setIsAddingShopItem] = useState(false);
+  const [shopSaving, setShopSaving] = useState(false);
+
+  useEffect(() => {
+    if (shopCatalog) {
+      setLocalShopCatalog(JSON.parse(JSON.stringify(shopCatalog)));
+    }
+  }, [shopCatalog, activeSubTab]);
   
   // States for Users
   const [users, setUsers] = useState([]);
@@ -134,6 +147,59 @@ export default function AdminDashboard({ session, t = (key) => key }) {
       console.error("Error fetching admin users data:", err);
     } finally {
       setUsersLoading(false);
+    }
+  };
+
+  const handleSaveShopCatalog = async (updatedCatalog) => {
+    setShopSaving(true);
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("shop_data")
+        .eq("id", "3f8601e1-527e-45bd-bc8b-f0429d10a991")
+        .maybeSingle();
+
+      let targetId = "3f8601e1-527e-45bd-bc8b-f0429d10a991";
+      let existingShopData = {};
+
+      if (data && !error) {
+        existingShopData = data.shop_data || {};
+      } else {
+        const fallback = await supabase
+          .from("profiles")
+          .select("id, shop_data")
+          .eq("full_name", "ADMIN")
+          .maybeSingle();
+        if (fallback.data && !fallback.error) {
+          targetId = fallback.data.id;
+          existingShopData = fallback.data.shop_data || {};
+        }
+      }
+
+      const mergedShopData = {
+        ...existingShopData,
+        is_global_shop_catalog: true,
+        global_shop_catalog: updatedCatalog
+      };
+
+      const updateResult = await supabase
+        .from("profiles")
+        .update({ shop_data: mergedShopData })
+        .eq("id", targetId);
+
+      if (updateResult.error) {
+        throw updateResult.error;
+      }
+
+      if (onShopCatalogChange) {
+        onShopCatalogChange(updatedCatalog);
+      }
+      alert("XP Shop Catalog successfully saved and published!");
+    } catch (err) {
+      console.error("Error saving XP Shop catalog:", err);
+      alert("Failed to save XP Shop Catalog: " + err.message);
+    } finally {
+      setShopSaving(false);
     }
   };
 
@@ -289,6 +355,65 @@ export default function AdminDashboard({ session, t = (key) => key }) {
     } catch (err) {
       alert("Failed to delete user: " + err.message);
     }
+  };
+
+  // States and Handlers for XP Shop CRUD
+  const handleEditShopItem = (item) => {
+    setEditingShopItem({ ...item });
+    setIsAddingShopItem(false);
+  };
+
+  const handleAddShopItemClick = () => {
+    const newItem = {
+      id: `${activeShopCategory}_new_${Date.now()}`,
+      name: "",
+      desc: "",
+      cost: 50,
+      icon: "🎁"
+    };
+    if (activeShopCategory === "themes") {
+      newItem.preview = { accent: "#3b82f6", accentDark: "#1d4ed8", accentSoft: "#dbeafe", bg: "#f8fafc" };
+    } else if (activeShopCategory === "fonts") {
+      newItem.family = "sans-serif";
+    } else if (activeShopCategory === "banners") {
+      newItem.image = "";
+    } else if (activeShopCategory === "avatars") {
+      newItem.emoji = "😀";
+    } else if (activeShopCategory === "badges") {
+      newItem.rarity = "common";
+    }
+    setEditingShopItem(newItem);
+    setIsAddingShopItem(true);
+  };
+
+  const handleDeleteShopItem = (itemId) => {
+    if (!window.confirm("Are you sure you want to delete this item?")) return;
+    const updatedCatalog = { ...localShopCatalog };
+    updatedCatalog[activeShopCategory] = updatedCatalog[activeShopCategory].filter(item => item.id !== itemId);
+    setLocalShopCatalog(updatedCatalog);
+    handleSaveShopCatalog(updatedCatalog);
+  };
+
+  const handleSaveShopItemSubmit = (e) => {
+    e.preventDefault();
+    if (!editingShopItem) return;
+    const updatedCatalog = { ...localShopCatalog };
+    const items = [...(updatedCatalog[activeShopCategory] || [])];
+    
+    if (isAddingShopItem) {
+      items.push(editingShopItem);
+    } else {
+      const idx = items.findIndex(item => item.id === editingShopItem.id);
+      if (idx !== -1) {
+        items[idx] = editingShopItem;
+      }
+    }
+    
+    updatedCatalog[activeShopCategory] = items;
+    setLocalShopCatalog(updatedCatalog);
+    setEditingShopItem(null);
+    setIsAddingShopItem(false);
+    handleSaveShopCatalog(updatedCatalog);
   };
 
   // Handle Add/Edit Word Submit
@@ -582,6 +707,13 @@ export default function AdminDashboard({ session, t = (key) => key }) {
             onClick={() => setActiveSubTab("curriculum")}
           >
             📚 Curriculum & Assessment
+          </button>
+          <button 
+            type="button" 
+            className={`admin-tab-btn ${activeSubTab === "xpshop" ? "active" : ""}`}
+            onClick={() => setActiveSubTab("xpshop")}
+          >
+            🛍️ XP Shop Items
           </button>
         </div>
       </div>
@@ -1456,7 +1588,303 @@ export default function AdminDashboard({ session, t = (key) => key }) {
             </div>
           </div>
         )}
+
+        {/* XP SHOP CATALOG MANAGEMENT SUB-TAB */}
+        {activeSubTab === "xpshop" && localShopCatalog && (
+          <div className="admin-section animate-fade-in">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 900, color: 'var(--text)' }}>🛍️ XP Shop Catalog Manager</h3>
+                <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: 'var(--muted)' }}>
+                  Add, edit, or delete items across all categories in the XP Shop catalog.
+                </p>
+              </div>
+              <button 
+                type="button" 
+                className="admin-add-btn" 
+                onClick={handleAddShopItemClick}
+                style={{ padding: '8px 16px', borderRadius: '12px', fontSize: '0.8rem' }}
+              >
+                ➕ Add New Item
+              </button>
+            </div>
+
+            {/* Category Select Buttons */}
+            <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', borderBottom: '1px solid var(--line)', paddingBottom: '10px', overflowX: 'auto' }}>
+              {["themes", "fonts", "banners", "avatars", "badges"].map(cat => (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => setActiveShopCategory(cat)}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: '10px',
+                    border: 'none',
+                    fontWeight: 800,
+                    fontSize: '0.85rem',
+                    background: activeShopCategory === cat ? 'var(--accent)' : 'var(--line)',
+                    color: activeShopCategory === cat ? '#fff' : 'var(--text)',
+                    cursor: 'pointer',
+                    textTransform: 'capitalize',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+
+            {/* Table of Items */}
+            <div className="admin-table-wrap">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>Icon/Preview</th>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Cost (XP)</th>
+                    <th style={{ textAlign: 'right' }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(localShopCatalog[activeShopCategory] || []).map((item) => (
+                    <tr key={item.id}>
+                      <td style={{ fontSize: '1.5rem', width: '60px' }}>
+                        {activeShopCategory === "themes" ? (
+                          <div style={{ display: 'flex', gap: '3px', background: item.preview?.bg || '#fff', padding: '6px', borderRadius: '8px', border: '1px solid var(--line)' }}>
+                            <div style={{ width: '12px', height: '12px', borderRadius: '3px', background: item.preview?.accent }} />
+                            <div style={{ width: '12px', height: '12px', borderRadius: '3px', background: item.preview?.accentDark }} />
+                            <div style={{ width: '12px', height: '12px', borderRadius: '3px', background: item.preview?.accentSoft }} />
+                          </div>
+                        ) : activeShopCategory === "banners" ? (
+                          <img src={item.image} alt={item.name} style={{ width: '50px', height: '24px', borderRadius: '4px', objectFit: 'cover' }} />
+                        ) : activeShopCategory === "avatars" ? (
+                          item.emoji
+                        ) : activeShopCategory === "badges" ? (
+                          item.icon
+                        ) : (
+                          item.icon || "🎁"
+                        )}
+                      </td>
+                      <td style={{ fontWeight: 800, fontSize: '0.8rem', color: 'var(--muted)' }}>
+                        <code>{item.id}</code>
+                      </td>
+                      <td style={{ fontWeight: 850 }}>{item.name}</td>
+                      <td style={{ color: 'var(--muted)', fontSize: '0.82rem' }}>{item.desc}</td>
+                      <td style={{ fontWeight: 900, color: 'var(--accent)' }}>⭐ {item.cost}</td>
+                      <td style={{ textAlign: 'right' }}>
+                        <div style={{ display: 'inline-flex', gap: '8px' }}>
+                          <button
+                            type="button"
+                            className="action-btn edit-btn"
+                            title="Edit Item"
+                            onClick={() => handleEditShopItem(item)}
+                          >
+                            <Edit size={14} />
+                          </button>
+                          <button
+                            type="button"
+                            className="action-btn delete-btn"
+                            title="Delete Item"
+                            onClick={() => handleDeleteShopItem(item.id)}
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  {(!localShopCatalog[activeShopCategory] || localShopCatalog[activeShopCategory].length === 0) && (
+                    <tr>
+                      <td colSpan="6" style={{ textAlign: 'center', padding: '40px', color: 'var(--muted)' }}>
+                        No items configured in this category. Click "Add New Item" to get started!
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* ADD/EDIT XP SHOP ITEM MODAL */}
+      {editingShopItem && (
+        <div className="admin-modal-overlay">
+          <div className="admin-modal" style={{ maxWidth: '500px' }}>
+            <div className="modal-header">
+              <h3>{isAddingShopItem ? "➕ Add XP Shop Item" : "📝 Edit XP Shop Item"}</h3>
+              <button type="button" className="close-modal-btn" onClick={() => setEditingShopItem(null)}>✕</button>
+            </div>
+            <form onSubmit={handleSaveShopItemSubmit}>
+              <div className="form-grid" style={{ gridTemplateColumns: '1fr' }}>
+                <div className="form-group">
+                  <label>ITEM UNIQUE ID (e.g. theme_neon, badge_pro)</label>
+                  <input 
+                    type="text" 
+                    required 
+                    disabled={!isAddingShopItem}
+                    value={editingShopItem.id} 
+                    onChange={e => setEditingShopItem({ ...editingShopItem, id: e.target.value })}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>ITEM NAME</label>
+                  <input 
+                    type="text" 
+                    required 
+                    value={editingShopItem.name} 
+                    onChange={e => setEditingShopItem({ ...editingShopItem, name: e.target.value })}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>DESCRIPTION</label>
+                  <input 
+                    type="text" 
+                    required 
+                    value={editingShopItem.desc} 
+                    onChange={e => setEditingShopItem({ ...editingShopItem, desc: e.target.value })}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>COST (XP STARS)</label>
+                  <input 
+                    type="number" 
+                    min="0"
+                    required 
+                    value={editingShopItem.cost} 
+                    onChange={e => setEditingShopItem({ ...editingShopItem, cost: parseInt(e.target.value, 10) || 0 })}
+                  />
+                </div>
+
+                {activeShopCategory === "themes" && (
+                  <>
+                    <div className="form-group">
+                      <label>ACCENT COLOR (HEX)</label>
+                      <input 
+                        type="text" 
+                        required 
+                        value={editingShopItem.preview?.accent || ""} 
+                        onChange={e => setEditingShopItem({
+                          ...editingShopItem,
+                          preview: { ...(editingShopItem.preview || {}), accent: e.target.value }
+                        })}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>ACCENT DARK COLOR (HEX)</label>
+                      <input 
+                        type="text" 
+                        required 
+                        value={editingShopItem.preview?.accentDark || ""} 
+                        onChange={e => setEditingShopItem({
+                          ...editingShopItem,
+                          preview: { ...(editingShopItem.preview || {}), accentDark: e.target.value }
+                        })}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>ACCENT SOFT COLOR (HEX)</label>
+                      <input 
+                        type="text" 
+                        required 
+                        value={editingShopItem.preview?.accentSoft || ""} 
+                        onChange={e => setEditingShopItem({
+                          ...editingShopItem,
+                          preview: { ...(editingShopItem.preview || {}), accentSoft: e.target.value }
+                        })}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>BACKGROUND COLOR (HEX)</label>
+                      <input 
+                        type="text" 
+                        required 
+                        value={editingShopItem.preview?.bg || ""} 
+                        onChange={e => setEditingShopItem({
+                          ...editingShopItem,
+                          preview: { ...(editingShopItem.preview || {}), bg: e.target.value }
+                        })}
+                      />
+                    </div>
+                  </>
+                )}
+
+                {activeShopCategory === "fonts" && (
+                  <div className="form-group">
+                    <label>FONT FAMILY NAME (e.g. 'Nunito', sans-serif)</label>
+                    <input 
+                      type="text" 
+                      required 
+                      value={editingShopItem.family || ""} 
+                      onChange={e => setEditingShopItem({ ...editingShopItem, family: e.target.value })}
+                    />
+                  </div>
+                )}
+
+                {activeShopCategory === "banners" && (
+                  <div className="form-group">
+                    <label>BANNER IMAGE URL</label>
+                    <input 
+                      type="text" 
+                      required 
+                      value={editingShopItem.image || ""} 
+                      onChange={e => setEditingShopItem({ ...editingShopItem, image: e.target.value })}
+                    />
+                  </div>
+                )}
+
+                {activeShopCategory === "avatars" && (
+                  <div className="form-group">
+                    <label>AVATAR EMOJI</label>
+                    <input 
+                      type="text" 
+                      required 
+                      value={editingShopItem.emoji || ""} 
+                      onChange={e => setEditingShopItem({ ...editingShopItem, emoji: e.target.value })}
+                    />
+                  </div>
+                )}
+
+                {activeShopCategory === "badges" && (
+                  <div className="form-group">
+                    <label>RARITY (common, rare, legendary)</label>
+                    <select
+                      value={editingShopItem.rarity || "common"}
+                      onChange={e => setEditingShopItem({ ...editingShopItem, rarity: e.target.value })}
+                      style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '2px solid var(--line)', background: 'var(--panel)', color: 'var(--text)' }}
+                    >
+                      <option value="common">Common</option>
+                      <option value="rare">Rare</option>
+                      <option value="legendary">Legendary</option>
+                    </select>
+                  </div>
+                )}
+
+                {activeShopCategory !== "themes" && activeShopCategory !== "banners" && (
+                  <div className="form-group">
+                    <label>ITEM DISPLAY ICON/EMOJI</label>
+                    <input 
+                      type="text" 
+                      required 
+                      value={editingShopItem.icon || ""} 
+                      onChange={e => setEditingShopItem({ ...editingShopItem, icon: e.target.value })}
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="modal-footer" style={{ marginTop: '20px' }}>
+                <button type="button" className="secondary-btn" onClick={() => setEditingShopItem(null)}>Cancel</button>
+                <button type="submit" className="primary-btn" disabled={shopSaving}>
+                  {shopSaving ? "Saving Catalog..." : "Save Item"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* EDIT USER MODAL */}
       {editingUser && (

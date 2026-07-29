@@ -736,6 +736,7 @@ function App() {
 
   const [userXp, setUserXp] = useState(0);
   const [showAllAchievementsModal, setShowAllAchievementsModal] = useState(false);
+  const [shopCatalog, setShopCatalog] = useState(SHOP_CATALOG);
 
   const getLevelEncouragementMessage = (level) => {
     const messages = {
@@ -835,28 +836,25 @@ function App() {
   const [dismissedNotifIds, setDismissedNotifIds] = useState([]);
   const [readNotifIds, setReadNotifIds] = useState([]);
 
-  const saveDismissedNotifs = async (ids) => {
-    setDismissedNotifIds(ids);
+  const saveNotifState = async (newReadIds, newDismissedIds) => {
+    setReadNotifIds(newReadIds);
+    setDismissedNotifIds(newDismissedIds);
     if (session?.user?.id) {
-      localStorage.setItem(`lisa_notif_data_${session.user.id}`, JSON.stringify({ readNotifIds, dismissedNotifIds: ids }));
+      localStorage.setItem(`lisa_notif_data_${session.user.id}`, JSON.stringify({ readNotifIds: newReadIds, dismissedNotifIds: newDismissedIds }));
       try {
-        await supabase.from("profiles").update({ notif_data: { readNotifIds, dismissedNotifIds: ids } }).eq("id", session.user.id);
+        await supabase.from("profiles").update({ notif_data: { readNotifIds: newReadIds, dismissedNotifIds: newDismissedIds } }).eq("id", session.user.id);
       } catch (e) {
-        console.error("Could not save dismissed notifications:", e);
+        console.error("Could not save notification data to Supabase:", e);
       }
     }
   };
 
+  const saveDismissedNotifs = async (ids) => {
+    await saveNotifState(readNotifIds, ids);
+  };
+
   const saveReadNotifs = async (ids) => {
-    setReadNotifIds(ids);
-    if (session?.user?.id) {
-      localStorage.setItem(`lisa_notif_data_${session.user.id}`, JSON.stringify({ readNotifIds: ids, dismissedNotifIds }));
-      try {
-        await supabase.from("profiles").update({ notif_data: { readNotifIds: ids, dismissedNotifIds } }).eq("id", session.user.id);
-      } catch (e) {
-        console.error("Could not save read notifications:", e);
-      }
-    }
+    await saveNotifState(ids, dismissedNotifIds);
   };
 
   // Translated dashboard strings for non-English languages (fall back to English source values)
@@ -5083,36 +5081,56 @@ function App() {
     const profInfo = getProficiencyName(currentLevelNum, "English");
 
     let aiContent;
-    if (isPracticeSession) {
-      aiContent = await generatePracticeContent({
-        practiceType: lesson.title,
-        language: learningLanguage || "English",
-        learningLanguage: learningLanguage || "English",
-        interfaceLanguage: selectedLanguage || "English",
-        literacyLevel: currentLevelNum,
-        literacyLevelName: profInfo?.name || "Beginner",
-        mistakesList: lesson.title === "Mistakes Practice" ? recentMistakes : [],
-        useFallback: !aiEnabled
-      });
-    } else {
-      aiContent = await generateLessonContent({
-        age: profile?.age || 25,
-        educationLevel: profile?.education_level || "No Formal Education",
-        language: learningLanguage || "English",
-        learningLanguage: learningLanguage || "English",
-        interfaceLanguage: selectedLanguage || "English",
-        literacyLevel: currentLevelNum,
-        literacyLevelName: profInfo?.name || "Beginner",
-        weakAreas,
-        sectionNum: sectionInfo?.num || 1,
-        sectionTitle: sectionInfo?.title || "",
-        unitNum: unitInfo?.num || 1,
-        unitTitle: unitInfo?.title || "",
-        lessonNum: lesson.num || 1,
-        lessonTitle: lesson.title || "",
-        difficulty: currentLevelNum <= 2 ? "beginner" : currentLevelNum <= 4 ? "intermediate" : "advanced",
-        useFallback: !aiEnabled
-      });
+    const cacheKey = `lisa_lesson_content_${session?.user?.id || 'guest'}_${lesson.id}`;
+    const cachedLesson = localStorage.getItem(cacheKey);
+    if (cachedLesson) {
+      try {
+        aiContent = JSON.parse(cachedLesson);
+      } catch (e) {
+        console.warn("Error parsing cached lesson content:", e);
+      }
+    }
+
+    if (!aiContent) {
+      if (isPracticeSession) {
+        aiContent = await generatePracticeContent({
+          practiceType: lesson.title,
+          language: learningLanguage || "English",
+          learningLanguage: learningLanguage || "English",
+          interfaceLanguage: selectedLanguage || "English",
+          literacyLevel: currentLevelNum,
+          literacyLevelName: profInfo?.name || "Beginner",
+          mistakesList: lesson.title === "Mistakes Practice" ? recentMistakes : [],
+          useFallback: !aiEnabled
+        });
+      } else {
+        aiContent = await generateLessonContent({
+          age: profile?.age || 25,
+          educationLevel: profile?.education_level || "No Formal Education",
+          language: learningLanguage || "English",
+          learningLanguage: learningLanguage || "English",
+          interfaceLanguage: selectedLanguage || "English",
+          literacyLevel: currentLevelNum,
+          literacyLevelName: profInfo?.name || "Beginner",
+          weakAreas,
+          sectionNum: sectionInfo?.num || 1,
+          sectionTitle: sectionInfo?.title || "",
+          unitNum: unitInfo?.num || 1,
+          unitTitle: unitInfo?.title || "",
+          lessonNum: lesson.num || 1,
+          lessonTitle: lesson.title || "",
+          difficulty: currentLevelNum <= 2 ? "beginner" : currentLevelNum <= 4 ? "intermediate" : "advanced",
+          useFallback: !aiEnabled
+        });
+
+        if (aiContent && lesson.id && !lesson.id.includes("practice")) {
+          try {
+            localStorage.setItem(cacheKey, JSON.stringify(aiContent));
+          } catch (err) {
+            console.warn("Failed to save lesson content to localStorage:", err);
+          }
+        }
+      }
     }
 
     setLessonAiContent(aiContent);
@@ -6237,24 +6255,30 @@ function App() {
 
   const [curriculumVersion, setCurriculumVersion] = useState(0);
 
-  // Load custom curriculum configuration from admin's profile JSON column in Supabase (100% DB-driven)
+  // Load custom curriculum configuration and global shop catalog from admin's profile JSON column in Supabase (100% DB-driven)
   useEffect(() => {
-    const fetchCustomCurriculum = async () => {
+    const fetchCustomConfig = async () => {
       try {
         const { data, error } = await supabase.from("profiles").select("shop_data");
         if (data && !error) {
-          const adminProf = data.find(p => p.shop_data && p.shop_data.custom_curriculum);
-          if (adminProf && Array.isArray(adminProf.shop_data.custom_curriculum)) {
-            CURRICULUM_SECTIONS.length = 0;
-            CURRICULUM_SECTIONS.push(...adminProf.shop_data.custom_curriculum);
-            setCurriculumVersion(v => v + 1);
+          const adminProf = data.find(p => p.shop_data && (p.shop_data.custom_curriculum || p.shop_data.global_shop_catalog));
+          if (adminProf) {
+            if (adminProf.shop_data.custom_curriculum && Array.isArray(adminProf.shop_data.custom_curriculum)) {
+              CURRICULUM_SECTIONS.length = 0;
+              CURRICULUM_SECTIONS.push(...adminProf.shop_data.custom_curriculum);
+              setCurriculumVersion(v => v + 1);
+            }
+            if (adminProf.shop_data.global_shop_catalog && typeof adminProf.shop_data.global_shop_catalog === "object") {
+              setShopCatalog(adminProf.shop_data.global_shop_catalog);
+              localStorage.setItem("lisa_global_shop_catalog", JSON.stringify(adminProf.shop_data.global_shop_catalog));
+            }
           }
         }
       } catch (e) {
-        console.error("Failed to load custom curriculum from Supabase:", e);
+        console.error("Failed to load custom config from Supabase:", e);
       }
     };
-    fetchCustomCurriculum();
+    fetchCustomConfig();
   }, [session]);
 
   // Update document title dynamically based on the current page/state
@@ -8926,16 +8950,18 @@ function App() {
                   <div className="notif-panel-header">
                     <h4>Notifications</h4>
                     <div className="notif-header-actions">
-                      {notifications.length > 0 && unreadCount > 0 && (
+                      {notifications.length > 0 && (
                         <button
                           type="button"
                           className="notif-read-all-btn"
                           onClick={async () => {
-                            const newRead = [...new Set([...readNotifIds, ...notifications.map(n => n.id)])];
-                            await saveReadNotifs(newRead);
+                            const allNotifIds = notifications.map(n => n.id);
+                            const newRead = [...new Set([...readNotifIds, ...allNotifIds])];
+                            const newDismissed = [...new Set([...dismissedNotifIds, ...allNotifIds])];
+                            await saveNotifState(newRead, newDismissed);
                           }}
                         >
-                          Read All
+                          Clear All
                         </button>
                       )}
                     </div>
@@ -8944,24 +8970,34 @@ function App() {
                     {notifications.length === 0 ? (
                       <p className="notif-empty">No notifications yet.</p>
                     ) : (
-                      notifications.map((n) => (
-                        <div key={n.id} className="notif-card" style={{ background: lightenColor(n.color) }}>
-                          <span className="notif-icon" style={{ color: n.color }}>{n.icon}</span>
-                          <div className="notif-content">
-                            <div className="notif-title">{n.title}</div>
-                            <div className="notif-message">{n.message}</div>
+                      notifications.map((n) => {
+                        const isUnread = !readNotifIds.includes(n.id);
+                        return (
+                          <div key={n.id} className={`notif-card ${isUnread ? 'notif-unread' : ''}`} style={{ borderLeft: `4px solid ${n.color}` }}>
+                            <span className="notif-icon" style={{ backgroundColor: lightenColor(n.color, 0.15) }}>{n.icon}</span>
+                            <div className="notif-content">
+                              <div className="notif-title">
+                                {n.title}
+                                {isUnread && <span className="notif-unread-dot" />}
+                              </div>
+                              <div className="notif-message">{n.message}</div>
+                            </div>
+                            <button
+                              type="button"
+                              className="notif-read-btn"
+                              onClick={async () => {
+                                const newRead = [...new Set([...readNotifIds, n.id])];
+                                const newDismissed = [...new Set([...dismissedNotifIds, n.id])];
+                                await saveNotifState(newRead, newDismissed);
+                              }}
+                              aria-label={`Clear ${n.title}`}
+                              title="Clear"
+                            >
+                              Clear
+                            </button>
                           </div>
-                          <button
-                            type="button"
-                            className="notif-read-btn"
-                            onClick={async () => await saveDismissedNotifs([...dismissedNotifIds, n.id])}
-                            aria-label={`Mark ${n.title} as read`}
-                            title="Mark as read"
-                          >
-                            Read
-                          </button>
-                        </div>
-                      ))
+                        );
+                      })
                     )}
                   </div>
                 </div>
@@ -10431,6 +10467,7 @@ style={(() => {
               <div className="practice-content-column">
                 <XPShop
                   t={t}
+                  catalog={shopCatalog}
                   onPurchaseItem={(item, newXp, newOwned) => {
                     playChime("buy");
                     triggerHaptic("buy");
@@ -10456,7 +10493,7 @@ style={(() => {
                         setShopBanner(item.id);
                         updatedBanner = item.id;
                       } else if (item.id.startsWith("avatar_")) {
-                        const av = SHOP_CATALOG.avatars.find(a => a.id === item.id);
+                        const av = shopCatalog.avatars.find(a => a.id === item.id);
                         if (av) {
                           const avObj = { type: "emoji", emoji: av.emoji, id: item.id };
                           setShopCustomAvatar(avObj);
@@ -10633,7 +10670,14 @@ style={(() => {
 
           {/* 3.7. Admin Portal Tab */}
           {dashboardTab === "admin" && (
-            <AdminDashboard session={session} />
+            <AdminDashboard 
+              session={session} 
+              shopCatalog={shopCatalog}
+              onShopCatalogChange={(newCatalog) => {
+                setShopCatalog(newCatalog);
+                localStorage.setItem("lisa_global_shop_catalog", JSON.stringify(newCatalog));
+              }}
+            />
           )}
         </main>
 
