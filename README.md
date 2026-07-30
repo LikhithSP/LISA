@@ -1,5 +1,15 @@
 # 📖 LISA — Literacy Intelligent Support Assistant
 
+> **Live Demo**: [lisa-gray.vercel.app](https://lisa-gray.vercel.app/)
+---
+
+
+![Login Screenshot](/Login.png)
+![Dashboard Screenshot](/Dashboard.png)
+![Course Path Screenshot](/Course%20Path.png)
+![Lessons Screenshot](/Lessons.png)
+
+
 LISA is an interactive, AI-driven educational portal designed to accelerate foundational literacy development for child and adult learners. By integrating speech recognition, adaptive progression algorithms, gamified reward loops, and a course administration workspace, LISA makes learning a new language accessible, engaging, and highly personalized.
 
 LISA supports learning English, Hindi, Kannada, Tamil, and Telugu, with UI translations and text-to-speech feedback tailored dynamically to the learner's chosen preferences.
