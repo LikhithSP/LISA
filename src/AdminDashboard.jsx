@@ -711,8 +711,33 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
     <div className="admin-dashboard-container">
       <div className="admin-header">
         <div className="admin-title-row">
-          <h2>🔒 Admin Portal</h2>
-          <p>LISA Administrator Operations & Analytics Panel</p>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+            <div>
+              <h2>🔒 Admin Portal</h2>
+              <p>LISA Administrator Operations & Analytics Panel</p>
+            </div>
+            <button
+              type="button"
+              className="admin-logout-btn-mobile"
+              onClick={() => supabase.auth.signOut()}
+              style={{
+                background: 'rgba(239, 68, 68, 0.08)',
+                color: '#ef4444',
+                border: '1px solid rgba(239, 68, 68, 0.2)',
+                borderRadius: '12px',
+                padding: '8px 16px',
+                fontWeight: 700,
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+                display: 'none',
+                alignItems: 'center',
+                gap: '6px',
+                fontFamily: 'var(--font-family)'
+              }}
+            >
+              🚪 Log Out
+            </button>
+          </div>
         </div>
         <div className="admin-tabs">
           <button 
@@ -832,7 +857,7 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
               </div>
             </div>
 
-            <div className="admin-charts-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
+            <div className="admin-charts-grid" style={{ marginBottom: '24px' }}>
               {/* Horizontal Progress Bars for Literacy Levels */}
               <div className="admin-chart-box" style={{ background: 'var(--panel-strong)', border: '1px solid var(--line)', borderRadius: '24px', padding: '24px' }}>
                 <h4 style={{ margin: '0 0 20px 0', fontSize: '1.1rem', fontWeight: 900, color: 'var(--text)' }}>Current Level</h4>
@@ -1373,7 +1398,7 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
               </button>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '24px', alignItems: 'start' }}>
+            <div className="admin-curriculum-grid">
               {/* Left Column: Sections List */}
               <div className="curriculum-left" style={{ background: 'var(--panel-strong)', border: '1px solid var(--line)', borderRadius: '24px', padding: '20px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
@@ -2181,7 +2206,7 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
               </div>
 
               {/* Stats highlights */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '24px' }}>
+              <div className="admin-user-detail-stats-grid">
                 <div style={{ background: 'var(--panel-strong)', border: '1px solid var(--line)', borderRadius: '16px', padding: '12px', textAlign: 'center' }}>
                   <div style={{ fontSize: '1.2rem', fontWeight: 950, color: 'var(--accent)' }}>⭐ {viewingUserDetail.xp || 0}</div>
                   <div style={{ fontSize: '0.7rem', color: 'var(--muted)', fontWeight: 800 }}>XP Earned</div>
@@ -2223,7 +2248,7 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
               </div>
 
               {/* Completed Lessons Roster */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '20px', borderTop: '1px solid var(--line)', paddingTop: '20px', marginTop: '10px' }}>
+              <div className="admin-user-detail-roster-grid">
                 <div style={{ background: 'rgba(16, 185, 129, 0.05)', border: '1px solid rgba(16, 185, 129, 0.15)', borderRadius: '16px', padding: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                   <div style={{ fontSize: '3rem', fontWeight: 900, color: '#10b981', lineHeight: 1 }}>
                     {Array.isArray(viewingUserDetail.completed_lessons) ? viewingUserDetail.completed_lessons.length : 0}
