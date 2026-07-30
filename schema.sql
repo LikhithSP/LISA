@@ -26,11 +26,11 @@ create policy "Public profiles are viewable by everyone." on public.profiles
 
 drop policy if exists "Users can update their own profile." on public.profiles;
 create policy "Users can update their own profile." on public.profiles
-  for update using (auth.uid() = id);
+  for update using (auth.uid() = id or auth.jwt() ->> 'email' = 'admin@gmail.com');
 
 drop policy if exists "Users can delete their own profile." on public.profiles;
 create policy "Users can delete their own profile." on public.profiles
-  for delete using (auth.uid() = id);
+  for delete using (auth.uid() = id or auth.jwt() ->> 'email' = 'admin@gmail.com');
 
 -- Trigger function to automatically create a profile for new users
 create or replace function public.handle_new_user()
@@ -115,6 +115,10 @@ CREATE POLICY "Anyone can insert word of the day" ON public.word_of_day
 DROP POLICY IF EXISTS "Anyone can update word of the day" ON public.word_of_day;
 CREATE POLICY "Anyone can update word of the day" ON public.word_of_day
   FOR UPDATE USING (true);
+
+DROP POLICY IF EXISTS "Anyone can delete word of the day" ON public.word_of_day;
+CREATE POLICY "Anyone can delete word of the day" ON public.word_of_day
+  FOR DELETE USING (true);
 
 
 

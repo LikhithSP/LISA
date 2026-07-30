@@ -180,6 +180,16 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
         if (fallback.data && !fallback.error) {
           targetId = fallback.data.id;
           existingShopData = fallback.data.shop_data || {};
+        } else if (session?.user?.id) {
+          targetId = session.user.id;
+          const adminSelf = await supabase
+            .from("profiles")
+            .select("shop_data")
+            .eq("id", targetId)
+            .maybeSingle();
+          if (adminSelf.data && !adminSelf.error) {
+            existingShopData = adminSelf.data.shop_data || {};
+          }
         }
       }
 
