@@ -80,7 +80,8 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
 
   // Local Curriculum State for Management
   const [localCurriculum, setLocalCurriculum] = useState([]);
-  
+  const [hoveredLang, setHoveredLang] = useState(null);
+
   useEffect(() => {
     if (activeSubTab === "curriculum") {
       setLocalCurriculum(JSON.parse(JSON.stringify(CURRICULUM_SECTIONS)));
@@ -768,7 +769,7 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
                   fontSize: '0.85rem'
                 }}
               >
-                <Download size={15} style={{ strokeWidth: 3 }} /> Export Learner Roster (CSV)
+                <Download size={15} style={{ strokeWidth: 3 }} /> Export CSV
               </button>
             </div>
              <div className="admin-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '16px', marginBottom: '24px' }}>
@@ -826,7 +827,7 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
               <div className="admin-chart-box" style={{ background: 'var(--panel-strong)', border: '1px solid var(--line)', borderRadius: '24px', padding: '24px' }}>
                 <h4 style={{ margin: '0 0 20px 0', fontSize: '1.1rem', fontWeight: 900, color: 'var(--text)' }}>Current Level</h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                  {[1, 2, 3, 4, 5, 6].map(lvl => {
+                  {[1, 2, 3, 4, 5].map(lvl => {
                     const count = stats.levelsCount[lvl] || 0;
                     const totalUsers = stats.totalUsers || 1;
                     const pct = Math.round((count / totalUsers) * 100);
@@ -879,10 +880,12 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
                   };
 
                   let accumulatedPercent = 0;
+                  const hoveredCount = hoveredLang ? langData.find(([lang]) => lang === hoveredLang)?.[1] : null;
+                  const hoveredPct = hoveredLang && totalUsers ? ((hoveredCount / totalUsers) * 100).toFixed(0) : null;
 
                   return (
-                    <div style={{ display: 'flex', gap: '20px', alignItems: 'center', justifyContent: 'space-around', flexWrap: 'wrap' }}>
-                      <svg width="180" height="180" viewBox="-100 -100 200 200" style={{ transform: 'rotate(-90deg)', overflow: 'visible' }}>
+                    <div style={{ display: 'flex', gap: '24px', alignItems: 'center', justifyContent: 'space-around', flexWrap: 'wrap' }}>
+                      <svg width="220" height="220" viewBox="-100 -100 200 200" style={{ transform: 'rotate(-90deg)', overflow: 'visible' }}>
                         {langData.map(([lang, count], idx) => {
                           const pct = count / totalUsers;
                           const startPercent = accumulatedPercent;
@@ -892,6 +895,7 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
                           const [endX, endY] = getCoords(accumulatedPercent);
                           
                           const largeArc = pct > 0.5 ? 1 : 0;
+                          const isHovered = hoveredLang === lang;
                           
                           const pathData = [
                             `M ${startX * 82} ${startY * 82}`,
@@ -907,33 +911,71 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
                               d={pathData}
                               fill={colors[idx % colors.length]}
                               stroke="var(--panel-strong)"
-                              strokeWidth="1.5"
-                              style={{ cursor: 'pointer', transition: 'all 0.2s' }}
-                              onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.03)'}
-                              onMouseLeave={e => e.currentTarget.style.transform = 'none'}
+                              strokeWidth={isHovered ? "2.5" : "1.5"}
+                              style={{ 
+                                cursor: 'pointer', 
+                                transition: 'all 0.25s ease',
+                                transform: isHovered ? 'scale(1.06)' : 'scale(1)',
+                                transformOrigin: '0 0',
+                                filter: isHovered ? 'brightness(1.1)' : 'none'
+                              }}
+                              onMouseEnter={() => setHoveredLang(lang)}
+                              onMouseLeave={() => setHoveredLang(null)}
                             >
                               <title>{`${lang}: ${count} users (${(pct * 100).toFixed(0)}%)`}</title>
                             </path>
                           );
                         })}
                         <circle r="46" fill="var(--panel-strong)" />
-                        <text x="0" y="-4" fill="var(--text)" fontSize="14" fontWeight="950" textAnchor="middle" style={{ transform: 'rotate(90deg)', transformOrigin: '0 0' }}>
-                          {totalUsers}
-                        </text>
-                        <text x="0" y="14" fill="var(--muted)" fontSize="8.5" fontWeight="800" textAnchor="middle" style={{ transform: 'rotate(90deg)', transformOrigin: '0 0' }}>
-                          USERS
-                        </text>
+                        {hoveredLang ? (
+                          <>
+                            <text x="0" y="-2" fill="var(--text)" fontSize="18" fontWeight="950" textAnchor="middle" style={{ transform: 'rotate(90deg)', transformOrigin: '0 0' }}>
+                              {hoveredCount}
+                            </text>
+                            <text x="0" y="16" fill={colors[langData.findIndex(([lang]) => lang === hoveredLang) % colors.length]} fontSize="11" fontWeight="800" textAnchor="middle" style={{ transform: 'rotate(90deg)', transformOrigin: '0 0' }}>
+                              {hoveredLang.toUpperCase()}
+                            </text>
+                          </>
+                        ) : (
+                          <>
+                            <text x="0" y="-4" fill="var(--text)" fontSize="22" fontWeight="950" textAnchor="middle" style={{ transform: 'rotate(90deg)', transformOrigin: '0 0' }}>
+                              {totalUsers}
+                            </text>
+                            <text x="0" y="16" fill="var(--muted)" fontSize="12" fontWeight="800" textAnchor="middle" style={{ transform: 'rotate(90deg)', transformOrigin: '0 0' }}>
+                              USERS
+                            </text>
+                          </>
+                        )}
                       </svg>
 
                       {/* Legend */}
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '0.8rem' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.85rem' }}>
                         {langData.map(([lang, count], idx) => {
                           const pct = (count / totalUsers) * 100;
+                          const isHovered = hoveredLang === lang;
                           return (
-                            <div key={lang} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <span style={{ width: '12px', height: '12px', borderRadius: '4px', background: colors[idx % colors.length] }} />
-                              <span style={{ fontWeight: 800 }}>{lang}</span>
-                              <span style={{ color: 'var(--muted)', fontWeight: 600 }}>({pct.toFixed(0)}%)</span>
+                            <div 
+                              key={lang} 
+                              onMouseEnter={() => setHoveredLang(lang)}
+                              onMouseLeave={() => setHoveredLang(null)}
+                              style={{ 
+                                display: 'flex', 
+                                alignItems: 'center', 
+                                gap: '10px',
+                                padding: '8px 12px',
+                                borderRadius: '12px',
+                                background: isHovered ? 'var(--bg)' : 'transparent',
+                                border: isHovered ? '1.5px solid var(--line)' : '1.5px solid transparent',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease',
+                                transform: isHovered ? 'translateX(4px)' : 'translateX(0)'
+                              }}
+                            >
+                              <span style={{ width: '14px', height: '14px', borderRadius: '4px', background: colors[idx % colors.length], boxShadow: isHovered ? `0 0 0 3px ${colors[idx % colors.length]}33` : 'none', transition: 'all 0.2s' }} />
+                              <span style={{ fontWeight: 800, fontSize: '0.85rem' }}>{lang}</span>
+                              <span style={{ color: 'var(--muted)', fontWeight: 700, fontSize: '0.8rem' }}>
+                                {isHovered ? `${count} (${pct.toFixed(0)}%)` : `${pct.toFixed(0)}%`}
+                              </span>
                             </div>
                           );
                         })}

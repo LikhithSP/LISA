@@ -18,6 +18,10 @@
   --flz-bad: #e0533d;
   --flz-tint: rgba(198, 95, 45, 0.08);
   --flz-tint-strong: rgba(198, 95, 45, 0.16);
+  --streak-bg: #fef2f2;
+  --xp-bg: #eff6ff;
+  --lessons-bg: #fffbeb;
+  --time-bg: #f0fdf4;
 }
 
 /* Claude-inspired dark theme */
@@ -39,6 +43,10 @@
   --flz-bad: #f87171;
   --flz-tint: rgba(199, 125, 74, 0.14);
   --flz-tint-strong: rgba(199, 125, 74, 0.24);
+  --streak-bg: rgba(249, 115, 22, 0.12);
+  --xp-bg: rgba(16, 185, 129, 0.12);
+  --lessons-bg: rgba(245, 158, 11, 0.12);
+  --time-bg: rgba(59, 130, 246, 0.12);
 }
 
 * {
@@ -13105,86 +13113,83 @@ select:focus {
 /* Stats Cards styling */
 .profile-stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px;
-  margin-bottom: 32px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 640px) {
+  .profile-stats-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .profile-stat-card {
-  background: var(--panel);
+  background: #f4f6f9;
   border: 2px solid var(--line);
-  border-radius: 20px;
-  padding: 22px 20px;
+  border-radius: 18px;
+  padding: 20px;
   display: flex;
   align-items: center;
-  gap: 16px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.02);
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  justify-content: center;
+  gap: 14px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.profile-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
 }
 
 .profile-stat-card.streak {
-  border-color: rgba(249, 115, 22, 0.25);
-  background: linear-gradient(135deg, var(--panel) 70%, rgba(249, 115, 22, 0.05));
-}
-.profile-stat-card.streak:hover {
-  transform: translateY(-3px);
-  border-color: #f97316;
-  box-shadow: 0 8px 24px rgba(249, 115, 22, 0.15);
+  background: var(--streak-bg);
 }
 
 .profile-stat-card.xp {
-  border-color: rgba(16, 185, 129, 0.25);
-  background: linear-gradient(135deg, var(--panel) 70%, rgba(16, 185, 129, 0.05));
-}
-.profile-stat-card.xp:hover {
-  transform: translateY(-3px);
-  border-color: #10b981;
-  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.15);
+  background: var(--xp-bg);
 }
 
 .profile-stat-card.lessons {
-  border-color: rgba(245, 158, 11, 0.25);
-  background: linear-gradient(135deg, var(--panel) 70%, rgba(245, 158, 11, 0.05));
-}
-.profile-stat-card.lessons:hover {
-  transform: translateY(-3px);
-  border-color: #f59e0b;
-  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.15);
+  background: var(--lessons-bg);
 }
 
 .profile-stat-card.active-time {
-  border-color: rgba(59, 130, 246, 0.25);
-  background: linear-gradient(135deg, var(--panel) 70%, rgba(59, 130, 246, 0.05));
+  background: var(--time-bg);
 }
+
+.profile-stat-card.streak:hover,
+.profile-stat-card.xp:hover,
+.profile-stat-card.lessons:hover,
 .profile-stat-card.active-time:hover {
-  transform: translateY(-3px);
-  border-color: #3b82f6;
-  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.15);
+  border-color: #e5e7eb;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
 }
 
 .stat-icon {
-  font-size: 2.2rem;
+  font-size: 2rem;
   transition: transform 0.2s ease;
 }
 
 .profile-stat-card:hover .stat-icon {
-  transform: scale(1.1);
+  transform: scale(1.08);
 }
 
 .stat-val {
-  font-size: 1.6rem;
+  font-size: 1.5rem;
   font-weight: 900;
   color: var(--text);
   line-height: 1.1;
   margin-bottom: 2px;
+  text-align: center;
 }
 
 .stat-lbl {
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  text-align: center;
 }
 
 /* Badges section */
@@ -13198,9 +13203,9 @@ select:focus {
 }
 
 .profile-section-title {
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   font-weight: 800;
-  margin-bottom: 20px;
+  margin-bottom: 18px;
   color: var(--text);
   border-left: 4px solid var(--accent);
   padding-left: 12px;
@@ -13209,20 +13214,20 @@ select:focus {
 .profile-badges-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 14px;
 }
 
 .profile-badges-empty {
   text-align: center;
-  padding: 32px;
+  padding: 28px;
   width: 100%;
   color: var(--text-muted);
 }
 
 .profile-badges-empty .empty-icon {
-  font-size: 3rem;
+  font-size: 2.5rem;
   display: block;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .profile-badge-item {
@@ -13396,30 +13401,6 @@ select:focus {
   transform: scale(1.15);
   border-color: white;
   box-shadow: 0 0 0 2px var(--accent);
-}
-
-.avatar-options-shape-row {
-  display: flex;
-  gap: 12px;
-}
-
-.avatar-option-shape-btn {
-  flex: 1;
-  background: var(--bg);
-  border: 1.5px solid var(--line);
-  color: var(--text-muted);
-  font-weight: 800;
-  font-size: 0.85rem;
-  padding: 10px;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.avatar-option-shape-btn:hover, .avatar-option-shape-btn.active {
-  border-color: var(--accent);
-  color: var(--accent);
-  background: var(--accent-soft);
 }
 
 /* Account Settings styling */
