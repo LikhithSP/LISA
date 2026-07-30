@@ -691,11 +691,15 @@ function App() {
     const handleInstall = (e) => {
       e.preventDefault();
       setPwaInstallPrompt(e);
-      if (!window.matchMedia('(display-mode: standalone)').matches) {
-        setShowInstallBanner(true);
-      }
+      setShowInstallBanner(true);
     };
     window.addEventListener('beforeinstallprompt', handleInstall);
+
+    // Auto-show install banner for mobile/PWA environments if not already installed and not dismissed
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    if (!isStandalone && localStorage.getItem("lisa_install_dismissed") !== "true") {
+      setShowInstallBanner(true);
+    }
     const handleSwUpd = () => setSwUpdateAvailable(true);
     window.addEventListener('swUpdateAvailable', handleSwUpd);
     return () => {
@@ -707,10 +711,23 @@ function App() {
   }, []);
 
   const handleInstallApp = async () => {
-    if (!pwaInstallPrompt) return;
-    pwaInstallPrompt.prompt();
-    const { outcome } = await pwaInstallPrompt.userChoice;
-    if (outcome === 'accepted') { setShowInstallBanner(false); setPwaInstallPrompt(null); }
+    if (pwaInstallPrompt) {
+      pwaInstallPrompt.prompt();
+      const { outcome } = await pwaInstallPrompt.userChoice;
+      if (outcome === 'accepted') {
+        setShowInstallBanner(false);
+        setPwaInstallPrompt(null);
+      }
+    } else {
+      const isiOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      if (isiOS) {
+        alert("To install LISA on iOS:\n\n1. Tap the Share button (square with arrow up) at the bottom/top of Safari.\n2. Scroll down the menu.\n3. Tap 'Add to Home Screen' (+ icon).");
+      } else {
+        alert("To install LISA on your device:\n\n1. Tap the browser menu button (typically three dots in the top-right corner).\n2. Choose 'Install App' or 'Add to Home Screen'.");
+      }
+      setShowInstallBanner(false);
+      localStorage.setItem("lisa_install_dismissed", "true");
+    }
   };
 
   const handleSwReload = () => {
@@ -10059,6 +10076,18 @@ function App() {
                         </div>
                         <div className="practice-row-card-icon write-icon">✍️</div>
                       </div>
+
+                      <div className="practice-row-card" onClick={() => openPracticeCollection("pronunciation")}>
+                        <div className="practice-row-card-content">
+                          <h3 className="practice-row-card-title">
+                            {t("practicePronunciation") && t("practicePronunciation") !== "practicePronunciation" ? t("practicePronunciation") : "Pronunciation"}
+                          </h3>
+                          <p className="practice-row-card-desc">
+                            {t("practicePronunciationDesc") && t("practicePronunciationDesc") !== "practicePronunciationDesc" ? t("practicePronunciationDesc") : "Improve your pronunciation skills"}
+                          </p>
+                        </div>
+                        <div className="practice-row-card-icon pronunciation-icon">🗣️</div>
+                      </div>
                     </div>
                   </div>
 
@@ -10086,6 +10115,8 @@ function App() {
                         </div>
                         <div className="practice-row-card-icon words-icon">📚</div>
                       </div>
+
+
 
                       <div className="practice-row-card" onClick={() => startLessonSession({ id: `l${currentLevelNum}_comp_practice`, title: "Stories Practice", desc: "Reread a story to review words in context" })}>
                         <div className="practice-row-card-content">
@@ -10244,7 +10275,7 @@ style={(() => {
                   <div className="profile-info-large">
                     <h2>{profile?.full_name || "Learner"}</h2>
                     <p>{session.user.email}</p>
-                    <div style={{ display: "flex", gap: "16px", marginTop: "12px", flexWrap: "wrap" }}>
+                    <div className="profile-details-list">
                       <span style={{ fontWeight: 700 }}>{t("profileAge")}: {profile?.age || t("naText")}</span>
                       <span style={{ fontWeight: 700 }}>{t("profileEducation")}: {profile?.education_level ? t(profile.education_level + "Option") : t("naText")}</span>
                       {profile?.experience_level && (
@@ -10446,7 +10477,7 @@ style={(() => {
 
                 {profileSubTab === "settings" && (
                   <div className="profile-settings-tab">
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px" }}>
+                    <div className="profile-settings-tab-grid">
                       <div className="profile-settings-card">
                         <h3 className="profile-section-title">{t("profileUpdateSettings")}</h3>
                         <form onSubmit={handleSaveProfileEdit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
@@ -10582,6 +10613,19 @@ style={(() => {
                   </div>
                 )}
               </div>
+              
+              {/* Mobile-only Logout button */}
+              <div className="mobile-only-logout-container">
+                <button
+                  type="button"
+                  className="secondary-btn mobile-logout-btn"
+                  onClick={() => handleSignOut()}
+                  style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '14px 20px', borderRadius: '16px', background: 'rgba(239, 68, 68, 0.08)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.2)', fontWeight: '700' }}
+                >
+                  <LogoutIcon style={{ marginRight: 0, width: 18, height: 18 }} /> {t("logout") || "Log Out"}
+                </button>
+              </div>
+
             </div>
           )}
 
@@ -13286,7 +13330,7 @@ style={(() => {
             </div>
             <div className="pwa-install-actions">
               <button onClick={handleInstallApp} className="pwa-install-btn">Install</button>
-              <button onClick={() => setShowInstallBanner(false)} className="pwa-banner-close" aria-label="Dismiss">✕</button>
+              <button onClick={() => { setShowInstallBanner(false); localStorage.setItem("lisa_install_dismissed", "true"); }} className="pwa-banner-close" aria-label="Dismiss">✕</button>
             </div>
           </div>
         )}

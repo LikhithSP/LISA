@@ -14559,3 +14559,848 @@ select {
 [data-theme="dark"] .dashboard-main-view {
   background: #0e0e12 !important;
 }
+
+
+
+/* =============================================================
+   LISA MOBILE UPDATES: CARD LAYOUTS, PROFILE, GAMES, AND LOGOUT
+   ============================================================= */
+
+/* Hide Streak, XP, Shop, Leaderboard, and Notification Bell in Mobile Layouts */
+@media (max-width: 768px) {
+  .dashboard-topbar .indicator-pill.streak,
+  .dashboard-topbar .indicator-pill.xp,
+  .dashboard-topbar .shop-pill,
+  .dashboard-topbar .leaderboard-pill,
+  .dashboard-topbar .notif-bell-btn {
+    display: none !important;
+  }
+  
+  .topbar-right {
+    gap: 8px !important;
+  }
+}
+
+/* Learner Progress, Streak Society, and Daily Quest Cards Mobile Optimization */
+@media (max-width: 768px) {
+  /* Learner Progress Card */
+  .stars-answers-card {
+    padding: 20px 16px !important;
+    border-radius: 20px !important;
+  }
+  
+  .progress-dashboard-header {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  
+  .progress-view-btn {
+    padding: 6px 12px !important;
+    font-size: 0.8rem !important;
+  }
+  
+  .stars-answers-card .sa-metrics-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 14px !important;
+  }
+  
+  .stars-answers-card .sa-divider {
+    display: none !important; /* Hide vertical divider on stacked layout */
+  }
+  
+  .stars-answers-card .sa-metric {
+    justify-content: flex-start !important;
+  }
+
+  /* Streak Society Card */
+  .streak-widget-card.streak-society-card {
+    padding: 20px 16px !important;
+    border-radius: 20px !important;
+  }
+  
+  .streak-society-title {
+    font-size: 1.8rem !important;
+  }
+  
+  .streak-society-message {
+    font-size: 0.85rem !important;
+    line-height: 1.4 !important;
+  }
+  
+  /* Daily Quests Card */
+  .daily-quests-card {
+    padding: 20px 16px !important;
+    border-radius: 20px !important;
+  }
+  
+  .daily-quests-header h3 {
+    font-size: 1.1rem !important;
+  }
+}
+
+/* Profile Tab & Account Settings Mobile Fixes */
+.profile-settings-tab-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+}
+
+@media (max-width: 768px) {
+  .profile-settings-tab-grid {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+  }
+  
+  /* Profile sub tabs scrollable on mobile */
+  .profile-sub-tabs {
+    display: flex !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    gap: 8px !important;
+    padding: 4px 0 !important;
+    border-bottom: 2px solid var(--line) !important;
+    margin-bottom: 20px !important;
+  }
+  
+  .profile-sub-tab-btn {
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    font-size: 0.85rem !important;
+    padding: 10px 14px !important;
+  }
+
+  .profile-avatar-creator-tab {
+    padding: 20px 16px !important;
+  }
+}
+
+/* Mobile-only Logout button container spacing */
+.mobile-only-logout-container {
+  display: none;
+  margin-top: 24px;
+}
+
+@media (max-width: 768px) {
+  .mobile-only-logout-container {
+    display: block !important;
+  }
+}
+
+/* Games Layout Mobile Optimizations (Fun Learn Zone) */
+@media (max-width: 768px) {
+  .flz-game-card {
+    padding: 20px 16px !important;
+    border-radius: 20px !important;
+  }
+  
+  .flz-timer-row {
+    margin-bottom: 16px !important;
+  }
+
+  /* Word Scramble Tiles Mobile Sizing */
+  .flz-letter-tiles {
+    gap: 8px !important;
+  }
+  
+  .flz-letter-tile {
+    width: 42px !important;
+    height: 46px !important;
+    font-size: 1.1rem !important;
+    border-radius: 8px !important;
+    border-width: 2px !important;
+  }
+  
+  .flz-answer-slots {
+    gap: 8px !important;
+    margin-bottom: 20px !important;
+  }
+  
+  .flz-slot {
+    width: 40px !important;
+    height: 44px !important;
+    font-size: 1.1rem !important;
+    border-radius: 8px !important;
+    border-width: 2px !important;
+  }
+
+  /* Memory Match Cards Mobile Sizing */
+  .flz-memory-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 8px !important;
+  }
+  
+  .flz-memory-card {
+    height: 80px !important;
+  }
+  
+  .flz-card-emoji {
+    font-size: 1.6rem !important;
+  }
+  
+  .flz-card-word {
+    font-size: 0.75rem !important;
+  }
+
+  /* Word Sprint Mobile Formatting */
+  .flz-sprint-options {
+    gap: 10px !important;
+  }
+  
+  .flz-sprint-option-btn {
+    padding: 12px 14px !important;
+    font-size: 0.95rem !important;
+    border-radius: 12px !important;
+  }
+}
+
+/* Pronunciation Card Mobile Layout */
+@media (max-width: 768px) {
+  .pronunciation-card-container {
+    padding: 20px 16px !important;
+    border-radius: 20px !important;
+    margin: 16px auto !important;
+    max-width: 100% !important;
+  }
+  
+  .pronunciation-badge {
+    font-size: 0.7rem !important;
+  }
+  
+  .translation-toggle-btn {
+    font-size: 0.7rem !important;
+    padding: 4px 8px !important;
+  }
+  
+  .phrase-speak-buttons {
+    flex-direction: column !important;
+    gap: 10px !important;
+  }
+  
+  .phrase-speak-buttons .tts-btn {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+}
+
+/* Perfect Pronunciation Card in Practice Tab Icon Colors */
+.pronunciation-icon {
+  background: rgba(6, 182, 212, 0.14) !important;
+  color: #06b6d4 !important;
+}
+
+
+
+/* =============================================================
+   LISA MOBILE REFINEMENTS: HEADER, CARDS, GAMES, AND PROFILE
+   ============================================================= */
+
+/* 1. Reset Topbar mobile hide to show Shop and Leaderboard */
+@media (max-width: 768px) {
+  .dashboard-topbar .indicator-pill.streak,
+  .dashboard-topbar .indicator-pill.xp,
+  .dashboard-topbar .notif-bell-btn {
+    display: none !important;
+  }
+  
+  /* Bring back shop and leaderboard */
+  .dashboard-topbar .shop-pill,
+  .dashboard-topbar .leaderboard-pill {
+    display: inline-flex !important;
+  }
+}
+
+/* 2. Decrease card widths for Streak Card & Daily Quest Card on mobile */
+@media (max-width: 768px) {
+  .streak-widget-card.streak-society-card,
+  .daily-quests-card,
+  .stars-answers-card {
+    width: calc(100% - 24px) !important;
+    max-width: calc(100% - 24px) !important;
+    margin-left: 12px !important;
+    margin-right: 12px !important;
+    box-sizing: border-box !important;
+  }
+}
+
+/* 3. Profile details list & cover photo mobile styling */
+.profile-details-list {
+  display: flex;
+  gap: 16px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .profile-cover {
+    height: 120px !important;
+  }
+  
+  .profile-card-body {
+    flex-direction: column !important;
+    text-align: center !important;
+    padding: 0 16px 24px !important;
+    margin-top: 0 !important;
+  }
+  
+  .profile-avatar-large {
+    margin-top: -48px !important;
+    z-index: 10 !important;
+    border: 4px solid var(--panel-strong) !important;
+    width: 88px !important;
+    height: 88px !important;
+  }
+  
+  .profile-info-large {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+  
+  .profile-details-list {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+  
+  .profile-details-list span {
+    font-size: 0.88rem !important;
+    text-align: center !important;
+  }
+}
+
+/* 4. Complete Center & Fit for all Game Layouts on Mobile */
+@media (max-width: 768px) {
+  /* Game Area Container */
+  .flz-active-game-panel,
+  .flz-game-card {
+    width: calc(100% - 24px) !important;
+    max-width: calc(100% - 24px) !important;
+    margin: 12px auto !important;
+    padding: 16px 12px !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+  }
+
+  .flz-game-intro {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    padding: 16px 12px !important;
+  }
+
+  /* Memory Match center-align */
+  .flz-memory-game {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+  
+  .flz-memory-grid {
+    justify-content: center !important;
+    align-content: center !important;
+    margin: 16px auto !important;
+    width: 100% !important;
+    max-width: 320px !important;
+    gap: 8px !important;
+  }
+  
+  .flz-memory-card {
+    height: 72px !important;
+    width: 100% !important;
+  }
+
+  /* Word Scramble center-align */
+  .flz-scramble-game {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+  
+  .flz-letter-tiles,
+  .flz-answer-slots {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    flex-wrap: wrap !important;
+    width: 100% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    gap: 6px !important;
+  }
+
+  /* Word Sprint center-align */
+  .flz-sprint-game {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+  
+  .flz-sprint-options {
+    width: 100% !important;
+    max-width: 340px !important;
+    margin: 0 auto !important;
+  }
+}
+
+
+
+/* =============================================================
+   LISA ALIGNMENT FIX: DASHBOARD CARDS UNIFIED WIDTHS & MARGINS
+   ============================================================= */
+
+@media (max-width: 768px) {
+  /* Ensure parent columns take full width without offset margins */
+  .dashboard-overview,
+  .dashboard-col,
+  .dashboard-col-left,
+  .dashboard-col-right,
+  .dashboard-dual-grid {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Unify widths and margins of all cards so they align perfectly in the center */
+  .resume-card,
+  .stars-answers-card,
+  .streak-widget-card.streak-society-card,
+  .daily-quests-card,
+  .badges-gallery-card,
+  .badges-gallery-card-new,
+  .current-level-card,
+  .tutor-announcement-bar,
+  .premium-hero-card,
+  .word-of-day-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    margin-bottom: 20px !important;
+    box-sizing: border-box !important;
+  }
+}
+
+
+
+/* =============================================================
+   LISA MOBILE UPDATES: LANGUAGE, PRACTICE CARDS, AND LAYOUTS
+   ============================================================= */
+
+/* 1. Header & Language dropdown button on mobile */
+@media (max-width: 768px) {
+  /* Shorten Change Language trigger button to circular icon on mobile */
+  .lang-selector-trigger span {
+    display: none !important; /* Hide text, show only globe icon */
+  }
+  
+  .lang-selector-trigger {
+    padding: 0 !important;
+    width: 42px !important;
+    height: 42px !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+  }
+  
+  .lang-selector-trigger svg {
+    margin: 0 !important;
+    width: 20px !important;
+    height: 20px !important;
+  }
+  
+  /* Place top bar icons side by side */
+  .lang-selector-container {
+    position: fixed !important;
+    top: 14px !important;
+    right: 70px !important;
+    z-index: 2000 !important;
+  }
+  
+  .theme-toggle-container {
+    position: fixed !important;
+    top: 14px !important;
+    right: 14px !important;
+    z-index: 2000 !important;
+  }
+  
+  /* Logo position refinement to avoid overlay */
+  .brand-logo-top {
+    position: absolute !important;
+    top: 20px !important;
+    left: 14px !important;
+    max-width: calc(100% - 130px) !important;
+    z-index: 1000 !important;
+  }
+  
+  .brand-logo-tagline {
+    font-size: 0.6rem !important;
+    margin-top: 2px !important;
+  }
+  
+  /* Dropdown overlays positioning */
+  .lang-selector-dropdown {
+    right: 0 !important;
+    left: auto !important;
+    top: 100% !important;
+    margin-top: 8px !important;
+    width: 200px !important;
+    z-index: 9999 !important;
+  }
+
+  /* Back to dashboard button position inside performance report */
+  .analytics-report-header {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    min-height: auto !important;
+    gap: 12px !important;
+    margin-top: 24px !important;
+    margin-bottom: 16px !important;
+  }
+  
+  .analytics-report-title-row {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 12px !important;
+    width: 100% !important;
+  }
+  
+  .analytics-back-btn {
+    position: static !important;
+    transform: none !important;
+    margin-bottom: 8px !important;
+    align-self: center !important;
+  }
+}
+
+/* 2. Practice tab 2-cards-per-row grid */
+@media (max-width: 768px) {
+  .practice-row-cards {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+    margin-bottom: 20px !important;
+  }
+  
+  .practice-row-card {
+    padding: 14px 12px !important;
+    gap: 8px !important;
+    min-height: 150px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    box-sizing: border-box !important;
+  }
+  
+  .practice-row-card-content {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+  }
+  
+  .practice-row-card-title {
+    font-size: 0.92rem !important;
+    font-weight: 800 !important;
+    line-height: 1.2 !important;
+  }
+  
+  .practice-row-card-desc {
+    font-size: 0.72rem !important;
+    line-height: 1.3 !important;
+  }
+  
+  .practice-row-card-icon {
+    font-size: 1.4rem !important;
+    margin-top: auto !important;
+    align-self: flex-end !important;
+  }
+}
+
+/* 3. Center and Fit all games components on mobile viewports */
+@media (max-width: 768px) {
+  .flz-answer-slots {
+    display: flex !important;
+    justify-content: center !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    width: 100% !important;
+    max-width: 320px !important;
+    margin: 12px auto !important;
+  }
+  
+  .flz-letter-tiles {
+    display: flex !important;
+    justify-content: center !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+    width: 100% !important;
+    max-width: 320px !important;
+    margin: 12px auto !important;
+  }
+}
+
+
+
+/* =============================================================
+   LISA MOBILE UPDATES: ADMIN PANEL & PRACTICE GRID MARGINS
+   ============================================================= */
+
+/* 1. Reduce practice page gaps/margins on mobile screens */
+@media (max-width: 768px) {
+  .practice-grid-layout {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+  
+  .practice-content-column {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+  
+  .practice-section {
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+    margin-bottom: 24px !important;
+  }
+  
+  .practice-row-cards {
+    gap: 8px !important;
+  }
+}
+
+/* 2. Admin Dashboard Mobile UI Overrides */
+@media (max-width: 768px) {
+  .admin-dashboard-container {
+    padding: 12px 8px !important;
+  }
+  
+  .admin-header {
+    padding: 16px 12px !important;
+    border-radius: 20px !important;
+    margin-bottom: 16px !important;
+    gap: 12px !important;
+  }
+  
+  /* Show logout button on admin mobile */
+  .admin-logout-btn-mobile {
+    display: inline-flex !important;
+  }
+  
+  .admin-title-row h2 {
+    font-size: 1.4rem !important;
+  }
+  
+  .admin-title-row p {
+    font-size: 0.78rem !important;
+  }
+  
+  /* Tab buttons horizontal scrollable list */
+  .admin-tabs {
+    display: flex !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    gap: 8px !important;
+    width: 100% !important;
+    padding-bottom: 6px !important;
+  }
+  
+  .admin-tab-btn {
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    font-size: 0.82rem !important;
+    padding: 8px 12px !important;
+  }
+  
+  /* Stat cards grid 2 per row */
+  .admin-stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+    margin-bottom: 16px !important;
+  }
+  
+  .admin-stat-card {
+    padding: 12px 10px !important;
+    border-radius: 16px !important;
+    gap: 10px !important;
+  }
+  
+  .admin-stat-card h3 {
+    font-size: 1.15rem !important;
+  }
+  
+  .admin-stat-card p {
+    font-size: 0.72rem !important;
+  }
+
+  /* Stat cards icons size */
+  .stat-card-icon {
+    width: 38px !important;
+    height: 38px !important;
+    font-size: 1.1rem !important;
+    border-radius: 10px !important;
+  }
+
+  /* Donut and level bar grids stack */
+  .admin-charts-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+    margin-bottom: 16px !important;
+  }
+
+  .admin-chart-box {
+    padding: 16px 12px !important;
+    border-radius: 20px !important;
+  }
+  
+  /* Users list filters stack */
+  .users-filter-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+    padding: 14px 12px !important;
+  }
+  
+  .filter-group {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    width: 100% !important;
+    gap: 6px !important;
+  }
+  
+  .filter-group select,
+  .search-wrapper input {
+    width: 100% !important;
+  }
+  
+  /* Users table horizontal scrolling */
+  .admin-table-wrapper {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    border-radius: 16px !important;
+  }
+  
+  .admin-table {
+    min-width: 600px !important;
+  }
+  
+  /* Curriculum grid stack */
+  .admin-curriculum-grid {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  
+  .curriculum-left,
+  .curriculum-right {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 16px 12px !important;
+    border-radius: 20px !important;
+  }
+
+  /* User detail view stack */
+  .admin-user-detail-stats-grid {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  .admin-user-detail-roster-grid {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+}
+
+
+
+/* =============================================================
+   LISA MOBILE UPDATES: LANG SELECTOR AND INSTALL BANNER
+   ============================================================= */
+
+@media (max-width: 768px) {
+  /* Dashboard topbar right elements position static in flex flow */
+  .dashboard-topbar .topbar-right {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    position: relative !important;
+    top: auto !important;
+    right: auto !important;
+    margin-left: auto !important;
+    z-index: 1010 !important;
+  }
+  
+  .dashboard-topbar .theme-toggle-container {
+    position: static !important;
+    transform: none !important;
+    z-index: auto !important;
+    margin: 0 !important;
+  }
+  
+  .dashboard-topbar .lang-selector-relative {
+    position: relative !important;
+    top: auto !important;
+    right: auto !important;
+    z-index: auto !important;
+    margin: 0 !important;
+  }
+  
+  /* Force trigger button to be a 42px circle on all mobile screens */
+  .lang-selector-trigger {
+    padding: 0 !important;
+    width: 42px !important;
+    height: 42px !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+    background: var(--panel-strong) !important;
+    border: 1px solid var(--line) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+  }
+  
+  .lang-selector-trigger span {
+    display: none !important;
+  }
+  
+  .lang-selector-trigger svg {
+    margin: 0 !important;
+    width: 20px !important;
+    height: 20px !important;
+  }
+
+  /* Fixed coordinates for login/unauthenticated page */
+  .lang-selector-container {
+    position: fixed !important;
+    top: 14px !important;
+    right: 70px !important;
+    z-index: 2010 !important;
+  }
+  
+  .theme-toggle-container {
+    position: fixed !important;
+    top: 14px !important;
+    right: 14px !important;
+    z-index: 2010 !important;
+  }
+}
