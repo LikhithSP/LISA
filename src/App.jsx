@@ -710,14 +710,14 @@ function App() {
   const [profileSubTab, setProfileSubTab] = useState("stats"); // "stats", "avatar", "settings"
   const [builderEmoji, setBuilderEmoji] = useState("😊");
   const [builderBg, setBuilderBg] = useState("#6366f1");
-  const [builderShape, setBuilderShape] = useState("circle");
+  const [builderShape, setBuilderShape] = useState("square");
 
   useEffect(() => {
     const resolved = resolveProfileAvatar(profileAvatar);
     if (resolved && resolved.type === "builder") {
       setBuilderEmoji(resolved.emoji || "😊");
       setBuilderBg(resolved.bg || "#6366f1");
-      setBuilderShape(resolved.shape || "circle");
+      setBuilderShape(resolved.shape || "square");
     }
   }, [profileAvatar]);
   const [showPersonalizedPath, setShowPersonalizedPath] = useState(true);
@@ -9274,18 +9274,21 @@ function App() {
                   <div className="daily-quests-card" style={{ margin: 0 }}>
                     <div className="daily-quests-header">
                       <h3>{t("dashboardDailyQuests")}</h3>
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                         <span className="quest-xp-reward-badge" style={{
-                          background: '#fef3c7',
+                          background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)',
                           color: '#b45309',
-                          fontSize: '0.75rem',
+                          fontSize: '0.85rem',
                           fontWeight: '800',
-                          padding: '3px 8px',
+                          padding: '6px 14px',
                           borderRadius: '999px',
                           display: 'inline-flex',
                           alignItems: 'center',
-                          gap: '3px',
-                          border: '1px solid #fde68a'
+                          gap: '4px',
+                          border: '1.5px solid #fcd34d',
+                          boxShadow: '0 2px 8px rgba(245, 158, 11, 0.15)',
+                          letterSpacing: '0.01em',
+                          whiteSpace: 'nowrap'
                         }}>⚡ +30 XP Reward</span>
                         {activeQuests.length > 0 && activeQuests.every(q => getQuestProgress(q).completed) ? (
                           <span className="daily-quests-timer" style={{ background: '#d1fae5', color: '#10b981' }}>✓ ALL COMPLETED</span>
@@ -10214,21 +10217,21 @@ style={(() => {
                   className={`profile-sub-tab-btn ${profileSubTab === "stats" ? "active" : ""}`}
                   onClick={() => setProfileSubTab("stats")}
                 >
-                  📊 Stats & Badges
+                  📊 {t("profileStatsBadges")}
                 </button>
                 <button
                   type="button"
                   className={`profile-sub-tab-btn ${profileSubTab === "avatar" ? "active" : ""}`}
                   onClick={() => setProfileSubTab("avatar")}
                 >
-                  🎨 Avatar Creator
+                  🎨 {t("profileAvatarCreator")}
                 </button>
                 <button
                   type="button"
                   className={`profile-sub-tab-btn ${profileSubTab === "settings" ? "active" : ""}`}
                   onClick={() => setProfileSubTab("settings")}
                 >
-                  ⚙️ Account Settings
+                  ⚙️ {t("profileAccountSettings")}
                 </button>
               </div>
 
@@ -10240,50 +10243,52 @@ style={(() => {
                         <div className="stat-icon">🔥</div>
                         <div className="stat-content">
                           <div className="stat-val">{streakCount} {streakCount === 1 ? "Day" : "Days"}</div>
-                          <div className="stat-lbl">Day Streak</div>
+                           <div className="stat-lbl">{t("dashboardDayStreak")}</div>
                         </div>
                       </div>
                       <div className="profile-stat-card xp">
                         <div className="stat-icon">💎</div>
                         <div className="stat-content">
                           <div className="stat-val">{userXp.toLocaleString()}</div>
-                          <div className="stat-lbl">Total XP</div>
+                           <div className="stat-lbl">{t("dashboardTotalXP")}</div>
                         </div>
                       </div>
                       <div className="profile-stat-card lessons">
                         <div className="stat-icon">🏆</div>
                         <div className="stat-content">
                           <div className="stat-val">{completedLessons.length}</div>
-                          <div className="stat-lbl">Lessons Done</div>
+                           <div className="stat-lbl">{t("dashboardLessonsDone")}</div>
                         </div>
                       </div>
                       <div className="profile-stat-card active-time">
                         <div className="stat-icon">⏱️</div>
                         <div className="stat-content">
                           <div className="stat-val">{Math.round(dailyTimeSpent / 60)}m</div>
-                          <div className="stat-lbl">Active Today</div>
+                           <div className="stat-lbl">{t("dashboardActiveToday")}</div>
                         </div>
                       </div>
                     </div>
 
                     <div className="profile-badges-container">
-                      <h3 className="profile-section-title">Equipped Badges</h3>
+                       <h3 className="profile-section-title">{t("profileEquippedBadges")}</h3>
                       <div className="profile-badges-grid">
                         {profileBadges.length === 0 ? (
                           <div className="profile-badges-empty">
                             <span className="empty-icon">🛡️</span>
-                            <p>No badges equipped yet. Purchase profile badges in the XP Shop to display them here!</p>
+                             <p>{t("profileBadgesEmpty")}</p>
                           </div>
                         ) : (
                           profileBadges.map((badgeId) => {
                             const badge = SHOP_CATALOG.badges.find(b => b.id === badgeId);
                             if (!badge) return null;
+                            const localizedName = t(badge.id + "_name");
+                            const localizedDesc = t(badge.id + "_desc");
                             return (
-                              <div key={badgeId} className="profile-badge-item" title={badge.desc}>
+                              <div key={badgeId} className="profile-badge-item" title={localizedDesc || badge.desc}>
                                 <span className="profile-badge-icon">{badge.icon}</span>
                                 <div className="profile-badge-meta">
-                                  <span className="profile-badge-name">{badge.name}</span>
-                                  <span className="profile-badge-rarity">{badge.rarity}</span>
+                                  <span className="profile-badge-name">{localizedName || badge.name}</span>
+                                   <span className="profile-badge-rarity">{t(badge.rarity)}</span>
                                 </div>
                               </div>
                             );
@@ -10303,7 +10308,7 @@ style={(() => {
                           className="avatar-creator-large-preview"
                           style={{
                             background: builderBg,
-                            borderRadius: builderShape === "square" ? "16px" : builderShape === "rounded" ? "48px" : "50%"
+                            borderRadius: "16px"
                           }}
                         >
                           <span>{builderEmoji}</span>
@@ -10316,10 +10321,10 @@ style={(() => {
                             type: "builder",
                             emoji: builderEmoji,
                             bg: builderBg,
-                            shape: builderShape
+                            shape: "square"
                           })}
                         >
-                          {submitting ? "Saving..." : "Save & Set Avatar"}
+                            {submitting ? "Saving..." : t("avatarSaveAndSet")}
                         </button>
                       </div>
 
@@ -10327,7 +10332,7 @@ style={(() => {
                       <div className="avatar-creator-options-card">
                         {/* 1. Emoji Selection */}
                         <div className="avatar-creator-section">
-                          <h4>Choose Face Emoji</h4>
+                          <h4>{t("avatarChooseFaceEmoji")}</h4>
                           <div className="avatar-options-emoji-grid">
                             {[
                               "😊", "😎", "🤩", "🥳", "😄", "😁", "🤓", "🧐", "😇", "🥰",
@@ -10349,7 +10354,7 @@ style={(() => {
                         {/* Presets Unlocked */}
                         {shopOwnedItems.filter(id => id.startsWith("avatar_")).length > 0 && (
                           <div className="avatar-creator-section">
-                            <h4>Unlocked presets</h4>
+                            <h4>{t("avatarUnlockedPresets")}</h4>
                             <div className="avatar-options-emoji-grid">
                               {shopOwnedItems.filter(id => id.startsWith("avatar_")).map((id) => {
                                 const itemObj = SHOP_CATALOG.avatars.find(a => a.id === id);
@@ -10371,7 +10376,7 @@ style={(() => {
 
                         {/* 2. Background Color */}
                         <div className="avatar-creator-section">
-                          <h4>Background Color</h4>
+                          <h4>{t("avatarBackgroundColor")}</h4>
                           <div className="avatar-options-color-grid">
                             {[
                               "#6366f1", "#8b5cf6", "#ec4899", "#ef4444", "#f97316",
@@ -10386,23 +10391,6 @@ style={(() => {
                                 onClick={() => setBuilderBg(col)}
                                 aria-label={`Select color ${col}`}
                               />
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* 3. Shape selection */}
-                        <div className="avatar-creator-section">
-                          <h4>Border Shape</h4>
-                          <div className="avatar-options-shape-row">
-                            {["circle", "rounded", "square"].map((sh) => (
-                              <button
-                                key={sh}
-                                type="button"
-                                className={`avatar-option-shape-btn ${builderShape === sh ? "active" : ""}`}
-                                onClick={() => setBuilderShape(sh)}
-                              >
-                                {sh.toUpperCase()}
-                              </button>
                             ))}
                           </div>
                         </div>
@@ -13114,7 +13102,7 @@ style={(() => {
               </div>
 
               <h4 style={{ margin: '30px 0 15px', fontSize: '1.25rem', fontWeight: '800', color: 'var(--accent)' }}>
-                🛒 {t("xpShopTitle") || "XP Shop Badges"}
+                {t("xpShopTitle") || "XP Shop Badges"}
               </h4>
               <div className="achievements-modal-grid">
                 {SHOP_CATALOG.badges.map((b) => {

@@ -346,5 +346,19 @@
   "analyticsStreakDesc": "You have maintained a {days}-day streak. Keep the momentum going!",
   "analyticsXpTitle": "XP Milestone",
   "analyticsXpDesc": "You have earned {xp} XP. You are making fantastic progress!",
-  "analyticsBack": "Back to Dashboard"
+  "analyticsBack": "Back to Dashboard",
+  "profileStatsBadges": "Stats & Badges",
+  "profileAvatarCreator": "Avatar Creator",
+  "profileAccountSettings": "Account Settings",
+  "dashboardDayStreak": "Day Streak",
+  "dashboardTotalXP": "Total XP",
+  "dashboardLessonsDone": "Lessons Done",
+  "dashboardActiveToday": "Active Today",
+  "profileEquippedBadges": "Equipped Badges",
+  "profileBadgesEmpty": "No badges equipped yet. Purchase profile badges in the XP Shop to display them here!",
+  "avatarChooseFaceEmoji": "Choose Face Emoji",
+  "avatarUnlockedPresets": "Unlocked presets",
+  "avatarBackgroundColor": "Background Color",
+  "avatarSaveAndSet": "✓ Save & Set Avatar",
+  "noFormalEducation": "No Formal Education"
 }
