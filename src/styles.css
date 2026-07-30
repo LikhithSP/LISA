@@ -13590,3 +13590,40 @@ select:focus {
   min-width: 32px;
   text-align: right;
 }
+
+/* Accessibility & Keyboard Navigation */
+:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Accessible touch targets (WCAG 2.1) */
+button, 
+a, 
+input[type="button"], 
+input[type="submit"], 
+select {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Small screen media query fixes for tables and overlays */
+@media (max-width: 480px) {
+  .admin-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .admin-table th, 
+  .admin-table td {
+    padding: 8px;
+    font-size: 0.8rem;
+  }
+
+  .admin-modal {
+    width: 95% !important;
+    padding: 16px !important;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+}
