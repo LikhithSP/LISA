@@ -111,7 +111,7 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
         let activeLearners = 0;
         let totalCompletedLessons = 0;
         let completedAssessmentsCount = 0;
-        const levelsCount = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
+        const levelsCount = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
         const langCount = {};
         const learningLangCount = {};
 
@@ -612,7 +612,7 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
           ...sec,
           units: sec.units.map(uni => {
             if (uni.id === unitId) {
-              return { ...uni, lessons: [...uni.lessons, newLesson] };
+              return { ...uni, lessons: [...(uni.lessons || []), newLesson] };
             }
             return uni;
           })
@@ -629,7 +629,7 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
           ...sec,
           units: sec.units.map(uni => {
             if (uni.id === unitId) {
-              return { ...uni, lessons: uni.lessons.filter(l => l.id !== lesId) };
+              return { ...uni, lessons: (uni.lessons || []).filter(l => l.id !== lesId) };
             }
             return uni;
           })
@@ -648,7 +648,7 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
             if (uni.id === unitId) {
               return {
                 ...uni,
-                lessons: uni.lessons.map(l => l.id === lesId ? { ...l, title: newTitle } : l)
+                lessons: (uni.lessons || []).map(l => l.id === lesId ? { ...l, title: newTitle } : l)
               };
             }
             return uni;
@@ -680,15 +680,15 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
     }
 
     for (const section of localCurriculum) {
-      for (const unit of section.units) {
-        for (const lesson of unit.lessons) {
+      for (const unit of (section.units || [])) {
+        for (const lesson of (unit.lessons || [])) {
           if (lesson.id === lessonId) return lesson.title;
         }
       }
     }
     for (const section of CURRICULUM_SECTIONS) {
-      for (const unit of section.units) {
-        for (const lesson of unit.lessons) {
+      for (const unit of (section.units || [])) {
+        for (const lesson of (unit.lessons || [])) {
           if (lesson.id === lessonId) return lesson.title;
         }
       }
@@ -1532,9 +1532,9 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
 
                             {/* Lessons List inside Unit */}
                             <div style={{ borderTop: '1px dashed var(--line)', paddingTop: '10px', marginTop: '10px' }}>
-                              <label style={{ fontWeight: 900, fontSize: '0.75rem', color: 'var(--text)', display: 'block', marginBottom: '8px' }}>📖 Lessons List ({unit.lessons.length})</label>
+                              <label style={{ fontWeight: 900, fontSize: '0.75rem', color: 'var(--text)', display: 'block', marginBottom: '8px' }}>📖 Lessons List ({(unit.lessons || []).length})</label>
                               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '10px' }}>
-                                {unit.lessons.map((les, lIdx) => (
+                                {(unit.lessons || []).map((les, lIdx) => (
                                   <div key={les.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--panel-strong)', padding: '6px 12px', borderRadius: '10px', border: '1px solid var(--line)' }}>
                                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flex: 1 }}>
                                       <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--muted)' }}>{lIdx + 1}.</span>
@@ -1565,7 +1565,7 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
                                     </button>
                                   </div>
                                 ))}
-                                {unit.lessons.length === 0 && (
+                                {(unit.lessons || []).length === 0 && (
                                   <div style={{ color: 'var(--muted)', fontStyle: 'italic', fontSize: '0.75rem', padding: '6px' }}>No lessons configured in this unit.</div>
                                 )}
                               </div>
@@ -1937,8 +1937,8 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
                   <input 
                     type="number" 
                     min="0" 
-                    value={editingUser.xp} 
-                    onChange={e => setEditingUser({ ...editingUser, xp: e.target.value })}
+                    value={editingUser.xp || 0} 
+                    onChange={e => setEditingUser({ ...editingUser, xp: e.target.value === "" ? 0 : e.target.value })}
                   />
                 </div>
                 <div className="form-group">
@@ -1946,8 +1946,8 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
                   <input 
                     type="number" 
                     min="0" 
-                    value={editingUser.streak} 
-                    onChange={e => setEditingUser({ ...editingUser, streak: e.target.value })}
+                    value={editingUser.streak || 0} 
+                    onChange={e => setEditingUser({ ...editingUser, streak: e.target.value === "" ? 0 : e.target.value })}
                   />
                 </div>
                 <div className="form-group">
