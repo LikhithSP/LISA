@@ -13627,3 +13627,935 @@ select {
     overflow-y: auto;
   }
 }
+
+
+
+/* =============================================================
+   LISA MOBILE & TABLET RESPONSIVE CSS
+   PWA Banners, Mobile Bottom Nav, Dashboard Responsive Layouts
+   ============================================================= */
+
+/* ── PWA Banners ────────────────────────────────────────────── */
+
+.pwa-offline-banner,
+.pwa-update-banner,
+.pwa-install-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+  font-size: 0.9rem;
+  font-weight: 600;
+  animation: slideUpBanner 0.3s ease;
+}
+
+@keyframes slideUpBanner {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.pwa-offline-banner {
+  background: rgba(30, 30, 35, 0.95);
+  color: #ececf1;
+  backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.pwa-update-banner {
+  background: linear-gradient(135deg, #1b1735, #2d1b6e);
+  color: white;
+  border-top: 1px solid rgba(147, 117, 248, 0.3);
+}
+
+.pwa-install-banner {
+  background: var(--panel-strong);
+  border-top: 1px solid var(--line);
+  box-shadow: 0 -8px 32px rgba(0,0,0,0.12);
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.pwa-install-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pwa-install-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  object-fit: cover;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.pwa-install-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.pwa-install-sub {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.pwa-install-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pwa-install-btn {
+  background: linear-gradient(135deg, var(--accent), #df7f3d);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 20px;
+  font-weight: 800;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: transform 160ms ease;
+}
+
+.pwa-install-btn:hover {
+  transform: translateY(-1px);
+}
+
+.pwa-update-btn {
+  background: rgba(255,255,255,0.15);
+  color: white;
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 10px;
+  padding: 8px 16px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 160ms ease;
+  white-space: nowrap;
+}
+
+.pwa-update-btn:hover {
+  background: rgba(255,255,255,0.25);
+}
+
+.pwa-banner-close {
+  margin-left: auto;
+  background: transparent;
+  border: none;
+  color: inherit;
+  opacity: 0.6;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: opacity 160ms ease;
+  min-height: 32px;
+  min-width: 32px;
+}
+
+.pwa-banner-close:hover {
+  opacity: 1;
+}
+
+/* ── Mobile Bottom Navigation Bar ───────────────────────────── */
+
+.mobile-bottom-nav {
+  display: none; /* Hidden by default on desktop */
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: var(--panel-strong);
+  border-top: 1px solid var(--line);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  padding: 8px 4px;
+  padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+}
+
+.mobile-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-size: 0.65rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 12px;
+  transition: all 200ms ease;
+  flex: 1;
+  min-height: 52px;
+  font-family: var(--font-family);
+  text-align: center;
+}
+
+.mobile-nav-item svg {
+  transition: transform 200ms ease;
+}
+
+.mobile-nav-item.active {
+  color: var(--accent);
+}
+
+.mobile-nav-item.active svg {
+  transform: translateY(-2px);
+}
+
+.mobile-nav-item:active {
+  transform: scale(0.92);
+}
+
+/* Hide mobile bottom nav on desktop */
+@media (min-width: 769px) {
+  .mobile-bottom-nav {
+    display: none !important;
+  }
+  .pwa-offline-banner,
+  .pwa-update-banner,
+  .pwa-install-banner {
+    bottom: 0;
+  }
+}
+
+/* Show mobile bottom nav only on mobile */
+@media (max-width: 768px) {
+  .mobile-bottom-nav {
+    display: flex;
+  }
+
+  /* Add bottom padding to main content so it doesn't hide behind nav */
+  .dashboard-main-view {
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  .pwa-offline-banner,
+  .pwa-update-banner,
+  .pwa-install-banner {
+    bottom: calc(68px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* ── Dashboard Layout Responsive ───────────────────────────── */
+
+/* Topbar navigation horizontal scroll on mobile */
+@media (max-width: 768px) {
+  .dashboard-topbar {
+    padding: 10px 12px !important;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    gap: 8px !important;
+  }
+
+  .sidebar-pill {
+    max-width: 100vw;
+    overflow-x: auto;
+    padding: 8px 12px;
+    gap: 4px;
+  }
+
+  .sidebar-menu {
+    gap: 2px;
+  }
+
+  .sidebar-item {
+    padding: 8px 10px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+  }
+
+  /* Hide sidebar on mobile - replaced by bottom nav */
+  .sidebar-pill {
+    display: none !important;
+  }
+
+  .topbar-left {
+    flex-shrink: 0;
+  }
+
+  .topbar-right {
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+
+  .indicator-pill {
+    padding: 6px 8px;
+    font-size: 0.78rem;
+  }
+
+  /* Dashboard main area */
+  .dashboard-main-view {
+    padding: 16px 12px !important;
+  }
+
+  /* Dashboard overview two columns -> single column */
+  .dashboard-overview {
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
+
+  .dashboard-col,
+  .dashboard-col-left,
+  .dashboard-col-right {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  /* Dashboard top row */
+  .dashboard-top-row {
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .dashboard-top-row .metric-stats-grid {
+    flex: none;
+    max-width: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .dashboard-dual-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Premium hero card - stack vertically */
+  .premium-hero-card {
+    flex-direction: column;
+    padding: 24px 20px;
+    gap: 20px;
+    text-align: center;
+  }
+
+  .hero-left-content {
+    align-items: center;
+    text-align: center;
+  }
+
+  .hero-left-content h1 {
+    font-size: 1.6rem !important;
+    margin-top: 0 !important;
+  }
+
+  .hero-actions {
+    justify-content: center;
+  }
+
+  .hero-right-progress {
+    align-self: center;
+  }
+
+  /* Lesson cards grid: 2 col on tablet, 1 col on phone */
+  .lessons-card-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px;
+  }
+
+  .lesson-card-item {
+    min-height: 160px;
+    padding: 16px;
+  }
+
+  /* Lesson study card */
+  .lesson-study-card {
+    padding: 20px 16px;
+    border-radius: 20px;
+  }
+
+  /* Assessment cards */
+  .assessment-card,
+  .results-card,
+  .dashboard-home-card,
+  .diagnostic-welcome-wrapper {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 20px 16px !important;
+    border-radius: 20px !important;
+    height: auto !important;
+    max-height: none !important;
+  }
+
+  /* Assessment header with mascot */
+  .assessment-header-with-mascot {
+    gap: 10px;
+  }
+
+  .assessment-mascot {
+    width: 70px;
+    height: 70px;
+  }
+
+  /* Welcome mascot */
+  .welcome-mascot {
+    width: 100px;
+    height: 100px;
+  }
+
+  .welcome-banner-mascot {
+    flex-direction: column;
+    text-align: center;
+    gap: 8px;
+  }
+
+  .welcome-banner-text {
+    text-align: center;
+  }
+
+  .welcome-banner-text h1,
+  .welcome-banner h1 {
+    font-size: 1.5rem !important;
+    margin-top: 0 !important;
+  }
+
+  /* Statistics header grid */
+  .stats-header-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  /* History table: horizontal scroll */
+  .history-table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .history-table {
+    min-width: 480px;
+  }
+
+  /* Profile tab */
+  .profile-tab-wrapper {
+    max-width: 100%;
+    padding: 0;
+  }
+
+  .profile-info-card,
+  .editing-profile-form {
+    padding: 20px 16px;
+    border-radius: 20px;
+  }
+
+  /* Fun Learn Zone */
+  .flz-grid,
+  .flz-games-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 12px;
+  }
+
+  /* XP Shop */
+  .shop-grid,
+  .xp-shop-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Daily quests */
+  .daily-quests-card {
+    padding: 16px;
+  }
+
+  /* Current level card */
+  .current-level-card {
+    padding: 20px;
+  }
+
+  /* Word of day */
+  .word-of-day-card {
+    padding: 16px;
+  }
+
+  /* Notification panel */
+  .notif-panel {
+    width: calc(100vw - 16px) !important;
+    max-width: 360px;
+    right: -8px !important;
+  }
+
+  /* Modals */
+  .achievements-modal,
+  .admin-modal,
+  .lesson-modal,
+  [role="dialog"] {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    max-height: 88vh !important;
+    padding: 20px 16px !important;
+    border-radius: 20px !important;
+    overflow-y: auto;
+  }
+
+  /* Canvas tracing - scale to viewport */
+  canvas {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Results hero */
+  .results-hero-section {
+    grid-template-columns: 1fr !important;
+    text-align: center;
+    padding: 20px 16px !important;
+  }
+
+  /* Leaderboard */
+  .leaderboard-container,
+  .weekly-leaderboard {
+    padding: 16px;
+  }
+
+  /* Submit bar */
+  .assessment-submit-bar {
+    padding-top: 14px;
+  }
+
+  .submit-btn {
+    width: 100%;
+    min-width: 0;
+  }
+
+  /* Diagnostic outer */
+  .diagnostic-outer {
+    padding: 16px 12px;
+  }
+
+  /* Dashboard header (old version for assessment states) */
+  .dashboard-header {
+    padding: 12px 16px !important;
+    gap: 8px;
+  }
+
+  /* Language selector */
+  .lang-selector-container {
+    position: static;
+  }
+
+  /* Two-col forms */
+  .two-col {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Section stepper */
+  .section-stepper {
+    display: none;
+  }
+
+  /* Word bank */
+  .word-bank {
+    padding: 12px;
+    min-height: auto;
+  }
+
+  /* Sentence workspace */
+  .sentence-workspace {
+    min-height: 56px;
+    padding: 10px 12px;
+  }
+
+  /* Streak society days */
+  .streak-society-day {
+    font-size: 0.65rem;
+  }
+
+  /* Analytics report */
+  .analytics-container {
+    padding: 12px !important;
+  }
+
+  /* Admin dashboard */
+  .admin-container {
+    padding: 12px !important;
+  }
+
+  .admin-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    gap: 4px;
+  }
+
+  .admin-tabs button {
+    white-space: nowrap;
+    font-size: 0.8rem;
+    padding: 8px 12px;
+  }
+
+  /* Mic controls */
+  .mic-outer-container {
+    padding: 12px 20px;
+  }
+
+  /* Writing textarea */
+  .writing-textarea {
+    font-size: 1rem;
+    padding: 14px;
+  }
+
+  /* Score items */
+  .score-item {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* Badges grid */
+  .badges-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px;
+  }
+
+  /* Options grid: always 1 col on small mobile */
+  .options-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Login shell */
+  .shell {
+    grid-template-columns: 1fr;
+    height: auto;
+    overflow: visible;
+  }
+
+  .hero-panel {
+    display: none; /* Hide hero panel on mobile - show auth only */
+  }
+
+  .auth-panel {
+    min-height: 100vh;
+    padding: 24px 16px;
+    justify-content: center;
+  }
+
+  .auth-card {
+    padding: 20px 16px;
+    border-radius: 20px;
+    max-height: none;
+  }
+}
+
+/* ── Smartphone only (max 480px) ───────────────────────────── */
+@media (max-width: 480px) {
+  /* Lessons grid: 1 col on phone */
+  .lessons-card-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .lesson-card-item {
+    min-height: 130px;
+  }
+
+  /* Fun Learn Zone */
+  .flz-grid,
+  .flz-games-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* XP Shop */
+  .shop-grid,
+  .xp-shop-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Dashboard top row metrics: 1 col */
+  .dashboard-top-row .metric-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Stats header: 1 col */
+  .stats-header-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Achievements list: 2 col */
+  .achievements-list {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .achievement-row {
+    padding: 12px 8px 10px;
+  }
+
+  .achievement-badge-box {
+    width: 52px;
+    height: 52px;
+  }
+
+  .achievement-badge-icon {
+    font-size: 1.6rem;
+  }
+
+  /* Premium hero card */
+  .premium-hero-card {
+    padding: 20px 16px;
+  }
+
+  .hero-left-content h1 {
+    font-size: 1.4rem !important;
+  }
+
+  /* Daily quests timer */
+  .daily-quests-timer {
+    font-size: 0.75rem;
+  }
+
+  /* Option buttons - bigger touch target */
+  .option-btn {
+    padding: 14px 14px;
+    min-height: 52px;
+  }
+
+  /* Question text */
+  .question-text,
+  .comprehension-question,
+  .writing-prompt {
+    font-size: 1rem;
+  }
+
+  /* Monkeytype text */
+  .monkeytype-text-block {
+    font-size: 1.1rem;
+    padding: 16px;
+  }
+
+  /* Tour badges */
+  .assessment-tours {
+    gap: 8px;
+  }
+
+  .tour-badge {
+    padding: 8px 12px;
+    font-size: 0.85rem;
+  }
+
+  /* Badges grid: 2 col */
+  .badges-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Profile avatar */
+  .profile-avatar {
+    width: 80px;
+    height: 80px;
+    font-size: 3rem;
+  }
+
+  /* Streak widget */
+  .streak-society-card {
+    padding: 18px;
+  }
+
+  /* Word of day */
+  .word-of-day-word {
+    font-size: 1.4rem;
+  }
+
+  /* Sidebar nav separator: hide on mobile */
+  .sidebar-separator {
+    display: none;
+  }
+
+  /* History section */
+  .history-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .retake-btn {
+    width: 100%;
+    text-align: center;
+  }
+
+  /* Assessment card header */
+  .assessment-card-header h2 {
+    font-size: 1.3rem;
+  }
+
+  /* Tutor announcement bar */
+  .tutor-announcement-bar {
+    padding: 12px 14px;
+    gap: 10px;
+  }
+
+  /* Level cards */
+  .lesson-row-btn {
+    padding: 12px;
+  }
+
+  /* Voice controls */
+  .voice-mic-controls {
+    margin: 8px 0;
+  }
+
+  /* Mic outer */
+  .mic-outer-container {
+    padding: 10px 16px;
+  }
+
+  /* Fallback input row */
+  .fallback-input-row {
+    flex-direction: column;
+  }
+
+  /* Lang selector on mobile */
+  .lang-card {
+    padding: 24px 16px;
+    border-radius: 20px;
+  }
+
+  .lang-card h2 {
+    font-size: 1.4rem;
+  }
+
+  /* Resume card */
+  .resume-card {
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .resume-btn {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+/* ── Tablet (769px - 1024px) ───────────────────────────────── */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .dashboard-main-view {
+    padding: 20px 20px !important;
+  }
+
+  .lessons-card-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+
+  .dashboard-dual-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .premium-hero-card {
+    padding: 28px 32px;
+  }
+
+  .hero-left-content h1 {
+    font-size: 1.75rem !important;
+  }
+
+  .stats-header-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  .badges-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  /* Sidebar pill adjustments */
+  .sidebar-pill {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .sidebar-item {
+    font-size: 0.82rem;
+    padding: 8px 10px;
+    white-space: nowrap;
+  }
+}
+
+/* ── Safe area support for notch/home bar ──────────────────── */
+@supports (padding: max(0px)) {
+  .mobile-bottom-nav {
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+  }
+
+  .pwa-offline-banner,
+  .pwa-update-banner {
+    padding-bottom: max(14px, calc(14px + env(safe-area-inset-bottom)));
+  }
+}
+
+/* ── Touch-friendly hover states ───────────────────────────── */
+@media (hover: none) {
+  /* Disable hover transforms on touch devices to avoid stuck states */
+  .lesson-card-item:hover,
+  .metric-stat-box:hover,
+  .badge-item:hover,
+  .achievement-row:hover,
+  .lang-btn:hover,
+  .lesson-row-btn:hover,
+  .word-block-choice:hover {
+    transform: none;
+  }
+
+  /* Active states instead */
+  .lesson-card-item:active {
+    transform: scale(0.98);
+  }
+
+  .option-btn:active {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+}
+
+/* ── Landscape phone optimizations ────────────────────────────── */
+@media (max-height: 480px) and (orientation: landscape) {
+  .dashboard-main-view {
+    padding-top: 8px !important;
+  }
+
+  .mobile-bottom-nav {
+    padding-top: 4px;
+    padding-bottom: calc(4px + env(safe-area-inset-bottom, 0px));
+    min-height: 52px;
+  }
+
+  .mobile-nav-item {
+    min-height: 44px;
+    padding: 4px 12px;
+  }
+
+  .premium-hero-card {
+    padding: 16px 20px;
+  }
+
+  .assessment-card,
+  .results-card {
+    max-height: 95vh !important;
+    overflow-y: auto !important;
+  }
+}
+
+/* ── Dark theme mobile overrides ────────────────────────────── */
+[data-theme="dark"] .mobile-bottom-nav {
+  background: rgba(15, 15, 18, 0.95);
+  border-top-color: rgba(255,255,255,0.06);
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.4);
+}
+
+[data-theme="dark"] .pwa-install-banner {
+  background: var(--panel-strong);
+  border-top-color: rgba(255,255,255,0.06);
+}
+
+[data-theme="dark"] .dashboard-main-view {
+  background: #0e0e12 !important;
+}

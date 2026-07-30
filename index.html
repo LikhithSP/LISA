@@ -2,13 +2,67 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Learning Assistant | Login & Register</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>LISA - Literacy Intelligence Support Assistant</title>
+    <meta name="description" content="AI-powered literacy learning app supporting English, Hindi, Kannada, Telugu, and Tamil. Learn to read and write at your own pace." />
+    <meta name="application-name" content="LISA" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="LISA" />
+    <meta name="theme-color" content="#c65f2d" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0a0a0b" media="(prefers-color-scheme: dark)" />
+    <meta name="msapplication-TileColor" content="#c65f2d" />
+    <meta name="msapplication-tap-highlight" content="no" />
+
+    <!-- Open Graph / Social -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="LISA - Literacy Intelligence Support Assistant" />
+    <meta property="og:description" content="AI-powered literacy learning app supporting English, Hindi, Kannada, Telugu, and Tamil." />
+    <meta property="og:image" content="/icon.png" />
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- Icons -->
     <link rel="icon" type="image/png" href="/icon.png" />
+    <link rel="apple-touch-icon" href="/icon.png" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/icon.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icon.png" />
+    <link rel="apple-touch-icon" sizes="167x167" href="/icon.png" />
+
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Playfair+Display:wght@400;600;700;800&family=Roboto+Mono:wght@400;500;700&family=Nunito:wght@400;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+    <!-- ResponsiveVoice TTS -->
     <script src="https://code.responsivevoice.org/responsivevoice.js?key=8Q7W8t4L"></script>
+
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function () {
+          navigator.serviceWorker.register('/sw.js', { scope: '/' })
+            .then(function (reg) {
+              console.log('[LISA] Service Worker registered:', reg.scope);
+              // Listen for new SW versions
+              reg.addEventListener('updatefound', function () {
+                var newWorker = reg.installing;
+                newWorker.addEventListener('statechange', function () {
+                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    // New version available — notify app
+                    window.dispatchEvent(new CustomEvent('swUpdateAvailable'));
+                  }
+                });
+              });
+            })
+            .catch(function (err) {
+              console.warn('[LISA] Service Worker registration failed:', err);
+            });
+        });
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

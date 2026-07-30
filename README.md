@@ -228,24 +228,56 @@ CREATE POLICY "Anyone can delete word of the day" ON public.word_of_day FOR DELE
 
 ---
 
-## 🚀 Production Deployment Guidelines
+## 📱 Progressive Web App (PWA) & Offline Capabilities
 
-To deploy the client bundle to static hosts like **Vercel**, **Netlify**, or **GitHub Pages**:
+LISA is fully configured as a Progressive Web App (PWA), providing a premium, native-app-like experience even for users with low internet access.
 
-1. **Build Production Assets**:
-   Run the build script to bundle application files:
-   ```bash
-   npm run build
-   ```
-   This generates a highly optimized production payload in the `/dist` directory.
+### 1. Offline Support & Caching Strategy
+LISA utilizes a custom **Service Worker** (`public/sw.js`) to cache key assets dynamically:
+* **Cache-First Strategy**: Instantly serves critical static resources like fonts, CDN scripts (such as ResponsiveVoice TTS), icons, and background image panels.
+* **Stale-While-Revalidate**: Dynamically updates the main application shell (HTML, CSS, JS bundles) in the background while instantly rendering the cached version to guarantee fast startup times.
+* **Network-First with Cache Fallback**: Applies to API responses (Supabase data and Gemini syntheses). If the network is unavailable, LISA displays previously loaded/cached content.
+* **Branded Offline Fallback**: In the event that a user visits an uncached pathway while offline, they are automatically redirected to a custom [offline.html](file:///d:/LISA/public/offline.html) interface.
 
-2. **Configure Environment Variables**:
-   Add all variables from your local `.env` configuration file into the environment settings dashboard of your hosting dashboard provider.
+### 2. Background Sync
+If the user completes exercises, scores XP, or increments their streak without internet access:
+* LISA stores the operations in **IndexedDB** databases (`lisa-offline-queue`).
+* Once the internet connection is restored, the Service Worker intercepts the online state and replays the requests, synchronizing the offline actions with Supabase in the background.
 
-3. **Routing Configuration (Vercel)**:
-   Add a `vercel.json` file in the root if you experience issues with client-side SPA routing:
-   ```json
-   {
-     "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
-   }
-   ```
+### 3. Web Push Notifications
+LISA supports scheduled and interactive push notifications (e.g. daily lesson triggers, weekly summaries, streak warnings):
+* Notification permissions are requested gracefully inside the dashboard workflow.
+* Web Push notifications are routed through a serverless API route (`/api/send-notification.js`) powered by the `web-push` npm package using VAPID credentials.
+
+---
+
+## 📱 Mobile & Tablet Responsiveness
+
+The application layout has been upgraded with dedicated CSS layout overrides at the bottom of [styles.css](file:///d:/LISA/src/styles.css) to support smartphones (vertical layouts) and tablets:
+
+* **Mobile Bottom Navigation Bar**: On mobile displays (`max-width: 768px`), the desktop sidebar navigation collapses, and a native bottom-docked navigation bar appears, giving one-click access to **Home**, **Learn**, **Practice**, **Profile**, and **More**.
+* **Device Breakpoints**:
+  * **Smartphone Portrait (`max-width: 480px`)**: Grid layouts collapse to single columns, options adapt to full screen widths, and interactive elements expand to touch-friendly sizes (minimum `44px` target).
+  * **Tablet View (`769px` - `1024px`)**: Grid lists reflow cleanly into 2-column or 3-column rows to preserve layout alignment.
+* **Safe-Area Insets**: Supports modern iOS and Android notch devices using `env(safe-area-inset-bottom)` to prevent navigation overlap with system bars.
+
+---
+
+## 🚀 Production Deployment (Vercel)
+
+LISA is fully configured for deployment on **Vercel** with a clean single-page routing structure and serverless notification triggers:
+
+### 1. SPA Routing (`vercel.json`)
+The application includes a [vercel.json](file:///d:/LISA/vercel.json) file that configures optimal cache rules and rewrites all routing queries back to `/index.html` to prevent `404 Not Found` errors when refreshing paths.
+
+### 2. Push Notification Credentials
+To enable push notifications, run the following command locally to generate VAPID keys:
+```bash
+npx web-push generate-vapid-keys
+```
+
+Configure the following variables in your **Vercel Dashboard Environment Variables**:
+* `VAPID_PUBLIC_KEY`: The generated VAPID public key string.
+* `VAPID_PRIVATE_KEY`: The generated VAPID private key string.
+* `VAPID_EMAIL`: A contact email prefix with `mailto:` (e.g. `mailto:admin@lisa.app`).
+* `VITE_VAPID_PUBLIC_KEY`: Set to the same public key so the client bundle can subscribe users.
