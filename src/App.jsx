@@ -676,6 +676,51 @@ function App() {
 
   const [activeLessonPopup, setActiveLessonPopup] = useState(null);
 
+  // —— PWA: Online/Offline detection ——
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [showOfflineBanner, setShowOfflineBanner] = useState(!navigator.onLine);
+  const [pwaInstallPrompt, setPwaInstallPrompt] = useState(null);
+  const [showInstallBanner, setShowInstallBanner] = useState(false);
+  const [swUpdateAvailable, setSwUpdateAvailable] = useState(false);
+
+  useEffect(() => {
+    const handleOnline = () => { setIsOnline(true); setShowOfflineBanner(false); };
+    const handleOffline = () => { setIsOnline(false); setShowOfflineBanner(true); };
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    const handleInstall = (e) => {
+      e.preventDefault();
+      setPwaInstallPrompt(e);
+      if (!window.matchMedia('(display-mode: standalone)').matches) {
+        setShowInstallBanner(true);
+      }
+    };
+    window.addEventListener('beforeinstallprompt', handleInstall);
+    const handleSwUpd = () => setSwUpdateAvailable(true);
+    window.addEventListener('swUpdateAvailable', handleSwUpd);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('beforeinstallprompt', handleInstall);
+      window.removeEventListener('swUpdateAvailable', handleSwUpd);
+    };
+  }, []);
+
+  const handleInstallApp = async () => {
+    if (!pwaInstallPrompt) return;
+    pwaInstallPrompt.prompt();
+    const { outcome } = await pwaInstallPrompt.userChoice;
+    if (outcome === 'accepted') { setShowInstallBanner(false); setPwaInstallPrompt(null); }
+  };
+
+  const handleSwReload = () => {
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({ type: 'SKIP_WAITING' });
+    }
+    window.location.reload();
+  };
+
+
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (profileDropdownOpen && profileDropdownRef.current && !profileDropdownRef.current.contains(e.target)) {
@@ -13209,6 +13254,67 @@ style={(() => {
               </div>
             </div>
           </div>
+        )}
+
+        {/* ── Offline Banner ── */}
+        {showOfflineBanner && (
+          <div className="pwa-offline-banner">
+            <span>📶</span>
+            <span>You are offline. Showing cached content.</span>
+            <button onClick={() => setShowOfflineBanner(false)} className="pwa-banner-close" aria-label="Dismiss">✕</button>
+          </div>
+        )}
+
+        {/* ── SW Update Banner ── */}
+        {swUpdateAvailable && (
+          <div className="pwa-update-banner">
+            <span>🔄 A new version of LISA is available!</span>
+            <button onClick={handleSwReload} className="pwa-update-btn">Update Now</button>
+            <button onClick={() => setSwUpdateAvailable(false)} className="pwa-banner-close" aria-label="Dismiss">✕</button>
+          </div>
+        )}
+
+        {/* ── Install App Banner ── */}
+        {showInstallBanner && (
+          <div className="pwa-install-banner">
+            <div className="pwa-install-content">
+              <img src="/icon.png" alt="LISA" className="pwa-install-icon" />
+              <div>
+                <div className="pwa-install-title">Install LISA</div>
+                <div className="pwa-install-sub">Add to home screen for offline access</div>
+              </div>
+            </div>
+            <div className="pwa-install-actions">
+              <button onClick={handleInstallApp} className="pwa-install-btn">Install</button>
+              <button onClick={() => setShowInstallBanner(false)} className="pwa-banner-close" aria-label="Dismiss">✕</button>
+            </div>
+          </div>
+        )}
+
+        {/* ── Mobile Bottom Navigation ── */}
+        {session && session.user?.email !== "admin@gmail.com" && (
+          <nav className="mobile-bottom-nav" aria-label="Mobile navigation">
+            <button className={`mobile-nav-item ${dashboardTab === "dashboard" ? "active" : ""}`} onClick={() => switchDashboardTab("dashboard")} aria-label="Dashboard">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="9" rx="1" /><rect x="14" y="3" width="7" height="5" rx="1" /><rect x="14" y="12" width="7" height="9" rx="1" /><rect x="3" y="16" width="7" height="5" rx="1" /></svg>
+              <span>Home</span>
+            </button>
+            <button className={`mobile-nav-item ${dashboardTab === "learn" ? "active" : ""}`} onClick={() => switchDashboardTab("learn")} aria-label="Learn">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>
+              <span>Learn</span>
+            </button>
+            <button className={`mobile-nav-item ${dashboardTab === "practice" ? "active" : ""}`} onClick={() => switchDashboardTab("practice")} aria-label="Practice">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1" /><rect x="2" y="8" width="16" height="8" rx="2" /><line x1="6" y1="12" x2="14" y2="12" /></svg>
+              <span>Practice</span>
+            </button>
+            <button className={`mobile-nav-item ${dashboardTab === "profile" ? "active" : ""}`} onClick={() => switchDashboardTab("profile")} aria-label="Profile">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+              <span>Profile</span>
+            </button>
+            <button className={`mobile-nav-item ${(dashboardTab === "shop" || dashboardTab === "leaderboard" || dashboardTab === "analytics") ? "active" : ""}`} onClick={() => switchDashboardTab(dashboardTab === "shop" || dashboardTab === "leaderboard" || dashboardTab === "analytics" ? "dashboard" : "shop")} aria-label="More">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="5" r="1" /><circle cx="12" cy="12" r="1" /><circle cx="12" cy="19" r="1" /></svg>
+              <span>More</span>
+            </button>
+          </nav>
         )}
       </div>
     );
