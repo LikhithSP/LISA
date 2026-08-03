@@ -5641,31 +5641,389 @@ select:focus {
   width: 100%;
 }
 
-/* Dashboard / Home overview */
-.dashboard-overview {
+/* Dashboard / Home three-column layout */
+.dashboard-overview-three-col {
   display: grid;
-  grid-template-columns: 2fr 3fr;
-  column-gap: 48px;
+  grid-template-columns: 1.1fr 1.3fr 1.2fr;
+  column-gap: 28px;
   row-gap: 24px;
   align-items: start;
-  max-width: 1100px;
+  max-width: 1280px;
   margin: 0 auto;
-  padding: 16px 48px 40px;
+  padding: 24px 32px 40px;
   width: 100%;
   box-sizing: border-box;
 }
 
-.dashboard-col {
+.dashboard-col-new {
   display: flex;
   flex-direction: column;
   gap: 24px;
   min-width: 0;
 }
 
-@media (max-width: 900px) {
-  .dashboard-overview {
-    grid-template-columns: 1fr;
+@media (max-width: 1024px) {
+  .dashboard-overview-three-col {
+    grid-template-columns: 1fr 1fr;
   }
+}
+
+@media (max-width: 768px) {
+  .dashboard-overview-three-col {
+    grid-template-columns: 1fr;
+    padding: 16px 16px 30px;
+  }
+}
+
+/* Micro Labels */
+.card-micro-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #777e90;
+  margin-bottom: 12px;
+}
+
+.card-micro-label-light {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: rgba(255, 255, 255, 0.75);
+  margin-bottom: 12px;
+}
+
+.card-micro-label-inner {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #92929d;
+  margin-bottom: 6px;
+}
+
+/* Greeting Card */
+.dashboard-greeting-card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.dashboard-greeting-card .greeting-card-title {
+  margin: 0 0 6px 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #18202b;
+}
+
+.dashboard-greeting-card .greeting-card-subtitle {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #5c6673;
+  line-height: 1.4;
+}
+
+/* Learner Profile Card */
+.learner-profile-card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.learner-profile-body {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.learner-profile-badge {
+  flex-shrink: 0;
+}
+
+.learner-profile-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.learner-profile-title {
+  margin: 0 0 8px 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #18202b;
+}
+
+.learner-profile-progress-bar {
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.learner-profile-progress-fill {
+  height: 100%;
+  background: #a25f6b;
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+
+.learner-profile-msg {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #4a5568;
+  line-height: 1.4;
+}
+
+/* Continue Learning Card (Rust Background) */
+.continue-learning-card {
+  background: #b04e2a;
+  color: #ffffff;
+  border-radius: 24px;
+  padding: 24px 20px;
+  box-shadow: 0 12px 36px rgba(176, 78, 42, 0.25);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 380px;
+}
+
+.continue-learning-header {
+  margin-bottom: 16px;
+}
+
+.continue-learning-title {
+  font-size: 2.1rem;
+  font-weight: 900;
+  margin: 8px 0 16px 0;
+  line-height: 1.15;
+}
+
+.continue-learning-sub {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.continue-learning-meta-line {
+  font-size: 0.95rem;
+  opacity: 0.85;
+}
+
+/* Circular Arc Progress Wheel */
+.continue-learning-progress-wheel {
+  position: relative;
+  width: 100%;
+  margin: 16px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.progress-wheel-svg {
+  width: 100%;
+  max-width: 180px;
+  height: auto;
+}
+
+.progress-wheel-center-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #ffffff;
+  padding: 0 8px;
+  line-height: 1.2;
+}
+
+.continue-learning-resume-btn {
+  background: #ffffff;
+  color: #b04e2a;
+  border: none;
+  border-radius: 14px;
+  padding: 16px 20px;
+  font-size: 1.1rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.continue-learning-resume-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Daily Stats Card */
+.daily-stats-card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.stats-view-report-btn:hover {
+  background: rgba(0, 0, 0, 0.04) !important;
+}
+
+[data-theme="dark"] .stats-view-report-btn:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+.daily-stats-row {
+  display: flex;
+  align-items: center;
+}
+
+.daily-stat-item {
+  flex: 1;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+}
+
+.daily-stat-value {
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: #18202b;
+  line-height: 1.1;
+  margin-bottom: 4px;
+}
+
+.daily-stat-divider {
+  width: 1px;
+  height: 50px;
+  background: #e2e8f0;
+  margin: 0 16px;
+}
+
+.daily-stat-label {
+  font-size: 0.8rem;
+  color: #718096;
+  font-weight: 700;
+}
+
+/* Daily Engagement Card */
+.daily-engagement-card {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.engagement-streak-section {
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+}
+
+.engagement-streak-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.engagement-streak-value {
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: #18202b;
+}
+
+.engagement-streak-message {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #718096;
+  font-weight: 600;
+}
+
+.engagement-quests-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.engagement-quests-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.engagement-gift-icon {
+  font-size: 1.2rem;
+}
+
+/* Custom specific background override for Word of the Day in dashboard overview */
+.dashboard-overview-three-col .word-of-day-card {
+  border-color: #eccfb8;
+}
+
+.dashboard-overview-three-col .word-of-day-heading {
+  color: #a0522d;
+}
+
+/* Dark mode styling overrides */
+[data-theme="dark"] .dashboard-greeting-card,
+[data-theme="dark"] .learner-profile-card,
+[data-theme="dark"] .daily-stats-card,
+[data-theme="dark"] .daily-engagement-card {
+  background: #1e2633;
+  border-color: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+[data-theme="dark"] .dashboard-greeting-card .greeting-card-title,
+[data-theme="dark"] .learner-profile-title,
+[data-theme="dark"] .daily-stat-value,
+[data-theme="dark"] .engagement-streak-value {
+  color: #ffffff;
+}
+
+[data-theme="dark"] .dashboard-greeting-card .greeting-card-subtitle,
+[data-theme="dark"] .learner-profile-msg,
+[data-theme="dark"] .daily-stat-label,
+[data-theme="dark"] .engagement-streak-message {
+  color: #a0aec0;
+}
+
+[data-theme="dark"] .daily-stat-divider,
+[data-theme="dark"] .engagement-streak-section {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="dark"] .dashboard-overview-three-col .word-of-day-card {
+  border-color: #4a3728;
+}
+
+[data-theme="dark"] .dashboard-overview-three-col .word-of-day-word {
+  color: #ffb07c !important;
+}
+
+[data-theme="dark"] .dashboard-overview-three-col .word-of-day-heading {
+  color: #e69d70 !important;
+}
+
+[data-theme="dark"] .dashboard-overview-three-col .word-of-day-meaning,
+[data-theme="dark"] .dashboard-overview-three-col .word-of-day-example {
+  color: #f7e6d7 !important;
 }
 
 .dashboard-greeting {
@@ -5775,7 +6133,6 @@ select:focus {
 }
 
 .word-of-day-card {
-  background: var(--panel-strong);
   border: 1px solid var(--line);
   border-radius: 22px;
   padding: 22px 26px;

@@ -9162,41 +9162,48 @@ function App() {
         <main className="dashboard-main-view">
           {/* Dashboard / Home - overview widgets */}
           {dashboardTab === "dashboard" && (
-            <div className="dashboard-overview">
-              <div className="dashboard-col dashboard-col-left">
-                <div className="dashboard-greeting">
-                  <h1>{t("dashboardHello").replace("{name}", profile?.full_name || "Learner")}</h1>
-                  <p>{t("dashboardWelcomeBack")}</p>
+            <div className="dashboard-overview-three-col">
+              {/* Column 1: Left */}
+              <div className="dashboard-col-new col-left">
+                {/* Greeting Card */}
+                <div className="dashboard-greeting-card">
+                  <h3 className="greeting-card-title">{t("dashboardHello").replace("{name}", profile?.full_name || "Learner")}</h3>
+                  <p className="greeting-card-subtitle">{t("dashboardWelcomeBack")}</p>
                 </div>
 
-                <div className="resume-card">
-                  <div className="resume-card-info">
-                    <span className="resume-card-label">{t("dashboardContinueLearning")}</span>
-                    <h3 className="resume-card-title">{t(`${activeDashboardSections[currentUnitPos.sectionIdx]?.units[currentUnitPos.unitIdx]?.id}_title`) || activeDashboardSections[currentUnitPos.sectionIdx]?.units[currentUnitPos.unitIdx]?.title || t("dashboardStartLearning")}</h3>
-                    <div className="resume-card-sub" style={{ display: 'flex', flexDirection: 'column' }}>
-                      <span style={{ fontSize: '0.85rem' }}>
-                        {t("dashboardSection")}: {t(`${activeDashboardSections[currentUnitPos.sectionIdx]?.id}_title`) || activeDashboardSections[currentUnitPos.sectionIdx]?.title || `${t("dashboardSection")} ${currentUnitPos.sectionIdx + 1}`}
-                      </span>
-                      <span style={{
-                        fontSize: '0.78rem',
-                        marginTop: '10px',
-                        whiteSpace: 'nowrap'
-                      }}>
-                        {t("dashboardLesson")}: {currentUnit?.title || `${t("dashboardLesson")} ${currentUnitPos.lessonIdx + 1}`}
-                      </span>
+                {/* Learner Profile Card */}
+                <div className="learner-profile-card">
+                  <span className="card-micro-label">YOUR LEARNER PROFILE</span>
+                  <div className="learner-profile-body">
+                    <div className="learner-profile-badge">
+                      <svg className="hexagon-svg" viewBox="0 0 100 100" width="60" height="60">
+                        <polygon points="50 3, 93 25, 93 75, 50 97, 7 75, 7 25" fill="#a25f6b" stroke="#ffffff" strokeWidth="3" />
+                        <text x="50" y="44" textAnchor="middle" fill="#ffffff" fontSize="13" fontWeight="bold">LEVEL</text>
+                        <text x="50" y="74" textAnchor="middle" fill="#ffffff" fontSize="24" fontWeight="900">{currentLevelNum}</text>
+                      </svg>
+                    </div>
+                    <div className="learner-profile-info">
+                      <h4 className="learner-profile-title">{getLevelCategoryAndDescription(currentLevelNum, selectedLanguage).category} (Level {currentLevelNum})</h4>
+                      <div className="learner-profile-progress-bar">
+                        <div className="learner-profile-progress-fill" style={{ width: `${(() => {
+                          const currentSection = CURRICULUM_SECTIONS.find(sec => sec.num === currentLevelNum);
+                          const sectionLessons = [];
+                          currentSection?.units.forEach(uni => {
+                            uni.lessons.forEach(les => {
+                              sectionLessons.push(les.id);
+                            });
+                          });
+                          const completedInSection = sectionLessons.filter(id => completedLessons.includes(id)).length;
+                          const totalInSection = sectionLessons.length;
+                          return totalInSection > 0 ? (completedInSection / totalInSection) * 100 : 0;
+                        })()}%` }}></div>
+                      </div>
+                      <p className="learner-profile-msg">{translatedLevelMsg}</p>
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    className="resume-btn"
-                    onClick={() => {
-                      setDashboardTab("learn");
-                    }}
-                  >
-                    ▶ {t("dashboardResume")}
-                  </button>
                 </div>
 
+                {/* Word of the Day Card */}
                 <div className="word-of-day-card">
                   <div className="word-of-day-head">
                     <span className="word-of-day-label">{t("dashboardWordOfDay")}</span>
@@ -9239,191 +9246,67 @@ function App() {
                     </p>
                   </div>
                 </div>
-
-
               </div>
 
-              <div className="dashboard-col dashboard-col-right">
-                <div className="current-level-card" style={{
-                  margin: 0,
-                  background: `linear-gradient(135deg, ${levelBadgeColor(currentLevelNum)} 0%, ${darkenHex(levelBadgeColor(currentLevelNum), 0.88)} 100%)`,
-                  border: `2px solid ${levelBadgeColor(currentLevelNum)}88`,
-                  boxShadow: `0 8px 32px ${levelBadgeColor(currentLevelNum)}40`,
-                  color: '#ffffff',
-                  position: 'relative',
-                  overflow: 'hidden'
-                }}>
-                  {/* Premium abstract background glow */}
-                  <div style={{
-                    position: 'absolute',
-                    top: '-20px',
-                    right: '-20px',
-                    width: '120px',
-                    height: '120px',
-                    borderRadius: '50%',
-                    background: 'rgba(255, 255, 255, 0.12)',
-                    filter: 'blur(20px)',
-                    pointerEvents: 'none'
-                  }} />
-                  <div className="current-level-header">
-                    <h3 className="current-level-title" style={{ color: '#ffffff', textShadow: '0 2px 4px rgba(0,0,0,0.15)' }}>{t("dashboardCurrentLevel")}</h3>
-                  </div>
-                  <div className="current-level-body">
-                    <div className="current-level-badge" style={{ background: 'rgba(255, 255, 255, 0.25)', border: '2px solid rgba(255, 255, 255, 0.4)' }}>
-                      <span className="current-level-badge-icon">{levelBadgeIcon(currentLevelNum)}</span>
-                      <span className="current-level-badge-level" style={{ color: '#ffffff', fontWeight: '900' }}>{t("level").toUpperCase()} {currentLevelNum}</span>
-                    </div>
-                    <div className="current-level-info">
-                      <p className="current-level-name" style={{ color: '#ffffff', textShadow: '0 2px 4px rgba(0,0,0,0.15)' }}>{getLevelCategoryAndDescription(currentLevelNum, selectedLanguage).category}</p>
-                      <p className="current-level-msg" style={{ color: 'rgba(255, 255, 255, 0.9)', fontWeight: '500' }}>{translatedLevelMsg}</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="stars-answers-card" style={{ margin: 0 }}>
-                  <div className="progress-dashboard-header" style={{ paddingTop: 0, borderTop: 'none', borderBottom: '1px solid #e5e7eb', paddingBottom: '12px', marginBottom: '4px' }}>
-                    <h4 className="progress-dashboard-title">{t("dashboardProgressTitle")}</h4>
-                    <button
-                      type="button"
-                      className="progress-view-btn"
-                      onClick={() => setDashboardTab("analytics")}
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: 'middle' }}>
-                        <path d="M3 3v18h18" />
-                        <path d="M7 16l4-8 4 4 4-6" />
-                      </svg>
-                      {t("dashboardViewReport")}
-                    </button>
-                  </div>
-
-                  <div className="sa-metrics-row">
-                    <div className="sa-metric">
-                      <div className="sa-icon sa-icon-stars"><StarIcon style={{ marginRight: 0, width: "22px", height: "22px" }} /></div>
-                      <div className="sa-metric-text">
-                        <span className="sa-value">{dailyXp}</span>
-                        <span className="sa-label">{t("dashboardStarsToday")}</span>
+              {/* Column 2: Middle */}
+              <div className="dashboard-col-new col-middle">
+                {/* Continue Learning Card */}
+                {(() => {
+                  const activeUnit = activeDashboardSections[currentUnitPos.sectionIdx]?.units[currentUnitPos.unitIdx];
+                  const unitLessons = activeUnit?.lessons || [];
+                  const completedInUnit = unitLessons.filter(l => completedLessons.includes(l.id)).length;
+                  const totalLessonsInUnit = unitLessons.length;
+                  const unitPercent = totalLessonsInUnit > 0 ? (completedInUnit / totalLessonsInUnit) * 100 : 0;
+                  
+                  // Math for SVG dot positioning on the arc
+                  const alpha = 143.13 + (unitPercent / 100) * 253.74;
+                  const angleRad = (alpha * Math.PI) / 180;
+                  const dotX = 60 + 50 * Math.cos(angleRad);
+                  const dotY = 60 + 50 * Math.sin(angleRad);
+                  
+                  return (
+                    <div className="continue-learning-card">
+                      <div className="continue-learning-header">
+                        <span className="card-micro-label-light">CONTINUE LEARNING</span>
+                        <h2 className="continue-learning-title">
+                          {t(`${activeDashboardSections[currentUnitPos.sectionIdx]?.units[currentUnitPos.unitIdx]?.id}_title`) || activeDashboardSections[currentUnitPos.sectionIdx]?.units[currentUnitPos.unitIdx]?.title || t("dashboardStartLearning")}
+                        </h2>
+                        <div className="continue-learning-sub">
+                          <span className="continue-learning-meta-line">Section: {t(`${activeDashboardSections[currentUnitPos.sectionIdx]?.id}_title`) || activeDashboardSections[currentUnitPos.sectionIdx]?.title || `Section ${currentUnitPos.sectionIdx + 1}`}</span>
+                          <span className="continue-learning-meta-line">Lesson: {currentUnit?.title || `Lesson ${currentUnitPos.lessonIdx + 1}`}</span>
+                        </div>
                       </div>
-                    </div>
-                    <div className="sa-divider" />
-                    <div className="sa-metric">
-                      <div className="sa-icon sa-icon-answers">✓</div>
-                      <div className="sa-metric-text">
-                        <span className="sa-value">{dailyCorrectAnswers}</span>
-                        <span className="sa-label">{t("dashboardRightAnswersToday")}</span>
+
+                      {/* Circular/arch progress wheel */}
+                      <div className="continue-learning-progress-wheel">
+                        <svg viewBox="0 0 120 110" className="progress-wheel-svg">
+                          {/* Background Arc */}
+                          <path d="M 20,90 A 50,50 0 1,1 100,90" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="8" strokeLinecap="round" />
+                          {/* Foreground Progress Arc */}
+                          <path d="M 20,90 A 50,50 0 1,1 100,90" fill="none" stroke="#ffffff" strokeWidth="8" strokeLinecap="round" strokeDasharray="221.4" strokeDashoffset={221.4 - (221.4 * unitPercent) / 100} />
+                          {/* Dot Selector at the progress position */}
+                          <circle cx={dotX} cy={dotY} r="7" fill="#ffffff" stroke="#b04e2a" strokeWidth="2.5" />
+                        </svg>
+                        <div className="progress-wheel-center-text">
+                          {currentUnit?.title || `Lesson ${currentUnitPos.lessonIdx + 1}`}
+                        </div>
                       </div>
-                    </div>
-                  </div>
 
-                  <div className="progress-dashboard-footer">
-                    <span className="progress-dashboard-summary">
-                      {t("dashboardProgressSummary").replace("{lessons}", completedLessons.filter(id => !id.startsWith("ach_")).length).replace("{xp}", dailyXp).replace("{streak}", streakCount)}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="dashboard-overview-row">
-                  <div className="streak-widget-card streak-society-card" style={{ margin: 0 }}>
-                    <div className="streak-society-header">
-                      <span className="streak-society-badge">{t("dashboardStreakSociety").toUpperCase()}</span>
-                      <div className="streak-society-icon"><FlameIcon style={{ width: "36px", height: "36px", color: '#ff4d00', marginRight: 0 }} /></div>
+                      <button
+                        type="button"
+                        className="continue-learning-resume-btn"
+                        onClick={() => {
+                          setDashboardTab("learn");
+                        }}
+                      >
+                        ▶ {t("dashboardResume")}
+                      </button>
                     </div>
-                    <h4 className="streak-society-title" style={{ fontSize: '2.4rem', fontWeight: '900', letterSpacing: '-0.5px', lineHeight: 1.1 }}>
-                      {streakCount} <span style={{ fontSize: '1.2rem', fontWeight: '700', opacity: 0.9 }}>{t("dashboardDayStreak")}</span>
-                    </h4>
-                    <p className="streak-society-message">{translatedStreakMsg}</p>
-                  </div>
+                  );
+                })()}
 
-                  <div className="daily-quests-card" style={{ margin: 0 }}>
-                    <div className="daily-quests-header">
-                      <h3>{t("dashboardDailyQuests")}</h3>
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                        <span className="quest-xp-reward-badge" style={{
-                          background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)',
-                          color: '#b45309',
-                          fontSize: '0.85rem',
-                          fontWeight: '800',
-                          padding: '6px 14px',
-                          borderRadius: '999px',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          border: '1.5px solid #fcd34d',
-                          boxShadow: '0 2px 8px rgba(245, 158, 11, 0.15)',
-                          letterSpacing: '0.01em',
-                          whiteSpace: 'nowrap'
-                        }}>⚡ +30 XP Reward</span>
-                        {activeQuests.length > 0 && activeQuests.every(q => getQuestProgress(q).completed) ? (
-                          <span className="daily-quests-timer" style={{ background: '#d1fae5', color: '#10b981' }}>✓ ALL COMPLETED</span>
-                        ) : (
-                          <span className="daily-quests-timer">{timeLeftStr.toUpperCase()} LEFT</span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="quest-list" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                      {activeQuests.map((quest) => {
-                        const prog = getQuestProgress(quest);
-                        return (
-                          <div key={quest.id} className="quest-item" style={{
-                            gap: '10px',
-                            padding: '12px',
-                            opacity: prog.completed ? 0.65 : 1,
-                            background: prog.completed ? 'var(--line)' : 'var(--bg)',
-                            borderColor: prog.completed ? 'transparent' : 'var(--line)'
-                          }}>
-                            <div className="quest-icon" style={{ width: '32px', height: '32px', borderRadius: '8px' }}>
-                              {quest.type === 'xp' && (
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: 'middle' }}>
-                                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-                                </svg>
-                              )}
-                              {quest.type === 'time' && (
-                                <ClockIcon style={{ color: '#3b82f6', marginRight: 0, width: '20px', height: '20px' }} />
-                              )}
-                              {quest.type === 'lessons' && (
-                                <BookIcon style={{ color: '#10b981', marginRight: 0, width: '20px', height: '20px' }} />
-                              )}
-                            </div>
-                            <div className="quest-content">
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
-                                <span style={{ fontWeight: '700', fontSize: '0.85rem', color: 'var(--text)', whiteSpace: 'nowrap', textDecoration: prog.completed ? 'line-through' : 'none' }}>
-                                  {translatedQuestTitles[quest.id] || quest.title}
-                                </span>
-                                <span style={{ fontWeight: '800', fontSize: '0.85rem', color: 'var(--accent)', whiteSpace: 'nowrap' }}>
-                                  {prog.displayProgress}
-                                </span>
-                              </div>
-                              <div className="quest-progress-bg">
-                                <div className="quest-progress-fill" style={{
-                                  width: `${prog.percent}%`,
-                                  background: prog.completed ? '#9ca3af' : '#f59e0b'
-                                }}></div>
-                              </div>
-                            </div>
-                            <div className="quest-reward" style={{ display: 'grid', placeItems: 'center' }}>
-                              {prog.completed ? (
-                                <div style={{
-                                  width: '22px',
-                                  height: '22px',
-                                  borderRadius: '50%',
-                                  background: '#10b981',
-                                  color: 'white',
-                                  display: 'grid',
-                                  placeItems: 'center',
-                                  fontWeight: 'bold',
-                                  fontSize: '0.8rem'
-                                }}>✓</div>
-                              ) : (
-                                <TrophyIcon style={{ color: '#8b8d96', marginRight: 0, width: '20px', height: '20px' }} />
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="achievements-card" style={{ margin: 0 }}>
+                {/* Achievements Card moved here */}
+                <div className="achievements-card" style={{ margin: '24px 0 0 0' }}>
                   <div className="achievements-card-header">
                     <h4>{t("badgesEarned")}</h4>
                     <button className="achievements-view-all" onClick={() => setShowAllAchievementsModal(true)}>{t("dashboardViewAll")}</button>
@@ -9511,6 +9394,145 @@ function App() {
                         </div>
                       ));
                     })()}
+                  </div>
+                </div>
+              </div>
+
+              {/* Column 3: Right */}
+              <div className="dashboard-col-new col-right">
+                {/* Daily Stats Card */}
+                <div className="daily-stats-card">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                    <span className="card-micro-label" style={{ margin: 0 }}>DAILY STATS</span>
+                    <button
+                      type="button"
+                      className="stats-view-report-btn"
+                      onClick={() => setDashboardTab("analytics")}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--accent)',
+                        fontWeight: '800',
+                        fontSize: '0.85rem',
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        padding: '4px 8px',
+                        borderRadius: '6px',
+                        transition: 'background 0.2s'
+                      }}
+                    >
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: 'middle' }}>
+                        <path d="M3 3v18h18" />
+                        <path d="M7 16l4-8 4 4 4-6" />
+                      </svg>
+                      {t("dashboardViewReport")}
+                    </button>
+                  </div>
+                  <div className="daily-stats-row">
+                    <div className="daily-stat-item">
+                      <span className="daily-stat-value">{dailyXp}</span>
+                      <span className="daily-stat-label">XP Earned Today</span>
+                    </div>
+                    <div className="daily-stat-divider"></div>
+                    <div className="daily-stat-item">
+                      <span className="daily-stat-value">✓ {dailyCorrectAnswers}</span>
+                      <span className="daily-stat-label">Right Answers Today</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Daily Engagement Card */}
+                <div className="daily-engagement-card">
+                  <span className="card-micro-label">DAILY ENGAGEMENT</span>
+                  
+                  {/* Streak details */}
+                  <div className="engagement-streak-section">
+                    <span className="card-micro-label-inner">STREAK</span>
+                    <div className="engagement-streak-main">
+                      <span className="engagement-streak-value">{streakCount}-Day Streak</span>
+                      <span className="engagement-streak-icon"><FlameIcon style={{ width: "24px", height: "24px", color: '#ff4d00', marginRight: 0 }} /></span>
+                    </div>
+                    <p className="engagement-streak-message">{translatedStreakMsg}</p>
+                  </div>
+
+                  {/* Daily Quests section */}
+                  <div className="engagement-quests-section">
+                    <div className="engagement-quests-header">
+                      <span className="card-micro-label-inner">DAILY QUESTS</span>
+                      <span className="engagement-gift-icon">🎁</span>
+                    </div>
+
+                    <div className="quest-list" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                      {activeQuests.map((quest) => {
+                        const prog = getQuestProgress(quest);
+                        return (
+                          <div key={quest.id} className="quest-item" style={{
+                            gap: '10px',
+                            padding: '12px',
+                            opacity: prog.completed ? 0.65 : 1,
+                            background: prog.completed ? 'var(--line)' : 'var(--bg)',
+                            borderColor: prog.completed ? 'transparent' : 'var(--line)'
+                          }}>
+                            <div className="quest-icon" style={{ width: '32px', height: '32px', borderRadius: '8px' }}>
+                              {quest.type === 'xp' && (
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: 'middle' }}>
+                                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                                </svg>
+                              )}
+                              {quest.type === 'time' && (
+                                <ClockIcon style={{ color: '#3b82f6', marginRight: 0, width: '20px', height: '20px' }} />
+                              )}
+                              {quest.type === 'lessons' && (
+                                <BookIcon style={{ color: '#10b981', marginRight: 0, width: '20px', height: '20px' }} />
+                              )}
+                            </div>
+                            <div className="quest-content">
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                                <span style={{ fontWeight: '700', fontSize: '0.85rem', color: 'var(--text)', whiteSpace: 'nowrap', textDecoration: prog.completed ? 'line-through' : 'none' }}>
+                                  {translatedQuestTitles[quest.id] || quest.title}
+                                </span>
+                                <span style={{ fontWeight: '800', fontSize: '0.85rem', color: 'var(--accent)', whiteSpace: 'nowrap' }}>
+                                  {prog.displayProgress}
+                                </span>
+                              </div>
+                              <div className="quest-progress-bg">
+                                <div className="quest-progress-fill" style={{
+                                  width: `${prog.percent}%`,
+                                  background: prog.completed ? '#9ca3af' : '#f59e0b'
+                                }}></div>
+                              </div>
+                            </div>
+                            <div className="quest-reward" style={{ display: 'grid', placeItems: 'center' }}>
+                              {prog.completed ? (
+                                <div style={{
+                                  width: '22px',
+                                  height: '22px',
+                                  borderRadius: '50%',
+                                  background: '#10b981',
+                                  color: 'white',
+                                  display: 'grid',
+                                  placeItems: 'center',
+                                  fontWeight: 'bold',
+                                  fontSize: '0.8rem'
+                                }}>✓</div>
+                              ) : (
+                                <TrophyIcon style={{ color: '#8b8d96', marginRight: 0, width: '20px', height: '20px' }} />
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    
+                    <div className="engagement-quests-footer" style={{ marginTop: '12px', display: 'flex', justifyContent: 'flex-end' }}>
+                      {activeQuests.length > 0 && activeQuests.every(q => getQuestProgress(q).completed) ? (
+                        <span className="daily-quests-timer" style={{ background: '#d1fae5', color: '#10b981', fontSize: '0.75rem', padding: '4px 8px', borderRadius: '4px' }}>✓ ALL COMPLETED</span>
+                      ) : (
+                        <span className="daily-quests-timer" style={{ fontSize: '0.75rem', fontWeight: '800', color: 'var(--muted)' }}>{timeLeftStr.toUpperCase()} LEFT</span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
