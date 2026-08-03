@@ -8851,90 +8851,68 @@ function App() {
         {/* Topbar with embedded sidebar navigation */}
         <div className="dashboard-topbar">
           <div className="topbar-left">
-            {session?.user?.email === "admin@gmail.com" ? (
-              <div style={{ fontSize: '1.25rem', fontWeight: '900', color: 'var(--accent)', paddingLeft: '8px' }}>
-                🛡️ LISA System Administrator
-              </div>
-            ) : (
+            <div className="topbar-brand">
+              <span className="topbar-brand-mark" aria-hidden="true">L</span>
+              <span>{session?.user?.email === "admin@gmail.com" ? "LISA Admin" : "LISA"}</span>
+            </div>
+            {session?.user?.email !== "admin@gmail.com" && (
+              <>
+              <span className="sd-separator-v" aria-hidden="true" />
               <div className="topbar-indicators" style={{ position: 'relative' }}>
               <div
                 className="indicator-pill streak"
                 onClick={() => setStreakPopupOpen(!streakPopupOpen)}
-                style={{ cursor: 'pointer', position: 'relative', gap: '8px' }}
+                style={{ cursor: 'pointer', position: 'relative' }}
                 ref={streakPopupRef}
               >
-                <FlameIcon style={{ color: '#ff4d00', width: '22px', height: '22px' }} />
-                <span style={{ fontSize: '1.25rem', fontWeight: '800', color: '#ff4d00', lineHeight: 1 }}>{streakCount}</span>
+                <FlameIcon />
+                <span className="indicator-value">{streakCount}</span>
 
-                {/* Streak Popup */}
+                {/* Streak Popover */}
                 {streakPopupOpen && (
                   <div
-                    className="streak-popup-overlay"
-                    style={{
-                      position: 'absolute',
-                      top: '100%',
-                      left: '0',
-                      marginTop: '12px',
-                      width: '290px',
-                      background: 'var(--panel-strong)',
-                      border: '2px solid var(--line)',
-                      borderRadius: '16px',
-                      boxShadow: 'var(--shadow)',
-                      padding: '16px',
-                      zIndex: 1000,
-                      cursor: 'default'
-                    }}
+                    className="streak-popover"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px', textAlign: 'left' }}>
-                      <FlameIcon style={{ width: '28px', height: '28px', color: '#ff4d00', marginRight: 0 }} />
+                    <div className="streak-popover-head">
+                      <span className="sd-icon-chip">
+                        <FlameIcon style={{ width: '18px', height: '18px', marginRight: 0 }} />
+                      </span>
                       <div>
-                        <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: 'var(--text)' }}>{streakCount} Day Streak!</h3>
-                        <p style={{ margin: '2px 0 0', fontSize: '0.78rem', color: 'var(--muted)' }}>
-                          {streakCount > 0 ? "You're doing great! Keep it up." : "Start a lesson to begin your streak!"}
+                        <h3 className="streak-popover-title">{streakCount} day streak</h3>
+                        <p className="streak-popover-sub">
+                          {streakCount > 0 ? "You're doing great. Keep it up." : "Start a lesson to begin your streak."}
                         </p>
                       </div>
                     </div>
 
                     {/* Past 7 days grid */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '6px', textAlign: 'center' }}>
+                    <div className="streak-week">
                       {getPastSevenDaysStatus().map((day, idx) => (
-                        <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                          <span style={{ fontSize: '0.7rem', fontWeight: 700, color: day.isToday ? 'var(--accent)' : 'var(--muted)' }}>
-                            {day.label}
-                          </span>
-                          <div style={{
-                            width: '26px',
-                            height: '26px',
-                            borderRadius: '50%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            background: day.isCompleted
-                              ? 'linear-gradient(135deg, #ff6b00, #ff4d00)'
-                              : 'rgba(0,0,0,0.05)',
-                            color: day.isCompleted ? 'white' : 'var(--muted)',
-                            border: day.isToday ? '2px solid var(--accent)' : 'none',
-                            fontSize: '0.75rem',
-                            fontWeight: 700
-                          }}>
-                            {day.isCompleted ? '✓' : ''}
-                          </div>
+                        <div
+                          key={idx}
+                          className={`streak-day${day.isToday ? " is-today" : ""}${day.isCompleted ? " is-complete" : ""}`}
+                        >
+                          <span className="streak-day-label">{day.label}</span>
+                          <div className="streak-day-dot">{day.isCompleted ? '✓' : ''}</div>
                         </div>
                       ))}
                     </div>
                   </div>
                 )}
               </div>
-              <div className="indicator-pill xp"><StarIcon style={{ color: '#f59e0b' }} /> {userXp} XP</div>
+              <div className="indicator-pill xp">
+                <StarIcon />
+                <span className="indicator-value">{userXp} XP</span>
+              </div>
               <button
                 type="button"
                 className={`indicator-pill shop-pill ${dashboardTab === "shop" ? "active" : ""}`}
                 onClick={() => switchDashboardTab("shop")}
                 title="XP Shop"
-                style={{ background: '#f59e0b15', color: '#f59e0b', padding: '6px 10px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                aria-label="XP Shop"
               >
-                <svg style={{ marginRight: 0, width: 18, height: 18, verticalAlign: "middle" }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
                   <line x1="3" x2="21" y1="6" y2="6" />
                   <path d="M16 10a4 4 0 0 1-8 0" />
@@ -8945,51 +8923,28 @@ function App() {
                 className={`indicator-pill leaderboard-pill ${dashboardTab === "leaderboard" ? "active" : ""}`}
                 onClick={() => switchDashboardTab("leaderboard")}
                 title="Leaderboard"
-                style={{ background: '#f59e0b15', color: '#f59e0b', padding: '6px 10px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                aria-label="Leaderboard"
               >
-                <TrophyIcon style={{ marginRight: 0, width: 18, height: 18, verticalAlign: "middle" }} />
+                <TrophyIcon style={{ marginRight: 0 }} />
               </button>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
             </div>
+            </>
             )}
           </div>
 
           <div className="sidebar-pill">
-            <div className="sidebar-logo">LISA</div>
             <div className="sidebar-menu">
               {session?.user?.email === "admin@gmail.com" ? (
-                <>
-                  <button
-                    type="button"
-                    className={`sidebar-item ${dashboardTab === "admin" ? "active" : ""}`}
-                    onClick={() => switchDashboardTab("admin")}
-                    style={{ display: 'inline-flex', alignItems: 'center' }}
-                  >
-                    <span style={{ marginRight: '6px' }}>🔒</span> Admin Portal
-                  </button>
-                  <span className="sidebar-separator" aria-hidden="true" />
-                  <button
-                    type="button"
-                    className="sidebar-signout-pill"
-                    onClick={() => handleSignOut()}
-                    style={{ display: 'inline-flex', alignItems: 'center', marginLeft: 'auto' }}
-                  >
-                    <LogoutIcon style={{ marginRight: 0, width: 16, height: 16 }} /> {t("logout")}
-                  </button>
-                </>
+                <button
+                  type="button"
+                  className={`sidebar-item ${dashboardTab === "admin" ? "active" : ""}`}
+                  onClick={() => switchDashboardTab("admin")}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
+                  </svg>
+                  Admin Portal
+                </button>
               ) : (
                 <>
                   <button
@@ -8997,30 +8952,26 @@ function App() {
                     className={`sidebar-item ${dashboardTab === "dashboard" ? "active" : ""}`}
                     onClick={() => switchDashboardTab("dashboard")}
                   >
-                    <DashboardIcon style={{ marginRight: 0, width: 18, height: 18 }} /> {t("sidebarDashboard")}
+                    <DashboardIcon style={{ marginRight: 0 }} /> {t("sidebarDashboard")}
                   </button>
-                  <span className="sidebar-separator" aria-hidden="true" />
                   <button
                     type="button"
                     className={`sidebar-item ${dashboardTab === "learn" ? "active" : ""}`}
                     onClick={() => switchDashboardTab("learn")}
                   >
-                    <LearnIcon style={{ marginRight: 0, width: 18, height: 18 }} /> {t("sidebarLearn")}
+                    <LearnIcon style={{ marginRight: 0 }} /> {t("sidebarLearn")}
                   </button>
-                  <span className="sidebar-separator" aria-hidden="true" />
                   <button
                     type="button"
                     className={`sidebar-item ${dashboardTab === "practice" ? "active" : ""}`}
                     onClick={() => switchDashboardTab("practice")}
                   >
-                    <PracticeIcon style={{ marginRight: 0, width: 18, height: 18 }} /> {t("sidebarPractice")}
+                    <PracticeIcon style={{ marginRight: 0 }} /> {t("sidebarPractice")}
                   </button>
-                  <span className="sidebar-separator" aria-hidden="true" />
                   <button
                     type="button"
                     className={`sidebar-item ${dashboardTab === "profile" ? "active" : ""}`}
                     onClick={() => switchDashboardTab("profile")}
-                    style={{ display: 'inline-flex', alignItems: 'center' }}
                   >
                     {(() => {
                       const resolved = resolveProfileAvatar(profileAvatar);
@@ -9028,56 +8979,43 @@ function App() {
                         return (
                           <img
                             src={resolved.value}
-                            alt="Profile"
+                            alt=""
                             style={{
-                              width: "22px",
-                              height: "22px",
+                              width: "18px",
+                              height: "18px",
                               borderRadius: "50%",
-                              objectFit: "cover",
-                              marginRight: "6px"
+                              objectFit: "cover"
                             }}
                           />
                         );
                       }
                       if (resolved?.type === "emoji") {
-                        return <span style={{ fontSize: "1.1rem", marginRight: "6px" }}>{resolved.emoji}</span>;
+                        return <span style={{ fontSize: "0.95rem", lineHeight: 1 }}>{resolved.emoji}</span>;
                       }
                       if (resolved?.type === "builder") {
                         const shape = AVATAR_SHAPE_STYLE[resolved.shape] || AVATAR_SHAPE_STYLE.circle;
                         return (
                           <span style={{
-                            width: "22px",
-                            height: "22px",
+                            width: "18px",
+                            height: "18px",
                             display: "inline-flex",
                             alignItems: "center",
                             justifyContent: "center",
                             background: resolved.bg,
                             ...shape,
-                            fontSize: "1.1rem",
-                            marginRight: "6px"
+                            fontSize: "0.8rem"
                           }}>
                             {resolved.emoji}
                           </span>
                         );
                       }
-                      return <ProfileIcon style={{ marginRight: 0, width: 18, height: 18 }} />;
+                      return <ProfileIcon style={{ marginRight: 0 }} />;
                     })()}
                     {t("sidebarProfile")}
                   </button>
                 </>
               )}
             </div>
-            {session?.user?.email !== "admin@gmail.com" && (
-              <div className="sidebar-footer">
-                <button
-                  type="button"
-                  className="sidebar-signout-pill"
-                  onClick={() => handleSignOut()}
-                >
-                  <LogoutIcon style={{ marginRight: 0, width: 16, height: 16 }} /> {t("logout")}
-                </button>
-              </div>
-            )}
           </div>
 
           <div className="topbar-right">
@@ -9155,6 +9093,14 @@ function App() {
             )}
             {renderThemeToggle()}
             {renderLanguageDropdown(true)}
+            <span className="sd-separator-v" aria-hidden="true" />
+            <button
+              type="button"
+              className="sidebar-signout-pill"
+              onClick={() => handleSignOut()}
+            >
+              <LogoutIcon style={{ marginRight: 0, width: 15, height: 15 }} /> {t("logout")}
+            </button>
           </div>
         </div>
 
@@ -9173,15 +9119,11 @@ function App() {
                   <div className="resume-card-info">
                     <span className="resume-card-label">{t("dashboardContinueLearning")}</span>
                     <h3 className="resume-card-title">{t(`${activeDashboardSections[currentUnitPos.sectionIdx]?.units[currentUnitPos.unitIdx]?.id}_title`) || activeDashboardSections[currentUnitPos.sectionIdx]?.units[currentUnitPos.unitIdx]?.title || t("dashboardStartLearning")}</h3>
-                    <div className="resume-card-sub" style={{ display: 'flex', flexDirection: 'column' }}>
-                      <span style={{ fontSize: '0.85rem' }}>
+                    <div className="resume-card-meta">
+                      <span className="sd-badge sd-badge-secondary">
                         {t("dashboardSection")}: {t(`${activeDashboardSections[currentUnitPos.sectionIdx]?.id}_title`) || activeDashboardSections[currentUnitPos.sectionIdx]?.title || `${t("dashboardSection")} ${currentUnitPos.sectionIdx + 1}`}
                       </span>
-                      <span style={{
-                        fontSize: '0.78rem',
-                        marginTop: '10px',
-                        whiteSpace: 'nowrap'
-                      }}>
+                      <span className="sd-badge sd-badge-outline">
                         {t("dashboardLesson")}: {currentUnit?.title || `${t("dashboardLesson")} ${currentUnitPos.lessonIdx + 1}`}
                       </span>
                     </div>
@@ -9193,7 +9135,10 @@ function App() {
                       setDashboardTab("learn");
                     }}
                   >
-                    ▶ {t("dashboardResume")}
+                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                    {t("dashboardResume")}
                   </button>
                 </div>
 
@@ -9244,51 +9189,34 @@ function App() {
               </div>
 
               <div className="dashboard-col dashboard-col-right">
-                <div className="current-level-card" style={{
-                  margin: 0,
-                  background: `linear-gradient(135deg, ${levelBadgeColor(currentLevelNum)} 0%, ${darkenHex(levelBadgeColor(currentLevelNum), 0.88)} 100%)`,
-                  border: `2px solid ${levelBadgeColor(currentLevelNum)}88`,
-                  boxShadow: `0 8px 32px ${levelBadgeColor(currentLevelNum)}40`,
-                  color: '#ffffff',
-                  position: 'relative',
-                  overflow: 'hidden'
-                }}>
-                  {/* Premium abstract background glow */}
-                  <div style={{
-                    position: 'absolute',
-                    top: '-20px',
-                    right: '-20px',
-                    width: '120px',
-                    height: '120px',
-                    borderRadius: '50%',
-                    background: 'rgba(255, 255, 255, 0.12)',
-                    filter: 'blur(20px)',
-                    pointerEvents: 'none'
-                  }} />
+                <div
+                  className="current-level-card"
+                  style={{ "--level-color": levelBadgeColor(currentLevelNum) }}
+                >
                   <div className="current-level-header">
-                    <h3 className="current-level-title" style={{ color: '#ffffff', textShadow: '0 2px 4px rgba(0,0,0,0.15)' }}>{t("dashboardCurrentLevel")}</h3>
+                    <h3 className="current-level-title">{t("dashboardCurrentLevel")}</h3>
+                    <span className="level-chip">{t("level").toUpperCase()} {currentLevelNum}</span>
                   </div>
                   <div className="current-level-body">
-                    <div className="current-level-badge" style={{ background: 'rgba(255, 255, 255, 0.25)', border: '2px solid rgba(255, 255, 255, 0.4)' }}>
+                    <div className="current-level-badge">
                       <span className="current-level-badge-icon">{levelBadgeIcon(currentLevelNum)}</span>
-                      <span className="current-level-badge-level" style={{ color: '#ffffff', fontWeight: '900' }}>{t("level").toUpperCase()} {currentLevelNum}</span>
                     </div>
                     <div className="current-level-info">
-                      <p className="current-level-name" style={{ color: '#ffffff', textShadow: '0 2px 4px rgba(0,0,0,0.15)' }}>{getLevelCategoryAndDescription(currentLevelNum, selectedLanguage).category}</p>
-                      <p className="current-level-msg" style={{ color: 'rgba(255, 255, 255, 0.9)', fontWeight: '500' }}>{translatedLevelMsg}</p>
+                      <p className="current-level-name">{getLevelCategoryAndDescription(currentLevelNum, selectedLanguage).category}</p>
+                      <p className="current-level-msg">{translatedLevelMsg}</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="stars-answers-card" style={{ margin: 0 }}>
-                  <div className="progress-dashboard-header" style={{ paddingTop: 0, borderTop: 'none', borderBottom: '1px solid #e5e7eb', paddingBottom: '12px', marginBottom: '4px' }}>
+                <div className="stars-answers-card">
+                  <div className="progress-dashboard-header">
                     <h4 className="progress-dashboard-title">{t("dashboardProgressTitle")}</h4>
                     <button
                       type="button"
                       className="progress-view-btn"
                       onClick={() => setDashboardTab("analytics")}
                     >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: 'middle' }}>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M3 3v18h18" />
                         <path d="M7 16l4-8 4 4 4-6" />
                       </svg>
@@ -9298,7 +9226,7 @@ function App() {
 
                   <div className="sa-metrics-row">
                     <div className="sa-metric">
-                      <div className="sa-icon sa-icon-stars"><StarIcon style={{ marginRight: 0, width: "22px", height: "22px" }} /></div>
+                      <div className="sa-icon sa-icon-stars"><StarIcon style={{ marginRight: 0 }} /></div>
                       <div className="sa-metric-text">
                         <span className="sa-value">{dailyXp}</span>
                         <span className="sa-label">{t("dashboardStarsToday")}</span>
@@ -9322,98 +9250,65 @@ function App() {
                 </div>
 
                 <div className="dashboard-overview-row">
-                  <div className="streak-widget-card streak-society-card" style={{ margin: 0 }}>
+                  <div className="streak-widget-card streak-society-card">
                     <div className="streak-society-header">
                       <span className="streak-society-badge">{t("dashboardStreakSociety").toUpperCase()}</span>
-                      <div className="streak-society-icon"><FlameIcon style={{ width: "36px", height: "36px", color: '#ff4d00', marginRight: 0 }} /></div>
+                      <div className="streak-society-icon"><FlameIcon style={{ color: 'hsl(var(--sd-orange))', marginRight: 0 }} /></div>
                     </div>
-                    <h4 className="streak-society-title" style={{ fontSize: '2.4rem', fontWeight: '900', letterSpacing: '-0.5px', lineHeight: 1.1 }}>
-                      {streakCount} <span style={{ fontSize: '1.2rem', fontWeight: '700', opacity: 0.9 }}>{t("dashboardDayStreak")}</span>
+                    <h4 className="streak-society-title">
+                      {streakCount} <span className="streak-society-unit">{t("dashboardDayStreak")}</span>
                     </h4>
                     <p className="streak-society-message">{translatedStreakMsg}</p>
                   </div>
 
-                  <div className="daily-quests-card" style={{ margin: 0 }}>
+                  <div className="daily-quests-card">
                     <div className="daily-quests-header">
                       <h3>{t("dashboardDailyQuests")}</h3>
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                        <span className="quest-xp-reward-badge" style={{
-                          background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)',
-                          color: '#b45309',
-                          fontSize: '0.85rem',
-                          fontWeight: '800',
-                          padding: '6px 14px',
-                          borderRadius: '999px',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          border: '1.5px solid #fcd34d',
-                          boxShadow: '0 2px 8px rgba(245, 158, 11, 0.15)',
-                          letterSpacing: '0.01em',
-                          whiteSpace: 'nowrap'
-                        }}>⚡ +30 XP Reward</span>
+                      <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <span className="sd-badge sd-badge-amber">+30 XP</span>
                         {activeQuests.length > 0 && activeQuests.every(q => getQuestProgress(q).completed) ? (
-                          <span className="daily-quests-timer" style={{ background: '#d1fae5', color: '#10b981' }}>✓ ALL COMPLETED</span>
+                          <span className="daily-quests-timer is-complete">ALL COMPLETED</span>
                         ) : (
                           <span className="daily-quests-timer">{timeLeftStr.toUpperCase()} LEFT</span>
                         )}
                       </div>
                     </div>
-                    <div className="quest-list" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    <div className="quest-list">
                       {activeQuests.map((quest) => {
                         const prog = getQuestProgress(quest);
                         return (
-                          <div key={quest.id} className="quest-item" style={{
-                            gap: '10px',
-                            padding: '12px',
-                            opacity: prog.completed ? 0.65 : 1,
-                            background: prog.completed ? 'var(--line)' : 'var(--bg)',
-                            borderColor: prog.completed ? 'transparent' : 'var(--line)'
-                          }}>
-                            <div className="quest-icon" style={{ width: '32px', height: '32px', borderRadius: '8px' }}>
+                          <div key={quest.id} className={`quest-item${prog.completed ? " is-complete" : ""}`}>
+                            <div className="quest-icon">
                               {quest.type === 'xp' && (
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: 'middle' }}>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'hsl(var(--sd-amber))' }}>
                                   <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
                                 </svg>
                               )}
                               {quest.type === 'time' && (
-                                <ClockIcon style={{ color: '#3b82f6', marginRight: 0, width: '20px', height: '20px' }} />
+                                <ClockIcon style={{ color: 'hsl(var(--sd-blue))', marginRight: 0 }} />
                               )}
                               {quest.type === 'lessons' && (
-                                <BookIcon style={{ color: '#10b981', marginRight: 0, width: '20px', height: '20px' }} />
+                                <BookIcon style={{ color: 'hsl(var(--sd-emerald))', marginRight: 0 }} />
                               )}
                             </div>
                             <div className="quest-content">
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
-                                <span style={{ fontWeight: '700', fontSize: '0.85rem', color: 'var(--text)', whiteSpace: 'nowrap', textDecoration: prog.completed ? 'line-through' : 'none' }}>
+                              <div className="quest-row-top">
+                                <span className="quest-name">
                                   {translatedQuestTitles[quest.id] || quest.title}
                                 </span>
-                                <span style={{ fontWeight: '800', fontSize: '0.85rem', color: 'var(--accent)', whiteSpace: 'nowrap' }}>
+                                <span className="quest-count">
                                   {prog.displayProgress}
                                 </span>
                               </div>
                               <div className="quest-progress-bg">
-                                <div className="quest-progress-fill" style={{
-                                  width: `${prog.percent}%`,
-                                  background: prog.completed ? '#9ca3af' : '#f59e0b'
-                                }}></div>
+                                <div className="quest-progress-fill" style={{ width: `${prog.percent}%` }}></div>
                               </div>
                             </div>
-                            <div className="quest-reward" style={{ display: 'grid', placeItems: 'center' }}>
+                            <div className="quest-status">
                               {prog.completed ? (
-                                <div style={{
-                                  width: '22px',
-                                  height: '22px',
-                                  borderRadius: '50%',
-                                  background: '#10b981',
-                                  color: 'white',
-                                  display: 'grid',
-                                  placeItems: 'center',
-                                  fontWeight: 'bold',
-                                  fontSize: '0.8rem'
-                                }}>✓</div>
+                                <span className="quest-status-done">✓</span>
                               ) : (
-                                <TrophyIcon style={{ color: '#8b8d96', marginRight: 0, width: '20px', height: '20px' }} />
+                                <TrophyIcon style={{ marginRight: 0 }} />
                               )}
                             </div>
                           </div>
@@ -9423,7 +9318,7 @@ function App() {
                   </div>
                 </div>
 
-                <div className="achievements-card" style={{ margin: 0 }}>
+                <div className="achievements-card">
                   <div className="achievements-card-header">
                     <h4>{t("badgesEarned")}</h4>
                     <button className="achievements-view-all" onClick={() => setShowAllAchievementsModal(true)}>{t("dashboardViewAll")}</button>
@@ -9505,7 +9400,7 @@ function App() {
                             </div>
                             <p className="achievement-desc">{a.id.toString().startsWith("badge_") ? a.desc : (translatedAchievements[a.id]?.desc || a.desc)}</p>
                             <div className="achievement-progress-track">
-                              <div className="achievement-progress-fill" style={{ width: `${a.progress}%`, background: '#facc15' }}></div>
+                              <div className="achievement-progress-fill" style={{ width: `${a.progress}%` }}></div>
                             </div>
                           </div>
                         </div>
