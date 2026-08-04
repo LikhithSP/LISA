@@ -13125,90 +13125,128 @@ select:focus {
 }
 
 .profile-stat-card {
-  background: #f4f6f9;
-  border: 2px solid var(--line);
-  border-radius: 18px;
-  padding: 20px;
+  background: var(--panel-strong);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 22px 20px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 14px;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.profile-stat-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+
+.profile-stat-card.streak::before {
+  background: radial-gradient(circle at 20% 20%, rgba(249, 115, 22, 0.12) 0%, transparent 60%);
+}
+
+.profile-stat-card.xp::before {
+  background: radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.12) 0%, transparent 60%);
+}
+
+.profile-stat-card.lessons::before {
+  background: radial-gradient(circle at 20% 20%, rgba(16, 185, 129, 0.12) 0%, transparent 60%);
+}
+
+.profile-stat-card.active-time::before {
+  background: radial-gradient(circle at 20% 20%, rgba(139, 92, 246, 0.12) 0%, transparent 60%);
+}
+
+.profile-stat-card:hover::before {
+  opacity: 1;
 }
 
 .profile-stat-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
 .profile-stat-card.streak {
-  background: var(--streak-bg);
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.15) 0%, var(--panel-strong) 100%);
 }
 
 .profile-stat-card.xp {
-  background: var(--xp-bg);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, var(--panel-strong) 100%);
 }
 
 .profile-stat-card.lessons {
-  background: var(--lessons-bg);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, var(--panel-strong) 100%);
 }
 
 .profile-stat-card.active-time {
-  background: var(--time-bg);
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, var(--panel-strong) 100%);
 }
 
 .profile-stat-card.streak:hover,
 .profile-stat-card.xp:hover,
 .profile-stat-card.lessons:hover,
 .profile-stat-card.active-time:hover {
-  border-color: #e5e7eb;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
 .stat-icon {
   font-size: 2rem;
   transition: transform 0.2s ease;
+  position: relative;
+  z-index: 1;
 }
 
 .profile-stat-card:hover .stat-icon {
-  transform: scale(1.08);
+  transform: scale(1.1);
+}
+
+.stat-content {
+  position: relative;
+  z-index: 1;
 }
 
 .stat-val {
-  font-size: 1.5rem;
+  font-size: 1.6rem;
   font-weight: 900;
   color: var(--text);
   line-height: 1.1;
   margin-bottom: 2px;
-  text-align: center;
+  text-align: left;
 }
 
 .stat-lbl {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  text-align: center;
+  letter-spacing: 0.8px;
+  text-align: left;
 }
 
 /* Badges section */
 .profile-badges-container {
   background: var(--panel);
-  border: 2px solid var(--line);
+  border: 1px solid var(--line);
   border-radius: 24px;
   padding: 24px;
-  margin-bottom: 32px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.01);
+  margin-bottom: 24px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
 }
 
 .profile-section-title {
-  font-size: 1.15rem;
+  font-size: 1.1rem;
   font-weight: 800;
   margin-bottom: 18px;
   color: var(--text);
   border-left: 4px solid var(--accent);
   padding-left: 12px;
+  letter-spacing: -0.01em;
 }
 
 .profile-badges-grid {
@@ -13232,25 +13270,26 @@ select:focus {
 
 .profile-badge-item {
   background: var(--panel-strong);
-  border: 2px solid var(--line);
+  border: 1px solid var(--line);
   border-radius: 16px;
-  padding: 12px 20px;
+  padding: 14px 20px;
   display: flex;
   align-items: center;
   gap: 14px;
   cursor: help;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.01);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .profile-badge-item:hover {
-  border-color: var(--accent);
-  transform: translateY(-3px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
 }
 
 [data-theme="dark"] .profile-badge-item:hover {
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
 }
 
 .profile-badge-icon {
@@ -13276,6 +13315,152 @@ select:focus {
   color: var(--accent);
   letter-spacing: 0.3px;
   margin-top: 1px;
+}
+
+/* Dashboard grid for profile stats */
+.profile-stats-dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .profile-stats-dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Achievements card (profile) */
+.profile-stats-right-col .achievements-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+}
+
+.profile-stats-right-col .achievements-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.profile-stats-right-col .achievements-card-header h4 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+
+.profile-stats-right-col .achievements-view-all {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 8px;
+  transition: background 0.15s ease;
+  letter-spacing: 0.3px;
+}
+
+.profile-stats-right-col .achievements-view-all:hover {
+  background: var(--accent-soft);
+}
+
+.profile-stats-right-col .achievements-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.profile-stats-right-col .achievement-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--panel-strong);
+  transition: all 0.2s ease;
+}
+
+.profile-stats-right-col .achievement-row:hover {
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="dark"] .profile-stats-right-col .achievement-row:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.profile-stats-right-col .achievement-badge-box {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.profile-stats-right-col .achievement-badge-icon {
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.profile-stats-right-col .achievement-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.profile-stats-right-col .achievement-info-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.profile-stats-right-col .achievement-title {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+
+.profile-stats-right-col .achievement-desc {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.profile-stats-right-col .achievement-progress-track {
+  height: 5px;
+  background: var(--line);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.profile-stats-right-col .achievement-progress-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+
+[data-theme="dark"] .profile-stats-right-col .achievement-progress-track {
+  background: rgba(255, 255, 255, 0.08);
 }
 
 /* Avatar Creator styles */
@@ -17842,10 +18027,16 @@ select {
 /* Stat Cards inside Profile */
 .dashboard-container-new .profile-stats-dashboard-grid {
   display: grid;
-  grid-template-columns: 1fr 340px;
+  grid-template-columns: 3fr 2fr;
   gap: 24px;
   align-items: start;
   width: 100%;
+}
+
+@media (max-width: 1024px) {
+  .dashboard-container-new .profile-stats-dashboard-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .dashboard-container-new .profile-stats-grid {

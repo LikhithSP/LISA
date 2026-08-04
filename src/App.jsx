@@ -10126,28 +10126,28 @@ style={(() => {
                         <div className="profile-stats-grid">
                           <div className="profile-stat-card streak">
                             <div className="stat-icon">🔥</div>
-                            <div className="stat-content">
+                            <div>
                               <div className="stat-val">{streakCount} {streakCount === 1 ? "Day" : "Days"}</div>
                                <div className="stat-lbl">{t("dashboardDayStreak")}</div>
                             </div>
                           </div>
                           <div className="profile-stat-card xp">
                             <div className="stat-icon">💎</div>
-                            <div className="stat-content">
+                            <div>
                               <div className="stat-val">{userXp.toLocaleString()}</div>
                                <div className="stat-lbl">{t("dashboardTotalXP")}</div>
                             </div>
                           </div>
                           <div className="profile-stat-card lessons">
                             <div className="stat-icon">🏆</div>
-                            <div className="stat-content">
+                            <div>
                               <div className="stat-val">{completedLessons.length}</div>
                                <div className="stat-lbl">{t("dashboardLessonsDone")}</div>
                             </div>
                           </div>
                           <div className="profile-stat-card active-time">
                             <div className="stat-icon">⏱️</div>
-                            <div className="stat-content">
+                            <div>
                               <div className="stat-val">{Math.round(dailyTimeSpent / 60)}m</div>
                                <div className="stat-lbl">{t("dashboardActiveToday")}</div>
                             </div>
