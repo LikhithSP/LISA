@@ -9318,96 +9318,7 @@ function App() {
                   </div>
                 </div>
 
-                <div className="achievements-card">
-                  <div className="achievements-card-header">
-                    <h4>{t("badgesEarned")}</h4>
-                    <button className="achievements-view-all" onClick={() => setShowAllAchievementsModal(true)}>{t("dashboardViewAll")}</button>
-                  </div>
-                  <div className="achievements-list">
-                    {(() => {
-                      const achievementsList = ACHIEVEMENT_DEFS.map((a) => {
-                        let earned = false;
-                        let progress = 0;
-                        switch (a.id) {
-                          case 1:
-                            earned = true; progress = 100; break;
-                          case 2:
-                            earned = calculateSkillProficiency("reading") >= 75;
-                            progress = Math.min(100, Math.round(calculateSkillProficiency("reading"))); break;
-                          case 3:
-                            earned = calculateSkillProficiency("reading_comprehension") >= 75;
-                            progress = Math.min(100, Math.round(calculateSkillProficiency("reading_comprehension"))); break;
-                          case 4:
-                            earned = calculateSkillProficiency("writing") >= 75;
-                            progress = Math.min(100, Math.round(calculateSkillProficiency("writing"))); break;
-                          case 5:
-                            earned = userXp >= 100;
-                            progress = Math.min(100, Math.round((userXp / 100) * 100)); break;
-                          case 6:
-                            earned = completedLessons.filter(id => !id.startsWith("ach_")).length >= 3;
-                            progress = Math.min(100, Math.round((completedLessons.filter(id => !id.startsWith("ach_")).length / 3) * 100)); break;
-                          case 7:
-                            earned = calculateSkillProficiency("reading_ability") >= 75;
-                            progress = Math.min(100, Math.round(calculateSkillProficiency("reading_ability"))); break;
-                          case 8:
-                            earned = currentLevelNum >= 8;
-                            progress = Math.min(100, Math.round((currentLevelNum / 8) * 100)); break;
-                          case 9:
-                            earned = currentLevelNum >= 12;
-                            progress = Math.min(100, Math.round((currentLevelNum / 12) * 100)); break;
-                          default: break;
-                        }
-                        return { ...a, earned, progress };
-                      });
 
-                      // Find chronologically earned achievements from completed_lessons order
-                      const earnedAchievementIds = completedLessons
-                        .filter(id => id.startsWith("ach_"))
-                        .map(id => parseInt(id.replace("ach_", ""), 10));
-
-                      // Find corresponding badge definitions
-                      const earnedList = earnedAchievementIds
-                        .map(id => achievementsList.find(a => a.id === id))
-                        .filter(Boolean);
-
-                      // Include owned shop badges as achievements
-                      const shopBadgesDefs = SHOP_CATALOG.badges.map((b) => ({
-                        id: b.id,
-                        title: t(b.id + "_name") || b.name,
-                        desc: t(b.id + "_desc") || b.desc,
-                        icon: b.icon,
-                        color: b.rarity === "legendary" ? "#d97706" : b.rarity === "rare" ? "#3b82f6" : "#6b7280",
-                        earned: true,
-                        progress: 100
-                      }));
-                      const ownedShopBadges = shopBadgesDefs.filter(b => shopOwnedItems.includes(b.id));
-
-                      const combinedEarnedList = [...earnedList, ...ownedShopBadges];
-
-                      // Display only the last 2 recently earned badges, or the first two items in general if none earned yet
-                      const displayedList = combinedEarnedList.length > 0
-                        ? combinedEarnedList.slice(-2)
-                        : achievementsList.slice(0, 2);
-
-                      return displayedList.map((a) => (
-                        <div key={a.id} className={`achievement-row ${a.earned ? "earned" : ""}`}>
-                          <div className="achievement-badge-box" style={{ background: a.earned ? a.color : 'var(--line)' }}>
-                            <span className="achievement-badge-icon">{a.earned ? a.icon : '🔒'}</span>
-                          </div>
-                          <div className="achievement-info">
-                            <div className="achievement-info-header">
-                              <span className="achievement-title">{a.id.toString().startsWith("badge_") ? a.title : (translatedAchievements[a.id]?.title || a.title)}</span>
-                            </div>
-                            <p className="achievement-desc">{a.id.toString().startsWith("badge_") ? a.desc : (translatedAchievements[a.id]?.desc || a.desc)}</p>
-                            <div className="achievement-progress-track">
-                              <div className="achievement-progress-fill" style={{ width: `${a.progress}%` }}></div>
-                            </div>
-                          </div>
-                        </div>
-                      ));
-                    })()}
-                  </div>
-                </div>
               </div>
             </div>
           )}
@@ -10209,62 +10120,157 @@ style={(() => {
               <div className="profile-tab-content-area">
                 {profileSubTab === "stats" && (
                   <div className="profile-stats-dashboard">
-                    <div className="profile-stats-grid">
-                      <div className="profile-stat-card streak">
-                        <div className="stat-icon">🔥</div>
-                        <div className="stat-content">
-                          <div className="stat-val">{streakCount} {streakCount === 1 ? "Day" : "Days"}</div>
-                           <div className="stat-lbl">{t("dashboardDayStreak")}</div>
-                        </div>
-                      </div>
-                      <div className="profile-stat-card xp">
-                        <div className="stat-icon">💎</div>
-                        <div className="stat-content">
-                          <div className="stat-val">{userXp.toLocaleString()}</div>
-                           <div className="stat-lbl">{t("dashboardTotalXP")}</div>
-                        </div>
-                      </div>
-                      <div className="profile-stat-card lessons">
-                        <div className="stat-icon">🏆</div>
-                        <div className="stat-content">
-                          <div className="stat-val">{completedLessons.length}</div>
-                           <div className="stat-lbl">{t("dashboardLessonsDone")}</div>
-                        </div>
-                      </div>
-                      <div className="profile-stat-card active-time">
-                        <div className="stat-icon">⏱️</div>
-                        <div className="stat-content">
-                          <div className="stat-val">{Math.round(dailyTimeSpent / 60)}m</div>
-                           <div className="stat-lbl">{t("dashboardActiveToday")}</div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="profile-badges-container">
-                       <h3 className="profile-section-title">{t("profileEquippedBadges")}</h3>
-                      <div className="profile-badges-grid">
-                        {profileBadges.length === 0 ? (
-                          <div className="profile-badges-empty">
-                            <span className="empty-icon">🛡️</span>
-                             <p>{t("profileBadgesEmpty")}</p>
+                    <div className="profile-stats-dashboard-grid">
+                      {/* Left Column: Stats & Equipped Badges */}
+                      <div className="profile-stats-left-col">
+                        <div className="profile-stats-grid">
+                          <div className="profile-stat-card streak">
+                            <div className="stat-icon">🔥</div>
+                            <div className="stat-content">
+                              <div className="stat-val">{streakCount} {streakCount === 1 ? "Day" : "Days"}</div>
+                               <div className="stat-lbl">{t("dashboardDayStreak")}</div>
+                            </div>
                           </div>
-                        ) : (
-                          profileBadges.map((badgeId) => {
-                            const badge = SHOP_CATALOG.badges.find(b => b.id === badgeId);
-                            if (!badge) return null;
-                            const localizedName = t(badge.id + "_name");
-                            const localizedDesc = t(badge.id + "_desc");
-                            return (
-                              <div key={badgeId} className="profile-badge-item" title={localizedDesc || badge.desc}>
-                                <span className="profile-badge-icon">{badge.icon}</span>
-                                <div className="profile-badge-meta">
-                                  <span className="profile-badge-name">{localizedName || badge.name}</span>
-                                   <span className="profile-badge-rarity">{t(badge.rarity)}</span>
-                                </div>
+                          <div className="profile-stat-card xp">
+                            <div className="stat-icon">💎</div>
+                            <div className="stat-content">
+                              <div className="stat-val">{userXp.toLocaleString()}</div>
+                               <div className="stat-lbl">{t("dashboardTotalXP")}</div>
+                            </div>
+                          </div>
+                          <div className="profile-stat-card lessons">
+                            <div className="stat-icon">🏆</div>
+                            <div className="stat-content">
+                              <div className="stat-val">{completedLessons.length}</div>
+                               <div className="stat-lbl">{t("dashboardLessonsDone")}</div>
+                            </div>
+                          </div>
+                          <div className="profile-stat-card active-time">
+                            <div className="stat-icon">⏱️</div>
+                            <div className="stat-content">
+                              <div className="stat-val">{Math.round(dailyTimeSpent / 60)}m</div>
+                               <div className="stat-lbl">{t("dashboardActiveToday")}</div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="profile-badges-container">
+                           <h3 className="profile-section-title">{t("profileEquippedBadges")}</h3>
+                          <div className="profile-badges-grid">
+                            {profileBadges.length === 0 ? (
+                              <div className="profile-badges-empty">
+                                <span className="empty-icon">🛡️</span>
+                                 <p>{t("profileBadgesEmpty")}</p>
                               </div>
-                            );
-                          })
-                        )}
+                            ) : (
+                              profileBadges.map((badgeId) => {
+                                const badge = SHOP_CATALOG.badges.find(b => b.id === badgeId);
+                                if (!badge) return null;
+                                const localizedName = t(badge.id + "_name");
+                                const localizedDesc = t(badge.id + "_desc");
+                                return (
+                                  <div key={badgeId} className="profile-badge-item" title={localizedDesc || badge.desc}>
+                                    <span className="profile-badge-icon">{badge.icon}</span>
+                                    <div className="profile-badge-meta">
+                                      <span className="profile-badge-name">{localizedName || badge.name}</span>
+                                       <span className="profile-badge-rarity">{t(badge.rarity)}</span>
+                                    </div>
+                                  </div>
+                                );
+                              })
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right Column: Achievements */}
+                      <div className="profile-stats-right-col">
+                        <div className="achievements-card">
+                          <div className="achievements-card-header">
+                            <h4>{t("badgesEarned")}</h4>
+                            <button className="achievements-view-all" onClick={() => setShowAllAchievementsModal(true)}>{t("dashboardViewAll")}</button>
+                          </div>
+                          <div className="achievements-list">
+                            {(() => {
+                              const achievementsList = ACHIEVEMENT_DEFS.map((a) => {
+                                  let earned = false;
+                                  let progress = 0;
+                                  switch (a.id) {
+                                    case 1:
+                                      earned = true; progress = 100; break;
+                                    case 2:
+                                      earned = calculateSkillProficiency("reading") >= 75;
+                                      progress = Math.min(100, Math.round(calculateSkillProficiency("reading"))); break;
+                                    case 3:
+                                      earned = calculateSkillProficiency("reading_comprehension") >= 75;
+                                      progress = Math.min(100, Math.round(calculateSkillProficiency("reading_comprehension"))); break;
+                                    case 4:
+                                      earned = calculateSkillProficiency("writing") >= 75;
+                                      progress = Math.min(100, Math.round(calculateSkillProficiency("writing"))); break;
+                                    case 5:
+                                      earned = userXp >= 100;
+                                      progress = Math.min(100, Math.round((userXp / 100) * 100)); break;
+                                    case 6:
+                                      earned = completedLessons.filter(id => !id.startsWith("ach_")).length >= 3;
+                                      progress = Math.min(100, Math.round((completedLessons.filter(id => !id.startsWith("ach_")).length / 3) * 100)); break;
+                                    case 7:
+                                      earned = calculateSkillProficiency("reading_ability") >= 75;
+                                      progress = Math.min(100, Math.round(calculateSkillProficiency("reading_ability"))); break;
+                                    case 8:
+                                      earned = currentLevelNum >= 8;
+                                      progress = Math.min(100, Math.round((currentLevelNum / 8) * 100)); break;
+                                    case 9:
+                                      earned = currentLevelNum >= 12;
+                                      progress = Math.min(100, Math.round((currentLevelNum / 12) * 100)); break;
+                                    default: break;
+                                  }
+                                  return { ...a, earned, progress };
+                              });
+
+                              const earnedAchievementIds = completedLessons
+                                .filter(id => id.startsWith("ach_"))
+                                .map(id => parseInt(id.replace("ach_", ""), 10));
+
+                              const earnedList = earnedAchievementIds
+                                .map(id => achievementsList.find(a => a.id === id))
+                                .filter(Boolean);
+
+                              const shopBadgesDefs = SHOP_CATALOG.badges.map((b) => ({
+                                id: b.id,
+                                title: t(b.id + "_name") || b.name,
+                                desc: t(b.id + "_desc") || b.desc,
+                                icon: b.icon,
+                                color: b.rarity === "legendary" ? "#d97706" : b.rarity === "rare" ? "#3b82f6" : "#6b7280",
+                                earned: true,
+                                progress: 100
+                              }));
+                              const ownedShopBadges = shopBadgesDefs.filter(b => shopOwnedItems.includes(b.id));
+
+                              const combinedEarnedList = [...earnedList, ...ownedShopBadges];
+
+                              const displayedList = combinedEarnedList.length > 0
+                                ? combinedEarnedList.slice(-2)
+                                : achievementsList.slice(0, 2);
+
+                              return displayedList.map((a) => (
+                                <div key={a.id} className={`achievement-row ${a.earned ? "earned" : ""}`}>
+                                  <div className="achievement-badge-box" style={{ background: a.earned ? a.color : 'var(--line)' }}>
+                                    <span className="achievement-badge-icon">{a.earned ? a.icon : '🔒'}</span>
+                                  </div>
+                                  <div className="achievement-info">
+                                    <div className="achievement-info-header">
+                                      <span className="achievement-title">{a.id.toString().startsWith("badge_") ? a.title : (translatedAchievements[a.id]?.title || a.title)}</span>
+                                    </div>
+                                    <p className="achievement-desc">{a.id.toString().startsWith("badge_") ? a.desc : (translatedAchievements[a.id]?.desc || a.desc)}</p>
+                                    <div className="achievement-progress-track">
+                                      <div className="achievement-progress-fill" style={{ width: `${a.progress}%` }}></div>
+                                    </div>
+                                  </div>
+                                </div>
+                              ));
+                            })()}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
