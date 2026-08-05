@@ -6503,6 +6503,15 @@ function App() {
     const id = setTimeout(() => speakText(dText), 400);
     return () => clearTimeout(id);
   }, [assessmentState, currentStep, selectedLanguage, assessmentQuestionsList]);
+
+  // Scroll main view to top when currentStep changes
+  useEffect(() => {
+    const mainView = document.querySelector(".dashboard-main-view");
+    if (mainView) {
+      mainView.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [currentStep]);
   const fetchProfile = async (userId) => {
     try {
       const { data, error } = await supabase
@@ -6962,31 +6971,72 @@ function App() {
     const r = typeof rate === "number" ? rate : 0.9;
 
     if (window.responsiveVoice) {
-      let voiceName = "US English Female";
-      if (lang === "Hindi") voiceName = "Hindi Female";
-      else if (lang === "Kannada") voiceName = "Kannada Female";
-      else if (lang === "Telugu") voiceName = "Telugu Female";
-      else if (lang === "Tamil") voiceName = "Tamil Female";
-
-      console.log(`Speaking using ResponsiveVoice: "${text}" with voice "${voiceName}"`);
-      window.responsiveVoice.speak(text, voiceName, {
-        pitch: 1,
-        rate: r,
-        onerror: (e) => {
-          console.error("ResponsiveVoice error, trying fallback:", e);
-          fallbackSpeechSynthesis(text, getLocale(lang), r);
-        }
-      });
-    } else {
-      console.warn("ResponsiveVoice not loaded yet, falling back to native SpeechSynthesis.");
-      fallbackSpeechSynthesis(text, getLocale(lang), r);
+      window.responsiveVoice.cancel();
     }
-  };
-
-  const fallbackSpeechSynthesis = (text, locale, rate) => {
     if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
-      // Workaround for Chrome bug where SpeechSynthesis gets stuck paused
+    }
+
+    // Split text into Latin and non-Latin segments (grouping non-ASCII words and their spaces together)
+    const parts = text.split(/([^\x00-\x7F]+(?:\s+[^\x00-\x7F]+)*)/).filter(p => p.trim().length > 0);
+
+    if (parts.length === 0) return;
+
+    let index = 0;
+ 
+     const speakSegment = () => {
+       if (index >= parts.length) return;
+ 
+       const segment = parts[index];
+       const isNonAscii = /[^\x00-\x7F]/.test(segment);
+       
+       let segmentLang = lang;
+       if (isNonAscii) {
+         if (/[\u0C80-\u0CFF]/.test(segment)) segmentLang = "Kannada";
+         else if (/[\u0900-\u097F]/.test(segment)) segmentLang = "Hindi";
+         else if (/[\u0C00-\u0C7F]/.test(segment)) segmentLang = "Telugu";
+         else if (/[\u0B80-\u0BFF]/.test(segment)) segmentLang = "Tamil";
+         else segmentLang = learningLanguage || "English";
+       }
+       
+       const segmentRate = isNonAscii ? 0.8 : r;
+
+      if (window.responsiveVoice) {
+        let voiceName = "US English Female";
+        if (segmentLang === "Hindi") voiceName = "Hindi Female";
+        else if (segmentLang === "Kannada") voiceName = "Kannada Female";
+        else if (segmentLang === "Telugu") voiceName = "Telugu Female";
+        else if (segmentLang === "Tamil") voiceName = "Tamil Female";
+
+        console.log(`Speaking segment ${index}: "${segment}" with voice "${voiceName}"`);
+        window.responsiveVoice.speak(segment, voiceName, {
+          pitch: 1,
+          rate: segmentRate,
+          onend: () => {
+            index++;
+            speakSegment();
+          },
+          onerror: (e) => {
+            console.error("ResponsiveVoice error, trying fallback:", e);
+            fallbackSpeechSynthesis(segment, getLocale(segmentLang), segmentRate, () => {
+              index++;
+              speakSegment();
+            });
+          }
+        });
+      } else {
+        fallbackSpeechSynthesis(segment, getLocale(segmentLang), segmentRate, () => {
+          index++;
+          speakSegment();
+        });
+      }
+    };
+
+    speakSegment();
+  };
+
+  const fallbackSpeechSynthesis = (text, locale, rate, onend) => {
+    if ("speechSynthesis" in window) {
       if (window.speechSynthesis.paused) {
         window.speechSynthesis.resume();
       }
@@ -7004,8 +7054,16 @@ function App() {
         utterance.voice = matchingVoice;
       }
 
-      utterance.onerror = (e) => console.error("TTS SpeechSynthesisUtterance Error:", e);
+      utterance.onend = () => {
+        if (typeof onend === "function") onend();
+      };
+      utterance.onerror = (e) => {
+        console.error("TTS SpeechSynthesisUtterance Error:", e);
+        if (typeof onend === "function") onend();
+      };
       window.speechSynthesis.speak(utterance);
+    } else {
+      if (typeof onend === "function") onend();
     }
   };
 
@@ -7877,7 +7935,7 @@ function App() {
                 handleSignOut();
               }}
             >
-              🚪 {t("logout") || "Log Out"}
+              {t("logout") || "Log Out"}
             </button>
           </div>
         )}
@@ -8203,7 +8261,7 @@ function App() {
                                 onClick={() => speakText(readingTargetText)}
                                 title="Listen to pronunciation"
                               >
-                                🔊 {t("listenBtn") || "Listen"}
+                                🔊 <span className="tts-btn-text">{t("listenBtn") || "Listen"}</span>
                               </button>
                             </div>
 
@@ -8293,14 +8351,14 @@ function App() {
                         {isCompMCQ && (
                           <div className="comprehension-q-container">
                             <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
-                              <p className="comprehension-question" style={{ margin: 0, flex: 1, fontWeight: 700, fontSize: "1.2rem" }}>{compQuestionText}</p>
+                              <p className="comprehension-question" style={{ margin: 0, flex: 1, fontWeight: 700 }}>{compQuestionText}</p>
                               <button
                                 type="button"
                                 className="tts-btn"
                                 onClick={() => speakText(compQuestionText, 1.0, selectedLanguage)}
                                 title="Listen to question"
                               >
-                                🔊 {t("listenBtn") || "Listen"}
+                                🔊 <span className="tts-btn-text">{t("listenBtn") || "Listen"}</span>
                               </button>
                             </div>
                             <div className="options-grid">
@@ -8329,7 +8387,7 @@ function App() {
                           <div className="writing-q-container">
                             <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px', justifyContent: 'space-between', width: '100%' }}>
                               <div style={{ flex: 1 }}>
-                                <p className="writing-prompt" style={{ margin: 0, fontWeight: 700, fontSize: "1.2rem" }}>{writingPromptText}</p>
+                                <p className="writing-prompt" style={{ margin: 0, fontWeight: 700 }}>{writingPromptText}</p>
                                 <p className="helper-text" style={{ margin: '8px 0 0' }}>{t("dictationTip") || "Press play and arrange the word blocks to form the sentence you hear."}</p>
                               </div>
                               <button
@@ -8338,7 +8396,7 @@ function App() {
                                 onClick={() => speakText(dictationText)}
                                 title="Listen to the sentence"
                               >
-                                🔊 {t("listenBtn") || "Listen"}
+                                🔊 <span className="tts-btn-text">{t("listenBtn") || "Listen"}</span>
                               </button>
                             </div>
 
@@ -8677,14 +8735,14 @@ function App() {
                         <span className="insights-card-icon">🔥</span>
                         <h3>{selectedLanguage === "Hindi" ? "दैनिक अनुशंसित अभ्यास" : selectedLanguage === "Kannada" ? "ದೈನಂದಿನ ಶಿಫಾರಸು ಮಾಡಿದ ಅಭ್ಯಾಸ" : selectedLanguage === "Telugu" ? "రోజువారీ సిఫార్సు చేసిన అభ్యాసం" : selectedLanguage === "Tamil" ? "தினசரி பரிந்துரைக்கப்பட்ட பயிற்சி" : "Daily Recommended Practice"}</h3>
                       </div>
-                      <div style={{ display: 'flex', gap: '16px', background: 'var(--hover-bg, #f8fafc)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-color, #e2e8f0)', marginTop: '12px' }}>
+                      <div style={{ display: 'flex', gap: '16px', background: 'var(--flz-tint, rgba(198, 95, 45, 0.08))', padding: '20px', borderRadius: '16px', border: '1px solid var(--line)', marginTop: '12px' }}>
                         <div style={{ fontSize: '2.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{duolingoPracticeIcon}</div>
                         <div style={{ textAlign: 'left' }}>
-                          <h4 style={{ margin: '0 0 4px 0', fontSize: '1.1rem', fontWeight: 800 }}>{duolingoPracticeTitle}</h4>
+                           <h4 style={{ margin: '0 0 4px 0', fontSize: '1.1rem', fontWeight: 800 }}>{duolingoPracticeTitle}</h4>
                           <p style={{ margin: '0 0 12px 0', fontSize: '0.92rem', color: 'var(--muted)', lineHeight: '1.4' }}>{duolingoPracticeRecommendation}</p>
                           <div style={{ display: 'flex', gap: '16px', fontSize: '0.82rem', fontWeight: 800, color: 'var(--text)' }}>
-                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#f59e0b15', color: '#b45309', padding: '4px 10px', borderRadius: '999px' }}>🎯 Target: 30 XP Daily</span>
-                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#3b82f615', color: '#1d4ed8', padding: '4px 10px', borderRadius: '999px' }}>⏳ Commitment: {dailyPracticeTime}</span>
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(245, 158, 11, 0.15)', color: 'var(--flz-warn)', padding: '4px 10px', borderRadius: '12px' }}>🎯 Target: 30 XP Daily</span>
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(59, 130, 246, 0.15)', color: 'var(--accent)', padding: '4px 10px', borderRadius: '12px' }}>⏳ Commitment: {dailyPracticeTime}</span>
                           </div>
                         </div>
                       </div>
@@ -8730,11 +8788,11 @@ function App() {
                     {/* Visual Learning Path Roadmap */}
                     <div className="personalized-path-container" style={{
                       marginTop: '32px',
-                      background: 'var(--card-bg, #ffffff)',
+                      background: 'var(--panel)',
                       borderRadius: '20px',
                       padding: '24px',
                       boxShadow: '0 8px 30px rgba(0,0,0,0.06)',
-                      border: '1px solid var(--border-color, #e2e8f0)',
+                      border: '1px solid var(--line)',
                       textAlign: 'left'
                     }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
@@ -8775,16 +8833,16 @@ function App() {
                                   justifyContent: 'center',
                                   fontSize: '0.8rem',
                                   fontWeight: 800,
-                                  border: '4px solid var(--card-bg, #ffffff)',
+                                  border: '4px solid var(--panel-strong)',
                                   boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
                                 }}>
                                   {sIdx + 1}
                                 </div>
                                 <div style={{
-                                  background: 'var(--hover-bg, #f8fafc)',
+                                  background: 'var(--flz-tint, rgba(198, 95, 45, 0.08))',
                                   padding: '16px',
                                   borderRadius: '16px',
-                                  border: '1px solid var(--border-color, #e2e8f0)'
+                                  border: '1px solid var(--line)'
                                 }}>
                                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                                     <h4 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, color: 'var(--text)' }}>
@@ -9281,7 +9339,7 @@ function App() {
                 </div>
 
                 <div className="stars-answers-card" style={{ margin: 0 }}>
-                  <div className="progress-dashboard-header" style={{ paddingTop: 0, borderTop: 'none', borderBottom: '1px solid #e5e7eb', paddingBottom: '12px', marginBottom: '4px' }}>
+                  <div className="progress-dashboard-header" style={{ paddingTop: 0, borderTop: 'none', borderBottom: '1px solid var(--line)', paddingBottom: '12px', marginBottom: '4px' }}>
                     <h4 className="progress-dashboard-title">{t("dashboardProgressTitle")}</h4>
                     <button
                       type="button"
@@ -9336,22 +9394,8 @@ function App() {
                   <div className="daily-quests-card" style={{ margin: 0 }}>
                     <div className="daily-quests-header">
                       <h3>{t("dashboardDailyQuests")}</h3>
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                        <span className="quest-xp-reward-badge" style={{
-                          background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)',
-                          color: '#b45309',
-                          fontSize: '0.85rem',
-                          fontWeight: '800',
-                          padding: '6px 14px',
-                          borderRadius: '999px',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          border: '1.5px solid #fcd34d',
-                          boxShadow: '0 2px 8px rgba(245, 158, 11, 0.15)',
-                          letterSpacing: '0.01em',
-                          whiteSpace: 'nowrap'
-                        }}>⚡ +30 XP Reward</span>
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'nowrap' }}>
+                        <span className="quest-xp-reward-badge">⚡ +30 XP Reward</span>
                         {activeQuests.length > 0 && activeQuests.every(q => getQuestProgress(q).completed) ? (
                           <span className="daily-quests-timer" style={{ background: '#d1fae5', color: '#10b981' }}>✓ ALL COMPLETED</span>
                         ) : (
@@ -10098,7 +10142,6 @@ function App() {
                         <div className="practice-row-card-content">
                           <h3 className="practice-row-card-title">
                             {t("practiceMistakes")}
-                            <span className="practice-badge">{recentMistakes.length}</span>
                           </h3>
                           <p className="practice-row-card-desc">{t("practiceMistakesDesc")}</p>
                         </div>
@@ -10109,7 +10152,6 @@ function App() {
                         <div className="practice-row-card-content">
                           <h3 className="practice-row-card-title">
                             {t("practiceWords")}
-                            <span className="practice-badge">{practiceWords.length}</span>
                           </h3>
                           <p className="practice-row-card-desc">{t("practiceWordsDesc")}</p>
                         </div>
@@ -11564,7 +11606,7 @@ style={(() => {
                           }}>
                             <div style={{ display: 'flex', ['justify' + 'Content']: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                               <h4 style={{ margin: 0 }}>Reading Passage:</h4>
-                              <button type="button" className="tts-btn" onClick={() => speakText(ai.readingPassage)}>🔊 Listen</button>
+                              <button type="button" className="tts-btn" onClick={() => speakText(ai.readingPassage)}>🔊 <span className="tts-btn-text">{t("listenBtn") || "Listen"}</span></button>
                             </div>
                             <div className="ai-passage-text" style={{ fontSize: '1.15rem', lineHeight: '1.6', fontWeight: 500 }}>
                               {ai.readingPassage}
