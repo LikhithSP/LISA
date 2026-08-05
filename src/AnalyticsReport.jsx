@@ -224,7 +224,7 @@ export default function AnalyticsReport({
           {onBack && (
             <button className="analytics-back-btn" onClick={onBack} aria-label="Back to Dashboard">
               <ArrowLeft size={16} style={{ strokeWidth: 3 }} />
-              {t("analyticsBack") || "Back"}
+              <span className="analytics-back-btn-text">{t("analyticsBack") || "Back"}</span>
             </button>
           )}
           <div className="analytics-title-content">
@@ -545,7 +545,7 @@ export default function AnalyticsReport({
                 <div className="analytics-pills-list">
                   {strongSkills.map(skillKey => (
                     <span key={skillKey} className="analytics-pill analytics-pill-strong">
-                      {SKILL_CATEGORIES[skillKey]?.icon || "✓"} {SKILL_CATEGORIES[skillKey]?.label || skillKey}
+                      {SKILL_CATEGORIES[skillKey]?.label || skillKey}
                     </span>
                   ))}
                 </div>
@@ -561,7 +561,7 @@ export default function AnalyticsReport({
                 <div className="analytics-pills-list">
                   {weakSkills.map(skillKey => (
                     <span key={skillKey} className="analytics-pill analytics-pill-weak">
-                      {SKILL_CATEGORIES[skillKey]?.icon || "!"} {SKILL_CATEGORIES[skillKey]?.label || skillKey}
+                      {SKILL_CATEGORIES[skillKey]?.label || skillKey}
                     </span>
                   ))}
                 </div>
