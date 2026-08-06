@@ -12622,6 +12622,58 @@ select:focus-visible {
   color: #b91c1c !important;
 }
 
+.duo-image-option-btn {
+  background: var(--panel) !important;
+  border: 2px solid var(--line) !important;
+  border-bottom: 5px solid var(--line) !important;
+  border-radius: 16px !important;
+  padding: 15px !important;
+  font-size: 5rem !important; /* Larger emoji size */
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  transition: all 0.1s ease !important;
+  color: var(--text) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  outline: none !important;
+  width: 180px !important;
+  height: 180px !important;
+}
+
+.duo-image-option-btn:hover:not(:disabled) {
+  background: rgba(var(--accent-rgb), 0.03) !important;
+  border-color: var(--accent) !important;
+  border-bottom-color: var(--accent) !important;
+}
+
+.duo-image-option-btn:active:not(:disabled) {
+  border-bottom: 2px solid var(--line) !important;
+  transform: translateY(3px) !important;
+}
+
+.duo-image-option-btn.selected {
+  background: rgba(56, 189, 248, 0.08) !important;
+  border-color: #38bdf8 !important;
+  border-bottom-color: #0284c7 !important;
+  color: #0284c7 !important;
+}
+
+.duo-image-option-btn.correct {
+  background: #d7ffb8 !important;
+  border-color: #58a700 !important;
+  border-bottom-color: #3b7000 !important;
+  color: #3b7000 !important;
+}
+
+.duo-image-option-btn.incorrect {
+  background: #ffd3d3 !important;
+  border-color: #ea2b2b !important;
+  border-bottom-color: #9c1414 !important;
+  color: #9c1414 !important;
+}
+
 /* Word tiles */
 .duo-word-tile {
   background: var(--panel) !important;
@@ -12713,6 +12765,58 @@ select:focus-visible {
 }
 
 .duo-listen-btn:active {
+  border-bottom: 1px solid transparent !important;
+  transform: translateY(3px) !important;
+}
+
+.duo-listen-btn-main {
+  background: #38bdf8 !important;
+  border: none !important;
+  border-bottom: 5px solid #0284c7 !important;
+  color: white !important;
+  border-radius: 28px !important;
+  cursor: pointer !important;
+  font-size: 4.5rem !important;
+  transition: all 0.1s ease !important;
+  width: 120px !important;
+  height: 120px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+}
+
+.duo-listen-btn-main:hover {
+  background: #56c8ff !important;
+}
+
+.duo-listen-btn-main:active {
+  border-bottom: 1px solid transparent !important;
+  transform: translateY(3px) !important;
+}
+
+.duo-listen-btn-slow {
+  background: #0284c7 !important;
+  border: none !important;
+  border-bottom: 5px solid #0369a1 !important;
+  color: white !important;
+  border-radius: 24px !important;
+  cursor: pointer !important;
+  font-size: 3.5rem !important;
+  transition: all 0.1s ease !important;
+  width: 96px !important;
+  height: 96px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+}
+
+.duo-listen-btn-slow:hover {
+  background: #0ea5e9 !important;
+}
+
+.duo-listen-btn-slow:active {
   border-bottom: 1px solid transparent !important;
   transform: translateY(3px) !important;
 }

@@ -2041,19 +2041,6 @@ function App() {
     }
   }, [lessonSession, storyLineIndex, lessonAiContent]);
 
-  // Automatically read passage when a passage question type is rendered
-  useEffect(() => {
-    const currentQuestion = lessonAiContent?.questions?.[lessonStep];
-    if (currentQuestion && currentQuestion.type === "passage") {
-      const passageText = currentQuestion.passage;
-      if (passageText) {
-        const timer = setTimeout(() => {
-          speakText(passageText, 1.0);
-        }, 600);
-        return () => clearTimeout(timer);
-      }
-    }
-  }, [lessonStep, lessonAiContent]);
 
   const renderPracticeSession = (ai) => {
     const currentQuestion = ai.questions?.[lessonStep] || {};
@@ -2282,14 +2269,14 @@ function App() {
           <div className="stories-split-container">
             {/* Top Half: Illustrated Scene with Two Characters */}
             <div className="stories-top-scene">
-              <div className={`stories-character-node ${activeLine?.speaker === "Ana" || activeLine?.speaker === "अना" ? "speaking" : ""}`}>
+              <div className={`stories-character-node ${(activeLine?.speaker === "Ana" || activeLine?.speaker === "अना" || activeLine?.speaker === "ಅನಾ" || activeLine?.speaker === "అనా" || activeLine?.speaker === "அனா") ? "speaking" : ""}`}>
                 <div className="stories-character-avatar">👩‍🦰</div>
                 <div className="stories-character-name">Ana</div>
               </div>
 
               <div style={{ fontSize: '2.5rem', opacity: 0.8 }}>🌲🏡🌲</div>
 
-              <div className={`stories-character-node ${activeLine?.speaker === "Ravi" || activeLine?.speaker === "रवि" ? "speaking" : ""}`}>
+              <div className={`stories-character-node ${(activeLine?.speaker === "Ravi" || activeLine?.speaker === "रवि" || activeLine?.speaker === "ರವಿ" || activeLine?.speaker === "రవి" || activeLine?.speaker === "ரவி") ? "speaking" : ""}`}>
                 <div className="stories-character-avatar">🧑</div>
                 <div className="stories-character-name">Ravi</div>
               </div>
@@ -2302,7 +2289,11 @@ function App() {
                 className={`stories-chat-log ${storyQuestionIdx !== null && !storyQuestionAnswered ? "story-blur-overlay" : ""}`}
               >
                 {visibleBubbles.map((bubble, idx) => {
-                  const isLeft = bubble.speaker === "Ana" || bubble.speaker === "अना";
+                  const isLeft = bubble.speaker === "Ana" || 
+                                 bubble.speaker === "अना" || 
+                                 bubble.speaker === "ಅನಾ" || 
+                                 bubble.speaker === "అనా" || 
+                                 bubble.speaker === "அனா";
                   return (
                     <div 
                       key={idx} 
@@ -2567,17 +2558,15 @@ function App() {
                     <button
                       type="button"
                       onClick={() => speakText(lt.audioText || lt.sentence || "", 1.0)}
-                      className="duo-listen-btn"
-                      style={{ width: '100px', height: '100px', borderRadius: '28px', fontSize: '3.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      className="duo-listen-btn-main"
                     >
                       🔊
                     </button>
 
                     <button
                       type="button"
-                      onClick={() => speakText(lt.audioText || lt.sentence || "", 0.2)}
-                      className="duo-listen-btn"
-                      style={{ width: '80px', height: '80px', borderRadius: '24px', background: '#0284c7', borderBottomColor: '#0369a1', fontSize: '2.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      onClick={() => speakText(lt.audioText || lt.sentence || "", 0.45)}
+                      className="duo-listen-btn-slow"
                       title="Listen slowly"
                     >
                       🐢
@@ -2850,8 +2839,14 @@ function App() {
 
               return (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '120px' }}>
-                  <div style={{ marginBottom: '16px', textAlign: 'center' }}>
-                    <span className="ai-step-badge">🔗 Make the correct pairs of words</span>
+                  <div style={{ textAlign: 'center', marginBottom: '10px' }}>
+                    <p style={{ fontSize: '1.2rem', fontWeight: '700', margin: 0 }}>
+                      {selectedLanguage === "Hindi" ? "मिलान करें" : 
+                       selectedLanguage === "Kannada" ? "ಹೊಂದಿಸಿ ಬರೆಯಿರಿ" : 
+                       selectedLanguage === "Telugu" ? "జతపరచండి" : 
+                       selectedLanguage === "Tamil" ? "பொருத்துக" : 
+                       "Match the following"}
+                    </p>
                   </div>
 
                   <div style={{
@@ -2984,13 +2979,7 @@ function App() {
                           type="button"
                           onClick={() => { if (!isChecked) setLessonImageChoiceSel(oIdx); }}
                           disabled={isChecked}
-                          className={`duo-option-btn ${extraClass}`}
-                          style={{
-                            width: '130px',
-                            height: '130px',
-                            fontSize: '6rem',
-                            padding: '10px'
-                          }}
+                          className={`duo-image-option-btn ${extraClass}`}
                         >
                           {option}
                         </button>
@@ -3186,14 +3175,19 @@ function App() {
 
               return (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '120px' }}>
-                  <div style={{ marginBottom: '16px', textAlign: 'center' }}>
-                    <span className="ai-step-badge">🧩 Arrange the words</span>
+                  <div style={{ background: 'rgba(2,132,199,0.05)', border: '2px solid rgba(2,132,199,0.2)', borderRadius: '16px', padding: '16px 20px', fontSize: '1.1rem', fontWeight: '700', textAlign: 'center' }}>
+                    {tt.prompt}
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '20px', margin: '20px 0' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '20px', margin: '10px 0' }}>
                     <img src="/as1.png" alt="LISA Mascot" style={{ width: '80px', height: '80px', objectFit: 'contain' }} />
                     <div className="duo-speech-bubble" style={{ flexGrow: 1 }}>
-                      <p style={{ fontSize: '1.25rem', fontWeight: '800', margin: 0 }}>{tt.prompt}</p>
+                      <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '0 0 4px', fontWeight: '800' }}>
+                        Translate this to {learningLanguage}:
+                      </p>
+                      <p style={{ fontSize: '1.25rem', fontWeight: '800', margin: 0 }}>
+                        "{tt.englishTranslation || tt.sentence}"
+                      </p>
                     </div>
                   </div>
 
@@ -3258,19 +3252,19 @@ function App() {
                         onClick={() => {
                           const userSentence = lessonTranslationSelected.join(" ").trim().toLowerCase();
                           const clean = (s) => s.replace(/[.,\/#!$%\^&\*;:{}=\-_`()?]/g, "").toLowerCase().trim();
-                          const correct = clean(userSentence) === clean(tt.englishTranslation || tt.answer || "");
+                          const correct = clean(userSentence) === clean(tt.targetSentence || tt.sentence || "");
                           if (!correct) {
                             recordUserMistake({
                               type: "translationTask",
                               prompt: tt.prompt,
-                              englishSentence: tt.englishSentence,
-                              targetSentence: tt.englishTranslation || tt.answer,
+                              englishSentence: tt.englishSentence || tt.englishTranslation,
+                              targetSentence: tt.targetSentence || tt.sentence,
                               tiles: tt.tiles
                             });
                           }
                           setLessonTranslationFeedback({
                             isCorrect: correct,
-                            correctSentence: tt.englishTranslation || tt.answer
+                            correctSentence: tt.targetSentence || tt.sentence
                           });
                           if (correct) recordDailyCorrect();
                           recordLessonAnswer(correct);
@@ -3768,6 +3762,15 @@ function App() {
 
               return (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  <div style={{ textAlign: 'center', marginBottom: '10px' }}>
+                    <p style={{ fontSize: '1.2rem', fontWeight: '700', margin: 0 }}>
+                      {selectedLanguage === "Hindi" ? "रिक्त स्थान भरें" : 
+                       selectedLanguage === "Kannada" ? "ಖಾಲಿ ಜಾಗವನ್ನು ತುಂಬಿ" : 
+                       selectedLanguage === "Telugu" ? "ఖాళీలను పూరించండి" : 
+                       selectedLanguage === "Tamil" ? "கோடிட்ட இடங்களை நிரப்புக" : 
+                       "Fill in the Blanks"}
+                    </p>
+                  </div>
                   <div style={{
                     background: 'var(--panel)',
                     border: '2px solid var(--line)',
@@ -4193,10 +4196,16 @@ function App() {
               const q = {
                 ...currentQuestion,
                 type: "translationTask",
-                sentence: currentQuestion.sentence || "",
-                prompt: currentQuestion.prompt || "Arrange the word tiles to form a correct sentence.",
-                englishTranslation: currentQuestion.sentence || "",
-                tiles: currentQuestion.tiles || []
+                targetSentence: currentQuestion.targetSentence || currentQuestion.sentence || "",
+                prompt: currentQuestion.prompt || (
+                  selectedLanguage === "Hindi" ? "एक वाक्य बनाने के लिए शब्दों को व्यवस्थित करें।" :
+                  selectedLanguage === "Kannada" ? "ಒಂದು ವಾಕ್ಯವನ್ನು ರೂಪಿಸಲು ಪದಗಳನ್ನು ಜೋಡಿಸಿ." :
+                  selectedLanguage === "Telugu" ? "ఒక వాక్యాన్ని రూపొందించడానికి పదాలను అమర్చండి." :
+                  selectedLanguage === "Tamil" ? "ஒரு வாக்கியத்தை உருவாக்க வார்த்தைகளை ஒழுங்கமைக்கவும்." :
+                  "Arrange the words to form a sentence."
+                ),
+                englishTranslation: currentQuestion.englishTranslation || currentQuestion.translation || "",
+                tiles: currentQuestion.tiles || currentQuestion.targetTiles || []
               };
               // Re-render as translationTask by mutating currentQuestion shape
               // We render inline to avoid recursion:
@@ -4204,11 +4213,19 @@ function App() {
               const isChecked2 = lessonTranslationFeedback !== null;
               return (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '120px' }}>
-                  <div style={{ marginBottom: '16px', textAlign: 'center' }}>
-                    <span className="ai-step-badge">🔀 Arrange the Words</span>
-                  </div>
                   <div style={{ background: 'rgba(2,132,199,0.05)', border: '2px solid rgba(2,132,199,0.2)', borderRadius: '16px', padding: '16px 20px', fontSize: '1.1rem', fontWeight: '700', textAlign: 'center' }}>
                     {q.prompt}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '20px', margin: '10px 0' }}>
+                    <img src="/as1.png" alt="LISA Mascot" style={{ width: '80px', height: '80px', objectFit: 'contain' }} />
+                    <div className="duo-speech-bubble" style={{ flexGrow: 1 }}>
+                      <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '0 0 4px', fontWeight: '800' }}>
+                        Translate this to {learningLanguage}:
+                      </p>
+                      <p style={{ fontSize: '1.25rem', fontWeight: '800', margin: 0 }}>
+                        "{q.englishTranslation}"
+                      </p>
+                    </div>
                   </div>
                   {/* Selected area */}
                   <div style={{ borderBottom: '2px solid var(--line)', minHeight: '60px', display: 'flex', flexWrap: 'wrap', gap: '10px', padding: '10px 0', alignItems: 'center', justifyContent: 'center' }}>
@@ -4239,8 +4256,8 @@ function App() {
                       <button type="button" className="primary-btn" style={{ padding: '12px 40px', borderRadius: '12px' }}
                         onClick={() => {
                           const clean = s => s.replace(/[.,\/#!$%\^&\*;:{}=\-_`()?]/g, "").toLowerCase().trim();
-                          const correct = clean(lessonTranslationSelected.join(" ")) === clean(q.englishTranslation);
-                          setLessonTranslationFeedback({ isCorrect: correct, correctSentence: q.englishTranslation });
+                          const correct = clean(lessonTranslationSelected.join(" ")) === clean(q.targetSentence);
+                          setLessonTranslationFeedback({ isCorrect: correct, correctSentence: q.targetSentence });
                           lessonTotalAnsweredRef.current += 1;
                           if (correct) { lessonCorrectAnsweredRef.current += 1; recordDailyCorrect(); }
                         }}
@@ -4353,13 +4370,24 @@ function App() {
                   </div>
 
                   {currentQuestion.type === "speak" && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '20px', margin: '20px 0' }}>
-                      <img src="/as1.png" alt="LISA" style={{ width: '80px', height: '80px', objectFit: 'contain' }} />
-                      <div style={{ flexGrow: 1, background: 'var(--panel)', border: '2px solid var(--line)', borderRadius: '20px', padding: '20px', position: 'relative' }}>
-                        <div style={{ position: 'absolute', left: '-9px', top: '32px', width: '14px', height: '14px', background: 'var(--panel)', borderLeft: '2px solid var(--line)', borderBottom: '2px solid var(--line)', transform: 'rotate(45deg)' }}></div>
-                        <p style={{ fontSize: '1.6rem', fontWeight: '900', margin: 0, textAlign: 'center' }}>
-                          {emoji} {sentence}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      <div style={{ textAlign: 'center', marginBottom: '10px' }}>
+                        <p style={{ fontSize: '1.2rem', fontWeight: '700', margin: 0 }}>
+                          {selectedLanguage === "Hindi" ? "सुनें और बोलें" : 
+                           selectedLanguage === "Kannada" ? "ಕೇಳಿ ಮತ್ತು ಮಾತನಾಡಿ" : 
+                           selectedLanguage === "Telugu" ? "వినండి మరియు మాట్లాడండి" : 
+                           selectedLanguage === "Tamil" ? "கேட்டு பேசுங்கள்" : 
+                           "Listen and Speak"}
                         </p>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '20px', margin: '10px 0' }}>
+                        <img src="/as1.png" alt="LISA" style={{ width: '80px', height: '80px', objectFit: 'contain' }} />
+                        <div style={{ flexGrow: 1, background: 'var(--panel)', border: '2px solid var(--line)', borderRadius: '20px', padding: '20px', position: 'relative' }}>
+                          <div style={{ position: 'absolute', left: '-9px', top: '32px', width: '14px', height: '14px', background: 'var(--panel)', borderLeft: '2px solid var(--line)', borderBottom: '2px solid var(--line)', transform: 'rotate(45deg)' }}></div>
+                          <p style={{ fontSize: '1.6rem', fontWeight: '900', margin: 0, textAlign: 'center' }}>
+                            {emoji} {sentence}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -4804,8 +4832,8 @@ function App() {
 
               return (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '120px' }}>
-                  <div style={{ marginBottom: '16px', textAlign: 'center' }}>
-                    <span className="ai-step-badge">💬 Complete the Chat</span>
+                  <div style={{ background: 'rgba(2,132,199,0.05)', border: '2px solid rgba(2,132,199,0.2)', borderRadius: '16px', padding: '16px 20px', fontSize: '1.1rem', fontWeight: '700', textAlign: 'center' }}>
+                    {questionText}
                   </div>
 
                   <div style={{
@@ -6710,6 +6738,29 @@ function App() {
     return () => clearTimeout(id);
   }, [assessmentState, currentStep, selectedLanguage, assessmentQuestionsList]);
 
+  // Auto-play Anna's first line of dialogue in chatComplete questions
+  useEffect(() => {
+    if (!lessonAiContent?.questions) return;
+    const cq = lessonAiContent.questions[lessonStep];
+    if (cq?.type === "chatComplete") {
+      const scenario = cq.scenario || "";
+      const lines = scenario.split("\n").map(l => l.trim()).filter(Boolean);
+      const firstLine = lines[0];
+      if (firstLine) {
+        const match = firstLine.match(/^([^:]+):\s*(.*)$/);
+        if (match) {
+          const text = match[2].trim();
+          const speaker = match[1].trim();
+          const isUser = speaker.toUpperCase() === 'B' || speaker.toUpperCase() === 'YOU' || text.includes('___');
+          if (!isUser) {
+            const id = setTimeout(() => speakText(text, 0.9), 500);
+            return () => clearTimeout(id);
+          }
+        }
+      }
+    }
+  }, [lessonStep, lessonAiContent]);
+
   // Scroll main view to top when currentStep changes
   useEffect(() => {
     const mainView = document.querySelector(".dashboard-main-view");
@@ -6718,6 +6769,13 @@ function App() {
     }
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [currentStep]);
+
+  // Cancel active speech synthesis when moving to the next question or switching tabs
+  useEffect(() => {
+    if (window.responsiveVoice) {
+      window.responsiveVoice.cancel();
+    }
+  }, [lessonStep, currentStep, activeTab]);
   const fetchProfile = async (userId) => {
     // Sync any pending changes if we are online
     syncPendingUpdates(userId);
@@ -7214,7 +7272,7 @@ function App() {
          else segmentLang = learningLanguage || "English";
        }
        
-       const segmentRate = isNonAscii ? 0.8 : r;
+       const segmentRate = typeof rate === "number" ? rate : (isNonAscii ? 0.8 : r);
 
       if (window.responsiveVoice) {
         let voiceName = "US English Female";
@@ -10269,15 +10327,6 @@ function App() {
                   <div className="practice-section">
                     <h2 className="practice-section-title">{t("practiceYourCollections")}</h2>
                     <div className="practice-row-cards">
-                      <div className="practice-row-card" onClick={() => startCollectionPractice("mistakes")}>
-                        <div className="practice-row-card-content">
-                          <h3 className="practice-row-card-title">
-                            {t("practiceMistakes")}
-                          </h3>
-                          <p className="practice-row-card-desc">{t("practiceMistakesDesc")}</p>
-                        </div>
-                        <div className="practice-row-card-icon mistakes-icon">💔</div>
-                      </div>
 
                       <div className="practice-row-card" onClick={() => startCollectionPractice("words")}>
                         <div className="practice-row-card-content">
