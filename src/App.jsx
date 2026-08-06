@@ -960,8 +960,12 @@ function App() {
   // XP Shop state — loaded per-user from Supabase (profiles.shop_data).
   // No global localStorage keys are used so shop unlocks stay tied to each account.
   const [shopOwnedItems, setShopOwnedItems] = useState([]);
-  const [shopTheme, setShopTheme] = useState(null);
-  const [shopFont, setShopFont] = useState(null);
+  const [shopTheme, setShopTheme] = useState(() => {
+    return localStorage.getItem("lisa_current_theme") || "theme_gold";
+  });
+  const [shopFont, setShopFont] = useState(() => {
+    return localStorage.getItem("lisa_current_font") || null;
+  });
   const [shopBanner, setShopBanner] = useState(null);
   const [shopCustomAvatar, setShopCustomAvatar] = useState(null);
   const [profileBadges, setProfileBadges] = useState([]);
@@ -1153,6 +1157,32 @@ function App() {
     if (profileBadges.length > 0) {
       notifs.push({ id: "badges", icon: "🏅", title: "Badge Unlocked", message: `You have ${profileBadges.length} badge${profileBadges.length > 1 ? 's' : ''} from the XP Shop!`, color: "#a855f7" });
     }
+    if (Array.isArray(shopOwnedItems)) {
+      shopOwnedItems.forEach((itemId) => {
+        let foundItem = null;
+        let category = "";
+        for (const cat of Object.keys(SHOP_CATALOG)) {
+          const itemsList = SHOP_CATALOG[cat];
+          if (Array.isArray(itemsList)) {
+            const match = itemsList.find(i => i.id === itemId);
+            if (match) {
+              foundItem = match;
+              category = cat;
+              break;
+            }
+          }
+        }
+        if (foundItem) {
+          notifs.push({
+            id: `shop_${foundItem.id}`,
+            icon: foundItem.icon || "🛒",
+            title: `Unlocked: ${foundItem.name}`,
+            message: foundItem.desc || `You purchased this item from the XP Shop.`,
+            color: category === "themes" ? foundItem.preview?.accent || "#a855f7" : "#10b981"
+          });
+        }
+      });
+    }
     if (dailyLessons === 0) {
       notifs.push({ id: "lesson_reminder", icon: "📚", title: "Lesson Reminder", message: "You haven't practiced today. Start a lesson!", color: "#3b82f6" });
     }
@@ -1164,7 +1194,7 @@ function App() {
       notifs.push({ id: "levelup", icon: "🎉", title: "Level Up", message: `Congratulations! You reached Level ${currentLevel}.`, color: "#8b5cf6" });
     }
     return notifs;
-  }, [streakCount, userXp, completedLessons, profileBadges, dailyLessons, activeQuests, questBonusClaimed, profile]);
+  }, [streakCount, userXp, completedLessons, profileBadges, dailyLessons, activeQuests, questBonusClaimed, profile, shopOwnedItems]);
 
   const notifications = useMemo(() => {
     return allNotifications.filter(n => !dismissedNotifIds.includes(n.id));
@@ -1331,10 +1361,16 @@ function App() {
 
   // Apply the equipped shop theme/font whenever they change (loaded from Supabase).
   useEffect(() => {
-    if (shopTheme) applyTheme(shopTheme);
+    if (shopTheme) {
+      applyTheme(shopTheme);
+      localStorage.setItem("lisa_current_theme", shopTheme);
+    }
     if (shopFont) {
       const fontObj = SHOP_CATALOG.fonts.find(f => f.id === shopFont);
-      if (fontObj) applyFont(fontObj.family);
+      if (fontObj) {
+        applyFont(fontObj.family);
+        localStorage.setItem("lisa_current_font", shopFont);
+      }
     }
   }, [shopTheme, shopFont]);
 
@@ -2412,7 +2448,8 @@ function App() {
               padding: '4px 10px',
               borderRadius: '20px',
               border: '1px solid rgba(239, 68, 68, 0.15)',
-              boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.05)'
+              boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.05)',
+              marginLeft: 'auto'
             }}>
               {Array.from({ length: 3 }).map((_, idx) => {
                 const hasHeart = idx < lessonHearts;
@@ -6776,7 +6813,7 @@ function App() {
         const sd = mergedProfile.shop_data;
         if (sd && typeof sd === "object") {
           setShopOwnedItems(Array.isArray(sd.ownedItems) ? sd.ownedItems : []);
-          setShopTheme(sd.theme ?? null);
+          setShopTheme(sd.theme ?? "theme_gold");
           setShopFont(sd.font ?? null);
           setShopBanner(sd.banner ?? null);
           setShopCustomAvatar(sd.avatar ?? null);
@@ -8919,9 +8956,9 @@ function App() {
                         <div style={{ textAlign: 'left' }}>
                            <h4 style={{ margin: '0 0 4px 0', fontSize: '1.1rem', fontWeight: 800 }}>{duolingoPracticeTitle}</h4>
                           <p style={{ margin: '0 0 12px 0', fontSize: '0.92rem', color: 'var(--muted)', lineHeight: '1.4' }}>{duolingoPracticeRecommendation}</p>
-                          <div style={{ display: 'flex', gap: '16px', fontSize: '0.82rem', fontWeight: 800, color: 'var(--text)' }}>
-                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(245, 158, 11, 0.15)', color: 'var(--flz-warn)', padding: '4px 10px', borderRadius: '12px' }}>🎯 Target: 30 XP Daily</span>
-                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(59, 130, 246, 0.15)', color: 'var(--accent)', padding: '4px 10px', borderRadius: '12px' }}>⏳ Commitment: {dailyPracticeTime}</span>
+                          <div className="practice-insights-badges" style={{ display: 'flex', gap: '12px', fontSize: '0.82rem', fontWeight: 800, color: 'var(--text)' }}>
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(245, 158, 11, 0.15)', color: 'var(--flz-warn)', padding: '4px 10px', borderRadius: '12px', whiteSpace: 'nowrap' }}>🎯 Target: 30 XP Daily</span>
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(59, 130, 246, 0.15)', color: 'var(--accent)', padding: '4px 10px', borderRadius: '12px', whiteSpace: 'nowrap' }}>⏳ Commitment: {dailyPracticeTime}</span>
                           </div>
                         </div>
                       </div>
@@ -10858,7 +10895,7 @@ style={(() => {
 
           {/* 3.4. Shop Tab */}
           {dashboardTab === "shop" && (
-            <div className="practice-grid-layout">
+            <div className="shop-layout">
               <div className="practice-content-column">
                 <XPShop
                   t={t}
