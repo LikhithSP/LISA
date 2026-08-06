@@ -2145,12 +2145,15 @@ function App() {
 
               {/* Side B: Cartoon illustration (emoji), Example sentence, Translation */}
               <div className="flashcard-side flashcard-back">
-                <div className="flashcard-illustration">{card.emoji}</div>
-                <h3 style={{ fontSize: '1.8rem', fontWeight: '800', margin: '0 0 8px', color: 'var(--text)' }}>{card.word}</h3>
-                <p style={{ fontSize: '1.25rem', fontWeight: '700', color: 'var(--accent)', margin: '0 0 16px' }}>{card.translation}</p>
-                <div className="flashcard-example-box">
-                  <p style={{ margin: 0, fontWeight: 600, color: 'var(--text)' }}>"{card.sentence}"</p>
-                </div>
+                <div className="flashcard-illustration">{card.emoji || "💡"}</div>
+                <h2 style={{ fontSize: '3rem', fontWeight: '900', color: 'var(--accent)', margin: '0 0 16px' }}>
+                  {card.translation || card.meaning}
+                </h2>
+                {card.sentence && (
+                  <div className="flashcard-example-box">
+                    <p style={{ margin: 0, fontWeight: 600, color: 'var(--text)' }}>"{card.sentence}"</p>
+                  </div>
+                )}
                 <p style={{ marginTop: '20px', color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 600 }}>{tapToFlipBack}</p>
               </div>
             </div>

@@ -1836,17 +1836,50 @@ const getFallbackPractice = (params) => {
       { id: 8, word: "पेड़", emoji: "🌳", translation: "Tree", sentence: "पेड़ हमें छाया देता है। (The tree gives us shade.)" },
       { id: 9, word: "फल", emoji: "🍌", translation: "Fruit", sentence: "ताजे फल खाएं। (Eat fresh fruits.)" },
       { id: 10, word: "खुश", emoji: "😊", translation: "Happy", sentence: "वह आज बहुत खुश है। (He is very happy today.)" },
+    ] : language === "Kannada" ? [
+      { id: 1, word: "ಪುಸ್ತಕ", emoji: "📚", translation: "Book", sentence: "ಇದು ಒಂದು ಒಳ್ಳೆಯ ಪುಸ್ತಕ. (This is a good book.)" },
+      { id: 2, word: "ಶಾಲೆ", emoji: "🏫", translation: "School", sentence: "ಮಕ್ಕಳು ಶಾಲೆಗೆ ಹೋಗುತ್ತಿದ್ದಾರೆ. (Children are going to school.)" },
+      { id: 3, word: "ಸೇಬು", emoji: "🍎", translation: "Apple", sentence: "ಸೇಬು ಕೆಂಪು ಮತ್ತು ಸಿಹಿಯಾಗಿದೆ. (The apple is red and sweet.)" },
+      { id: 4, word: "ನೀರು", emoji: "💧", translation: "Water", sentence: "ನಾವು ಶುದ್ಧ ನೀರನ್ನು ಕುಡಿಯಬೇಕು. (We should drink clean water.)" },
+      { id: 5, word: "ಸೂರ್ಯ", emoji: "☀️", translation: "Sun", sentence: "ಇಂದು ಸೂರ್ಯ ತುಂಬಾ ಪ್ರಕಾಶಮಾನವಾಗಿದ್ದಾನೆ. (The sun is very bright today.)" },
+      { id: 6, word: "ಸ್ನೇಹಿತ", emoji: "🧑‍🤝‍🧑", translation: "Friend", sentence: "ಅವನು ನನ್ನ ಉತ್ತಮ ಸ್ನೇಹಿತ. (He is my best friend.)" },
+      { id: 7, word: "ಮನೆ", emoji: "🏠", translation: "House", sentence: "ಅವರು ದೊಡ್ಡ ಮನೆಯಲ್ಲಿ ವಾಸಿಸುತ್ತಿದ್ದಾರೆ. (They live in a big house.)" },
+      { id: 8, word: "ಮರ", emoji: "🌳", translation: "Tree", sentence: "ಹಕ್ಕಿಗಳು ಮರದ ಮೇಲಿವೆ. (The birds are on the tree.)" },
+      { id: 9, word: "ಹಣ್ಣು", emoji: "🍌", translation: "Fruit", sentence: "ನಮಗೆ ತಾಜಾ ಹಣ್ಣುಗಳನ್ನು ತಿನ್ನುವುದು ಇಷ್ಟ. (I love eating fresh fruit.)" },
+      { id: 10, word: "ಸಂತೋಷ", emoji: "😊", translation: "Happy", sentence: "ಅವಳ ಕುಟುಂಬ ಸಂತೋಷವಾಗಿದೆ. (She has a happy family.)" }
+    ] : language === "Telugu" ? [
+      { id: 1, word: "పుస్తకం", emoji: "📚", translation: "Book", sentence: "ఇది ఒక మంచి పుస్తకం. (This is a good book.)" },
+      { id: 2, word: "బడి", emoji: "🏫", translation: "School", sentence: "పిల్లలు బడికి వెళ్తున్నారు. (Children are going to school.)" },
+      { id: 3, word: "ఆపిల్", emoji: "🍎", translation: "Apple", sentence: "ఆపిల్ ఎర్రగా మరియు తీపిగా ఉంటుంది. (The apple is red and sweet.)" },
+      { id: 4, word: "నీరు", emoji: "💧", translation: "Water", sentence: "మనం శుభ్రమైన నీరు త్రాగాలి. (We should drink clean water.)" },
+      { id: 5, word: "సూర్యుడు", emoji: "☀️", translation: "Sun", sentence: "ఈరోజు సూర్యుడు చాలా ప్రకాశవంతంగా ఉన్నాడు. (The sun is very bright today.)" },
+      { id: 6, word: "స్నేహితుడు", emoji: "🧑‍🤝‍🧑", translation: "Friend", sentence: "అతడు నా బెస్ట్ ఫ్రెండ్. (He is my best friend.)" },
+      { id: 7, word: "ఇల్లు", emoji: "🏠", translation: "House", sentence: "వారు పెద్ద ఇంట్లో నివసిస్తున్నారు. (They live in a big house.)" },
+      { id: 8, word: "చెట్టు", emoji: "🌳", translation: "Tree", sentence: "పక్షులు చెట్టు మీద ఉన్నాయి. (The birds are on the tree.)" },
+      { id: 9, word: "పండు", emoji: "🍌", translation: "Fruit", sentence: "నాకు తాజా పండ్లు తినడం ఇష్టం. (I love eating fresh fruit.)" },
+      { id: 10, word: "సంతోషం", emoji: "😊", translation: "Happy", sentence: "ఆమెది సంతోషకరమైన కుటుంబం. (She has a happy family.)" }
+    ] : language === "Tamil" ? [
+      { id: 1, word: "புத்தகம்", emoji: "📚", translation: "Book", sentence: "இது ஒரு நல்ல புத்தகம். (This is a good book.)" },
+      { id: 2, word: "பள்ளி", emoji: "🏫", translation: "School", sentence: "குழந்தைகள் பள்ளிக்குச் செல்கிறார்கள். (Children are going to school.)" },
+      { id: 3, word: "ஆப்பிள்", emoji: "🍎", translation: "Apple", sentence: "ஆப்பிள் சிவப்பு மற்றும் இனிமையானது. (The apple is red and sweet.)" },
+      { id: 4, word: "தண்ணீர்", emoji: "💧", translation: "Water", sentence: "நாம் சுத்தமான தண்ணீர் குடிக்க வேண்டும். (We should drink clean water.)" },
+      { id: 5, word: "சூரியன்", emoji: "☀️", translation: "Sun", sentence: "இன்று சூரியன் மிகவும் பிரகாசமாக இருக்கிறது. (The sun is very bright today.)" },
+      { id: 6, word: "நண்பன்", emoji: "🧑‍🤝‍🧑", translation: "Friend", sentence: "அவன் எனது சிறந்த நண்பன். (He is my best friend.)" },
+      { id: 7, word: "வீடு", emoji: "🏠", translation: "House", sentence: "அவர்கள் ஒரு பெரிய வீட்டில் வாழ்கிறார்கள். (They live in a big house.)" },
+      { id: 8, word: "மரம்", emoji: "🌳", translation: "Tree", sentence: "பறவைகள் மரத்தின் மேல் இருக்கின்றன. (The birds are on the tree.)" },
+      { id: 9, word: "பழம்", emoji: "🍌", translation: "Fruit", sentence: "எனக்கு புதிய பழங்களை சாப்பிட பிடிக்கும். (I love eating fresh fruit.)" },
+      { id: 10, word: "மகிழ்ச்சி", emoji: "😊", translation: "Happy", sentence: "அவளுக்கு ஒரு மகிழ்ச்சியான குடும்பம் உள்ளது. (She has a happy family.)" }
     ] : [
-      { id: 1, word: "Book", emoji: "📚", translation: "किताब / ಪುಸ್ತಕ", sentence: "This is a good book." },
-      { id: 2, word: "School", emoji: "🏫", translation: "स्कूल / ಶಾಲೆ", sentence: "Children are going to school." },
-      { id: 3, word: "Apple", emoji: "🍎", translation: "सेब / ಸೇಬು", sentence: "The apple is red and sweet." },
-      { id: 4, word: "Water", emoji: "💧", translation: "पानी / ನೀರು", sentence: "We should drink clean water." },
-      { id: 5, word: "Sun", emoji: "☀️", translation: "सूरज / ಸೂರ್ಯ", sentence: "The sun is very bright today." },
-      { id: 6, word: "Friend", emoji: "🧑‍🤝‍🧑", translation: "मित्र / ಸ್ನೇಹಿತ", sentence: "He is my best friend." },
-      { id: 7, word: "House", emoji: "🏠", translation: "घर / ಮನೆ", sentence: "They live in a big house." },
-      { id: 8, word: "Tree", emoji: "🌳", translation: "पेड़ / ಮರ", sentence: "The birds are on the tree." },
-      { id: 9, word: "Fruit", emoji: "🍌", translation: "फल / ಹಣ್ಣು", sentence: "I love eating fresh fruit." },
-      { id: 10, word: "Happy", emoji: "😊", translation: "खुश / ಸಂತೋಷ", sentence: "She has a happy family." },
+      { id: 1, word: "Book", emoji: "📚", translation: "Book", sentence: "This is a good book." },
+      { id: 2, word: "School", emoji: "🏫", translation: "School", sentence: "Children are going to school." },
+      { id: 3, word: "Apple", emoji: "🍎", translation: "Apple", sentence: "The apple is red and sweet." },
+      { id: 4, word: "Water", emoji: "💧", translation: "Water", sentence: "We should drink clean water." },
+      { id: 5, word: "Sun", emoji: "☀️", translation: "Sun", sentence: "The sun is very bright today." },
+      { id: 6, word: "Friend", emoji: "🧑‍🤝‍🧑", translation: "Friend", sentence: "He is my best friend." },
+      { id: 7, word: "House", emoji: "🏠", translation: "House", sentence: "They live in a big house." },
+      { id: 8, word: "Tree", emoji: "🌳", translation: "Tree", sentence: "The birds are on the tree." },
+      { id: 9, word: "Fruit", emoji: "🍌", translation: "Fruit", sentence: "I love eating fresh fruit." },
+      { id: 10, word: "Happy", emoji: "😊", translation: "Happy", sentence: "She has a happy family." }
     ];
     return { questions: list };
   }
