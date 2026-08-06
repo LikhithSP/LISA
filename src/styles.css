@@ -9,6 +9,7 @@
   --accent: #4f46e5;
   --accent-dark: #3730a3;
   --accent-soft: #e0e7ff;
+  --accent-rgb: 79, 70, 229;
   --font-family: "Inter", sans-serif;
   font-family: var(--font-family);
   --transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
@@ -36,6 +37,7 @@
   --accent: #6366f1;
   --accent-dark: #818cf8;
   --accent-soft: #1e1b4b;
+  --accent-rgb: 99, 102, 241;
   --shadow: 0 28px 80px rgba(0, 0, 0, 0.55);
   /* Fun & Learn Zone shared tokens (dark) */
   --flz-ok: #34d399;
@@ -4926,8 +4928,9 @@ select:focus-visible {
   align-items: center;
   gap: 24px;
   padding: 12px 24px;
-  background: transparent;
+  background: var(--panel-strong);
   border: none;
+  border-bottom: 1px solid var(--line);
   box-shadow: none;
   box-sizing: border-box;
   position: sticky;
@@ -4936,7 +4939,7 @@ select:focus-visible {
 }
 
 [data-theme="dark"] .dashboard-topbar {
-  background: transparent;
+  background: var(--panel-strong);
 }
 
 .topbar-left {
@@ -5176,37 +5179,48 @@ select:focus-visible {
 }
 
 .indicator-pill.shop-pill {
-  color: #f59e0b;
+  color: var(--accent);
   gap: 6px;
   padding: 6px 12px;
   border: none;
   cursor: pointer;
+  justify-content: center;
+  background: var(--accent-soft);
   transition: background 0.2s, transform 0.15s;
 }
 
 .indicator-pill.shop-pill:hover {
-  background: rgba(245, 158, 11, 0.18);
+  background: rgba(var(--accent-rgb), 0.18);
   transform: translateY(-1px);
 }
 
+[data-theme="dark"] .indicator-pill.shop-pill {
+  background: rgba(var(--accent-rgb), 0.18);
+}
+
 .indicator-pill.leaderboard-pill {
-  color: #f59e0b;
+  color: var(--accent);
   gap: 6px;
   padding: 6px 12px;
   border: none;
   cursor: pointer;
-  background: rgba(245, 158, 11, 0.08);
+  background: var(--accent-soft);
+  justify-content: center;
   transition: background 0.2s, transform 0.15s;
 }
 
 .indicator-pill.leaderboard-pill:hover {
-  background: rgba(245, 158, 11, 0.18);
+  background: rgba(var(--accent-rgb), 0.18);
   transform: translateY(-1px);
+}
+
+[data-theme="dark"] .indicator-pill.leaderboard-pill {
+  background: rgba(var(--accent-rgb), 0.18);
 }
 
 .indicator-pill.leaderboard-pill.active,
 .indicator-pill.shop-pill.active {
-  background: #f59e0b !important;
+  background: var(--accent) !important;
   color: white !important;
 }
 
@@ -5677,8 +5691,8 @@ select:focus-visible {
   display: grid;
   grid-template-columns: 1fr;
   gap: 40px;
-  padding: 0 48px 40px;
-  max-width: 900px;
+  padding: 0 24px 40px;
+  max-width: 1400px;
   margin: 0 auto;
   width: 100%;
   box-sizing: border-box;
@@ -5733,6 +5747,16 @@ select:focus-visible {
   margin: 6px 0 0;
   font-size: 1rem;
   color: var(--muted);
+}
+
+@media (max-width: 900px) {
+  .dashboard-greeting h1 {
+    font-size: 1.5rem;
+  }
+
+  .dashboard-greeting p {
+    font-size: 0.9rem;
+  }
 }
 
 .resume-card {
@@ -7426,6 +7450,26 @@ select:focus-visible {
 @media (max-width: 640px) {
   .duo-path-mascot {
     display: none;
+  }
+
+  .duo-section-banner-icon {
+    font-size: 1.5rem;
+  }
+
+  .duo-section-banner-title {
+    font-size: 1.1rem;
+  }
+
+  .duo-unit-progress {
+    font-size: 0.7rem;
+  }
+
+  .duo-unit-title {
+    font-size: 0.7rem;
+  }
+
+  .duo-unit-topic {
+    font-size: 0.8rem;
   }
 }
 
@@ -9826,7 +9870,12 @@ select:focus-visible {
 .shop-item-active {
   border-color: var(--accent) !important;
   background: var(--accent-soft) !important;
-  box-shadow: 0 0 0 2px var(--accent), 0 8px 24px rgba(198, 95, 45, 0.15) !important;
+  box-shadow: 0 0 0 2px var(--accent), 0 8px 24px rgba(var(--accent-rgb), 0.25) !important;
+}
+
+[data-theme="dark"] .shop-item-active {
+  background: rgba(var(--accent-rgb), 0.18) !important;
+  box-shadow: 0 0 0 2px var(--accent), 0 8px 24px rgba(var(--accent-rgb), 0.35) !important;
 }
 
 .shop-item-owned {
@@ -10520,9 +10569,9 @@ select:focus-visible {
 
 /* Premium Mistakes and Words collection pages */
 .duo-practice-page {
-  max-width: 900px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 0 48px 56px;
+  padding: 0 24px 56px;
   color: var(--text);
   width: 100%;
   box-sizing: border-box;
@@ -10783,6 +10832,12 @@ select:focus-visible {
   font-weight: 700;
   color: var(--muted);
   letter-spacing: 0.02em;
+}
+
+@media (max-width: 640px) {
+  .path-mode-toggle-label {
+    font-size: 0.8rem;
+  }
 }
 
 .path-mode-select {
@@ -14088,6 +14143,7 @@ select {
   /* Dashboard main area */
   .dashboard-main-view {
     padding: 16px 12px !important;
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)) !important;
   }
 
   /* Dashboard overview two columns -> single column */
