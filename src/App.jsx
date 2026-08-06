@@ -659,6 +659,9 @@ const localDashboardTranslations = {
 };
 
 function App() {
+  const [session, setSession] = useState(null);
+  const [profile, setProfile] = useState(null);
+  const [completedLessons, setCompletedLessons] = useState([]);
   const [selectedLanguage, setSelectedLanguage] = useState(
     localStorage.getItem("lisa_lang") || null
   );
@@ -682,10 +685,130 @@ function App() {
   const [pwaInstallPrompt, setPwaInstallPrompt] = useState(null);
   const [showInstallBanner, setShowInstallBanner] = useState(false);
   const [swUpdateAvailable, setSwUpdateAvailable] = useState(false);
+  const [downloadingLessons, setDownloadingLessons] = useState({});
+
+  const syncPendingUpdates = async (userId) => {
+    if (!userId) return;
+    const queueKey = `lisa_pending_profile_updates_${userId}`;
+    const pending = JSON.parse(localStorage.getItem(queueKey) || "{}");
+    if (Object.keys(pending).length === 0) return;
+
+    try {
+      console.log("[LISA Sync] Synchronizing pending offline updates to Supabase:", pending);
+      const { error } = await supabase
+        .from("profiles")
+        .update(pending)
+        .eq("id", userId);
+      
+      if (!error) {
+        console.log("[LISA Sync] Synchronization successful!");
+        localStorage.removeItem(queueKey);
+      } else {
+        console.warn("[LISA Sync] Synchronization failed:", error.message);
+      }
+    } catch (err) {
+      console.warn("[LISA Sync] Sync exception:", err);
+    }
+  };
+
+  const queueProfileUpdate = async (updates) => {
+    const userId = session?.user?.id;
+    if (!userId) return;
+
+    // 1. Update React state immediately
+    setProfile(prev => prev ? ({ ...prev, ...updates }) : null);
+
+    // 2. Update localStorage cache for offline fetching fallback
+    const cachedProfileKey = `lisa_profile_cache_${userId}`;
+    const cached = JSON.parse(localStorage.getItem(cachedProfileKey) || "{}");
+    localStorage.setItem(cachedProfileKey, JSON.stringify({ ...cached, ...updates }));
+
+    // 3. Save to pending queue in localStorage
+    const queueKey = `lisa_pending_profile_updates_${userId}`;
+    const pending = JSON.parse(localStorage.getItem(queueKey) || "{}");
+    const mergedPending = { ...pending, ...updates };
+    localStorage.setItem(queueKey, JSON.stringify(mergedPending));
+
+    // 4. Try to sync to Supabase immediately if online
+    if (navigator.onLine) {
+      try {
+        const { error } = await supabase
+          .from("profiles")
+          .update(mergedPending)
+          .eq("id", userId);
+        
+        if (!error) {
+          localStorage.removeItem(queueKey);
+        } else {
+          console.warn("[LISA Sync] Immediate update failed, remaining in queue:", error.message);
+        }
+      } catch (e) {
+        console.warn("[LISA Sync] Immediate update failed, remaining in queue:", e);
+      }
+    }
+  };
+
+  const downloadLessonOffline = async (lesson, sectionInfo, unitInfo) => {
+    const userId = session?.user?.id || 'guest';
+    const cacheKey = `lisa_lesson_content_${userId}_${lesson.id}`;
+    
+    setDownloadingLessons(prev => ({ ...prev, [lesson.id]: true }));
+    try {
+      const storedSkillScores = (() => {
+        try {
+          const stored = getStoredAssessmentState(userId);
+          return stored?.skill_scores || profile?.skill_scores || profile?.attempts_history?.[0]?.skillScores || {};
+        } catch { return {}; }
+      })();
+      const weakAreas = getWeakSkills(storedSkillScores);
+      const currentLevelNum = calculateProgressiveLevel(profile, completedLessons);
+      const profInfo = getProficiencyName(currentLevelNum, "English");
+
+      const aiContent = await generateLessonContent({
+        age: profile?.age || 25,
+        educationLevel: profile?.education_level || "No Formal Education",
+        language: learningLanguage || "English",
+        learningLanguage: learningLanguage || "English",
+        interfaceLanguage: selectedLanguage || "English",
+        literacyLevel: currentLevelNum,
+        literacyLevelName: profInfo?.name || "Beginner",
+        weakAreas,
+        sectionNum: sectionInfo?.num || 1,
+        sectionTitle: sectionInfo?.title || "",
+        unitNum: unitInfo?.num || 1,
+        unitTitle: unitInfo?.title || "",
+        lessonNum: lesson.num || 1,
+        lessonTitle: lesson.title || "",
+        difficulty: currentLevelNum <= 2 ? "beginner" : currentLevelNum <= 4 ? "intermediate" : "advanced",
+        useFallback: !aiEnabled
+      });
+
+      if (aiContent) {
+        localStorage.setItem(cacheKey, JSON.stringify(aiContent));
+        alert(`${lesson.title} downloaded successfully! You can now study it offline.`);
+      } else {
+        alert("Failed to download lesson content. Please check your internet connection.");
+      }
+    } catch (err) {
+      console.error("Error downloading lesson:", err);
+      alert("An error occurred while downloading the lesson.");
+    } finally {
+      setDownloadingLessons(prev => ({ ...prev, [lesson.id]: false }));
+    }
+  };
 
   useEffect(() => {
-    const handleOnline = () => { setIsOnline(true); setShowOfflineBanner(false); };
-    const handleOffline = () => { setIsOnline(false); setShowOfflineBanner(true); };
+    const handleOnline = () => { 
+      setIsOnline(true); 
+      setShowOfflineBanner(false); 
+      if (session?.user?.id) {
+        syncPendingUpdates(session.user.id);
+      }
+    };
+    const handleOffline = () => { 
+      setIsOnline(false); 
+      setShowOfflineBanner(true); 
+    };
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
     const handleInstall = (e) => {
@@ -708,7 +831,59 @@ function App() {
       window.removeEventListener('beforeinstallprompt', handleInstall);
       window.removeEventListener('swUpdateAvailable', handleSwUpd);
     };
-  }, []);
+  }, [session]);
+
+  useEffect(() => {
+    if (!session?.user?.id) return;
+
+    if ("Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission();
+    }
+
+    const checkStudyReminder = () => {
+      if (!("Notification" in window) || Notification.permission !== "granted") return;
+      
+      const userId = session.user.id;
+      const today = new Date().toLocaleDateString("en-CA");
+      const doneToday = localStorage.getItem(`lisa_daily_lessons_${userId}_${today}`);
+      
+      if (!doneToday || parseInt(doneToday, 10) === 0) {
+        navigator.serviceWorker.ready.then(reg => {
+          reg.showNotification("Time for today's lesson! 📚", {
+            body: "Keep your daily streak alive and boost your vocabulary today!",
+            icon: "/icon.png",
+            badge: "/icon.png",
+            tag: "lisa-study-reminder"
+          });
+        });
+      }
+    };
+
+    const checkWeeklyProgressReport = () => {
+      if (!("Notification" in window) || Notification.permission !== "granted") return;
+      const lastReportDate = localStorage.getItem(`lisa_last_weekly_report_${session.user.id}`);
+      const now = Date.now();
+      if (!lastReportDate || (now - parseInt(lastReportDate, 10)) > 7 * 24 * 60 * 60 * 1000) {
+        navigator.serviceWorker.ready.then(reg => {
+          reg.showNotification("Weekly Progress Report Ready! 📈", {
+            body: "Your weekly learning insights and XP summary are ready to review.",
+            icon: "/icon.png",
+            badge: "/icon.png",
+            tag: "lisa-weekly-report"
+          });
+          localStorage.setItem(`lisa_last_weekly_report_${session.user.id}`, String(now));
+        });
+      }
+    };
+
+    const timer1 = setTimeout(checkStudyReminder, 5000);
+    const timer2 = setTimeout(checkWeeklyProgressReport, 10000);
+
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+    };
+  }, [session]);
 
   const handleInstallApp = async () => {
     if (pwaInstallPrompt) {
@@ -756,8 +931,6 @@ function App() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [profileDropdownOpen, streakPopupOpen, notifOpen, activeLessonPopup]);
-  const [session, setSession] = useState(null);
-  const [profile, setProfile] = useState(null);
   const [profileBg, setProfileBg] = useState("#e86b6b");
   const [profileAvatar, setProfileAvatar] = useState("/as1.png");
   const [isEditingCover, setIsEditingCover] = useState(false);
@@ -817,7 +990,6 @@ function App() {
     };
     return messages[level] || "Keep it up! Good Work";
   };
-  const [completedLessons, setCompletedLessons] = useState([]);
   const [lessonSession, setLessonSession] = useState(null);
   const [mistakeAttemptsCount, setMistakeAttemptsCount] = useState(0);
   const [showMistakeHint, setShowMistakeHint] = useState(false);
@@ -1036,10 +1208,7 @@ function App() {
       const nextWeekly = currentWeeklyXp + amount;
       setWeeklyXp(nextWeekly);
 
-      await supabase
-        .from("profiles")
-        .update({ weekly_xp: nextWeekly, weekly_start: weekStart })
-        .eq("id", userId);
+      await queueProfileUpdate({ weekly_xp: nextWeekly, weekly_start: weekStart });
     } catch (e) {
       console.warn("Could not sync weekly XP to Supabase:", e);
     }
@@ -1098,7 +1267,7 @@ function App() {
       } else {
         setWeeklyXp(0);
         try {
-          await supabase.from("profiles").update({ weekly_xp: 0, weekly_start: weekStart }).eq("id", userId);
+          await queueProfileUpdate({ weekly_xp: 0, weekly_start: weekStart });
         } catch (e) {
           console.warn("Could not reset weekly XP:", e);
         }
@@ -6513,6 +6682,9 @@ function App() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [currentStep]);
   const fetchProfile = async (userId) => {
+    // Sync any pending changes if we are online
+    syncPendingUpdates(userId);
+
     try {
       const { data, error } = await supabase
         .from("profiles")
@@ -6524,6 +6696,10 @@ function App() {
         console.warn("Could not fetch profile, setting default session:", error.message);
         const storedAssessment = getStoredAssessmentState(userId);
         const localExp = localStorage.getItem(`lisa_user_experience_level_${userId}`) || "I am completely new to this language";
+        
+        // Try reading cached profile first
+        const cachedProfile = JSON.parse(localStorage.getItem(`lisa_profile_cache_${userId}`) || "{}");
+
         const defaultProfile = {
           id: userId,
           full_name: session?.user?.user_metadata?.full_name || session?.user?.email || "Learner",
@@ -6533,9 +6709,10 @@ function App() {
           experience_level: session?.user?.user_metadata?.experience_level || localExp,
           literacy_level: storedAssessment?.literacy_level ?? null,
           assessment_completed: storedAssessment?.assessment_completed ?? false,
-          xp: 0,
-          completed_lessons: [],
-          attempts_history: []
+          xp: parseInt(localStorage.getItem(`lisa_user_xp_${userId}`) || "0", 10) || 0,
+          completed_lessons: JSON.parse(localStorage.getItem(`lisa_completed_lessons_${userId}`) || "[]"),
+          attempts_history: JSON.parse(localStorage.getItem("lisa_attempts_history") || "[]"),
+          ...cachedProfile
         };
         setProfile(defaultProfile);
         updateStreak(userId, defaultProfile);
@@ -6550,6 +6727,7 @@ function App() {
         };
 
         setProfile(mergedProfile);
+        localStorage.setItem(`lisa_profile_cache_${userId}`, JSON.stringify(mergedProfile));
         updateStreak(userId, mergedProfile);
 
         // Load progress and preferences from the database, updating both React state and localStorage cache.
@@ -8067,6 +8245,11 @@ function App() {
     if (session?.user?.email !== "admin@gmail.com" && (!hasDiagnosed || assessmentState !== "not_started")) {
       return (
         <div className="dashboard-container">
+          {showOfflineBanner && (
+            <div className="offline-banner">
+              📡 You are currently offline. Progress is saved locally and will sync once you are back online!
+            </div>
+          )}
           {/* Navigation Top Bar Header */}
           <header className="dashboard-header" style={{ background: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: '16px 32px', borderBottom: '1px solid var(--line)' }}>
             {/* Brand Logo & Info (same design as login page) */}
