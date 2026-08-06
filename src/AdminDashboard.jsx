@@ -17,6 +17,24 @@ import {
   Bell
 } from "lucide-react";
 
+// Assessment pools are keyed by language, then by level (e.g. "child_level_1"),
+// with each level holding { title, description, questions: [...] }.
+// This flattens any supported shape into a single array for admin preview.
+function flattenAssessmentQuestions(pool) {
+  if (!pool) return [];
+  if (Array.isArray(pool)) return pool;
+  if (Array.isArray(pool.questions)) {
+    return pool.questions.map(q => ({ ...q, level: pool.title || "" }));
+  }
+  return Object.entries(pool).flatMap(([levelKey, level]) => {
+    if (Array.isArray(level)) return level.map(q => ({ ...q, level: levelKey }));
+    if (level && Array.isArray(level.questions)) {
+      return level.questions.map(q => ({ ...q, level: level.title || levelKey }));
+    }
+    return [];
+  });
+}
+
 export default function AdminDashboard({ session, t = (key) => key, shopCatalog, onShopCatalogChange, adminAnnouncements = [], onAnnouncementsChange }) {
   // Guard access
   const isAdmin = session?.user?.email === "admin@gmail.com";
@@ -1721,22 +1739,22 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                {(assessmentQuestionsByLanguage[selectedCurriculumLang] || []).map((q, idx) => (
-                  <div key={idx} style={{ background: 'var(--panel-strong)', border: '1px solid var(--line)', borderRadius: '16px', padding: '16px' }}>
+                {flattenAssessmentQuestions(assessmentQuestionsByLanguage[selectedCurriculumLang]).map((q, idx) => (
+                  <div key={q.id || idx} style={{ background: 'var(--panel-strong)', border: '1px solid var(--line)', borderRadius: '16px', padding: '16px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px', gap: '8px' }}>
                       <span style={{ background: 'var(--accent-soft)', color: 'var(--accent-dark)', borderRadius: '8px', padding: '2px 8px', fontSize: '0.68rem', fontWeight: 900, textTransform: 'uppercase', flexShrink: 0 }}>
                         Q{idx + 1} · {q.type || 'mcq'}
                       </span>
-                      {q.skill && (
+                      {(q.skill || q.level) && (
                         <span style={{ background: 'rgba(168,85,247,0.1)', color: '#a855f7', borderRadius: '8px', padding: '2px 8px', fontSize: '0.68rem', fontWeight: 800, flexShrink: 0 }}>
-                          {q.skill}
+                          {q.skill || q.level}
                         </span>
                       )}
                     </div>
                     <p style={{ margin: '0 0 8px', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text)', lineHeight: 1.5 }}>
                       {q.question || q.prompt || q.sentence || '(no question text)'}
                     </p>
-                    {q.options && (
+                    {Array.isArray(q.options) && (
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                         {q.options.map((opt, oi) => (
                           <span key={oi} style={{
@@ -1748,14 +1766,14 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
                             border: oi === q.correctIndex ? '1.5px solid #10b981' : '1px solid var(--line)',
                             color: oi === q.correctIndex ? '#059669' : 'var(--text)'
                           }}>
-                            {opt}
+                            {typeof opt === 'string' ? opt : (opt?.text ?? JSON.stringify(opt))}
                           </span>
                         ))}
                       </div>
                     )}
                   </div>
                 ))}
-                {(!assessmentQuestionsByLanguage[selectedCurriculumLang] || assessmentQuestionsByLanguage[selectedCurriculumLang].length === 0) && (
+                {flattenAssessmentQuestions(assessmentQuestionsByLanguage[selectedCurriculumLang]).length === 0 && (
                   <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '40px', color: 'var(--muted)' }}>
                     <div style={{ fontSize: '2rem', marginBottom: '8px' }}>📋</div>
                     <p style={{ margin: 0, fontWeight: 700 }}>No assessment questions found for {selectedCurriculumLang}.</p>
