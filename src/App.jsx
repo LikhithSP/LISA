@@ -7297,11 +7297,7 @@ function App() {
       avatar: partial.avatar !== undefined ? partial.avatar : shopCustomAvatar,
       badges: partial.badges !== undefined ? partial.badges : profileBadges,
     };
-    setProfile(prev => prev ? { ...prev, shop_data: payload } : null);
-    supabase
-      .from("profiles")
-      .update({ shop_data: payload })
-      .eq("id", userId);
+    queueProfileUpdate({ shop_data: payload });
   };
 
   const stopListening = () => {
@@ -9101,11 +9097,11 @@ function App() {
               <div
                 className="indicator-pill streak"
                 onClick={() => setStreakPopupOpen(!streakPopupOpen)}
-                style={{ cursor: 'pointer', position: 'relative', gap: '8px' }}
+                style={{ cursor: 'pointer', position: 'relative' }}
                 ref={streakPopupRef}
               >
-                <FlameIcon style={{ color: '#ff4d00', width: '22px', height: '22px' }} />
-                <span style={{ fontSize: '1.25rem', fontWeight: '800', color: '#ff4d00', lineHeight: 1 }}>{streakCount}</span>
+                <FlameIcon style={{ color: '#ff4d00', width: '18px', height: '18px' }} />
+                <span style={{ color: '#ff4d00' }}>{streakCount}</span>
 
                 {/* Streak Popup */}
                 {streakPopupOpen && (
@@ -9173,7 +9169,7 @@ function App() {
                 className={`indicator-pill shop-pill ${dashboardTab === "shop" ? "active" : ""}`}
                 onClick={() => switchDashboardTab("shop")}
                 title="XP Shop"
-                style={{ background: '#f59e0b15', color: '#f59e0b', padding: '6px 10px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                style={{ background: 'var(--accent-soft)', color: 'var(--accent)', padding: '6px 10px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
               >
                 <svg style={{ marginRight: 0, width: 18, height: 18, verticalAlign: "middle" }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
@@ -9186,7 +9182,7 @@ function App() {
                 className={`indicator-pill leaderboard-pill ${dashboardTab === "leaderboard" ? "active" : ""}`}
                 onClick={() => switchDashboardTab("leaderboard")}
                 title="Leaderboard"
-                style={{ background: '#f59e0b15', color: '#f59e0b', padding: '6px 10px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                style={{ background: 'var(--accent-soft)', color: 'var(--accent)', padding: '6px 10px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
               >
                 <TrophyIcon style={{ marginRight: 0, width: 18, height: 18, verticalAlign: "middle" }} />
               </button>
@@ -9438,46 +9434,84 @@ function App() {
                   </button>
                 </div>
 
-                <div className="word-of-day-card">
-                  <div className="word-of-day-head">
-                    <span className="word-of-day-label">{t("dashboardWordOfDay")}</span>
-                    <button
-                      type="button"
-                      className="word-of-day-speak"
-                      onClick={() => speakWord(wordOfDay.word)}
-                      aria-label="Listen to word"
-                    >
-                      🔊
-                    </button>
+                <div className="dashboard-overview-row" style={{ margin: 0, gap: '24px', alignItems: 'stretch' }}>
+                  <div className="word-of-day-card" style={{ flex: 1, margin: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                    <div>
+                      <div className="word-of-day-head">
+                        <span className="word-of-day-label">{t("dashboardWordOfDay")}</span>
+                        <button
+                          type="button"
+                          className="word-of-day-speak"
+                          onClick={() => speakWord(wordOfDay.word)}
+                          aria-label="Listen to word"
+                        >
+                          🔊
+                        </button>
+                      </div>
+                      <h3 className="word-of-day-word" style={{ marginTop: '8px', marginBottom: '16px' }}>{wordOfDay.word}</h3>
+                      <div className="word-of-day-block" style={{ marginBottom: '12px' }}>
+                        <span className="word-of-day-heading" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                          {t("meaning")}
+                          <button
+                            type="button"
+                            className="word-of-day-speak word-of-day-speak-inline"
+                            onClick={() => speakText(wordOfDay.meaning || "", 0.9, selectedLanguage || "English")}
+                            style={{ margin: 0, padding: '2px 4px', fontSize: '0.8rem', background: 'transparent', border: 'none', cursor: 'pointer' }}
+                            aria-label="Listen to meaning"
+                          >
+                            🔊
+                          </button>
+                        </span>
+                        <p className="word-of-day-meaning" style={{ marginTop: '4px' }}>
+                          {wordOfDay.meaning}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="word-of-day-block" style={{ marginTop: 'auto' }}>
+                      <span className="word-of-day-heading" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                        {t("example")}
+                        <button
+                          type="button"
+                          className="word-of-day-speak word-of-day-speak-inline"
+                          onClick={() => speakText(wordOfDay.example || "", 0.9, learningLanguage || "English")}
+                          style={{ margin: 0, padding: '2px 4px', fontSize: '0.8rem', background: 'transparent', border: 'none', cursor: 'pointer' }}
+                          aria-label="Listen to example"
+                        >
+                          🔊
+                        </button>
+                      </span>
+                      <p className="word-of-day-example" style={{ marginTop: '4px' }}>
+                        "{wordOfDay.example}"
+                      </p>
+                    </div>
                   </div>
-                  <h3 className="word-of-day-word">{wordOfDay.word}</h3>
-                  <div className="word-of-day-block">
-                    <span className="word-of-day-heading">{t("meaning")}</span>
-                    <p className="word-of-day-meaning">
-                      {wordOfDay.meaning}
-                      <button
-                        type="button"
-                        className="word-of-day-speak word-of-day-speak-inline"
-                        onClick={() => speakText(wordOfDay.meaning || "", 0.9, selectedLanguage || "English")}
-                        aria-label="Listen to meaning"
-                      >
-                        🔊
-                      </button>
-                    </p>
-                  </div>
-                  <div className="word-of-day-block">
-                    <span className="word-of-day-heading">{t("example")}</span>
-                    <p className="word-of-day-example">
-                      "{wordOfDay.example}"
-                      <button
-                        type="button"
-                        className="word-of-day-speak word-of-day-speak-inline"
-                        onClick={() => speakText(wordOfDay.example || "", 0.9, learningLanguage || "English")}
-                        aria-label="Listen to example"
-                      >
-                        🔊
-                      </button>
-                    </p>
+
+                  <div className="current-level-card" style={{
+                    flex: 1,
+                    margin: 0,
+                    background: 'var(--panel-strong)',
+                    border: '1px solid var(--line)',
+                    boxShadow: 'none',
+                    color: 'var(--text)',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center'
+                  }}>
+                    <div className="current-level-header">
+                      <h3 className="current-level-title" style={{ color: 'var(--text)' }}>{t("dashboardCurrentLevel")}</h3>
+                    </div>
+                    <div className="current-level-body" style={{ marginTop: '12px' }}>
+                      <div className="current-level-badge" style={{ background: `${levelBadgeColor(currentLevelNum)}1a`, border: `1.5px solid ${levelBadgeColor(currentLevelNum)}40` }}>
+                        <span className="current-level-badge-icon">{levelBadgeIcon(currentLevelNum)}</span>
+                        <span className="current-level-badge-level" style={{ color: levelBadgeColor(currentLevelNum), fontWeight: '900' }}>{t("level").toUpperCase()} {currentLevelNum}</span>
+                      </div>
+                      <div className="current-level-info">
+                        <p className="current-level-name" style={{ color: 'var(--text)', fontWeight: '750' }}>{getLevelCategoryAndDescription(currentLevelNum, selectedLanguage).category}</p>
+                        <p className="current-level-msg" style={{ color: 'var(--muted)', fontWeight: '500' }}>{translatedLevelMsg}</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -9485,41 +9519,7 @@ function App() {
               </div>
 
               <div className="dashboard-col dashboard-col-right">
-                <div className="current-level-card" style={{
-                  margin: 0,
-                  background: `linear-gradient(135deg, var(--panel-strong) 0%, ${levelBadgeColor(currentLevelNum)}15 100%)`,
-                  border: `1px solid var(--line)`,
-                  boxShadow: `0 8px 24px rgba(0,0,0,0.04)`,
-                  color: 'var(--text)',
-                  position: 'relative',
-                  overflow: 'hidden'
-                }}>
-                  {/* Premium abstract background glow */}
-                  <div style={{
-                    position: 'absolute',
-                    top: '-20px',
-                    right: '-20px',
-                    width: '120px',
-                    height: '120px',
-                    borderRadius: '50%',
-                    background: `${levelBadgeColor(currentLevelNum)}15`,
-                    filter: 'blur(20px)',
-                    pointerEvents: 'none'
-                  }} />
-                  <div className="current-level-header">
-                    <h3 className="current-level-title" style={{ color: 'var(--text)' }}>{t("dashboardCurrentLevel")}</h3>
-                  </div>
-                  <div className="current-level-body">
-                    <div className="current-level-badge" style={{ background: `${levelBadgeColor(currentLevelNum)}1a`, border: `1.5px solid ${levelBadgeColor(currentLevelNum)}40` }}>
-                      <span className="current-level-badge-icon">{levelBadgeIcon(currentLevelNum)}</span>
-                      <span className="current-level-badge-level" style={{ color: levelBadgeColor(currentLevelNum), fontWeight: '900' }}>{t("level").toUpperCase()} {currentLevelNum}</span>
-                    </div>
-                    <div className="current-level-info">
-                      <p className="current-level-name" style={{ color: 'var(--text)', fontWeight: '750' }}>{getLevelCategoryAndDescription(currentLevelNum, selectedLanguage).category}</p>
-                      <p className="current-level-msg" style={{ color: 'var(--muted)', fontWeight: '500' }}>{translatedLevelMsg}</p>
-                    </div>
-                  </div>
-                </div>
+
 
                 <div className="stars-answers-card" style={{ margin: 0 }}>
                   <div className="progress-dashboard-header" style={{ paddingTop: 0, borderTop: 'none', borderBottom: '1px solid var(--line)', paddingBottom: '12px', marginBottom: '4px' }}>
@@ -9562,19 +9562,21 @@ function App() {
                   </div>
                 </div>
 
-                <div className="dashboard-overview-row">
-                  <div className="streak-widget-card streak-society-card" style={{ margin: 0 }}>
-                    <div className="streak-society-header">
-                      <span className="streak-society-badge">{t("dashboardStreakSociety").toUpperCase()}</span>
-                      <div className="streak-society-icon"><FlameIcon style={{ width: "36px", height: "36px", color: '#ff4d00', marginRight: 0 }} /></div>
+                <div className="dashboard-overview-row" style={{ margin: 0, alignItems: 'stretch' }}>
+                  <div className="streak-widget-card streak-society-card" style={{ margin: 0, flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                    <div>
+                      <div className="streak-society-header">
+                        <span className="streak-society-badge">{t("dashboardStreakSociety").toUpperCase()}</span>
+                        <div className="streak-society-icon"><FlameIcon style={{ width: "36px", height: "36px", color: '#ff4d00', marginRight: 0 }} /></div>
+                      </div>
+                      <h4 className="streak-society-title" style={{ fontSize: '2.4rem', fontWeight: '900', letterSpacing: '-0.5px', lineHeight: 1.1 }}>
+                        {streakCount} <span style={{ fontSize: '1.2rem', fontWeight: '700', opacity: 0.9 }}>{t("dashboardDayStreak")}</span>
+                      </h4>
                     </div>
-                    <h4 className="streak-society-title" style={{ fontSize: '2.4rem', fontWeight: '900', letterSpacing: '-0.5px', lineHeight: 1.1 }}>
-                      {streakCount} <span style={{ fontSize: '1.2rem', fontWeight: '700', opacity: 0.9 }}>{t("dashboardDayStreak")}</span>
-                    </h4>
-                    <p className="streak-society-message">{translatedStreakMsg}</p>
+                    <p className="streak-society-message" style={{ marginTop: 'auto' }}>{translatedStreakMsg}</p>
                   </div>
 
-                  <div className="daily-quests-card" style={{ margin: 0 }}>
+                  <div className="daily-quests-card" style={{ margin: 0, flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                     <div className="daily-quests-header">
                       <h3>{t("dashboardDailyQuests")}</h3>
                       <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'nowrap' }}>
@@ -9650,96 +9652,7 @@ function App() {
                   </div>
                 </div>
 
-                <div className="achievements-card" style={{ margin: 0 }}>
-                  <div className="achievements-card-header">
-                    <h4>{t("badgesEarned")}</h4>
-                    <button className="achievements-view-all" onClick={() => setShowAllAchievementsModal(true)}>{t("dashboardViewAll")}</button>
-                  </div>
-                  <div className="achievements-list">
-                    {(() => {
-                      const achievementsList = ACHIEVEMENT_DEFS.map((a) => {
-                        let earned = false;
-                        let progress = 0;
-                        switch (a.id) {
-                          case 1:
-                            earned = true; progress = 100; break;
-                          case 2:
-                            earned = calculateSkillProficiency("reading") >= 75;
-                            progress = Math.min(100, Math.round(calculateSkillProficiency("reading"))); break;
-                          case 3:
-                            earned = calculateSkillProficiency("reading_comprehension") >= 75;
-                            progress = Math.min(100, Math.round(calculateSkillProficiency("reading_comprehension"))); break;
-                          case 4:
-                            earned = calculateSkillProficiency("writing") >= 75;
-                            progress = Math.min(100, Math.round(calculateSkillProficiency("writing"))); break;
-                          case 5:
-                            earned = userXp >= 100;
-                            progress = Math.min(100, Math.round((userXp / 100) * 100)); break;
-                          case 6:
-                            earned = completedLessons.filter(id => !id.startsWith("ach_")).length >= 3;
-                            progress = Math.min(100, Math.round((completedLessons.filter(id => !id.startsWith("ach_")).length / 3) * 100)); break;
-                          case 7:
-                            earned = calculateSkillProficiency("reading_ability") >= 75;
-                            progress = Math.min(100, Math.round(calculateSkillProficiency("reading_ability"))); break;
-                          case 8:
-                            earned = currentLevelNum >= 8;
-                            progress = Math.min(100, Math.round((currentLevelNum / 8) * 100)); break;
-                          case 9:
-                            earned = currentLevelNum >= 12;
-                            progress = Math.min(100, Math.round((currentLevelNum / 12) * 100)); break;
-                          default: break;
-                        }
-                        return { ...a, earned, progress };
-                      });
 
-                      // Find chronologically earned achievements from completed_lessons order
-                      const earnedAchievementIds = completedLessons
-                        .filter(id => id.startsWith("ach_"))
-                        .map(id => parseInt(id.replace("ach_", ""), 10));
-
-                      // Find corresponding badge definitions
-                      const earnedList = earnedAchievementIds
-                        .map(id => achievementsList.find(a => a.id === id))
-                        .filter(Boolean);
-
-                      // Include owned shop badges as achievements
-                      const shopBadgesDefs = SHOP_CATALOG.badges.map((b) => ({
-                        id: b.id,
-                        title: t(b.id + "_name") || b.name,
-                        desc: t(b.id + "_desc") || b.desc,
-                        icon: b.icon,
-                        color: b.rarity === "legendary" ? "#d97706" : b.rarity === "rare" ? "#3b82f6" : "#6b7280",
-                        earned: true,
-                        progress: 100
-                      }));
-                      const ownedShopBadges = shopBadgesDefs.filter(b => shopOwnedItems.includes(b.id));
-
-                      const combinedEarnedList = [...earnedList, ...ownedShopBadges];
-
-                      // Display only the last 2 recently earned badges, or the first two items in general if none earned yet
-                      const displayedList = combinedEarnedList.length > 0
-                        ? combinedEarnedList.slice(-2)
-                        : achievementsList.slice(0, 2);
-
-                      return displayedList.map((a) => (
-                        <div key={a.id} className={`achievement-row ${a.earned ? "earned" : ""}`}>
-                          <div className="achievement-badge-box" style={{ background: a.earned ? a.color : 'var(--line)' }}>
-                            <span className="achievement-badge-icon">{a.earned ? a.icon : '🔒'}</span>
-                          </div>
-                          <div className="achievement-info">
-                            <div className="achievement-info-header">
-                              <span className="achievement-title">{a.id.toString().startsWith("badge_") ? a.title : (translatedAchievements[a.id]?.title || a.title)}</span>
-                            </div>
-                            <p className="achievement-desc">{a.id.toString().startsWith("badge_") ? a.desc : (translatedAchievements[a.id]?.desc || a.desc)}</p>
-                            <div className="achievement-progress-track">
-                              <div className="achievement-progress-fill" style={{ width: `${a.progress}%`, background: '#facc15' }}></div>
-                            </div>
-                          </div>
-                        </div>
-                      ));
-                    })()}
-                  </div>
-                </div>
               </div>
             </div>
           )}
@@ -10597,6 +10510,97 @@ style={(() => {
                         )}
                       </div>
                     </div>
+
+                    <div className="achievements-card" style={{ margin: '24px 0 0 0' }}>
+                      <div className="achievements-card-header">
+                        <h4>{t("badgesEarned")}</h4>
+                        <button className="achievements-view-all" onClick={() => setShowAllAchievementsModal(true)}>{t("dashboardViewAll")}</button>
+                      </div>
+                      <div className="achievements-list">
+                        {(() => {
+                          const achievementsList = ACHIEVEMENT_DEFS.map((a) => {
+                            let earned = false;
+                            let progress = 0;
+                            switch (a.id) {
+                              case 1:
+                                earned = true; progress = 100; break;
+                              case 2:
+                                earned = calculateSkillProficiency("reading") >= 75;
+                                progress = Math.min(100, Math.round(calculateSkillProficiency("reading"))); break;
+                              case 3:
+                                earned = calculateSkillProficiency("reading_comprehension") >= 75;
+                                progress = Math.min(100, Math.round(calculateSkillProficiency("reading_comprehension"))); break;
+                              case 4:
+                                earned = calculateSkillProficiency("writing") >= 75;
+                                progress = Math.min(100, Math.round(calculateSkillProficiency("writing"))); break;
+                              case 5:
+                                earned = userXp >= 100;
+                                progress = Math.min(100, Math.round((userXp / 100) * 100)); break;
+                              case 6:
+                                earned = completedLessons.filter(id => !id.startsWith("ach_")).length >= 3;
+                                progress = Math.min(100, Math.round((completedLessons.filter(id => !id.startsWith("ach_")).length / 3) * 100)); break;
+                              case 7:
+                                earned = calculateSkillProficiency("reading_ability") >= 75;
+                                progress = Math.min(100, Math.round(calculateSkillProficiency("reading_ability"))); break;
+                              case 8:
+                                earned = currentLevelNum >= 8;
+                                progress = Math.min(100, Math.round((currentLevelNum / 8) * 100)); break;
+                              case 9:
+                                earned = currentLevelNum >= 12;
+                                progress = Math.min(100, Math.round((currentLevelNum / 12) * 100)); break;
+                              default: break;
+                            }
+                            return { ...a, earned, progress };
+                          });
+
+                          // Find chronologically earned achievements from completed_lessons order
+                          const earnedAchievementIds = completedLessons
+                            .filter(id => id.startsWith("ach_"))
+                            .map(id => parseInt(id.replace("ach_", ""), 10));
+
+                          // Find corresponding badge definitions
+                          const earnedList = earnedAchievementIds
+                            .map(id => achievementsList.find(a => a.id === id))
+                            .filter(Boolean);
+
+                          // Include owned shop badges as achievements
+                          const shopBadgesDefs = SHOP_CATALOG.badges.map((b) => ({
+                            id: b.id,
+                            title: t(b.id + "_name") || b.name,
+                            desc: t(b.id + "_desc") || b.desc,
+                            icon: b.icon,
+                            color: b.rarity === "legendary" ? "#d97706" : b.rarity === "rare" ? "#3b82f6" : "#6b7280",
+                            earned: true,
+                            progress: 100
+                          }));
+                          const ownedShopBadges = shopBadgesDefs.filter(b => shopOwnedItems.includes(b.id));
+
+                          const combinedEarnedList = [...earnedList, ...ownedShopBadges];
+
+                          // Display only the last 2 recently earned badges, or the first two items in general if none earned yet
+                          const displayedList = combinedEarnedList.length > 0
+                            ? combinedEarnedList.slice(-2)
+                            : achievementsList.slice(0, 2);
+
+                          return displayedList.map((a) => (
+                            <div key={a.id} className={`achievement-row ${a.earned ? "earned" : ""}`}>
+                              <div className="achievement-badge-box" style={{ background: a.earned ? a.color : 'var(--line)' }}>
+                                <span className="achievement-badge-icon">{a.earned ? a.icon : '🔒'}</span>
+                              </div>
+                              <div className="achievement-info">
+                                <div className="achievement-info-header">
+                                  <span className="achievement-title">{a.id.toString().startsWith("badge_") ? a.title : (translatedAchievements[a.id]?.title || a.title)}</span>
+                                </div>
+                                <p className="achievement-desc">{a.id.toString().startsWith("badge_") ? a.desc : (translatedAchievements[a.id]?.desc || a.desc)}</p>
+                                <div className="achievement-progress-track">
+                                  <div className="achievement-progress-fill" style={{ width: `${a.progress}%`, background: '#facc15' }}></div>
+                                </div>
+                              </div>
+                            </div>
+                          ));
+                        })()}
+                      </div>
+                    </div>
                   </div>
                 )}
 
@@ -10915,40 +10919,18 @@ style={(() => {
                       const avatarEmoji = updatedAvatar && typeof updatedAvatar === "object" && updatedAvatar.type === "emoji" ? updatedAvatar.emoji : null;
                       const avatarUrl = typeof updatedAvatar === "string" && updatedAvatar.startsWith("http") ? updatedAvatar : null;
 
-                      setProfile(prev => prev ? {
-                        ...prev,
+                      queueProfileUpdate({
                         xp: newXp,
                         shop_data: payload,
                         avatar_emoji: avatarEmoji,
                         avatar_url: avatarUrl
-                      } : null);
-
-                      supabase
-                        .from("profiles")
-                        .update({
-                          xp: newXp,
-                          shop_data: payload,
-                          avatar_emoji: avatarEmoji,
-                          avatar_url: avatarUrl
-                        })
-                        .eq("id", userId)
-                        .then(({ error }) => {
-                          if (error) {
-                            console.error("Failed to update profile shop data in Supabase:", error.message);
-                          } else {
-                            console.log("Profile shop data successfully saved in Supabase.");
-                          }
-                        });
+                      });
                     }
                   }}
                   userXp={userXp}
                   onSpendXp={(newXp) => {
                     setUserXp(newXp);
-                    setProfile(prev => prev ? { ...prev, xp: newXp } : null);
-                    const userId = session?.user?.id;
-                    if (userId) {
-                      supabase.from("profiles").update({ xp: newXp }).eq("id", userId);
-                    }
+                    queueProfileUpdate({ xp: newXp });
                   }}
                   session={session}
                   ownedItems={shopOwnedItems}
