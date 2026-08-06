@@ -9325,6 +9325,11 @@ function App() {
             )}
           </div>
 
+          <div className="topbar-center">
+            <img src="/icon.png" alt="LISA" className="topbar-logo-img" />
+            <span className="topbar-logo-text">LISA</span>
+          </div>
+
           <div className="sidebar-pill">
             <div className="sidebar-logo">LISA</div>
             <div className="sidebar-menu">
