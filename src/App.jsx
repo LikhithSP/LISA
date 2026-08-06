@@ -9169,7 +9169,6 @@ function App() {
                 className={`indicator-pill shop-pill ${dashboardTab === "shop" ? "active" : ""}`}
                 onClick={() => switchDashboardTab("shop")}
                 title="XP Shop"
-                style={{ background: 'var(--accent-soft)', color: 'var(--accent)', padding: '6px 10px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
               >
                 <svg style={{ marginRight: 0, width: 18, height: 18, verticalAlign: "middle" }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
@@ -9182,7 +9181,6 @@ function App() {
                 className={`indicator-pill leaderboard-pill ${dashboardTab === "leaderboard" ? "active" : ""}`}
                 onClick={() => switchDashboardTab("leaderboard")}
                 title="Leaderboard"
-                style={{ background: 'var(--accent-soft)', color: 'var(--accent)', padding: '6px 10px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
               >
                 <TrophyIcon style={{ marginRight: 0, width: 18, height: 18, verticalAlign: "middle" }} />
               </button>
