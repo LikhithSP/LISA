@@ -417,18 +417,18 @@ const darkenHex = (hex, factor = 0.85) => {
 
 const levelBadgeColor = (level) => {
   const colors = {
-    1: "#10b981",
-    2: "#3b82f6",
-    3: "#f59e0b",
-    4: "#a855f7",
-    5: "#ef4444",
-    6: "#0ea5e9",
-    7: "#ec4899",
-    8: "#f43f5e",
-    9: "#06b6d4",
-    10: "#8b5cf6",
-    11: "#6366f1",
-    12: "#e11d48"
+    1: "#10b981", // Emerald
+    2: "#3b82f6", // Blue
+    3: "#f59e0b", // Amber
+    4: "#8b5cf6", // Violet
+    5: "#ef4444", // Red
+    6: "#0ea5e9", // Sky
+    7: "#6366f1", // Indigo
+    8: "#4f46e5", // Indigo dark
+    9: "#06b6d4", // Cyan
+    10: "#7c3aed", // Deep Violet
+    11: "#6366f1", // Indigo
+    12: "#2563eb"  // Royal Blue
   };
   return colors[level] || "#6b7280";
 };
@@ -9487,10 +9487,10 @@ function App() {
               <div className="dashboard-col dashboard-col-right">
                 <div className="current-level-card" style={{
                   margin: 0,
-                  background: `linear-gradient(135deg, ${levelBadgeColor(currentLevelNum)} 0%, ${darkenHex(levelBadgeColor(currentLevelNum), 0.88)} 100%)`,
-                  border: `2px solid ${levelBadgeColor(currentLevelNum)}88`,
-                  boxShadow: `0 8px 32px ${levelBadgeColor(currentLevelNum)}40`,
-                  color: '#ffffff',
+                  background: `linear-gradient(135deg, var(--panel-strong) 0%, ${levelBadgeColor(currentLevelNum)}15 100%)`,
+                  border: `1px solid var(--line)`,
+                  boxShadow: `0 8px 24px rgba(0,0,0,0.04)`,
+                  color: 'var(--text)',
                   position: 'relative',
                   overflow: 'hidden'
                 }}>
@@ -9502,21 +9502,21 @@ function App() {
                     width: '120px',
                     height: '120px',
                     borderRadius: '50%',
-                    background: 'rgba(255, 255, 255, 0.12)',
+                    background: `${levelBadgeColor(currentLevelNum)}15`,
                     filter: 'blur(20px)',
                     pointerEvents: 'none'
                   }} />
                   <div className="current-level-header">
-                    <h3 className="current-level-title" style={{ color: '#ffffff', textShadow: '0 2px 4px rgba(0,0,0,0.15)' }}>{t("dashboardCurrentLevel")}</h3>
+                    <h3 className="current-level-title" style={{ color: 'var(--text)' }}>{t("dashboardCurrentLevel")}</h3>
                   </div>
                   <div className="current-level-body">
-                    <div className="current-level-badge" style={{ background: 'rgba(255, 255, 255, 0.25)', border: '2px solid rgba(255, 255, 255, 0.4)' }}>
+                    <div className="current-level-badge" style={{ background: `${levelBadgeColor(currentLevelNum)}1a`, border: `1.5px solid ${levelBadgeColor(currentLevelNum)}40` }}>
                       <span className="current-level-badge-icon">{levelBadgeIcon(currentLevelNum)}</span>
-                      <span className="current-level-badge-level" style={{ color: '#ffffff', fontWeight: '900' }}>{t("level").toUpperCase()} {currentLevelNum}</span>
+                      <span className="current-level-badge-level" style={{ color: levelBadgeColor(currentLevelNum), fontWeight: '900' }}>{t("level").toUpperCase()} {currentLevelNum}</span>
                     </div>
                     <div className="current-level-info">
-                      <p className="current-level-name" style={{ color: '#ffffff', textShadow: '0 2px 4px rgba(0,0,0,0.15)' }}>{getLevelCategoryAndDescription(currentLevelNum, selectedLanguage).category}</p>
-                      <p className="current-level-msg" style={{ color: 'rgba(255, 255, 255, 0.9)', fontWeight: '500' }}>{translatedLevelMsg}</p>
+                      <p className="current-level-name" style={{ color: 'var(--text)', fontWeight: '750' }}>{getLevelCategoryAndDescription(currentLevelNum, selectedLanguage).category}</p>
+                      <p className="current-level-msg" style={{ color: 'var(--muted)', fontWeight: '500' }}>{translatedLevelMsg}</p>
                     </div>
                   </div>
                 </div>
