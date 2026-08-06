@@ -10,13 +10,14 @@ import {
   BookOpen, 
   Download, 
   RefreshCw, 
-  Eye, 
   Sparkles, 
   Award, 
-  Layers 
+  Layers,
+  Megaphone,
+  Bell
 } from "lucide-react";
 
-export default function AdminDashboard({ session, t = (key) => key, shopCatalog, onShopCatalogChange }) {
+export default function AdminDashboard({ session, t = (key) => key, shopCatalog, onShopCatalogChange, adminAnnouncements = [], onAnnouncementsChange }) {
   // Guard access
   const isAdmin = session?.user?.email === "admin@gmail.com";
 
@@ -64,6 +65,67 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
   const [wordSearch, setWordSearch] = useState("");
   const [editingWord, setEditingWord] = useState(null); // Word object being edited/added
   const [isAddingWord, setIsAddingWord] = useState(false);
+
+  // States for Announcements
+  const [annTitle, setAnnTitle] = useState("");
+  const [annMessage, setAnnMessage] = useState("");
+  const [annIcon, setAnnIcon] = useState("📢");
+  const [annColor, setAnnColor] = useState("#6366f1");
+  const [annSaving, setAnnSaving] = useState(false);
+  const [annDeleteId, setAnnDeleteId] = useState(null);
+
+  const handleSaveAnnouncement = async () => {
+    if (!annTitle.trim() || !annMessage.trim()) {
+      alert("Please fill in both title and message.");
+      return;
+    }
+    setAnnSaving(true);
+    try {
+      const newAnn = {
+        id: Date.now().toString(),
+        title: annTitle.trim(),
+        message: annMessage.trim(),
+        icon: annIcon || "📢",
+        color: annColor || "#6366f1",
+        createdAt: new Date().toISOString()
+      };
+      const updated = [...adminAnnouncements, newAnn];
+      // Fetch admin's current shop_data first to not overwrite other keys
+      const { data: adminRows } = await supabase.from("profiles").select("id, shop_data").eq("email", "admin@gmail.com");
+      if (adminRows && adminRows.length > 0) {
+        const adminId = adminRows[0].id;
+        const existingShopData = adminRows[0].shop_data || {};
+        await supabase.from("profiles").update({ shop_data: { ...existingShopData, announcements: updated } }).eq("id", adminId);
+        onAnnouncementsChange?.(updated);
+        setAnnTitle("");
+        setAnnMessage("");
+        setAnnIcon("📢");
+      } else {
+        alert("Could not find admin profile in database.");
+      }
+    } catch (e) {
+      console.error("Failed to save announcement:", e);
+      alert("Failed to save announcement: " + e.message);
+    }
+    setAnnSaving(false);
+  };
+
+  const handleDeleteAnnouncement = async (annId) => {
+    try {
+      const updated = adminAnnouncements.filter(a => a.id !== annId);
+      const { data: adminRows } = await supabase.from("profiles").select("id, shop_data").eq("email", "admin@gmail.com");
+      if (adminRows && adminRows.length > 0) {
+        const adminId = adminRows[0].id;
+        const existingShopData = adminRows[0].shop_data || {};
+        await supabase.from("profiles").update({ shop_data: { ...existingShopData, announcements: updated } }).eq("id", adminId);
+        onAnnouncementsChange?.(updated);
+      }
+    } catch (e) {
+      console.error("Failed to delete announcement:", e);
+    }
+    setAnnDeleteId(null);
+  };
+
 
   // Stats / Overview
   const [stats, setStats] = useState({
@@ -775,6 +837,13 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
           >
             🛍️ XP Shop Items
           </button>
+          <button 
+            type="button" 
+            className={`admin-tab-btn ${activeSubTab === "announcements" ? "active" : ""}`}
+            onClick={() => setActiveSubTab("announcements")}
+          >
+            📢 Announcements
+          </button>
         </div>
       </div>
 
@@ -1207,27 +1276,6 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
                           <div className="action-button-row">
                             <button 
                               type="button" 
-                              className="admin-action-btn view"
-                              onClick={(e) => { e.stopPropagation(); setViewingUserDetail(user); }}
-                              style={{ 
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '4px',
-                                background: 'rgba(59, 130, 246, 0.08)', 
-                                color: '#3b82f6', 
-                                border: '1px solid rgba(59, 130, 246, 0.15)',
-                                borderRadius: '10px',
-                                padding: '6px 12px',
-                                fontSize: '0.78rem',
-                                fontWeight: 800,
-                                cursor: 'pointer',
-                                transition: 'all 0.15s ease'
-                              }}
-                            >
-                              <Eye size={12} /> View
-                            </button>
-                            <button 
-                              type="button" 
                               className="admin-action-btn edit"
                               onClick={(e) => { e.stopPropagation(); setEditingUser(user); }}
                             >
@@ -1638,6 +1686,83 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
                 })()}
               </div>
             </div>
+
+            {/* Assessment Questions Preview — 2-column grid */}
+            <div style={{ marginTop: '32px', borderTop: '2px solid var(--line)', paddingTop: '28px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 900, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Award size={20} color="var(--accent)" /> Assessment Questions
+                  </h3>
+                  <p style={{ margin: '4px 0 0', fontSize: '0.78rem', color: 'var(--muted)' }}>Preview diagnostic assessment questions per language</p>
+                </div>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  {Object.keys(assessmentQuestionsByLanguage).map(lang => (
+                    <button
+                      key={lang}
+                      type="button"
+                      onClick={() => setSelectedCurriculumLang(lang)}
+                      style={{
+                        padding: '7px 14px',
+                        borderRadius: '10px',
+                        border: selectedCurriculumLang === lang ? '2px solid var(--accent)' : '2px solid var(--line)',
+                        background: selectedCurriculumLang === lang ? 'var(--accent-soft)' : 'transparent',
+                        color: selectedCurriculumLang === lang ? 'var(--accent-dark)' : 'var(--text)',
+                        fontWeight: 800,
+                        fontSize: '0.78rem',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s'
+                      }}
+                    >
+                      {lang}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                {(assessmentQuestionsByLanguage[selectedCurriculumLang] || []).map((q, idx) => (
+                  <div key={idx} style={{ background: 'var(--panel-strong)', border: '1px solid var(--line)', borderRadius: '16px', padding: '16px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px', gap: '8px' }}>
+                      <span style={{ background: 'var(--accent-soft)', color: 'var(--accent-dark)', borderRadius: '8px', padding: '2px 8px', fontSize: '0.68rem', fontWeight: 900, textTransform: 'uppercase', flexShrink: 0 }}>
+                        Q{idx + 1} · {q.type || 'mcq'}
+                      </span>
+                      {q.skill && (
+                        <span style={{ background: 'rgba(168,85,247,0.1)', color: '#a855f7', borderRadius: '8px', padding: '2px 8px', fontSize: '0.68rem', fontWeight: 800, flexShrink: 0 }}>
+                          {q.skill}
+                        </span>
+                      )}
+                    </div>
+                    <p style={{ margin: '0 0 8px', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text)', lineHeight: 1.5 }}>
+                      {q.question || q.prompt || q.sentence || '(no question text)'}
+                    </p>
+                    {q.options && (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                        {q.options.map((opt, oi) => (
+                          <span key={oi} style={{
+                            padding: '3px 10px',
+                            borderRadius: '8px',
+                            fontSize: '0.75rem',
+                            fontWeight: 700,
+                            background: oi === q.correctIndex ? 'rgba(16,185,129,0.12)' : 'var(--bg)',
+                            border: oi === q.correctIndex ? '1.5px solid #10b981' : '1px solid var(--line)',
+                            color: oi === q.correctIndex ? '#059669' : 'var(--text)'
+                          }}>
+                            {opt}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+                {(!assessmentQuestionsByLanguage[selectedCurriculumLang] || assessmentQuestionsByLanguage[selectedCurriculumLang].length === 0) && (
+                  <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '40px', color: 'var(--muted)' }}>
+                    <div style={{ fontSize: '2rem', marginBottom: '8px' }}>📋</div>
+                    <p style={{ margin: 0, fontWeight: 700 }}>No assessment questions found for {selectedCurriculumLang}.</p>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         )}
 
@@ -1937,6 +2062,152 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
           </div>
         </div>
       )}
+
+
+        {/* ANNOUNCEMENTS SUB-TAB */}
+        {activeSubTab === "announcements" && (
+          <div className="admin-section animate-fade-in">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '28px', flexWrap: 'wrap', gap: '16px' }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 900, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <Megaphone size={22} color="var(--accent)" /> Broadcast Announcements
+                </h3>
+                <p style={{ margin: '6px 0 0', fontSize: '0.82rem', color: 'var(--muted)' }}>
+                  Post messages that appear in every learner's notification bell immediately.
+                </p>
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', alignItems: 'flex-start' }}>
+              {/* Compose Form */}
+              <div style={{ background: 'var(--panel-strong)', border: '1px solid var(--line)', borderRadius: '24px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 900, color: 'var(--text)' }}>✍️ Compose New Announcement</h4>
+                <div>
+                  <label style={{ fontWeight: 800, fontSize: '0.75rem', color: 'var(--muted)', display: 'block', marginBottom: '6px' }}>TITLE</label>
+                  <input
+                    type="text"
+                    value={annTitle}
+                    onChange={e => setAnnTitle(e.target.value)}
+                    placeholder="e.g. New Feature Available!"
+                    style={{ width: '100%', padding: '10px 14px', borderRadius: '12px', border: '2px solid var(--line)', background: 'var(--bg)', color: 'var(--text)', fontWeight: 700, outline: 'none', fontSize: '0.9rem', boxSizing: 'border-box' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontWeight: 800, fontSize: '0.75rem', color: 'var(--muted)', display: 'block', marginBottom: '6px' }}>MESSAGE</label>
+                  <textarea
+                    value={annMessage}
+                    onChange={e => setAnnMessage(e.target.value)}
+                    placeholder="Type your announcement message here..."
+                    rows={4}
+                    style={{ width: '100%', padding: '10px 14px', borderRadius: '12px', border: '2px solid var(--line)', background: 'var(--bg)', color: 'var(--text)', fontWeight: 600, resize: 'vertical', outline: 'none', fontFamily: 'var(--font-family)', fontSize: '0.88rem', boxSizing: 'border-box' }}
+                  />
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div>
+                    <label style={{ fontWeight: 800, fontSize: '0.75rem', color: 'var(--muted)', display: 'block', marginBottom: '6px' }}>ICON (EMOJI)</label>
+                    <input
+                      type="text"
+                      value={annIcon}
+                      onChange={e => setAnnIcon(e.target.value)}
+                      placeholder="📢"
+                      maxLength={4}
+                      style={{ width: '100%', padding: '10px 14px', borderRadius: '12px', border: '2px solid var(--line)', background: 'var(--bg)', color: 'var(--text)', fontWeight: 700, outline: 'none', fontSize: '1.4rem', textAlign: 'center', boxSizing: 'border-box' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontWeight: 800, fontSize: '0.75rem', color: 'var(--muted)', display: 'block', marginBottom: '6px' }}>ACCENT COLOR</label>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <input
+                        type="color"
+                        value={annColor}
+                        onChange={e => setAnnColor(e.target.value)}
+                        style={{ width: '44px', height: '44px', borderRadius: '10px', border: '2px solid var(--line)', cursor: 'pointer', padding: '2px' }}
+                      />
+                      <input
+                        type="text"
+                        value={annColor}
+                        onChange={e => setAnnColor(e.target.value)}
+                        style={{ flex: 1, padding: '10px 12px', borderRadius: '12px', border: '2px solid var(--line)', background: 'var(--bg)', color: 'var(--text)', fontWeight: 700, outline: 'none', fontSize: '0.8rem', fontFamily: 'monospace', boxSizing: 'border-box' }}
+                      />
+                    </div>
+                  </div>
+                </div>
+                {/* Preview */}
+                {(annTitle || annMessage) && (
+                  <div style={{ background: `${annColor}18`, border: `1.5px solid ${annColor}40`, borderRadius: '14px', padding: '14px 16px', display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                    <span style={{ fontSize: '1.6rem', lineHeight: 1 }}>{annIcon || '📢'}</span>
+                    <div>
+                      <div style={{ fontWeight: 900, fontSize: '0.9rem', color: annColor || 'var(--accent)', marginBottom: '4px' }}>{annTitle || 'Announcement Title'}</div>
+                      <div style={{ fontSize: '0.82rem', color: 'var(--text)', fontWeight: 600 }}>{annMessage || 'Your message will appear here...'}</div>
+                    </div>
+                  </div>
+                )}
+                <button
+                  type="button"
+                  disabled={annSaving || !annTitle.trim() || !annMessage.trim()}
+                  onClick={handleSaveAnnouncement}
+                  style={{
+                    background: annSaving ? 'var(--line)' : 'linear-gradient(135deg, var(--accent), #a855f7)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '14px',
+                    padding: '14px 20px',
+                    fontWeight: 900,
+                    fontSize: '0.9rem',
+                    cursor: annSaving ? 'not-allowed' : 'pointer',
+                    transition: 'all 0.2s',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px'
+                  }}
+                >
+                  <Bell size={16} />
+                  {annSaving ? 'Sending...' : 'Send to All Users'}
+                </button>
+              </div>
+
+              {/* Active Announcements List */}
+              <div style={{ background: 'var(--panel-strong)', border: '1px solid var(--line)', borderRadius: '24px', padding: '24px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 900, color: 'var(--text)' }}>
+                    📋 Active Announcements ({adminAnnouncements.length})
+                  </h4>
+                </div>
+                {adminAnnouncements.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--muted)', fontSize: '0.85rem' }}>
+                    <div style={{ fontSize: '2.5rem', marginBottom: '12px' }}>📭</div>
+                    <p style={{ margin: 0, fontWeight: 700 }}>No announcements yet.</p>
+                    <p style={{ margin: '6px 0 0', fontWeight: 500 }}>Compose one on the left to broadcast to all learners.</p>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '520px', overflowY: 'auto' }}>
+                    {[...adminAnnouncements].reverse().map(ann => (
+                      <div key={ann.id} style={{ background: `${ann.color}12`, border: `1.5px solid ${ann.color}35`, borderRadius: '16px', padding: '14px 16px', display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                        <span style={{ fontSize: '1.4rem', lineHeight: 1, flexShrink: 0 }}>{ann.icon || '📢'}</span>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontWeight: 900, fontSize: '0.88rem', color: ann.color || 'var(--accent)', marginBottom: '4px' }}>{ann.title}</div>
+                          <div style={{ fontSize: '0.8rem', color: 'var(--text)', fontWeight: 600, lineHeight: 1.5 }}>{ann.message}</div>
+                          <div style={{ fontSize: '0.7rem', color: 'var(--muted)', marginTop: '6px', fontWeight: 700 }}>
+                            {ann.createdAt ? new Date(ann.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Just now'}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteAnnouncement(ann.id)}
+                          style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#ef4444', borderRadius: '8px', padding: '6px 10px', fontSize: '0.75rem', fontWeight: 800, cursor: 'pointer', flexShrink: 0 }}
+                          title="Delete announcement"
+                        >
+                          🗑️
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
       {/* EDIT USER MODAL */}
       {editingUser && (

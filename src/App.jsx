@@ -976,6 +976,7 @@ function App() {
   const [userXp, setUserXp] = useState(0);
   const [showAllAchievementsModal, setShowAllAchievementsModal] = useState(false);
   const [shopCatalog, setShopCatalog] = useState(SHOP_CATALOG);
+  const [adminAnnouncements, setAdminAnnouncements] = useState([]);
 
   const getLevelEncouragementMessage = (level) => {
     const messages = {
@@ -1193,8 +1194,18 @@ function App() {
     if (currentLevel > 1) {
       notifs.push({ id: "levelup", icon: "🎉", title: "Level Up", message: `Congratulations! You reached Level ${currentLevel}.`, color: "#8b5cf6" });
     }
+    // Admin announcements — broadcast to all users
+    adminAnnouncements.forEach(ann => {
+      notifs.push({
+        id: `ann_${ann.id}`,
+        icon: ann.icon || "📢",
+        title: ann.title || "Announcement",
+        message: ann.message || "",
+        color: ann.color || "#6366f1"
+      });
+    });
     return notifs;
-  }, [streakCount, userXp, completedLessons, profileBadges, dailyLessons, activeQuests, questBonusClaimed, profile, shopOwnedItems]);
+  }, [streakCount, userXp, completedLessons, profileBadges, dailyLessons, activeQuests, questBonusClaimed, profile, shopOwnedItems, adminAnnouncements]);
 
   const notifications = useMemo(() => {
     return allNotifications.filter(n => !dismissedNotifIds.includes(n.id));
@@ -2030,6 +2041,21 @@ function App() {
       setLessonTracingDone(false);
     }
   }, [lessonStep, lessonTracingIndex, lessonAiContent, lessonSession]);
+
+  // Auto-play TTS for speak question type when step changes
+  useEffect(() => {
+    if (
+      lessonSession?.status === "active" &&
+      lessonAiContent?.questions?.[lessonStep]?.type === "speak"
+    ) {
+      const sentence = lessonAiContent.questions[lessonStep].sentence || "";
+      if (sentence) {
+        // Small delay so UI renders first
+        const timer = setTimeout(() => speakText(sentence, 1.0), 400);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [lessonStep, lessonSession, lessonAiContent]);
 
   // Play the first line of dialogue automatically when Stories Practice starts
   useEffect(() => {
@@ -5192,12 +5218,8 @@ function App() {
   };
 
   const speakSentencePronunciation = (sentence) => {
-    if (!window.speechSynthesis) return;
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(sentence);
-    utterance.lang = getLocale(learningLanguage || "English");
-    utterance.rate = slowSpeed ? 0.6 : 1.0;
-    window.speechSynthesis.speak(utterance);
+    // Use speakText which handles ResponsiveVoice + speechSynthesis fallback reliably
+    speakText(sentence, slowSpeed ? 0.5 : 1.0);
   };
 
   const startListeningPronunciation = (targetText) => {
@@ -5287,7 +5309,7 @@ function App() {
         literacyLevel: level,
         literacyLevelName: levelName,
         interfaceLanguage: selectedLanguage || "English",
-        useFallback: true
+        useFallback: !aiEnabled
       }).then(res => {
         if (res && res.questions) {
           setPronunciationQuestions(res.questions);
@@ -6661,6 +6683,9 @@ function App() {
             if (adminProf.shop_data.global_shop_catalog && typeof adminProf.shop_data.global_shop_catalog === "object") {
               setShopCatalog(adminProf.shop_data.global_shop_catalog);
               localStorage.setItem("lisa_global_shop_catalog", JSON.stringify(adminProf.shop_data.global_shop_catalog));
+            }
+            if (adminProf.shop_data.announcements && Array.isArray(adminProf.shop_data.announcements)) {
+              setAdminAnnouncements(adminProf.shop_data.announcements);
             }
           }
         }
@@ -11138,6 +11163,10 @@ style={(() => {
               onShopCatalogChange={(newCatalog) => {
                 setShopCatalog(newCatalog);
                 localStorage.setItem("lisa_global_shop_catalog", JSON.stringify(newCatalog));
+              }}
+              adminAnnouncements={adminAnnouncements}
+              onAnnouncementsChange={(newAnnouncements) => {
+                setAdminAnnouncements(newAnnouncements);
               }}
             />
           )}
