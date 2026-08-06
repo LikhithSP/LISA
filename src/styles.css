@@ -4987,6 +4987,32 @@ select:focus-visible {
   gap: 16px;
 }
 
+.topbar-center {
+  display: none;
+}
+
+.topbar-logo-img {
+  height: 28px;
+  width: 28px;
+  border-radius: 50%;
+  object-fit: contain;
+  background: #ffffff;
+  padding: 3px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="dark"] .topbar-logo-img {
+  background: #ffffff;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+}
+
+.topbar-logo-text {
+  color: var(--text);
+  font-size: 1.125rem;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+}
+
 /* Notification bell */
 .notif-bell-btn {
   position: relative;
@@ -5785,6 +5811,7 @@ select:focus-visible {
 @media (max-width: 900px) {
   .dashboard-greeting h1 {
     font-size: 1.5rem;
+    margin-top: 14px;
   }
 
   .dashboard-greeting p {
@@ -14310,6 +14337,16 @@ select {
   .topbar-right {
     margin-left: auto;
     flex-shrink: 0;
+  }
+
+  .topbar-center {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
   }
 
   .indicator-pill {
