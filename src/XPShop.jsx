@@ -131,11 +131,7 @@ export function applyTheme(themeId) {
   root.style.setProperty("--accent", theme.preview.accent);
   root.style.setProperty("--accent-dark", theme.preview.accentDark);
   root.style.setProperty("--accent-soft", theme.preview.accentSoft);
-
-  const rgbMatch = theme.preview.accent.match(/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i);
-  if (rgbMatch) {
-    root.style.setProperty("--accent-rgb", `${parseInt(rgbMatch[1], 16)}, ${parseInt(rgbMatch[2], 16)}, ${parseInt(rgbMatch[3], 16)}`);
-  }
+  root.style.setProperty("--theme-bg", theme.preview.bg);
   
   // Also store in localStorage to persist immediately across reloads
   localStorage.setItem("lisa_current_theme", themeId);
@@ -146,7 +142,7 @@ export function resetTheme() {
   root.style.removeProperty("--accent");
   root.style.removeProperty("--accent-dark");
   root.style.removeProperty("--accent-soft");
-  root.style.removeProperty("--accent-rgb");
+  root.style.removeProperty("--theme-bg");
   localStorage.removeItem("lisa_current_theme");
 }
 
