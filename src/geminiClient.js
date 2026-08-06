@@ -398,8 +398,25 @@ Return ONLY valid JSON — no markdown fences, no backticks, no explanatory text
 // Cache lesson content by lesson ID to avoid re-fetching
 const lessonCache = new Map();
 
+const getCommonDistractors = (lang) => {
+  if (lang === "Kannada") {
+    return ["ಹುಡುಗ", "ನೀರು", "ಶಾಲೆಗೆ", "ಮನೆಗೆ", "ಪುಸ್ತಕ", "ಬರೆಯುತ್ತಾನೆ", "ಸೇಬು", "ಹಣ್ಣು", "ನಾಯಿ", "ಬೆಕ್ಕು"];
+  }
+  if (lang === "Hindi") {
+    return ["लड़का", "पानी", "स्कूल", "घर", "किताब", "लिखता", "सेब", "फल", "कुत्ता", "बिल्ली"];
+  }
+  if (lang === "Telugu") {
+    return ["అబ్బాయి", "నీరు", "బడికి", "ఇంటికి", "పుస్తకం", "రాస్తాడు", "ఆపిల్", "పండు", "కుక్క", "పిల్లి"];
+  }
+  if (lang === "Tamil") {
+    return ["பையன்", "தண்ணீர்", "பள்ளிக்கு", "வீட்டிற்கு", "புத்தகம்", "எழுதுகிறான்", "ஆப்பிள்", "பழம்", "நாய்", "பூனை"];
+  }
+  return ["boy", "water", "school", "home", "book", "writes", "apple", "fruit", "dog", "cat"];
+};
+
 const convertToUnifiedQuestions = (lesson, params) => {
   const questions = [];
+  const language = params?.learningLanguage || params?.language || "English";
 
   // 1. Intro step
   questions.push({
@@ -446,12 +463,12 @@ const convertToUnifiedQuestions = (lesson, params) => {
     const targetWordList = (lesson.translationTask.sentence || "").split(/\s+/).filter(Boolean);
     const targetTiles = [
       ...targetWordList,
-      "चाय", "केला", "ಹಣ್ಣು", "ನೀರು", "apple", "car"
-    ];
+      ...getCommonDistractors(language)
+    ].filter((v, i, a) => a.indexOf(v) === i).slice(0, 8);
     questions.push({
       type: "translateToLearning",
-      englishSentence: "She reads a book",
-      targetSentence: "She reads a book",
+      englishSentence: lesson.translationTask.englishTranslation,
+      targetSentence: lesson.translationTask.sentence,
       tiles: targetTiles
     });
   }
@@ -486,14 +503,27 @@ const convertToUnifiedQuestions = (lesson, params) => {
     });
   }
 
-  // 8. Translation Task (Exactly 1) - Target -> English
+  // 8. Translation Task (Exactly 1) - English -> Learning Language!
   if (lesson.translationTask) {
+    const targetWordList = (lesson.translationTask.sentence || "").split(/\s+/).filter(Boolean);
+    const targetTiles = [
+      ...targetWordList,
+      ...(lesson.translationTask.targetTiles || []),
+      ...getCommonDistractors(language)
+    ].filter((v, i, a) => a.indexOf(v) === i).slice(0, 8);
+
     questions.push({
       type: "translationTask",
-      sentence: lesson.translationTask.sentence,
-      prompt: lesson.translationTask.prompt,
+      targetSentence: lesson.translationTask.sentence,
+      prompt: lesson.translationTask.prompt || (
+        language === "Hindi" ? "एक वाक्य बनाने के लिए शब्दों को व्यवस्थित करें।" :
+        language === "Kannada" ? "ಒಂದು ವಾಕ್ಯವನ್ನು ರೂಪಿಸಲು ಪದಗಳನ್ನು ಜೋಡಿಸಿ." :
+        language === "Telugu" ? "ఒక వాక్యాన్ని రూపొందించడానికి పదాలను అమర్చండి." :
+        language === "Tamil" ? "ஒரு வாக்கியத்தை உருவாக்க வார்த்தைகளை ஒழுங்கமைக்கவும்." :
+        "Arrange the words to form a sentence."
+      ),
       englishTranslation: lesson.translationTask.englishTranslation,
-      tiles: lesson.translationTask.tiles
+      tiles: targetTiles
     });
   }
 
@@ -1844,6 +1874,72 @@ const getFallbackPractice = (params) => {
       { speaker: "अना", text: "हाँ, कृपया! मुझे मीठे सेब बहुत पसंद हैं।", audioText: "हाँ, कृपया! मुझे मीठे सेब बहुत पसंद हैं।" },
       { speaker: "रवि", text: "यह लो। अब, चलो वह किताब ढूंढते हैं।", audioText: "यह लो। अब, चलो वह किताब ढूंढते हैं।" },
       { speaker: "अना", text: "धन्यवाद, रवि! तुम बहुत अच्छे दोस्त हो।", audioText: "धन्यवाद, रवि! तुम बहुत अच्छे दोस्त हो।" }
+    ] : language === "Kannada" ? [
+      { speaker: "ಅನಾ", text: "ನಮಸ್ಕಾರ! ನನ್ನ ಹೆಸರು ಅನಾ.", audioText: "ನಮಸ್ಕಾರ! ನನ್ನ ಹೆಸರು ಅನಾ." },
+      { speaker: "ರವಿ", text: "ನಮಸ್ಕಾರ ಅನಾ! ನಾನು ರವಿ. ನಮ್ಮ ಹಳ್ಳಿಗೆ ನಿಮಗೆ ಸ್ವಾಗತ.", audioText: "ನಮಸ್ಕಾರ ಅನಾ! ನಾನು ರವಿ. ನಮ್ಮ ಹಳ್ಳಿಗೆ ನಿಮಗೆ ಸ್ವಾಗತ." },
+      { speaker: "ಅನಾ", text: "ಇಲ್ಲಿ ತುಂಬಾ ಸುಂದರವಾಗಿದೆ. ನನಗೆ ಒಂದು ಪುಸ್ತಕವನ್ನು ಓದಬೇಕು.", audioText: "ಇಲ್ಲಿ ತುಂಬಾ ಸುಂದರವಾಗಿದೆ. ನನಗೆ ಒಂದು ಪುಸ್ತಕವನ್ನು ಓದಬೇಕು." },
+      {
+        type: "question",
+        question: "ಅನಾ ಏನು ಬಯಸುತ್ತಾಳೆ?",
+        options: ["ಒಂದು ಪುಸ್ತಕ (A book)", "ನೀರು (Water)", "ಒಂದು ಆಟಿಕೆ (A toy)"],
+        correctIndex: 0
+      },
+      { speaker: "ರವಿ", text: "ನಮ್ಮ ಹತ್ತಿರವೇ ಒಂದು ಗ್ರಂಥಾಲಯವಿದೆ. ಬನ್ನಿ ಅಲ್ಲಿಗೆ ಹೋಗೋಣ!", audioText: "ನಮ್ಮ ಹತ್ತಿರವೇ ಒಂದು ಗ್ರಂಥಾಲಯವಿದೆ. ಬನ್ನಿ ಅಲ್ಲಿಗೆ ಹೋಗೋಣ!" },
+      { speaker: "ಅನಾ", text: "ಆ ಮರವನ್ನು ನೋಡಿ! ಅದರ ಮೇಲೆ ದೊಡ್ಡ ಕೆಂಪು ಸೇಬುಗಳಿವೆ.", audioText: "ಆ ಮರವನ್ನು ನೋಡಿ! ಅದರ ಮೇಲೆ ದೊಡ್ಡ ಕೆಂಪು ಸೇಬುಗಳಿವೆ." },
+      { speaker: "ರವಿ", text: "ಹೌದು, ಅವು ತುಂಬಾ ಸಿಹಿಯಾಗಿವೆ. ನಿಮಗೆ ಒಂದು ಬೇಕೇ?", audioText: "ಹೌದು, ಅವು ತುಂಬಾ ಸಿಹಿಯಾಗಿವೆ. ನಿಮಗೆ ಒಂದು ಬೇಕೇ?" },
+      {
+        type: "question",
+        question: "ಮರದ ಮೇಲೆ ಯಾವ ಹಣ್ಣು ಇದೆ?",
+        options: ["ಮಾವು (Mango)", "ಸೇಬು (Apple)", "ಬಾಳೆಹಣ್ಣು (Banana)"],
+        correctIndex: 1
+      },
+      { speaker: "ಅನಾ", text: "ಹೌದು, ದಯವಿಟ್ಟು! ನನಗೆ ಸಿಹಿ ಸೇಬುಗಳು ತುಂಬಾ ಇಷ್ಟ.", audioText: "ಹೌದು, ದಯವಿಟ್ಟು! ನನಗೆ ಸಿಹಿ ಸೇಬುಗಳು ತುಂಬಾ ಇಷ್ಟ." },
+      { speaker: "ರವಿ", text: "ಇದು ತಗೊಳ್ಳಿ. ಈಗ, ಆ ಪುಸ್ತಕವನ್ನು ಹುಡುಕೋಣ.", audioText: "ಇದು ತಗೊಳ್ಳಿ. ಈಗ, ಆ ಪುಸ್ತಕವನ್ನು ಹುಡುಕೋಣ." },
+      { speaker: "ಅನಾ", text: "ಧನ್ಯವಾದಗಳು, ರವಿ! ನೀವು ತುಂಬಾ ಒಳ್ಳೆಯ ಸ್ನೇಹಿತ.", audioText: "ಧನ್ಯವಾದಗಳು, ರವಿ! ನೀವು ತುಂಬಾ ಒಳ್ಳೆಯ ಸ್ನೇಹಿತ." }
+    ] : language === "Telugu" ? [
+      { speaker: "అనా", text: "నమస్కారం! నా పేరు అనా.", audioText: "నమస్కారం! నా పేరు అనా." },
+      { speaker: "రవి", text: "నమస్కారం అనా! నేను రవి. మా ఊరికి మీకు స్వాగతం.", audioText: "నమస్కారం అనా! నేను రవి. మా ఊరికి మీకు స్వాగతం." },
+      { speaker: "అనా", text: "ఇక్కడ చాలా అందంగా ఉంది. నేను ఒక పుస్తకం చదవాలనుకుంటున్నాను.", audioText: "ఇక్కడ చాలా అందంగా ఉంది. నేను ఒక పుస్తకం చదవాలనుకుంటున్నాను." },
+      {
+        type: "question",
+        question: "అనా ఏమి కోరుకుంటుంది?",
+        options: ["ఒక పుస్తకం (A book)", "నీరు (Water)", "ఒక బొమ్మ (A toy)"],
+        correctIndex: 0
+      },
+      { speaker: "రవి", text: "మాకు దగ్గరలోనే ఒక గ్రంథాలయం ఉంది. పదండి అక్కడికి వెళ్దాం!", audioText: "మాకు దగ్గరలోనే ఒక గ్రంథాలయం ఉంది. పదండి అక్కడికి వెళ్దాం!" },
+      { speaker: "అనా", text: "ఆ చెట్టును చూడండి! దానిపై పెద్ద ఎర్రటి ఆపిల్స్ ఉన్నాయి.", audioText: "ఆ చెట్టును చూడండి! దానిపై పెద్ద ఎర్రటి ఆపిల్స్ ఉన్నాయి." },
+      { speaker: "రవి", text: "అవును, అవి చాలా తీపిగా ఉంటాయి. మీకు ఒకటి కావాలా?", audioText: "అవును, అవి చాలా తీపిగా ఉంటాయి. మీకు ఒకటి కావాలా?" },
+      {
+        type: "question",
+        question: "చెట్టు మీద ఏ పండు ఉంది?",
+        options: ["మామిడి (Mango)", "ఆపిల్ (Apple)", "అరటిపండు (Banana)"],
+        correctIndex: 1
+      },
+      { speaker: "అనా", text: "అవును, దయచేసి! నాకు తీపి ఆపిల్స్ అంటే చాలా ఇష్టం.", audioText: "అవును, దయచేసి! నాకు తీపి ఆపిల్స్ అంటే చాలా ఇష్టం." },
+      { speaker: "రవి", text: "ఇదిగో తీసుకోండి. ఇప్పుడు, ఆ పుస్తకాన్ని వెతుకుదాం.", audioText: "ఇదిగో తీసుకోండి. ఇప్పుడు, ఆ పుస్తకాన్ని వెతుకుదాం." },
+      { speaker: "అనా", text: "ధన్యవాదాలు, రవి! నువ్వు చాలా మంచి స్నేహితుడివి.", audioText: "ధన్యవాదాలు, రవి! నువ్వు చాలా మంచి స్నేహితుడివి." }
+    ] : language === "Tamil" ? [
+      { speaker: "அனா", text: "வணக்கம்! என் பெயர் அனா.", audioText: "வணக்கம்! என் பெயர் அனா." },
+      { speaker: "ரவி", text: "வணக்கம் அனா! நான் ரவி. எங்கள் கிராமத்திற்கு உங்களை வரவேற்கிறேன்.", audioText: "வணக்கம் அனா! நான் ரவி. எங்கள் கிராமத்திற்கு உங்களை வரவேற்கிறேன்." },
+      { speaker: "அனா", text: "இடம் மிகவும் அழகாக இருக்கிறது. நான் ஒரு புத்தகம் படிக்க விரும்புகிறேன்.", audioText: "இடம் மிகவும் அழகாக இருக்கிறது. நான் ஒரு புத்தகம் படிக்க விரும்புகிறேன்." },
+      {
+        type: "question",
+        question: "அனா என்ன விரும்புகிறாள்?",
+        options: ["ஒரு புத்தகம் (A book)", "தண்ணீர் (Water)", "ஒரு பொம்மை (A toy)"],
+        correctIndex: 0
+      },
+      { speaker: "ரவி", text: "அருகிலேயே ஒரு நூலகம் உள்ளது. வாருங்கள் அங்கே செல்வோம்!", audioText: "அருகிலேயே ஒரு நூலகம் உள்ளது. வாருங்கள் அங்கே செல்வோம்!" },
+      { speaker: "அனா", text: "அந்த மரத்தைப் பாருங்கள்! அதில் பெரிய சிவப்பு ஆப்பிள்கள் உள்ளன.", audioText: "அந்த மரத்தைப் பாருங்கள்! அதில் பெரிய சிவப்பு ஆப்பிள்கள் உள்ளன." },
+      { speaker: "ரவி", text: "ஆமாம், அவை மிகவும் இனிமையானவை. உங்களுக்கு ஒன்று வேண்டுமா?", audioText: "ஆமாம், அவை மிகவும் இனிமையானவை. உங்களுக்கு ஒன்று வேண்டுமா?" },
+      {
+        type: "question",
+        question: "மரத்தில் என்ன பழம் இருக்கிறது?",
+        options: ["மாம்பழம் (Mango)", "ஆப்பிள் (Apple)", "வாழைப்பழம் (Banana)"],
+        correctIndex: 1
+      },
+      { speaker: "அனா", text: "ஆமாம், தயவுசெய்து! எனக்கு இனிப்பான ஆப்பிள்கள் மிகவும் பிடிக்கும்.", audioText: "ஆமாம், தயவுசெய்து! எனக்கு இனிப்பான ஆப்பிள்கள் மிகவும் பிடிக்கும்." },
+      { speaker: "ரவி", text: "இந்தாருங்கள். இப்போது, அந்தப் புத்தகத்தைக் கண்டுபிடிப்போம்.", audioText: "இந்தாருங்கள். இப்போது, அந்தப் புத்தகத்தைக் கண்டுபிடிப்போம்." },
+      { speaker: "அனா", text: "நன்றி, ரவி! நீ ஒரு சிறந்த நண்பன்.", audioText: "நன்றி, ரவி! நீ ஒரு சிறந்த நண்பன்." }
     ] : [
       { speaker: "Ana", text: "Hello! My name is Ana.", audioText: "Hello! My name is Ana." },
       { speaker: "Ravi", text: "Hi Ana! I am Ravi. Welcome to our village.", audioText: "Hi Ana! I am Ravi. Welcome to our village." },
@@ -2466,7 +2562,6 @@ const translateFallback = (lesson, interfaceLang, learningLang) => {
         m.question = translations.noun_question;
         m.explanation = translations.noun_exp;
       } else if (m.question === "ಅವನು ಶಾಲೆಗೆ _____." || m.question === "वह स्कूल _____ है।" || m.question === "అతడు బడికి _____." || m.question === "அவன் பள்ளிக்கு _____.") {
-        m.question = translations.verb_question;
         m.explanation = translations.verb_exp;
       }
     });
@@ -2558,9 +2653,6 @@ const translateFallback = (lesson, interfaceLang, learningLang) => {
   
   // Override Chat Complete
   if (lesson.chatComplete) {
-    if (lesson.chatComplete.scenario && (lesson.chatComplete.scenario.includes("ನಮಸ್ತೆ") || lesson.chatComplete.scenario.includes("नमस्ते") || lesson.chatComplete.scenario.includes("నమస్తే") || lesson.chatComplete.scenario.includes("வணக்கம்"))) {
-      lesson.chatComplete.scenario = "Anna: Hello! How are you?\nYou: ___";
-    }
     if (lesson.chatComplete.question === "ಸಂಭಾಷಣೆಯನ್ನು ಪೂರ್ಣಗೊಳಿಸಲು ಸರಿಯಾದ ಉತ್ತರವನ್ನು ಆರಿಸಿ" || lesson.chatComplete.question === "बातचीत पूरी करने के लिए सही प्रतिक्रिया चुनें" || lesson.chatComplete.question === "సంభాషణను పూర్తి చేయడానికి సరైన సమాధానాన్ని ఎంచుకోండి" || lesson.chatComplete.question === "உரையாடலை முடிக்க சரியான பதிலைத் தேர்ந்தெடுக்கவும்") {
       lesson.chatComplete.question = translations.complete_chat_q;
     }
