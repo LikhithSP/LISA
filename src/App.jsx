@@ -9665,24 +9665,26 @@ function App() {
                   <div className="results-card" style={{ maxWidth: '800px', margin: '20px auto' }}>
                     <h2 className="results-completed-title">{t("resultsTitle")}</h2>
                     <div className="results-hero-section">
-                      <div className="results-hero-left">
-                        <div className="results-percentage-circle">
-                          <span className="percent-val">{overallPercent}%</span>
+                      <div className="results-hero-top-row">
+                        <div className="results-hero-left">
+                          <div className="results-percentage-circle">
+                            <span className="percent-val">{overallPercent}%</span>
+                          </div>
+                          <span className="results-percent-text">{t("percentage")}</span>
                         </div>
-                        <span className="results-percent-text">{t("percentage")}</span>
+
+                        <div className="results-hero-right">
+                          <img
+                            src="/as3.png"
+                            alt="LISA mascot"
+                            className="assessment-mascot results-mascot-medium"
+                          />
+                        </div>
                       </div>
 
                       <div className="results-hero-center-score">
                         <span className="hero-score-label">{t("overallScore")}</span>
                         <span className="hero-score-val">{latestAttempt?.score || 0} / {latestAttempt?.maxScore || 40}</span>
-                      </div>
-
-                      <div className="results-hero-right">
-                        <img
-                          src="/as3.png"
-                          alt="LISA mascot"
-                          className="assessment-mascot results-mascot-medium"
-                        />
                       </div>
                     </div>
 
@@ -9787,14 +9789,14 @@ function App() {
                         <span className="insights-card-icon">🔥</span>
                         <h3>{selectedLanguage === "Hindi" ? "दैनिक अनुशंसित अभ्यास" : selectedLanguage === "Kannada" ? "ದೈನಂದಿನ ಶಿಫಾರಸು ಮಾಡಿದ ಅಭ್ಯಾಸ" : selectedLanguage === "Telugu" ? "రోజువారీ సిఫార్సు చేసిన అభ్యాసం" : selectedLanguage === "Tamil" ? "தினசரி பரிந்துரைக்கப்பட்ட பயிற்சி" : "Daily Recommended Practice"}</h3>
                       </div>
-                      <div style={{ display: 'flex', gap: '16px', background: 'var(--flz-tint, rgba(198, 95, 45, 0.08))', padding: '20px', borderRadius: '16px', border: '1px solid var(--line)', marginTop: '12px' }}>
-                        <div style={{ fontSize: '2.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{duolingoPracticeIcon}</div>
-                        <div style={{ textAlign: 'left' }}>
-                           <h4 style={{ margin: '0 0 4px 0', fontSize: '1.1rem', fontWeight: 800 }}>{duolingoPracticeTitle}</h4>
-                          <p style={{ margin: '0 0 12px 0', fontSize: '0.92rem', color: 'var(--muted)', lineHeight: '1.4' }}>{duolingoPracticeRecommendation}</p>
-                          <div className="practice-insights-badges" style={{ display: 'flex', gap: '12px', fontSize: '0.82rem', fontWeight: 800, color: 'var(--text)' }}>
-                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(245, 158, 11, 0.15)', color: 'var(--flz-warn)', padding: '4px 10px', borderRadius: '12px', whiteSpace: 'nowrap' }}>🎯 Target: 30 XP Daily</span>
-                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(59, 130, 246, 0.15)', color: 'var(--accent)', padding: '4px 10px', borderRadius: '12px', whiteSpace: 'nowrap' }}>⏳ Commitment: {dailyPracticeTime}</span>
+                      <div className="daily-rec-card-box">
+                        <div className="daily-rec-card-icon">{duolingoPracticeIcon}</div>
+                        <div className="daily-rec-card-content">
+                          <h4>{duolingoPracticeTitle}</h4>
+                          <p>{duolingoPracticeRecommendation}</p>
+                          <div className="daily-rec-card-badges">
+                            <span className="daily-rec-badge warn">🎯 Target: 30 XP Daily</span>
+                            <span className="daily-rec-badge info">⏳ Commitment: {dailyPracticeTime}</span>
                           </div>
                         </div>
                       </div>
