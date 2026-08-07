@@ -56,6 +56,11 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
   const [editingShopItem, setEditingShopItem] = useState(null);
   const [isAddingShopItem, setIsAddingShopItem] = useState(false);
   const [shopSaving, setShopSaving] = useState(false);
+  const [shopPage, setShopPage] = useState(1);
+
+  useEffect(() => {
+    setShopPage(1);
+  }, [activeShopCategory]);
 
   useEffect(() => {
     if (shopCatalog) {
@@ -63,12 +68,24 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
     }
   }, [shopCatalog, activeSubTab]);
   
+  const paginatedShopItems = useMemo(() => {
+    if (!localShopCatalog || !localShopCatalog[activeShopCategory]) return [];
+    const startIndex = (shopPage - 1) * 5;
+    return localShopCatalog[activeShopCategory].slice(startIndex, startIndex + 5);
+  }, [localShopCatalog, activeShopCategory, shopPage]);
+
+  const totalShopPages = useMemo(() => {
+    if (!localShopCatalog || !localShopCatalog[activeShopCategory]) return 1;
+    return Math.ceil(localShopCatalog[activeShopCategory].length / 5) || 1;
+  }, [localShopCatalog, activeShopCategory]);
+  
   // States for Users
   const [users, setUsers] = useState([]);
   const [usersLoading, setUsersLoading] = useState(false);
   const [userSearch, setUserSearch] = useState("");
   const [userFilter, setUserFilter] = useState("all"); // "all", "completed", "pending", "not_diagnosed"
   const [userSort, setUserSort] = useState("xp"); // "name", "xp", "streak", "level"
+  const [usersPage, setUsersPage] = useState(1);
   const [editingUser, setEditingUser] = useState(null); // Profile object being edited
   const [deletingUser, setDeletingUser] = useState(null); // Profile object to delete
   const [viewingUserDetail, setViewingUserDetail] = useState(null); // Profile object being viewed
@@ -76,6 +93,11 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
   // States for Curriculum
   const [selectedCurriculumLang, setSelectedCurriculumLang] = useState("English");
   const [activeCurriculumSection, setActiveCurriculumSection] = useState("");
+  const [activeUnitIndex, setActiveUnitIndex] = useState(0);
+
+  useEffect(() => {
+    setActiveUnitIndex(0);
+  }, [activeCurriculumSection]);
 
   // States for Words
   const [words, setWords] = useState([]);
@@ -510,6 +532,18 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
     return result;
   }, [users, userSearch, userFilter, userSort]);
 
+  // Reset users page to 1 when filters or search change
+  useEffect(() => {
+    setUsersPage(1);
+  }, [userSearch, userFilter, userSort]);
+
+  const paginatedUsers = useMemo(() => {
+    const startIndex = (usersPage - 1) * 5;
+    return filteredUsers.slice(startIndex, startIndex + 5);
+  }, [filteredUsers, usersPage]);
+
+  const totalUsersPages = Math.ceil(filteredUsers.length / 5) || 1;
+
   // Client-side CSV export logic
   const exportUsersCSV = () => {
     if (!filteredUsers || filteredUsers.length === 0) return;
@@ -556,11 +590,11 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
   }, [wordSearch]);
 
   const paginatedWords = useMemo(() => {
-    const startIndex = (wordsPage - 1) * 10;
-    return filteredWords.slice(startIndex, startIndex + 10);
+    const startIndex = (wordsPage - 1) * 5;
+    return filteredWords.slice(startIndex, startIndex + 5);
   }, [filteredWords, wordsPage]);
 
-  const totalWordsPages = Math.ceil(filteredWords.length / 10) || 1;
+  const totalWordsPages = Math.ceil(filteredWords.length / 5) || 1;
 
   // Handle Edit User Submit
   const handleEditUserSubmit = async (e) => {
@@ -946,38 +980,37 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
   };
 
   return (
-    <div className="admin-dashboard-container">
-      <div className="admin-header">
-        <div className="admin-title-row">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-            <div>
-              <h2>🔒 Admin Portal</h2>
-              <p>LISA Administrator Operations & Analytics Panel</p>
-            </div>
-            <button
-              type="button"
-              className="admin-logout-btn-mobile"
-              onClick={() => supabase.auth.signOut()}
-              style={{
-                background: 'rgba(239, 68, 68, 0.08)',
-                color: '#ef4444',
-                border: '1px solid rgba(239, 68, 68, 0.2)',
-                borderRadius: '12px',
-                padding: '8px 16px',
-                fontWeight: 700,
-                fontSize: '0.85rem',
-                cursor: 'pointer',
-                display: 'none',
-                alignItems: 'center',
-                gap: '6px',
-                fontFamily: 'var(--font-family)'
-              }}
-            >
-              🚪 Log Out
-            </button>
+    <div className="admin-dashboard-layout">
+      {/* Sidebar Navigation */}
+      <aside className="admin-sidebar">
+        <div className="admin-sidebar-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', gap: '12px' }}>
+          <div>
+            <h2>🔒 Admin Portal</h2>
+            <p>LISA Operations</p>
           </div>
+          <button
+            type="button"
+            className="admin-logout-btn-mobile"
+            onClick={() => supabase.auth.signOut()}
+            style={{
+              background: 'rgba(239, 68, 68, 0.08)',
+              color: '#ef4444',
+              border: '1px solid rgba(239, 68, 68, 0.2)',
+              borderRadius: '12px',
+              padding: '8px 14px',
+              fontWeight: 800,
+              fontSize: '0.8rem',
+              cursor: 'pointer',
+              display: 'none',
+              alignItems: 'center',
+              gap: '6px',
+              fontFamily: 'var(--font-family)'
+            }}
+          >
+            🚪 Log Out
+          </button>
         </div>
-        <div className="admin-tabs">
+        <nav className="admin-sidebar-nav">
           <button 
             type="button" 
             className={`admin-tab-btn ${activeSubTab === "overview" ? "active" : ""}`}
@@ -1027,10 +1060,38 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
           >
             💬 User Feedback & Bugs {feedbackStats.total > 0 && <span style={{ background: '#ef4444', color: '#fff', padding: '2px 8px', borderRadius: '999px', fontSize: '0.72rem', marginLeft: '6px', fontWeight: 800 }}>{feedbackStats.total}</span>}
           </button>
+        </nav>
+        
+        <div style={{ marginTop: 'auto', paddingTop: '16px', borderTop: '1px solid var(--line)' }}>
+          <button
+            type="button"
+            className="admin-logout-btn"
+            onClick={() => supabase.auth.signOut()}
+            style={{
+              width: '100%',
+              background: 'rgba(239, 68, 68, 0.08)',
+              color: '#ef4444',
+              border: '1px solid rgba(239, 68, 68, 0.2)',
+              borderRadius: '12px',
+              padding: '10px 16px',
+              fontWeight: 800,
+              fontSize: '0.85rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              fontFamily: 'var(--font-family)'
+            }}
+          >
+            🚪 Log Out
+          </button>
         </div>
-      </div>
+      </aside>
 
-      <div className="admin-body">
+      {/* Main Content Area */}
+      <main className="admin-main-content">
+        <div className="admin-body">
         {/* OVERVIEW SUB-TAB */}
         {activeSubTab === "overview" && (
           <div className="admin-section animate-fade-in">
@@ -1416,100 +1477,153 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
             {usersLoading ? (
               <div className="admin-loading-spinner">Loading profiles list...</div>
             ) : (
-              <div className="admin-table-wrapper">
-                <table className="admin-table">
-                  <thead>
-                    <tr>
-                      <th>Name / ID</th>
-                      <th>Age</th>
-                      <th>Language Settings</th>
-                      <th>XP / Streak</th>
-                      <th>Literacy Level</th>
-                      <th>Assessment Completed</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredUsers.map(user => (
-                      <tr 
-                        key={user.id} 
-                        onClick={() => setViewingUserDetail(user)}
-                        style={{ cursor: 'pointer', transition: 'background-color 0.15s ease' }}
-                        className="admin-table-row-clickable"
-                      >
-                        <td>
-                          <div className="user-td-cell">
-                            <span className="user-td-name">{user.full_name || "Anonymous Learner"}</span>
-                            <span className="user-td-id">{user.id}</span>
-                          </div>
-                        </td>
-                        <td>{user.age || "N/A"}</td>
-                        <td>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                              <span className="lang-chip ui-lang" style={{ background: 'var(--panel-strong)', padding: '2px 8px', borderRadius: '6px', fontSize: '0.72rem', fontWeight: 800, border: '1px solid var(--line)' }}>UI</span>
-                              <span style={{ fontWeight: 800, fontSize: '0.82rem' }}>{user.preferred_language || "English"}</span>
-                            </div>
-                            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                              <span className="lang-chip learn-lang" style={{ background: '#e0f2fe', color: '#0369a1', padding: '2px 8px', borderRadius: '6px', fontSize: '0.72rem', fontWeight: 800 }}>Learn</span>
-                              <span style={{ fontWeight: 800, fontSize: '0.82rem' }}>{user.learning_language || "English"}</span>
-                            </div>
-                          </div>
-                        </td>
-                        <td>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                              <span style={{ fontSize: '0.95rem' }}>⭐</span>
-                              <span style={{ fontWeight: 850, color: '#d97706', fontSize: '0.85rem' }}>{user.xp || 0}</span>
-                              <span style={{ fontSize: '0.72rem', color: 'var(--muted)', fontWeight: 800 }}>XP</span>
-                            </div>
-                            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                              <span style={{ fontSize: '0.95rem' }}>🔥</span>
-                              <span style={{ fontWeight: 850, color: '#ea580c', fontSize: '0.85rem' }}>{user.streak || 0}</span>
-                              <span style={{ fontSize: '0.72rem', color: 'var(--muted)', fontWeight: 800 }}>Streak</span>
-                            </div>
-                          </div>
-                        </td>
-                        <td>
-                          <span className={`level-badge level-${user.literacy_level || 'none'}`}>
-                            {user.literacy_level ? `Level ${user.literacy_level}` : "Not Diagnosed"}
-                          </span>
-                        </td>
-                        <td>
-                          <span className={`status-pill ${user.assessment_completed ? 'completed' : 'pending'}`}>
-                            {user.assessment_completed ? "Completed" : "Not Done"}
-                          </span>
-                        </td>
-                        <td>
-                          <div className="action-button-row">
-                            <button 
-                              type="button" 
-                              className="admin-action-btn edit"
-                              onClick={(e) => { e.stopPropagation(); setEditingUser(user); }}
-                            >
-                              ✏️ Edit
-                            </button>
-                            <button 
-                              type="button" 
-                              className="admin-action-btn delete"
-                              onClick={(e) => { e.stopPropagation(); setDeletingUser(user); }}
-                            >
-                              🗑️ Delete
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                    {filteredUsers.length === 0 && (
+              <>
+                <div className="admin-table-wrapper">
+                  <table className="admin-table">
+                    <thead>
                       <tr>
-                        <td colSpan="7" style={{ textAlign: "center", padding: "30px", color: "var(--muted)" }}>
-                          No users found matching query.
-                        </td>
+                        <th>Name / ID</th>
+                        <th>Age</th>
+                        <th>Language Settings</th>
+                        <th>XP / Streak</th>
+                        <th>Literacy Level</th>
+                        <th>Assessment Completed</th>
+                        <th>Actions</th>
                       </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {paginatedUsers.map(user => (
+                        <tr 
+                          key={user.id} 
+                          onClick={() => setViewingUserDetail(user)}
+                          style={{ cursor: 'pointer', transition: 'background-color 0.15s ease' }}
+                          className="admin-table-row-clickable"
+                        >
+                          <td>
+                            <div className="user-td-cell">
+                              <span className="user-td-name">{user.full_name || "Anonymous Learner"}</span>
+                              <span className="user-td-id">{user.id}</span>
+                            </div>
+                          </td>
+                          <td>{user.age || "N/A"}</td>
+                          <td>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                                <span className="lang-chip ui-lang" style={{ background: 'var(--panel-strong)', padding: '2px 8px', borderRadius: '6px', fontSize: '0.72rem', fontWeight: 800, border: '1px solid var(--line)' }}>UI</span>
+                                <span style={{ fontWeight: 800, fontSize: '0.82rem' }}>{user.preferred_language || "English"}</span>
+                              </div>
+                              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                                <span className="lang-chip learn-lang" style={{ background: '#e0f2fe', color: '#0369a1', padding: '2px 8px', borderRadius: '6px', fontSize: '0.72rem', fontWeight: 800 }}>Learn</span>
+                                <span style={{ fontWeight: 800, fontSize: '0.82rem' }}>{user.learning_language || "English"}</span>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                                <span style={{ fontSize: '0.95rem' }}>⭐</span>
+                                <span style={{ fontWeight: 850, color: '#d97706', fontSize: '0.85rem' }}>{user.xp || 0}</span>
+                                <span style={{ fontSize: '0.72rem', color: 'var(--muted)', fontWeight: 800 }}>XP</span>
+                              </div>
+                              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                                <span style={{ fontSize: '0.95rem' }}>🔥</span>
+                                <span style={{ fontWeight: 850, color: '#ea580c', fontSize: '0.85rem' }}>{user.streak || 0}</span>
+                                <span style={{ fontSize: '0.72rem', color: 'var(--muted)', fontWeight: 800 }}>Streak</span>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <span className={`level-badge level-${user.literacy_level || 'none'}`}>
+                              {user.literacy_level ? `Level ${user.literacy_level}` : "Not Diagnosed"}
+                            </span>
+                          </td>
+                          <td>
+                            <span className={`status-pill ${user.assessment_completed ? 'completed' : 'pending'}`}>
+                              {user.assessment_completed ? "Completed" : "Not Done"}
+                            </span>
+                          </td>
+                          <td>
+                            <div className="action-button-row">
+                              <button 
+                                type="button" 
+                                className="admin-action-btn edit"
+                                onClick={(e) => { e.stopPropagation(); setEditingUser(user); }}
+                              >
+                                ✏️ Edit
+                              </button>
+                              <button 
+                                type="button" 
+                                className="admin-action-btn delete"
+                                onClick={(e) => { e.stopPropagation(); setDeletingUser(user); }}
+                              >
+                                🗑️ Delete
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                      {filteredUsers.length === 0 && (
+                        <tr>
+                          <td colSpan="7" style={{ textAlign: "center", padding: "30px", color: "var(--muted)" }}>
+                            No users found matching query.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                {totalUsersPages > 1 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px', padding: '10px 4px', flexWrap: 'wrap', gap: '12px' }}>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--muted)', fontWeight: 700 }}>
+                      Showing {Math.min(filteredUsers.length, (usersPage - 1) * 5 + 1)}-{Math.min(filteredUsers.length, usersPage * 5)} of {filteredUsers.length} users
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <button
+                        type="button"
+                        disabled={usersPage === 1}
+                        onClick={() => setUsersPage(prev => Math.max(1, prev - 1))}
+                        style={{
+                          padding: '8px 16px',
+                          borderRadius: '10px',
+                          border: '1.5px solid var(--line)',
+                          background: 'var(--panel)',
+                          color: 'var(--text)',
+                          fontWeight: 800,
+                          fontSize: '0.8rem',
+                          cursor: usersPage === 1 ? 'not-allowed' : 'pointer',
+                          opacity: usersPage === 1 ? 0.5 : 1,
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        ◀ Previous
+                      </button>
+                      <span style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text)', padding: '0 8px' }}>
+                        Page {usersPage} of {totalUsersPages}
+                      </span>
+                      <button
+                        type="button"
+                        disabled={usersPage === totalUsersPages}
+                        onClick={() => setUsersPage(prev => Math.min(totalUsersPages, prev + 1))}
+                        style={{
+                          padding: '8px 16px',
+                          borderRadius: '10px',
+                          border: '1.5px solid var(--line)',
+                          background: 'var(--panel)',
+                          color: 'var(--text)',
+                          fontWeight: 800,
+                          fontSize: '0.8rem',
+                          cursor: usersPage === totalUsersPages ? 'not-allowed' : 'pointer',
+                          opacity: usersPage === totalUsersPages ? 0.5 : 1,
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        Next ▶
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </div>
         )}
@@ -1622,7 +1736,7 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
               {totalWordsPages > 1 && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px', padding: '10px 4px', flexWrap: 'wrap', gap: '12px' }}>
                   <div style={{ fontSize: '0.85rem', color: 'var(--muted)', fontWeight: 700 }}>
-                    Showing {Math.min(filteredWords.length, (wordsPage - 1) * 10 + 1)}-{Math.min(filteredWords.length, wordsPage * 10)} of {filteredWords.length} words
+                    Showing {Math.min(filteredWords.length, (wordsPage - 1) * 5 + 1)}-{Math.min(filteredWords.length, wordsPage * 5)} of {filteredWords.length} words
                   </div>
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                     <button
@@ -1688,7 +1802,7 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
                 type="button" 
                 onClick={handleSaveCurriculum}
                 style={{
-                  background: 'linear-gradient(135deg, #10b981, #059669)',
+                  background: '#d97706',
                   color: 'white',
                   border: 'none',
                   padding: '12px 24px',
@@ -1696,14 +1810,14 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
                   fontWeight: 900,
                   fontSize: '0.85rem',
                   cursor: 'pointer',
-                  boxShadow: '0 4px 12px rgba(16, 185, 129, 0.2)',
+                  boxShadow: '0 4px 12px rgba(217, 119, 6, 0.25)',
                   fontFamily: 'var(--font-family)',
                   transition: 'all 0.2s'
                 }}
                 onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-1px)'}
                 onMouseLeave={e => e.currentTarget.style.transform = 'none'}
               >
-                💾 Save Changes to Database
+                💾 Save Changes
               </button>
             </div>
 
@@ -1825,11 +1939,59 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
 
                       {/* Units list */}
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                        <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 900 }}>📦 Units in Section ({section.units.length})</h4>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                          <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 900 }}>📦 Units ({section.units.length})</h4>
+                          {section.units.length > 1 && (
+                            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                              <button
+                                type="button"
+                                disabled={activeUnitIndex === 0}
+                                onClick={() => setActiveUnitIndex(prev => Math.max(0, prev - 1))}
+                                style={{
+                                  background: 'var(--panel)',
+                                  border: '1.5px solid var(--line)',
+                                  borderRadius: '8px',
+                                  padding: '4px 8px',
+                                  fontSize: '0.75rem',
+                                  cursor: activeUnitIndex === 0 ? 'not-allowed' : 'pointer',
+                                  opacity: activeUnitIndex === 0 ? 0.5 : 1,
+                                  color: 'var(--text)',
+                                  fontWeight: 800
+                                }}
+                              >
+                                ◀ Prev
+                              </button>
+                              <span style={{ fontSize: '0.75rem', fontWeight: 850 }}>
+                                Unit {Math.min(activeUnitIndex, section.units.length - 1) + 1} of {section.units.length}
+                              </span>
+                              <button
+                                type="button"
+                                disabled={activeUnitIndex >= section.units.length - 1}
+                                onClick={() => setActiveUnitIndex(prev => Math.min(section.units.length - 1, prev + 1))}
+                                style={{
+                                  background: 'var(--panel)',
+                                  border: '1.5px solid var(--line)',
+                                  borderRadius: '8px',
+                                  padding: '4px 8px',
+                                  fontSize: '0.75rem',
+                                  cursor: activeUnitIndex >= section.units.length - 1 ? 'not-allowed' : 'pointer',
+                                  opacity: activeUnitIndex >= section.units.length - 1 ? 0.5 : 1,
+                                  color: 'var(--text)',
+                                  fontWeight: 800
+                                }}
+                              >
+                                Next ▶
+                              </button>
+                            </div>
+                          )}
+                        </div>
                         <button 
                           type="button" 
                           className="admin-add-btn" 
-                          onClick={() => handleAddUnit(section.id)}
+                          onClick={() => {
+                            handleAddUnit(section.id);
+                            setActiveUnitIndex(section.units.length);
+                          }}
                           style={{ padding: '6px 12px', borderRadius: '10px', fontSize: '0.75rem', fontWeight: 800 }}
                         >
                           ➕ Add Unit
@@ -1837,110 +1999,122 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
                       </div>
 
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                        {section.units.map((unit, uIdx) => (
-                          <div key={unit.id} style={{ background: 'var(--bg)', border: '1px solid var(--line)', borderRadius: '20px', padding: '16px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', gap: '10px' }}>
-                              <span style={{ fontWeight: 900, color: 'var(--accent)', fontSize: '0.82rem' }}>UNIT {uIdx + 1}</span>
-                              <button 
-                                type="button" 
-                                onClick={() => handleDeleteUnit(section.id, unit.id)}
-                                style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '0.85rem', cursor: 'pointer', padding: '4px' }}
-                              >
-                                Delete Unit 🗑️
-                              </button>
-                            </div>
-
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
-                              <div>
-                                <label style={{ fontWeight: 800, fontSize: '0.7rem', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>UNIT TITLE</label>
-                                <input
-                                  type="text"
-                                  value={unit.title}
-                                  onChange={e => handleUpdateUnitField(section.id, unit.id, "title", e.target.value)}
-                                  style={{ width: '100%', padding: '8px 12px', borderRadius: '10px', border: '1.5px solid var(--line)', background: 'var(--panel)', color: 'var(--text)', fontWeight: 800, fontSize: '0.8rem', outline: 'none' }}
-                                />
-                              </div>
-                              <div>
-                                <label style={{ fontWeight: 800, fontSize: '0.7rem', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>UNIT SKILL TARGET</label>
-                                <select
-                                  value={unit.skill}
-                                  onChange={e => handleUpdateUnitField(section.id, unit.id, "skill", e.target.value)}
-                                  style={{ width: '100%', padding: '8px 12px', borderRadius: '10px', border: '1.5px solid var(--line)', background: 'var(--panel)', color: 'var(--text)', fontWeight: 800, fontSize: '0.8rem', cursor: 'pointer', outline: 'none' }}
+                        {section.units.length > 0 ? (() => {
+                          const safeIndex = Math.min(activeUnitIndex, section.units.length - 1);
+                          const unit = section.units[safeIndex];
+                          if (!unit) return null;
+                          return (
+                            <div key={unit.id} style={{ background: 'var(--bg)', border: '1px solid var(--line)', borderRadius: '20px', padding: '16px' }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', gap: '10px' }}>
+                                <span style={{ fontWeight: 900, color: 'var(--accent)', fontSize: '0.82rem' }}>UNIT {safeIndex + 1} OF {section.units.length}</span>
+                                <button 
+                                  type="button" 
+                                  onClick={() => {
+                                    handleDeleteUnit(section.id, unit.id);
+                                    setActiveUnitIndex(prev => Math.max(0, prev - 1));
+                                  }}
+                                  style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '0.85rem', cursor: 'pointer', padding: '4px' }}
                                 >
-                                  {Object.entries(SKILL_CATEGORIES).map(([key, config]) => (
-                                    <option key={key} value={key}>{config.label}</option>
-                                  ))}
-                                </select>
-                              </div>
-                            </div>
-
-                            {/* Lessons List inside Unit */}
-                            <div style={{ borderTop: '1px dashed var(--line)', paddingTop: '10px', marginTop: '10px' }}>
-                              <label style={{ fontWeight: 900, fontSize: '0.75rem', color: 'var(--text)', display: 'block', marginBottom: '8px' }}>📖 Lessons List ({(unit.lessons || []).length})</label>
-                              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '10px' }}>
-                                {(unit.lessons || []).map((les, lIdx) => (
-                                  <div key={les.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--panel-strong)', padding: '6px 12px', borderRadius: '10px', border: '1px solid var(--line)' }}>
-                                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flex: 1 }}>
-                                      <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--muted)' }}>{lIdx + 1}.</span>
-                                      <input
-                                        type="text"
-                                        value={les.title}
-                                        onChange={e => handleUpdateLessonTitle(section.id, unit.id, les.id, e.target.value)}
-                                        style={{
-                                          background: 'transparent',
-                                          border: 'none',
-                                          borderBottom: '1.5px dashed var(--line)',
-                                          color: 'var(--text)',
-                                          fontWeight: 800,
-                                          fontSize: '0.8rem',
-                                          padding: '2px 4px',
-                                          flex: 1,
-                                          outline: 'none'
-                                        }}
-                                        title="Rename Lesson"
-                                      />
-                                    </div>
-                                    <button 
-                                      type="button" 
-                                      onClick={() => handleDeleteLesson(section.id, unit.id, les.id)}
-                                      style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '0.8rem', cursor: 'pointer', padding: '2px' }}
-                                    >
-                                      ✕
-                                    </button>
-                                  </div>
-                                ))}
-                                {(unit.lessons || []).length === 0 && (
-                                  <div style={{ color: 'var(--muted)', fontStyle: 'italic', fontSize: '0.75rem', padding: '6px' }}>No lessons configured in this unit.</div>
-                                )}
-                              </div>
-
-                              {/* Add lesson input */}
-                              <form 
-                                onSubmit={e => {
-                                  e.preventDefault();
-                                  const formData = new FormData(e.target);
-                                  const title = formData.get("lessonTitle");
-                                  if (title) {
-                                    handleAddLesson(section.id, unit.id, title);
-                                    e.target.reset();
-                                  }
-                                }}
-                                style={{ display: 'flex', gap: '8px' }}
-                              >
-                                <input
-                                  type="text"
-                                  name="lessonTitle"
-                                  placeholder="Enter new lesson title..."
-                                  required
-                                  style={{ flex: 1, padding: '6px 10px', borderRadius: '8px', border: '1px solid var(--line)', background: 'var(--panel)', color: 'var(--text)', fontSize: '0.75rem', outline: 'none' }}
-                                />
-                                <button type="submit" style={{ background: 'var(--accent)', color: 'white', border: 'none', borderRadius: '8px', padding: '6px 12px', fontSize: '0.75rem', fontWeight: 800, cursor: 'pointer' }}>
-                                  ➕ Add Lesson
+                                  Delete Unit 🗑️
                                 </button>
-                              </form>
+                              </div>
+
+                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+                                <div>
+                                  <label style={{ fontWeight: 800, fontSize: '0.7rem', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>UNIT TITLE</label>
+                                  <input
+                                    type="text"
+                                    value={unit.title}
+                                    onChange={e => handleUpdateUnitField(section.id, unit.id, "title", e.target.value)}
+                                    style={{ width: '100%', padding: '8px 12px', borderRadius: '10px', border: '1.5px solid var(--line)', background: 'var(--panel)', color: 'var(--text)', fontWeight: 800, fontSize: '0.8rem', outline: 'none' }}
+                                  />
+                                </div>
+                                <div>
+                                  <label style={{ fontWeight: 800, fontSize: '0.7rem', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>UNIT SKILL TARGET</label>
+                                  <select
+                                    value={unit.skill}
+                                    onChange={e => handleUpdateUnitField(section.id, unit.id, "skill", e.target.value)}
+                                    style={{ width: '100%', padding: '8px 12px', borderRadius: '10px', border: '1.5px solid var(--line)', background: 'var(--panel)', color: 'var(--text)', fontWeight: 800, fontSize: '0.8rem', cursor: 'pointer', outline: 'none' }}
+                                  >
+                                    {Object.entries(SKILL_CATEGORIES).map(([key, config]) => (
+                                      <option key={key} value={key}>{config.label}</option>
+                                    ))}
+                                  </select>
+                                </div>
+                              </div>
+
+                              {/* Lessons List inside Unit */}
+                              <div style={{ borderTop: '1px dashed var(--line)', paddingTop: '10px', marginTop: '10px' }}>
+                                <label style={{ fontWeight: 900, fontSize: '0.75rem', color: 'var(--text)', display: 'block', marginBottom: '8px' }}>📖 Lessons List ({(unit.lessons || []).length})</label>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '10px' }}>
+                                  {(unit.lessons || []).map((les, lIdx) => (
+                                    <div key={les.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--panel-strong)', padding: '6px 12px', borderRadius: '10px', border: '1px solid var(--line)' }}>
+                                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flex: 1 }}>
+                                        <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--muted)' }}>{lIdx + 1}.</span>
+                                        <input
+                                          type="text"
+                                          value={les.title}
+                                          onChange={e => handleUpdateLessonTitle(section.id, unit.id, les.id, e.target.value)}
+                                          style={{
+                                            background: 'transparent',
+                                            border: 'none',
+                                            borderBottom: '1.5px dashed var(--line)',
+                                            color: 'var(--text)',
+                                            fontWeight: 800,
+                                            fontSize: '0.8rem',
+                                            padding: '2px 4px',
+                                            flex: 1,
+                                            outline: 'none'
+                                          }}
+                                          title="Rename Lesson"
+                                        />
+                                      </div>
+                                      <button 
+                                        type="button" 
+                                        onClick={() => handleDeleteLesson(section.id, unit.id, les.id)}
+                                        style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '0.8rem', cursor: 'pointer', padding: '2px' }}
+                                      >
+                                        ✕
+                                      </button>
+                                    </div>
+                                  ))}
+                                  {(unit.lessons || []).length === 0 && (
+                                    <div style={{ color: 'var(--muted)', fontStyle: 'italic', fontSize: '0.75rem', padding: '6px' }}>No lessons configured in this unit.</div>
+                                  )}
+                                </div>
+
+                                {/* Add lesson input */}
+                                <form 
+                                  onSubmit={e => {
+                                    e.preventDefault();
+                                    const formData = new FormData(e.target);
+                                    const title = formData.get("lessonTitle");
+                                    if (title) {
+                                      handleAddLesson(section.id, unit.id, title);
+                                      e.target.reset();
+                                    }
+                                  }}
+                                  style={{ display: 'flex', gap: '8px' }}
+                                >
+                                  <input
+                                    type="text"
+                                    name="lessonTitle"
+                                    placeholder="Enter new lesson title..."
+                                    required
+                                    style={{ flex: 1, padding: '6px 10px', borderRadius: '8px', border: '1px solid var(--line)', background: 'var(--panel)', color: 'var(--text)', fontSize: '0.75rem', outline: 'none' }}
+                                  />
+                                  <button type="submit" style={{ background: 'var(--accent)', color: 'white', border: 'none', borderRadius: '8px', padding: '6px 12px', fontSize: '0.75rem', fontWeight: 800, cursor: 'pointer' }}>
+                                    ➕ Add Lesson
+                                  </button>
+                                </form>
+                              </div>
                             </div>
+                          );
+                        })() : (
+                          <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--muted)', background: 'var(--bg)', borderRadius: '20px', border: '1px dashed var(--line)' }}>
+                            No units configured in this section yet. Click "Add Unit" to get started!
                           </div>
-                        ))}
+                        )}
                       </div>
                     </div>
                   );
@@ -2086,11 +2260,11 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
                   </tr>
                 </thead>
                 <tbody>
-                  {(localShopCatalog[activeShopCategory] || []).map((item) => (
+                  {paginatedShopItems.map((item) => (
                     <tr key={item.id}>
                       <td style={{ fontSize: '1.5rem', width: '60px' }}>
                         {activeShopCategory === "themes" ? (
-                          <div style={{ display: 'flex', gap: '3px', background: item.preview?.bg || '#fff', padding: '6px', borderRadius: '8px', border: '1px solid var(--line)' }}>
+                          <div style={{ display: 'flex', gap: '3px', background: 'var(--theme-preview-bg, ' + (item.preview?.bg || '#fff') + ')', padding: '6px', borderRadius: '8px', border: '1px solid var(--line)' }}>
                             <div style={{ width: '12px', height: '12px', borderRadius: '3px', background: item.preview?.accent }} />
                             <div style={{ width: '12px', height: '12px', borderRadius: '3px', background: item.preview?.accentDark }} />
                             <div style={{ width: '12px', height: '12px', borderRadius: '3px', background: item.preview?.accentSoft }} />
@@ -2143,6 +2317,57 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
                 </tbody>
               </table>
             </div>
+
+            {totalShopPages > 1 && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px', padding: '10px 4px', flexWrap: 'wrap', gap: '12px' }}>
+                <div style={{ fontSize: '0.85rem', color: 'var(--muted)', fontWeight: 700 }}>
+                  Showing {Math.min(localShopCatalog[activeShopCategory]?.length || 0, (shopPage - 1) * 5 + 1)}-{Math.min(localShopCatalog[activeShopCategory]?.length || 0, shopPage * 5)} of {localShopCatalog[activeShopCategory]?.length || 0} items
+                </div>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <button
+                    type="button"
+                    disabled={shopPage === 1}
+                    onClick={() => setShopPage(prev => Math.max(1, prev - 1))}
+                    style={{
+                      padding: '8px 16px',
+                      borderRadius: '10px',
+                      border: '1.5px solid var(--line)',
+                      background: 'var(--panel)',
+                      color: 'var(--text)',
+                      fontWeight: 800,
+                      fontSize: '0.8rem',
+                      cursor: shopPage === 1 ? 'not-allowed' : 'pointer',
+                      opacity: shopPage === 1 ? 0.5 : 1,
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    ◀ Previous
+                  </button>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text)', padding: '0 8px' }}>
+                    Page {shopPage} of {totalShopPages}
+                  </span>
+                  <button
+                    type="button"
+                    disabled={shopPage === totalShopPages}
+                    onClick={() => setShopPage(prev => Math.min(totalShopPages, prev + 1))}
+                    style={{
+                      padding: '8px 16px',
+                      borderRadius: '10px',
+                      border: '1.5px solid var(--line)',
+                      background: 'var(--panel)',
+                      color: 'var(--text)',
+                      fontWeight: 800,
+                      fontSize: '0.8rem',
+                      cursor: shopPage === totalShopPages ? 'not-allowed' : 'pointer',
+                      opacity: shopPage === totalShopPages ? 0.5 : 1,
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    Next ▶
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -3009,6 +3234,7 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
           </div>
         </div>
       )}
+      </main>
     </div>
   );
 }
