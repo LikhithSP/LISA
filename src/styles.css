@@ -16167,7 +16167,7 @@ select {
     display: flex !important;
     align-items: center !important;
     gap: 10px !important;
-    position: relative !important;
+    position: static !important;
     top: auto !important;
     right: auto !important;
     margin-left: auto !important;
@@ -16182,10 +16182,12 @@ select {
   }
 
   .dashboard-topbar .lang-selector-relative {
-    position: relative !important;
-    top: auto !important;
+    position: absolute !important;
+    left: 12px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
     right: auto !important;
-    z-index: auto !important;
+    z-index: 1000 !important;
     margin: 0 !important;
   }
 
@@ -16679,5 +16681,143 @@ select {
   
   .admin-sidebar div:last-child {
     display: none !important; /* Hide sticky logout button on mobile in sidebar */
+  }
+}
+
+/* Responsive grid helper classes for admin dashboard components */
+.admin-two-col-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.admin-announcements-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.admin-table-filter-bar {
+  background: var(--panel-strong);
+  padding: 14px 18px;
+  border-radius: 20px;
+  border: 1.5px solid var(--line);
+  margin-bottom: 24px;
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.admin-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.table-filters-sorting {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.table-filters-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.filter-label, .sort-label {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--muted);
+  letter-spacing: 0.03em;
+}
+
+.filter-pills {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.filter-pills button {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.table-sorting-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+@media (max-width: 768px) {
+  .admin-topbar-title {
+    display: none !important;
+  }
+  
+  .admin-stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+
+  .admin-two-col-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .admin-announcements-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .admin-table-filter-bar {
+    grid-template-columns: 1fr;
+    padding: 12px;
+  }
+
+  .table-filters-sorting {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .table-filters-left {
+    width: 100%;
+  }
+
+  .filter-pills {
+    width: 100%;
+    scrollbar-width: none; /* Hide scrollbar Firefox */
+  }
+  
+  .filter-pills::-webkit-scrollbar {
+    display: none; /* Hide scrollbar Chrome/Safari */
+  }
+
+  .table-sorting-right {
+    margin-left: 0;
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .admin-sidebar-nav .admin-tab-btn {
+    flex-shrink: 0 !important;
+  }
+}
+
+@media (max-width: 400px) {
+  .admin-stats-grid {
+    grid-template-columns: 1fr !important;
   }
 }
