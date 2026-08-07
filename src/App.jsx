@@ -5977,34 +5977,83 @@ function App() {
     }
   };
 
+  // Hardcoded pronunciation fallback sentences (instant load, no API dependency)
+  const PRONUNCIATION_FALLBACK = {
+    Hindi: [
+      { id: 1, sentence: "राम स्कूल जाता है।", englishTranslation: "Ram goes to school." },
+      { id: 2, sentence: "वह किताब पढ़ता है।", englishTranslation: "He reads a book." },
+      { id: 3, sentence: "सीता गाना गाती है।", englishTranslation: "Sita sings a song." },
+      { id: 4, sentence: "आज मौसम अच्छा है।", englishTranslation: "Today the weather is good." },
+      { id: 5, sentence: "मुझे फल खाना पसंद है।", englishTranslation: "I like to eat fruits." },
+      { id: 6, sentence: "यह मेरी पुस्तक है।", englishTranslation: "This is my book." },
+      { id: 7, sentence: "हम सब मिलकर खेलेंगे।", englishTranslation: "We will all play together." },
+      { id: 8, sentence: "पानी बहुत ठंडा है।", englishTranslation: "The water is very cold." },
+      { id: 9, sentence: "पेड़ पर पक्षी हैं।", englishTranslation: "Birds are on the tree." },
+      { id: 10, sentence: "समय बहुत मूल्यवान है।", englishTranslation: "Time is very valuable." },
+    ],
+    Kannada: [
+      { id: 1, sentence: "ರಾಮ್ ಶಾಲೆಗೆ ಹೋಗುತ್ತಾನೆ.", englishTranslation: "Ram goes to school." },
+      { id: 2, sentence: "ಅವನು ಪುಸ್ತಕ ಓದುತ್ತಾನೆ.", englishTranslation: "He reads a book." },
+      { id: 3, sentence: "ಸೀತಾ ಹಾಡು ಹಾಡುತ್ತಾಳೆ.", englishTranslation: "Sita sings a song." },
+      { id: 4, sentence: "ಇಂದು ಹವಾಮಾನ ಚೆನ್ನಾಗಿದೆ.", englishTranslation: "Today the weather is good." },
+      { id: 5, sentence: "ನನಗೆ ಹಣ್ಣು ತಿನ್ನಲು ಇಷ್ಟ.", englishTranslation: "I like to eat fruits." },
+      { id: 6, sentence: "ಇದು ನನ್ನ ಪುಸ್ತಕ.", englishTranslation: "This is my book." },
+      { id: 7, sentence: "ನಾವೆಲ್ಲರೂ ಒಟ್ಟಿಗೆ ಆಡೋಣ.", englishTranslation: "Let's all play together." },
+      { id: 8, sentence: "ನೀರು ತುಂಬಾ ತಣ್ಣಗಿದೆ.", englishTranslation: "The water is very cold." },
+      { id: 9, sentence: "ಮರದ ಮೇಲೆ ಹಕ್ಕಿಗಳಿವೆ.", englishTranslation: "Birds are on the tree." },
+      { id: 10, sentence: "ಸಮಯ ತುಂಬಾ ಅಮೂಲ್ಯವಾಗಿದೆ.", englishTranslation: "Time is very precious." },
+    ],
+    Telugu: [
+      { id: 1, sentence: "రాము బడికి వెళతాడు.", englishTranslation: "Ram goes to school." },
+      { id: 2, sentence: "అతడు పుస్తకం చదువుతాడు.", englishTranslation: "He reads a book." },
+      { id: 3, sentence: "సీత పాట పాడుతుంది.", englishTranslation: "Sita sings a song." },
+      { id: 4, sentence: "ఈరోజు వాతావరణం బాగుంది.", englishTranslation: "Today the weather is good." },
+      { id: 5, sentence: "నాకు పండ్లు తినడం ఇష్టం.", englishTranslation: "I like to eat fruits." },
+      { id: 6, sentence: "ఇది నా పుస్తకం.", englishTranslation: "This is my book." },
+      { id: 7, sentence: "మనమందరం కలిసి ఆడుకుందాం.", englishTranslation: "Let's all play together." },
+      { id: 8, sentence: "నీరు చాలా చల్లగా ఉంది.", englishTranslation: "Water is very cold." },
+      { id: 9, sentence: "చెట్టు మీద పక్షులు ఉన్నాయి.", englishTranslation: "Birds are on the tree." },
+      { id: 10, sentence: "సమయం చాలా విలువైనది.", englishTranslation: "Time is very precious." },
+    ],
+    Tamil: [
+      { id: 1, sentence: "ராம் பள்ளிக்குச் செல்கிறான்.", englishTranslation: "Ram goes to school." },
+      { id: 2, sentence: "அவன் புத்தகம் படிக்கிறான்.", englishTranslation: "He reads a book." },
+      { id: 3, sentence: "சீதா பாட்டு பாடுகிறாள்.", englishTranslation: "Sita sings a song." },
+      { id: 4, sentence: "இன்று வானிலை நன்றாக உள்ளது.", englishTranslation: "Today the weather is good." },
+      { id: 5, sentence: "எனக்கு பழங்கள் சாப்பிட பிடிக்கும்.", englishTranslation: "I like to eat fruits." },
+      { id: 6, sentence: "இது எனது புத்தகம்.", englishTranslation: "This is my book." },
+      { id: 7, sentence: "நாம் அனைவரும் சேர்ந்து விளையாடுவோம்.", englishTranslation: "We will all play together." },
+      { id: 8, sentence: "தண்ணீர் மிகவும் குளிராக இருக்கிறது.", englishTranslation: "Water is very cold." },
+      { id: 9, sentence: "மரத்தின் மேல் பறவைகள் இருக்கின்றன.", englishTranslation: "Birds are on the tree." },
+      { id: 10, sentence: "நேரம் மிகவும் மதிப்புமிக்கது.", englishTranslation: "Time is very valuable." },
+    ],
+    English: [
+      { id: 1, sentence: "The sun shines bright.", englishTranslation: "The sun shines bright." },
+      { id: 2, sentence: "I love reading books.", englishTranslation: "I love reading books." },
+      { id: 3, sentence: "We go to school.", englishTranslation: "We go to school." },
+      { id: 4, sentence: "Water is clean and fresh.", englishTranslation: "Water is clean and fresh." },
+      { id: 5, sentence: "She speaks very kindly.", englishTranslation: "She speaks very kindly." },
+      { id: 6, sentence: "This is my favorite story.", englishTranslation: "This is my favorite story." },
+      { id: 7, sentence: "Let's play together today.", englishTranslation: "Let's play together today." },
+      { id: 8, sentence: "The trees are green.", englishTranslation: "The trees are green." },
+      { id: 9, sentence: "Birds fly high in the sky.", englishTranslation: "Birds fly high in the sky." },
+      { id: 10, sentence: "Practice makes perfect.", englishTranslation: "Practice makes perfect." },
+    ],
+  };
+
   useEffect(() => {
     if (practiceCollectionPage === "pronunciation") {
-      setPronunciationLoading(true);
-      const level = calculateProgressiveLevel(profile, completedLessons);
-      const levelName = level >= 9 ? "Advanced" : level >= 5 ? "Intermediate" : "Beginner";
-      
-      generatePracticeContent({
-        practiceType: "Perfect Pronunciation",
-        language: learningLanguage || "English",
-        literacyLevel: level,
-        literacyLevelName: levelName,
-        interfaceLanguage: selectedLanguage || "English",
-        useFallback: !aiEnabled
-      }).then(res => {
-        if (res && res.questions) {
-          setPronunciationQuestions(res.questions);
-        }
-        setPronunciationStep(0);
-        setSpokenText("");
-        setPronunciationScore(null);
-        setPronouncedWordsMatch([]);
-        setPronunciationLoading(false);
-      }).catch(e => {
-        console.error(e);
-        setPronunciationLoading(false);
-      });
+      // Load immediately from hardcoded fallback — no API dependency
+      const lang = learningLanguage || "English";
+      const questions = PRONUNCIATION_FALLBACK[lang] || PRONUNCIATION_FALLBACK["English"];
+      setPronunciationQuestions(questions);
+      setPronunciationStep(0);
+      setSpokenText("");
+      setPronunciationScore(null);
+      setPronouncedWordsMatch([]);
+      setPronunciationLoading(false);
     }
-  }, [practiceCollectionPage, learningLanguage, selectedLanguage]);
+  }, [practiceCollectionPage, learningLanguage]);
 
   const openPracticeCollection = (page) => {
     setPracticeCollectionPage(page);
@@ -10852,153 +10901,394 @@ function App() {
                   <span>Practice</span>
                 </button>
 
-                <section className="duo-practice-hero">
-                  <div className="duo-hero-icon duo-hero-pronunciation" aria-hidden="true">
-                    <span>🗣️</span>
-                  </div>
-                  <h1>Perfect Pronunciation</h1>
-                  <p>Practice speaking clear and correct sentences in {learningLanguage || "English"}</p>
-                </section>
-
-                <div className="duo-practice-divider" />
-
                 {pronunciationLoading ? (
                   <div className="pronunciation-loading-box">
                     <div className="duo-spinner"></div>
-                    <p>Generating personalized speaking targets...</p>
+                    <p>Loading pronunciation exercises...</p>
                   </div>
                 ) : pronunciationQuestions.length === 0 ? (
                   <div className="pronunciation-empty-box">
-                    <p>No speaking questions available at this level. Try changing your level or language.</p>
+                    <p>No sentences available. Please try again.</p>
+                    <button
+                      type="button"
+                      className="primary-btn"
+                      style={{ marginTop: 16 }}
+                      onClick={() => {
+                        setPronunciationLoading(true);
+                        const level = calculateProgressiveLevel(profile, completedLessons);
+                        const levelName = level >= 9 ? "Advanced" : level >= 5 ? "Intermediate" : "Beginner";
+                        generatePracticeContent({
+                          practiceType: "Perfect Pronunciation",
+                          language: learningLanguage || "English",
+                          literacyLevel: level,
+                          literacyLevelName: levelName,
+                          interfaceLanguage: selectedLanguage || "English",
+                          useFallback: true
+                        }).then(res => {
+                          if (res && res.questions) setPronunciationQuestions(res.questions);
+                          setPronunciationStep(0);
+                          setPronunciationScore(null);
+                          setPronouncedWordsMatch([]);
+                          setSpokenText("");
+                          setPronunciationLoading(false);
+                        }).catch(() => setPronunciationLoading(false));
+                      }}
+                    >Retry</button>
                   </div>
                 ) : (() => {
                   const currentQuestion = pronunciationQuestions[pronunciationStep];
                   if (!currentQuestion) return null;
-                  
+                  const sentence = currentQuestion.sentence || currentQuestion.text || "";
+                  const translation = currentQuestion.englishTranslation || currentQuestion.translation || "";
+                  const total = pronunciationQuestions.length;
+
+                  const scoreColor = pronunciationScore === null ? null
+                    : pronunciationScore >= 80 ? "#10b981"
+                    : pronunciationScore >= 50 ? "#f59e0b"
+                    : "#ef4444";
+
+                  const scoreLabel = pronunciationScore === null ? null
+                    : pronunciationScore >= 80 ? "Excellent! 🎉"
+                    : pronunciationScore >= 50 ? "Good try! 💪"
+                    : "Keep practicing! 🔄";
+
                   return (
-                    <div className="pronunciation-card-container">
-                      <div className="pronunciation-card-header">
-                        <span className="pronunciation-badge">SENTENCE {pronunciationStep + 1} OF {pronunciationQuestions.length}</span>
+                    <div style={{
+                      maxWidth: 600,
+                      margin: "24px auto",
+                      padding: "0 16px",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 20
+                    }}>
+                      {/* Progress bar */}
+                      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                        <div style={{
+                          flex: 1,
+                          height: 8,
+                          background: "var(--line)",
+                          borderRadius: 99,
+                          overflow: "hidden"
+                        }}>
+                          <div style={{
+                            height: "100%",
+                            width: `${((pronunciationStep + 1) / total) * 100}%`,
+                            background: "var(--accent)",
+                            borderRadius: 99,
+                            transition: "width 0.4s ease"
+                          }} />
+                        </div>
+                        <span style={{
+                          fontSize: "0.8rem",
+                          fontWeight: 700,
+                          color: "var(--text-muted)",
+                          whiteSpace: "nowrap"
+                        }}>{pronunciationStep + 1} / {total}</span>
+                      </div>
+
+                      {/* Main sentence card */}
+                      <div style={{
+                        background: "var(--panel)",
+                        border: "2px solid var(--line)",
+                        borderRadius: 24,
+                        padding: "32px 28px",
+                        textAlign: "center",
+                        boxShadow: "0 8px 32px rgba(0,0,0,0.06)"
+                      }}>
+                        {/* Language label */}
+                        <div style={{
+                          display: "inline-block",
+                          background: "var(--accent-soft)",
+                          color: "var(--accent)",
+                          fontSize: "0.72rem",
+                          fontWeight: 800,
+                          letterSpacing: 1,
+                          padding: "4px 14px",
+                          borderRadius: 99,
+                          marginBottom: 20,
+                          textTransform: "uppercase"
+                        }}>
+                          🗣️ {learningLanguage || "English"} — Sentence {pronunciationStep + 1}
+                        </div>
+
+                        {/* THE SENTENCE — main display */}
+                        <div style={{
+                          fontSize: "clamp(1.4rem, 4vw, 2rem)",
+                          fontWeight: 800,
+                          lineHeight: 1.5,
+                          color: "var(--text)",
+                          marginBottom: 16,
+                          padding: "0 8px",
+                          minHeight: 60,
+                          display: "flex",
+                          flexWrap: "wrap",
+                          justifyContent: "center",
+                          gap: "6px 10px",
+                          alignItems: "center"
+                        }}>
+                          {pronouncedWordsMatch.length > 0
+                            ? pronouncedWordsMatch.map((m, i) => (
+                              <span key={i} style={{
+                                padding: "2px 8px",
+                                borderRadius: 8,
+                                background: m.isCorrect ? "rgba(16,185,129,0.15)" : "rgba(239,68,68,0.12)",
+                                color: m.isCorrect ? "#059669" : "#ef4444",
+                                fontWeight: 800,
+                                transition: "all 0.3s"
+                              }}>{m.word}</span>
+                            ))
+                            : sentence.split(/\s+/).filter(Boolean).map((w, i) => (
+                              <span key={i} style={{
+                                padding: "2px 8px",
+                                borderRadius: 8,
+                                color: "var(--text)",
+                                fontWeight: 800
+                              }}>{w}</span>
+                            ))
+                          }
+                        </div>
+
+                        {/* Translation toggle */}
+                        {translation && (
+                          <div>
+                            <button
+                              type="button"
+                              onClick={() => setShowTranslation(!showTranslation)}
+                              style={{
+                                background: "none",
+                                border: "1.5px solid var(--line)",
+                                borderRadius: 99,
+                                padding: "5px 16px",
+                                fontSize: "0.8rem",
+                                fontWeight: 700,
+                                color: "var(--text-muted)",
+                                cursor: "pointer",
+                                transition: "all 0.2s"
+                              }}
+                            >
+                              {showTranslation ? "Hide" : "Show"} Translation
+                            </button>
+                            {showTranslation && (
+                              <div style={{
+                                marginTop: 12,
+                                padding: "10px 16px",
+                                background: "var(--bg)",
+                                borderRadius: 12,
+                                fontSize: "0.95rem",
+                                color: "var(--text-muted)",
+                                fontStyle: "italic"
+                              }}>
+                                {translation}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* TTS buttons */}
+                      <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
                         <button
                           type="button"
-                          className={`translation-toggle-btn ${showTranslation ? "active" : ""}`}
-                          onClick={() => setShowTranslation(!showTranslation)}
+                          onClick={() => { setSlowSpeed(false); speakText(sentence, 1.0); }}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 8,
+                            background: "var(--panel)",
+                            border: "2px solid var(--accent)",
+                            color: "var(--accent)",
+                            borderRadius: 16,
+                            padding: "12px 24px",
+                            fontWeight: 800,
+                            fontSize: "0.95rem",
+                            cursor: "pointer",
+                            transition: "all 0.2s"
+                          }}
                         >
-                          {showTranslation ? "Hide Translation" : "Show Translation"}
+                          🔊 Normal Speed
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => { setSlowSpeed(true); speakText(sentence, 0.5); }}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 8,
+                            background: "var(--panel)",
+                            border: "2px solid #10b981",
+                            color: "#10b981",
+                            borderRadius: 16,
+                            padding: "12px 24px",
+                            fontWeight: 800,
+                            fontSize: "0.95rem",
+                            cursor: "pointer",
+                            transition: "all 0.2s"
+                          }}
+                        >
+                          🐢 Slow Speed
                         </button>
                       </div>
 
-                      <div className="pronunciation-main-phrase">
-                        <div className="phrase-speak-buttons">
-                          <button
-                            type="button"
-                            className="tts-btn normal"
-                            onClick={() => {
-                              setSlowSpeed(false);
-                              speakSentencePronunciation(currentQuestion.sentence);
-                            }}
-                            title="Hear normal speed"
-                          >
-                            🔊 Normal Voice
-                          </button>
-                          <button
-                            type="button"
-                            className="tts-btn slow"
-                            onClick={() => {
-                              setSlowSpeed(true);
-                              speakSentencePronunciation(currentQuestion.sentence);
-                            }}
-                            title="Hear slow speed"
-                          >
-                            🐢 Slow Voice
-                          </button>
-                        </div>
-
-                        <div className="target-sentence-display">
-                          {pronouncedWordsMatch.length > 0 ? (
-                            pronouncedWordsMatch.map((m, idx) => (
-                              <span
-                                key={idx}
-                                className={`word-span ${m.isCorrect ? "correct" : "incorrect"}`}
-                              >
-                                {m.word}
-                              </span>
-                            ))
-                          ) : (
-                            <span className="word-span neutral">{currentQuestion.sentence}</span>
+                      {/* Score display */}
+                      {pronunciationScore !== null && (
+                        <div style={{
+                          background: "var(--panel)",
+                          border: `2px solid ${scoreColor}`,
+                          borderRadius: 20,
+                          padding: "20px 24px",
+                          textAlign: "center",
+                          animation: "slideUp 0.3s ease"
+                        }}>
+                          <div style={{ fontSize: "2.5rem", fontWeight: 900, color: scoreColor }}>
+                            {pronunciationScore}%
+                          </div>
+                          <div style={{ fontWeight: 800, color: scoreColor, fontSize: "1.1rem", marginBottom: 8 }}>
+                            {scoreLabel}
+                          </div>
+                          {pronunciationScore >= 80 && (
+                            <div style={{ fontSize: "0.85rem", color: "#10b981", fontWeight: 700 }}>+10 XP Awarded! ⚡</div>
                           )}
-                        </div>
-
-                        {showTranslation && (
-                          <div className="pronunciation-translation">
-                            <p>{currentQuestion.translation || currentQuestion.englishTranslation}</p>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="pronunciation-feedback-area">
-                        {pronunciationScore !== null && (
-                          <div className={`score-badge ${pronunciationScore >= 80 ? "pass" : "fail"}`}>
-                            <h4>{pronunciationScore >= 80 ? "Superb Pronunciation! 🎉" : "Keep practicing! 💪"}</h4>
-                            <p>Score: {pronunciationScore}% {pronunciationScore >= 80 ? "(+10 XP Awarded)" : ""}</p>
-                            {spokenText && <p className="spoken-text-preview">You said: "<i>{spokenText}</i>"</p>}
-                          </div>
-                        )}
-
-                        <div className="speech-mic-trigger-container">
-                          <button
-                            type="button"
-                            className={`mic-button ${isRecordingPronunciation ? "recording" : ""}`}
-                            onClick={() => startListeningPronunciation(currentQuestion.sentence)}
-                          >
-                            {isRecordingPronunciation ? "🎙️ Listening..." : "🎤 Tap to Speak"}
-                          </button>
-                          {isRecordingPronunciation && (
-                            <div className="recording-ripple-indicator">
-                              <span></span><span></span><span></span>
+                          {spokenText && (
+                            <div style={{
+                              marginTop: 10,
+                              fontSize: "0.85rem",
+                              color: "var(--text-muted)",
+                              background: "var(--bg)",
+                              padding: "8px 14px",
+                              borderRadius: 12
+                            }}>
+                              You said: "<i>{spokenText}</i>"
                             </div>
                           )}
                         </div>
+                      )}
+
+                      {/* Mic button */}
+                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
+                        <button
+                          type="button"
+                          onClick={() => startListeningPronunciation(sentence)}
+                          disabled={isRecordingPronunciation}
+                          style={{
+                            background: isRecordingPronunciation
+                              ? "linear-gradient(135deg, #ef4444, #dc2626)"
+                              : "linear-gradient(135deg, var(--accent), #7c3aed)",
+                            color: "white",
+                            border: "none",
+                            borderRadius: 50,
+                            padding: "18px 48px",
+                            fontSize: "1.15rem",
+                            fontWeight: 800,
+                            cursor: isRecordingPronunciation ? "not-allowed" : "pointer",
+                            boxShadow: isRecordingPronunciation
+                              ? "0 8px 24px rgba(239,68,68,0.4)"
+                              : "0 8px 24px rgba(124,58,237,0.35)",
+                            transition: "all 0.2s",
+                            transform: isRecordingPronunciation ? "scale(0.97)" : "scale(1)"
+                          }}
+                        >
+                          {isRecordingPronunciation ? "🎙️ Listening…" : "🎤 Tap to Speak"}
+                        </button>
+
+                        {isRecordingPronunciation && (
+                          <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                            {[0, 1, 2, 3, 4].map(i => (
+                              <div key={i} style={{
+                                width: 6,
+                                height: 6,
+                                background: "#ef4444",
+                                borderRadius: "50%",
+                                animation: `recordRipple 1.2s ${i * 0.15}s infinite ease-in-out`
+                              }} />
+                            ))}
+                          </div>
+                        )}
+
+                        <div style={{ fontSize: "0.8rem", color: "var(--text-muted)", fontWeight: 600 }}>
+                          Listen first, then speak the sentence
+                        </div>
                       </div>
 
-                      <div className="pronunciation-footer-actions">
-                        {pronunciationStep > 0 && (
-                          <button
-                            type="button"
-                            className="secondary-btn"
-                            onClick={() => {
-                              setPronunciationStep(prev => prev - 1);
+                      {/* Navigation buttons */}
+                      <div style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        gap: 12,
+                        borderTop: "1.5px solid var(--line)",
+                        paddingTop: 20
+                      }}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (pronunciationStep > 0) {
+                              setPronunciationStep(p => p - 1);
                               setPronunciationScore(null);
                               setPronouncedWordsMatch([]);
                               setSpokenText("");
-                            }}
-                          >
-                            Previous
-                          </button>
-                        )}
-                        {pronunciationStep < pronunciationQuestions.length - 1 ? (
+                              setShowTranslation(false);
+                            }
+                          }}
+                          disabled={pronunciationStep === 0}
+                          style={{
+                            background: "var(--panel)",
+                            border: "2px solid var(--line)",
+                            borderRadius: 14,
+                            padding: "12px 24px",
+                            fontWeight: 700,
+                            fontSize: "0.95rem",
+                            cursor: pronunciationStep === 0 ? "not-allowed" : "pointer",
+                            opacity: pronunciationStep === 0 ? 0.4 : 1,
+                            color: "var(--text)"
+                          }}
+                        >
+                          ← Previous
+                        </button>
+
+                        {pronunciationStep < total - 1 ? (
                           <button
                             type="button"
-                            className="primary-btn"
                             onClick={() => {
-                              setPronunciationStep(prev => prev + 1);
+                              setPronunciationStep(p => p + 1);
                               setPronunciationScore(null);
                               setPronouncedWordsMatch([]);
                               setSpokenText("");
+                              setShowTranslation(false);
+                              window.speechSynthesis?.cancel();
+                            }}
+                            style={{
+                              background: "linear-gradient(135deg, var(--accent), #7c3aed)",
+                              color: "white",
+                              border: "none",
+                              borderRadius: 14,
+                              padding: "12px 32px",
+                              fontWeight: 800,
+                              fontSize: "0.95rem",
+                              cursor: "pointer",
+                              boxShadow: "0 4px 16px rgba(124,58,237,0.3)"
                             }}
                           >
-                            Next
+                            Next →
                           </button>
                         ) : (
                           <button
                             type="button"
-                            className="primary-btn finish-pronunciation-btn"
                             onClick={() => {
                               setPracticeCollectionPage(null);
                               window.speechSynthesis?.cancel();
                             }}
+                            style={{
+                              background: "linear-gradient(135deg, #10b981, #059669)",
+                              color: "white",
+                              border: "none",
+                              borderRadius: 14,
+                              padding: "12px 32px",
+                              fontWeight: 800,
+                              fontSize: "0.95rem",
+                              cursor: "pointer",
+                              boxShadow: "0 4px 16px rgba(16,185,129,0.35)"
+                            }}
                           >
-                            Finish Practice
+                            ✅ Finish Practice
                           </button>
                         )}
                       </div>
