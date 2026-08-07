@@ -10074,7 +10074,7 @@ function App() {
     return (
       <div className="dashboard-container-new">
         {/* Topbar with embedded sidebar navigation */}
-        <div className="dashboard-topbar">
+        <div className={`dashboard-topbar ${dashboardTab === "admin" ? "admin-topbar" : ""}`}>
           <div className="topbar-left">
             {session?.user?.email === "admin@gmail.com" ? (
               <div className="admin-topbar-title" style={{ fontSize: '1.25rem', fontWeight: '900', color: 'var(--accent)', paddingLeft: '8px' }}>
