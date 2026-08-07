@@ -3533,6 +3533,12 @@ select:focus-visible {
   width: 100%;
 }
 
+.dashboard-main-view.admin-main-view {
+  background-color: #ffffff !important;
+  background-image: linear-gradient(rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.88)),
+    url("https://images.rawpixel.com/image_social_landscape/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTA5L3Jhd3BpeGVsX29mZmljZV8yMl9zaW1wbGlmaWVkX2VtcHR5X2NvdW50cnlzaWRlX2hpbGxfbGFuZHNjYXBlX182NmUzNTJjMi1iZTA2LTQ3ZjAtYThmMC1kZmM4ZGM4NTg1NWFfMS5qcGc.jpg") !important;
+}
+
 [data-theme="dark"] .dashboard-main-view {
   background-color: #060608 !important;
   background-image: linear-gradient(180deg, rgba(6, 6, 8, 0.95) 0%, rgba(8, 8, 11, 0.93) 50%, rgba(4, 4, 6, 0.97) 100%),
@@ -3541,6 +3547,12 @@ select:focus-visible {
   background-position: center !important;
   background-repeat: no-repeat !important;
   background-attachment: fixed !important;
+}
+
+[data-theme="dark"] .dashboard-main-view.admin-main-view {
+  background-color: #060608 !important;
+  background-image: linear-gradient(180deg, rgba(6, 6, 8, 0.95) 0%, rgba(8, 8, 11, 0.93) 50%, rgba(4, 4, 6, 0.97) 100%),
+    url("https://images.rawpixel.com/image_social_landscape/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTA5L3Jhd3BpeGVsX29mZmljZV8yMl9zaW1wbGlmaWVkX2VtcHR5X2NvdW50cnlzaWRlX2hpbGxfbGFuZHNjYXBlX182NmUzNTJjMi1iZTA2LTQ3ZjAtYThmMC1kZmM4ZGM4NTg1NWFfMS5qcGc.jpg") !important;
 }
 
 /* Tutor Announcement Bar */
