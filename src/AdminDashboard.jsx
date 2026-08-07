@@ -83,6 +83,7 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
   const [wordSearch, setWordSearch] = useState("");
   const [editingWord, setEditingWord] = useState(null); // Word object being edited/added
   const [isAddingWord, setIsAddingWord] = useState(false);
+  const [wordsPage, setWordsPage] = useState(1);
 
   // States for Announcements
   const [annTitle, setAnnTitle] = useState("");
@@ -548,6 +549,18 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
       (w.language || "").toLowerCase().includes(query)
     );
   }, [words, wordSearch]);
+  
+  // Reset words page to 1 when search term changes
+  useEffect(() => {
+    setWordsPage(1);
+  }, [wordSearch]);
+
+  const paginatedWords = useMemo(() => {
+    const startIndex = (wordsPage - 1) * 10;
+    return filteredWords.slice(startIndex, startIndex + 10);
+  }, [filteredWords, wordsPage]);
+
+  const totalWordsPages = Math.ceil(filteredWords.length / 10) || 1;
 
   // Handle Edit User Submit
   const handleEditUserSubmit = async (e) => {
@@ -1544,7 +1557,8 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
             {wordsLoading ? (
               <div className="admin-loading-spinner">Loading words database...</div>
             ) : (
-              <div className="admin-table-wrapper">
+              <>
+                <div className="admin-table-wrapper">
                 <table className="admin-table">
                   <thead>
                     <tr>
@@ -1557,7 +1571,7 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredWords.map(w => (
+                    {paginatedWords.map(w => (
                       <tr key={w.id}>
                         <td><b>{w.word}</b></td>
                         <td><span className="lang-tag">{w.language}</span></td>
@@ -1604,8 +1618,60 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
                   </tbody>
                 </table>
               </div>
-            )}
-          </div>
+              
+              {totalWordsPages > 1 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px', padding: '10px 4px', flexWrap: 'wrap', gap: '12px' }}>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--muted)', fontWeight: 700 }}>
+                    Showing {Math.min(filteredWords.length, (wordsPage - 1) * 10 + 1)}-{Math.min(filteredWords.length, wordsPage * 10)} of {filteredWords.length} words
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <button
+                      type="button"
+                      disabled={wordsPage === 1}
+                      onClick={() => setWordsPage(prev => Math.max(1, prev - 1))}
+                      style={{
+                        padding: '8px 16px',
+                        borderRadius: '10px',
+                        border: '1.5px solid var(--line)',
+                        background: 'var(--panel)',
+                        color: 'var(--text)',
+                        fontWeight: 800,
+                        fontSize: '0.8rem',
+                        cursor: wordsPage === 1 ? 'not-allowed' : 'pointer',
+                        opacity: wordsPage === 1 ? 0.5 : 1,
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      ◀ Previous
+                    </button>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text)', padding: '0 8px' }}>
+                      Page {wordsPage} of {totalWordsPages}
+                    </span>
+                    <button
+                      type="button"
+                      disabled={wordsPage === totalWordsPages}
+                      onClick={() => setWordsPage(prev => Math.min(totalWordsPages, prev + 1))}
+                      style={{
+                        padding: '8px 16px',
+                        borderRadius: '10px',
+                        border: '1.5px solid var(--line)',
+                        background: 'var(--panel)',
+                        color: 'var(--text)',
+                        fontWeight: 800,
+                        fontSize: '0.8rem',
+                        cursor: wordsPage === totalWordsPages ? 'not-allowed' : 'pointer',
+                        opacity: wordsPage === totalWordsPages ? 0.5 : 1,
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      Next ▶
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
         )}
 
         {/* CURRICULUM & ASSESSMENT INSIGHTS SUB-TAB */}
@@ -2007,7 +2073,7 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
             </div>
 
             {/* Table of Items */}
-            <div className="admin-table-wrap">
+            <div className="admin-table-wrapper">
               <table className="admin-table">
                 <thead>
                   <tr>

@@ -16526,3 +16526,11 @@ select {
     padding: 0 0 24px !important;
   }
 }
+
+/* Course Curriculum Builder - 2 Column Desktop Layout */
+.admin-curriculum-grid {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 24px;
+  align-items: start;
+}
