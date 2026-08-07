@@ -60,7 +60,6 @@ html,
 body,
 #root {
   min-height: 100%;
-  overflow-x: hidden; /* Prevent any translateX/wide element from causing horizontal scroll */
 }
 
 /* Smooth theme transition */
@@ -7344,8 +7343,6 @@ select:focus-visible {
   flex-direction: column;
   gap: 40px;
   box-sizing: border-box;
-  overflow-x: hidden; /* Prevent snake offsets from causing horizontal scroll */
-  width: 100%;
 }
 
 .duo-section-block {
@@ -7727,27 +7724,6 @@ select:focus-visible {
 
   .duo-unit-topic {
     font-size: 0.8rem;
-  }
-
-  /* Reduce snake offset on small screens so nodes stay within viewport */
-  .snake-right {
-    transform: translateX(40px);
-  }
-
-  .snake-left {
-    transform: translateX(-40px);
-  }
-
-  /* Keep popover within viewport */
-  .duo-popover-card {
-    width: calc(100vw - 48px);
-    max-width: 270px;
-    left: 50%;
-    transform: translateX(-50%);
-  }
-
-  .duo-lessons-path {
-    overflow: visible;
   }
 }
 
