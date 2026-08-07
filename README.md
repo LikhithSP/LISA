@@ -74,6 +74,8 @@ graph TB
 * **Browser-Native Neural Speech Mechanics**: Eliminates the need for expensive speech-to-text API endpoints by wrapping the native Web Speech API (`SpeechRecognition` / `webkitSpeechRecognition`), configuring local language recognition codes (`kn-IN`, `ta-IN`, `hi-IN`, `te-IN`, `en-US`) to process pronunciation grading locally on client devices.
 * **Canvas Stroke Vector Analysis**: Implements a pixel-matching threshold formula that compares user pointer coordinates on the HTML5 Canvas to target letter patterns, validating manual writing skills without high-latency OCR calls.
 * **Design Tokens & Accessibility Guidelines**: Supports custom design themes, fluid font sizes, `:focus-visible` accessibility keyboard rings, and responsive CSS containers built using pure CSS grid systems for seamless mobile transitions.
+* **Offline-First Feedback Caching & Sync**: User feedback submissions are written to an offline `localStorage` cache as a fallback before being pushed to Supabase `user_feedback`, securing data transmission even during sporadic network outages.
+* **PWA-Integrated Broadcast Notifications**: Real-time admin announcements are synchronized to client sessions. The service worker intercepts updates and requests browser-level Notification permission to push native alerts directly on user screens.
 
 ---
 
@@ -106,6 +108,12 @@ graph TB
 * **Streak Tracking**: Tracks consecutive active days, boosting motivation with daily multiplier bonuses.
 * **Interactive Playgrounds**: Match pairs, spell, and sprint against the clock to score bonus XP.
 * **Reward Redemptions**: Redeem earned XP Stars in the Shop to acquire custom visual themes, typography fonts, avatars, and profile badges.
+* **Dynamic Catalog Synchronization**: Admins can add and publish shop items in real time. Items use localized fallback IDs (`getItemName`/`getItemDesc` utility) to preserve layout formatting and descriptions when new items are added dynamically.
+
+### 5. Administrative Announcements, Feedback & Notifications
+* **Admin Dashboard Workspace**: Multi-pane admin workspace includes an Overview dashboard, Learner Roster management, and Word of the Day CRUD interface.
+* **Real-time Feedback & Bug Hub**: Students submit categorized feedback (Bugs, Feature Requests, UI/Design, General) with satisfaction ratings. Admins track and update feedback status (New, Pending, Resolved) from a dedicated dashboard interface.
+* **Centralized Announcement Engine**: Admins author announcements (specifying custom title, message, icons, and colors) that are immediately saved to a dedicated `announcements` database table and pushed via service workers as local notifications to active students.
 
 ---
 
@@ -234,6 +242,42 @@ CREATE POLICY "Anyone can view word of the day" ON public.word_of_day FOR SELECT
 CREATE POLICY "Anyone can insert word of the day" ON public.word_of_day FOR INSERT WITH CHECK (true);
 CREATE POLICY "Anyone can update word of the day" ON public.word_of_day FOR UPDATE USING (true);
 CREATE POLICY "Anyone can delete word of the day" ON public.word_of_day FOR DELETE USING (true);
+
+-- 3. User Feedback Table Setup
+CREATE TABLE IF NOT EXISTS public.user_feedback (
+  id TEXT PRIMARY KEY,
+  user_id TEXT,
+  user_name TEXT,
+  user_email TEXT,
+  category TEXT,
+  rating INTEGER,
+  subject TEXT,
+  message TEXT,
+  status TEXT NOT NULL DEFAULT 'New',
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT timezone('utc'::text, now())
+);
+
+ALTER TABLE public.user_feedback ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Anyone can insert feedback" ON public.user_feedback FOR INSERT WITH CHECK (true);
+CREATE POLICY "Anyone can view feedback" ON public.user_feedback FOR SELECT USING (true);
+CREATE POLICY "Anyone can update feedback" ON public.user_feedback FOR UPDATE USING (true);
+CREATE POLICY "Anyone can delete feedback" ON public.user_feedback FOR DELETE USING (true);
+
+-- 4. Announcements Table Setup
+CREATE TABLE IF NOT EXISTS public.announcements (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  message TEXT NOT NULL,
+  icon TEXT DEFAULT '📢',
+  color TEXT DEFAULT '#6366f1',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+ALTER TABLE public.announcements ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Anyone can view announcements" ON public.announcements FOR SELECT USING (true);
+CREATE POLICY "Anyone can insert announcements" ON public.announcements FOR INSERT WITH CHECK (true);
+CREATE POLICY "Anyone can delete announcements" ON public.announcements FOR DELETE USING (true);
 ```
 
 ---
