@@ -360,5 +360,20 @@
   "banner_bookshelf_name": "किताब की अलमारी",
   "banner_bookshelf_desc": "पौधों के साथ आरामदायक किताब की अलमारी",
   "banner_confidence_name": "आत्मविश्वास",
-  "banner_confidence_desc": "ब्रांडेड लर्निंग आत्मविश्वास"
+  "banner_confidence_desc": "ब्रांडेड लर्निंग आत्मविश्वास",
+  "sendFeedbackOrReportBug": "प्रतिक्रिया भेजें और बग की रिपोर्ट करें",
+  "feedbackHelpDesc": "क्या आपके पास सुझाव हैं या कोई समस्या आई है? LISA को बेहतर बनाने के लिए अपनी प्रतिक्रिया साझा करें!",
+  "feedbackCategoryLabel": "श्रेणी",
+  "feedbackBugReport": "🐞 बग / त्रुटि रिपोर्ट",
+  "feedbackFeatureRequest": "💡 नई सुविधा का अनुरोध",
+  "feedbackUiDesign": "🎨 यूआई और डिज़ाइन प्रतिक्रिया",
+  "feedbackGeneral": "💬 सामान्य प्रतिक्रिया",
+  "feedbackRatingLabel": "संतुष्टि रेटिंग",
+  "feedbackSubjectLabel": "विषय शीर्षक",
+  "feedbackSubjectPlaceholder": "जैसे पाठ में ऑडियो समस्या",
+  "feedbackMessageLabel": "संदेश / विवरण",
+  "feedbackMessagePlaceholder": "अपनी प्रतिक्रिया, बग का विवरण या सुझाव लिखें...",
+  "feedbackSubmitBtn": "🚀 प्रतिक्रिया जमा करें",
+  "feedbackSubmittingBtn": "जमा हो रहा है...",
+  "feedbackSuccessMsg": "🎉 धन्यवाद! आपकी प्रतिक्रिया हमारी एडमिन टीम को भेज दी गई है।"
 }

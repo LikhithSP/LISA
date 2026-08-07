@@ -360,5 +360,20 @@
   "banner_bookshelf_name": "ಪುಸ್ತಕ ಪೆಟ್ಟಿಗೆ",
   "banner_bookshelf_desc": "ಹುಬ್ಬದೊಡನೆ ಪುಸ್ತಕ ಪೆಟ್ಟಿಗೆ",
   "banner_confidence_name": "ಆತ್ಮವಿಶ್ವಾಸ",
-  "banner_confidence_desc": "ಬ್ರ್ಯಾಂಡೆಡ್ ಕಲನ ಆತ್ಮವಿಶ್ವಾಸ"
+  "banner_confidence_desc": "ಬ್ರ್ಯಾಂಡೆಡ್ ಕಲನ ಆತ್ಮವಿಶ್ವಾಸ",
+  "sendFeedbackOrReportBug": "ಪ್ರತಿಕ್ರಿಯೆ ಕಳುಹಿಸಿ ಮತ್ತು ದೋಷಗಳನ್ನು ವರದಿ ಮಾಡಿ",
+  "feedbackHelpDesc": "ಸಲಹೆಗಳಿವೆಯೇ ಅಥವಾ ಸಮಸ್ಯೆಯನ್ನು ಎದುರಿಸಿದ್ದೀರಾ? LISA ಅನ್ನು ಸುಧಾರಿಸಲು ನಮಗೆ ಸಹಾಯ ಮಾಡಲು ನಿಮ್ಮ ಪ್ರತಿಕ್ರಿಯೆಯನ್ನು ಹಂಚಿಕೊಳ್ಳಿ!",
+  "feedbackCategoryLabel": "ವರ್ಗ",
+  "feedbackBugReport": "🐞 ದೋಷ ವರದಿ",
+  "feedbackFeatureRequest": "💡 ಹೊಸ ವೈಶಿಷ್ಟ್ಯದ ವಿನಂತಿ",
+  "feedbackUiDesign": "🎨 ಯುಐ ಮತ್ತು ವಿನ್ಯಾಸದ ಪ್ರತಿಕ್ರಿಯೆ",
+  "feedbackGeneral": "💬 ಸಾಮಾನ್ಯ ಪ್ರತಿಕ್ರಿಯೆ",
+  "feedbackRatingLabel": "ಸಂತೃಪ್ತಿ ರೇಟಿಂಗ್",
+  "feedbackSubjectLabel": "ವಿಷಯದ ಶೀರ್ಷಿಕೆ",
+  "feedbackSubjectPlaceholder": "ಉದಾ. ಪಾಠದಲ್ಲಿ ಆಡಿಯೋ ಸಮಸ್ಯೆ",
+  "feedbackMessageLabel": "ಸಂದೇಶ / ವಿವರಣೆ",
+  "feedbackMessagePlaceholder": "ನಿಮ್ಮ ಪ್ರತಿಕ್ರಿಯೆ, ದೋಷದ ವಿವರಗಳು ಅಥವಾ ಕಲ್ಪನೆಯನ್ನು ಬರೆಯಿರಿ...",
+  "feedbackSubmitBtn": "🚀 ಪ್ರತಿಕ್ರಿಯೆಯನ್ನು ಸಲ್ಲಿಸಿ",
+  "feedbackSubmittingBtn": "ಸಲ್ಲಿಸಲಾಗುತ್ತಿದೆ...",
+  "feedbackSuccessMsg": "🎉 ಧನ್ಯವಾದಗಳು! ನಿಮ್ಮ ಪ್ರತಿಕ್ರಿಯೆಯನ್ನು ನಮ್ಮ ನಿರ್ವಾಹಕ ತಂಡಕ್ಕೆ ಕಳುಹಿಸಲಾಗಿದೆ."
 }

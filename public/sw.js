@@ -2,7 +2,7 @@
    LISA Service Worker - PWA Offline, Cache, Background Sync, Push
    ============================================================ */
 
-const SW_VERSION = "lisa-sw-v1.0.0";
+const SW_VERSION = "lisa-sw-v1.1.0";
 
 // Static assets to cache immediately on install
 const STATIC_CACHE = "lisa-static-v1";
@@ -305,7 +305,15 @@ self.addEventListener("notificationclose", () => {
    MESSAGE from main thread (e.g. queue offline request)
    ============================================================ */
 self.addEventListener("message", (event) => {
-  const { type, queueName, payload } = event.data || {};
+  const { type, queueName, payload, title, options } = event.data || {};
+
+  // Show a notification from the main thread (reliable on mobile PWA)
+  if (type === "SHOW_NOTIFICATION") {
+    event.waitUntil(
+      self.registration.showNotification(title || "LISA", options || {})
+    );
+    return;
+  }
 
   if (type === "QUEUE_REQUEST") {
     openDB().then((db) => {
