@@ -6622,39 +6622,72 @@ select:focus-visible {
 /* Profile View Container */
 .profile-view-container {
   padding: 0 40px 40px;
-  max-width: 1100px;
+  max-width: 1200px;
   margin: 0 auto;
   width: 100%;
   box-sizing: border-box;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.profile-layout-grid {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 32px;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .profile-layout-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
 }
 
 .profile-card-large {
   background: var(--panel);
   border: 2px solid var(--line);
   border-radius: 24px;
-  margin-bottom: 32px;
+  margin-bottom: 24px;
   overflow: hidden;
   padding: 0;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.04);
+  position: relative;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+[data-theme="dark"] .profile-card-large {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
 }
 
 .profile-cover {
-  height: 160px;
+  height: 140px;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
+  position: relative;
+}
+
+.profile-cover::after {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.6) 100%);
+  pointer-events: none;
 }
 
 .profile-card-body {
+  padding: 0 24px 24px;
+  position: relative;
   display: flex;
-  gap: 24px;
-  align-items: flex-start;
-  padding: 20px 24px 24px;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
 }
 
 .profile-avatar-large {
-  width: 96px;
-  height: 96px;
-  border-radius: 24px;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
   background: var(--accent);
   color: white;
   font-size: 2.5rem;
@@ -6662,19 +6695,74 @@ select:focus-visible {
   display: flex;
   justify-content: center;
   align-items: center;
-  box-shadow: 0 8px 24px rgba(198, 95, 45, 0.25);
-  flex-shrink: 0;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  border: 5px solid var(--panel);
+  position: absolute;
+  top: -50px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  overflow: hidden;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.profile-avatar-large:hover {
+  transform: translateX(-50%) translateY(-4px) scale(1.05);
+}
+
+.profile-info-large {
+  padding-top: 58px; /* Make space for the 100px absolute avatar */
+  z-index: 10;
+  position: relative;
+  width: 100%;
 }
 
 .profile-info-large h2 {
-  font-size: 1.8rem;
-  font-weight: 800;
-  margin: 0 0 6px 0;
+  font-size: 1.6rem;
+  font-weight: 900;
+  margin: 0 0 4px 0;
+  color: var(--text);
+  line-height: 1.1;
+  letter-spacing: -0.5px;
 }
 
 .profile-info-large p {
-  color: var(--muted);
-  margin: 0;
+  color: var(--text-muted);
+  margin: 0 0 20px 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  word-break: break-all;
+}
+
+.profile-details-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: stretch;
+  width: 100%;
+}
+
+.profile-details-list span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  padding: 10px 14px;
+  border-radius: 16px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text);
+  border: 1.5px solid var(--line);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+  text-align: center;
+}
+
+@media (max-width: 1024px) {
+  .profile-details-list {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
 }
 
 /* Mini-Lesson Screen overlay */
@@ -13703,58 +13791,84 @@ select:focus-visible {
 }
 
 /* Redesigned Tabbed Profile Page styles */
+.profile-sidebar {
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 80px;
+}
+
 .profile-sub-tabs {
   display: flex;
-  justify-content: center;
-  gap: 16px;
-  margin: 24px 0;
-  border-bottom: 2px solid var(--line);
-  padding-bottom: 12px;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  border-bottom: none;
+  padding: 24px;
+  background: var(--panel);
+  border: 2px solid var(--line);
+  border-radius: 20px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.03);
+}
+
+[data-theme="dark"] .profile-sub-tabs {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+}
+
+@media (max-width: 1024px) {
+  .profile-sidebar {
+    position: static;
+  }
+  .profile-sub-tabs {
+    flex-direction: row;
+    overflow-x: auto;
+    padding: 16px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+  }
 }
 
 .profile-sub-tab-btn {
-  background: none;
-  border: none;
-  font-size: 1.1rem;
-  font-weight: 600;
+  background: transparent;
+  border: 2px solid transparent;
+  font-size: 1.05rem;
+  font-weight: 700;
   color: var(--text-muted);
-  padding: 10px 20px;
+  padding: 14px 20px;
   cursor: pointer;
-  border-radius: 12px;
-  transition: all 0.2s ease;
-  position: relative;
+  border-radius: 14px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  white-space: nowrap;
 }
 
 .profile-sub-tab-btn:hover {
   color: var(--text);
-  background: var(--line);
+  background: rgba(0, 0, 0, 0.03);
+}
+
+[data-theme="dark"] .profile-sub-tab-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .profile-sub-tab-btn.active {
   color: var(--accent);
   background: var(--accent-soft);
-}
-
-.profile-sub-tab-btn.active::after {
-  content: "";
-  position: absolute;
-  bottom: -14px;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: var(--accent);
-  border-radius: 2px;
+  border-color: var(--accent);
 }
 
 .profile-tab-content-area {
-  margin-top: 24px;
-  animation: fadeIn 0.3s ease;
+  animation: fadeIn 0.4s ease;
+  min-height: 400px;
 }
 
 /* Stats Cards styling */
 .profile-stats-dashboard {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 24px;
 }
 
@@ -13762,93 +13876,75 @@ select:focus-visible {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 16px;
-  margin-bottom: 0;
-  grid-column: 1 / -1;
-}
-
-.profile-stats-dashboard .profile-badges-container {
-  margin-bottom: 0;
-}
-
-.profile-stats-dashboard .achievements-card {
-  margin-top: 0 !important;
 }
 
 @media (max-width: 768px) {
-  .profile-stats-dashboard {
-    grid-template-columns: 1fr;
-  }
-
   .profile-stats-grid {
-    grid-column: 1;
-  }
-
-  .profile-stats-dashboard .profile-badges-container {
-    margin-bottom: 24px;
-  }
-
-  .profile-stats-dashboard .achievements-card {
-    margin-top: 0;
+    grid-template-columns: 1fr;
   }
 }
 
 .profile-stat-card {
-  background: #f4f6f9;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px);
   border: 2px solid var(--line);
-  border-radius: 18px;
-  padding: 20px;
+  border-radius: 20px;
+  padding: 24px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 14px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  gap: 18px;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+[data-theme="dark"] .profile-stat-card {
+  background: rgba(30, 41, 59, 0.5);
+}
+
+.profile-stat-card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; width: 6px; height: 100%;
+  background: var(--accent);
+  border-radius: 4px 0 0 4px;
+  opacity: 0.5;
 }
 
 .profile-stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
 }
 
-.profile-stat-card.streak {
-  background: var(--streak-bg);
+[data-theme="dark"] .profile-stat-card:hover {
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
 }
 
-.profile-stat-card.xp {
-  background: var(--xp-bg);
-}
-
-.profile-stat-card.lessons {
-  background: var(--lessons-bg);
-}
-
-.profile-stat-card.active-time {
-  background: var(--time-bg);
-}
-
-.profile-stat-card.streak:hover,
-.profile-stat-card.xp:hover,
-.profile-stat-card.lessons:hover,
-.profile-stat-card.active-time:hover {
-  border-color: #e5e7eb;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
-}
+.profile-stat-card.streak::before { background: #f97316; }
+.profile-stat-card.xp::before { background: #3b82f6; }
+.profile-stat-card.lessons::before { background: #eab308; }
+.profile-stat-card.active-time::before { background: #10b981; }
 
 .stat-icon {
-  font-size: 2rem;
-  transition: transform 0.2s ease;
+  font-size: 2.5rem;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .profile-stat-card:hover .stat-icon {
-  transform: scale(1.08);
+  transform: scale(1.15) rotate(5deg);
+}
+
+.stat-content {
+  display: flex;
+  flex-direction: column;
 }
 
 .stat-val {
-  font-size: 1.5rem;
+  font-size: 1.7rem;
   font-weight: 900;
   color: var(--text);
   line-height: 1.1;
-  margin-bottom: 2px;
-  text-align: center;
+  margin-bottom: 4px;
 }
 
 .stat-lbl {
@@ -13857,7 +13953,7 @@ select:focus-visible {
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  text-align: center;
+  text-align: left;
 }
 
 /* Badges section */
@@ -13866,7 +13962,6 @@ select:focus-visible {
   border: 2px solid var(--line);
   border-radius: 24px;
   padding: 24px;
-  margin-bottom: 32px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.01);
 }
 
@@ -14075,10 +14170,6 @@ select:focus-visible {
 
 /* Account Settings styling */
 .profile-settings-tab {
-  background: var(--panel);
-  border: 2px solid var(--line);
-  border-radius: 28px;
-  padding: 32px;
   margin-bottom: 32px;
 }
 
@@ -15363,14 +15454,13 @@ select {
 
 /* Profile Tab & Account Settings Mobile Fixes */
 .profile-settings-tab-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
 @media (max-width: 768px) {
   .profile-settings-tab-grid {
-    grid-template-columns: 1fr !important;
     gap: 20px !important;
   }
 
@@ -15382,9 +15472,12 @@ select {
     overflow-x: auto !important;
     -webkit-overflow-scrolling: touch !important;
     gap: 8px !important;
-    padding: 4px 16px !important;
-    /* Add padding so it doesn't touch screen edges */
+    padding: 8px 16px !important;
+    border: none !important;
     border-bottom: 2px solid var(--line) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
     margin-bottom: 20px !important;
   }
 
@@ -15393,12 +15486,33 @@ select {
     flex-shrink: 0 !important;
     font-size: 0.85rem !important;
     padding: 10px 14px !important;
+    background: var(--panel) !important;
+    border: 2px solid var(--line) !important;
+    border-radius: 12px !important;
   }
 
-  .profile-avatar-creator-tab,
-  .profile-settings-tab {
+  .profile-sub-tab-btn.active {
+    background: var(--accent-soft) !important;
+    border-color: var(--accent) !important;
+    color: var(--accent) !important;
+  }
+
+  .profile-main-content {
+    padding: 0 16px !important;
+  }
+
+  .profile-card-large {
+    margin: 0 16px 24px !important;
+    border-radius: 20px !important;
+  }
+
+  .profile-avatar-creator-tab {
     padding: 20px 16px !important;
     border-radius: 20px !important;
+    margin-bottom: 24px !important;
+  }
+
+  .profile-settings-tab {
     margin-bottom: 24px !important;
   }
 
