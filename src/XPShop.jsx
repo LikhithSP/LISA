@@ -188,6 +188,20 @@ export default function XPShop({
     setTimeout(() => setToast(null), 3000);
   };
 
+  const getItemName = (item) => {
+    if (!item) return "";
+    const key = item.id + "_name";
+    const val = t(key);
+    return val === key ? item.name : val;
+  };
+
+  const getItemDesc = (item) => {
+    if (!item) return "";
+    const key = item.id + "_desc";
+    const val = t(key);
+    return val === key ? item.desc : val;
+  };
+
   const isOwned = (id) => owned.includes(id);
 
   const handlePurchase = (item) => {
@@ -214,7 +228,7 @@ export default function XPShop({
       onOwnedItemsChange(newOwned);
       handleEquip(confirmItem, newOwned);
     }
-    showToast(t("itemUnlockedToast").replace("{name}", t(confirmItem.id + "_name") || confirmItem.name), "success");
+    showToast(t("itemUnlockedToast").replace("{name}", getItemName(confirmItem)), "success");
     setConfirmItem(null);
   };
 
@@ -281,8 +295,8 @@ export default function XPShop({
             <div className="shop-item-info">
               <span className="shop-item-icon">{theme.icon}</span>
               <div>
-                <div className="shop-item-name">{t(theme.id + "_name") || theme.name}</div>
-                <div className="shop-item-desc">{t(theme.id + "_desc") || theme.desc}</div>
+                <div className="shop-item-name">{getItemName(theme)}</div>
+                <div className="shop-item-desc">{getItemDesc(theme)}</div>
               </div>
             </div>
             <div className="shop-item-footer">
@@ -321,8 +335,8 @@ export default function XPShop({
             <div className="shop-item-info">
               <span className="shop-item-icon" style={{ fontFamily: font.family, fontWeight: 900 }}>{font.icon}</span>
               <div>
-                <div className="shop-item-name" style={{ fontFamily: font.family }}>{t(font.id + "_name") || font.name}</div>
-                <div className="shop-item-desc">{t(font.id + "_desc") || font.desc}</div>
+                <div className="shop-item-name" style={{ fontFamily: font.family }}>{getItemName(font)}</div>
+                <div className="shop-item-desc">{getItemDesc(font)}</div>
               </div>
             </div>
             <div className="shop-item-footer">
@@ -358,8 +372,8 @@ export default function XPShop({
             <div className="shop-item-info">
               <span className="shop-item-icon">{banner.icon}</span>
               <div>
-                <div className="shop-item-name">{t(banner.id + "_name") || banner.name}</div>
-                <div className="shop-item-desc">{t(banner.id + "_desc") || banner.desc}</div>
+                <div className="shop-item-name">{getItemName(banner)}</div>
+                <div className="shop-item-desc">{getItemDesc(banner)}</div>
               </div>
             </div>
             <div className="shop-item-footer">
@@ -390,7 +404,7 @@ export default function XPShop({
             {active && <div className="shop-active-badge">✓</div>}
             {owned_flag && !active && <div className="shop-owned-badge">{t("ownedLabel")}</div>}
             <div className="shop-avatar-preview">{av.emoji}</div>
-            <div className="shop-item-name" style={{ textAlign: "center" }}>{t(av.id + "_name") || av.name}</div>
+            <div className="shop-item-name" style={{ textAlign: "center" }}>{getItemName(av)}</div>
             <div className="shop-item-footer" style={{ justifyContent: "center" }}>
               <span className="shop-item-cost">⭐ {av.cost}</span>
               <button
@@ -426,8 +440,8 @@ export default function XPShop({
                 </div>
                 {active && <div className="shop-active-badge">✓</div>}
                 <div className="shop-badge-preview">{badge.icon}</div>
-                <div className="shop-item-name" style={{ textAlign: "center" }}>{t(badge.id + "_name") || badge.name}</div>
-                <div className="shop-item-desc" style={{ textAlign: "center", fontSize: "0.78rem" }}>{t(badge.id + "_desc") || badge.desc}</div>
+                <div className="shop-item-name" style={{ textAlign: "center" }}>{getItemName(badge)}</div>
+                <div className="shop-item-desc" style={{ textAlign: "center", fontSize: "0.78rem" }}>{getItemDesc(badge)}</div>
                 <div className="shop-item-footer" style={{ justifyContent: "center" }}>
                   <span className="shop-item-cost">⭐ {badge.cost}</span>
                   <button
@@ -459,7 +473,7 @@ export default function XPShop({
         <div className="shop-confirm-overlay">
           <div className="shop-confirm-modal">
             <div className="shop-confirm-icon">{confirmItem.icon}</div>
-            <h3 className="shop-confirm-title">{t("unlockConfirmTitle").replace("{name}", t(confirmItem.id + "_name") || confirmItem.name)}</h3>
+            <h3 className="shop-confirm-title">{t("unlockConfirmTitle").replace("{name}", getItemName(confirmItem))}</h3>
             <p className="shop-confirm-desc" dangerouslySetInnerHTML={{
               __html: t("unlockConfirmDesc")
                 .replace("{cost}", confirmItem.cost)

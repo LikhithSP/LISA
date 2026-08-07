@@ -120,6 +120,35 @@ DROP POLICY IF EXISTS "Anyone can delete word of the day" ON public.word_of_day;
 CREATE POLICY "Anyone can delete word of the day" ON public.word_of_day
   FOR DELETE USING (true);
 
+-- Create the user feedback table
+CREATE TABLE IF NOT EXISTS public.user_feedback (
+  id text PRIMARY KEY,
+  user_id text,
+  user_name text,
+  user_email text,
+  category text,
+  rating integer,
+  subject text,
+  message text,
+  status text NOT NULL DEFAULT 'New',
+  created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now())
+);
 
+-- Enable RLS and insert policies
+ALTER TABLE public.user_feedback ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Anyone can insert feedback" ON public.user_feedback;
+CREATE POLICY "Anyone can insert feedback" ON public.user_feedback
+  FOR INSERT WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Anyone can view feedback" ON public.user_feedback;
+CREATE POLICY "Anyone can view feedback" ON public.user_feedback
+  FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Anyone can update feedback" ON public.user_feedback;
+CREATE POLICY "Anyone can update feedback" ON public.user_feedback
+  FOR UPDATE USING (true);
+
+DROP POLICY IF EXISTS "Anyone can delete feedback" ON public.user_feedback;
+CREATE POLICY "Anyone can delete feedback" ON public.user_feedback
+  FOR DELETE USING (true);
