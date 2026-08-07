@@ -68,6 +68,93 @@ const FALLBACK_PRACTICE_WORDS = [
   { word: "Literacy", meaning: "The ability to read and write" }
 ];
 
+const WORD_TRANSLATIONS = {
+  1: { English: "Book", Hindi: "किताब", Kannada: "ಪುಸ್ತಕ", Telugu: "పుస్తకం", Tamil: "புத்தகம்" },
+  2: { English: "School", Hindi: "स्कूल", Kannada: "ಶಾಲೆ", Telugu: "బడి", Tamil: "பள்ளி" },
+  3: { English: "Apple", Hindi: "सेब", Kannada: "ಸೇಬು", Telugu: "ఆపిల్", Tamil: "ఆప్పిள்" },
+  4: { English: "Water", Hindi: "पानी", Kannada: "ನೀರು", Telugu: "నీరు", Tamil: "தண்ணீர்" },
+  5: { English: "Sun", Hindi: "सूरज", Kannada: "ಸೂರ್ಯ", Telugu: "సూర్యుడు", Tamil: "சூரியன்" },
+  6: { English: "Friend", Hindi: "दोस्त", Kannada: "ಸ್ನೇಹಿತ", Telugu: "ಸ್ನೇಹಿತుడు", Tamil: "நண்பன்" },
+  7: { English: "House", Hindi: "घर", Kannada: "ಮನೆ", Telugu: "ఇల్లు", Tamil: "வீடு" },
+  8: { English: "Tree", Hindi: "पेड़", Kannada: "ಮರ", Telugu: "చెట్టు", Tamil: "மரம்" },
+  9: { English: "Fruit", Hindi: "फल", Kannada: "ಹಣ್ಣು", Telugu: "పండు", Tamil: "பழம்" },
+  10: { English: "Happy", Hindi: "खुश", Kannada: "ಸಂತೋಷ", Telugu: "సంతోషం", Tamil: "மகிழ்ச்சி" }
+};
+
+const SENTENCE_TRANSLATIONS = {
+  1: {
+    English: "This is a good book.",
+    Hindi: "यह एक अच्छी किताब है।",
+    Kannada: "ಇದು ಒಂದು ಒಳ್ಳೆಯ ಪುಸ್ತಕ.",
+    Telugu: "ఇది ఒక మంచి పుస్తకం.",
+    Tamil: "இது ஒரு நல்ல புத்தகம்."
+  },
+  2: {
+    English: "Children are going to school.",
+    Hindi: "बच्चे स्कूल जा रहे हैं।",
+    Kannada: "ಮಕ್ಕಳು ಶಾಲೆಗೆ ಹೋಗುತ್ತಿದ್ದಾರೆ.",
+    Telugu: "పిల్లలు బడికి వెళ్తున్నారు.",
+    Tamil: "குழந்தைகள் பள்ளிக்குச் செல்கிறார்கள்."
+  },
+  3: {
+    English: "The apple is red and sweet.",
+    Hindi: "सेब लाल और मीठा है।",
+    Kannada: "ಸೇಬು ಕೆಂಪು ಮತ್ತು ಸಿಹಿಯಾಗಿದೆ.",
+    Telugu: "ఆపిల్ ఎర్రగా మరియు తీపిగా ఉంటుంది.",
+    Tamil: "ஆப்பிள் சிவப்பு மற்றும் இனிமையானது."
+  },
+  4: {
+    English: "We should drink clean water.",
+    Hindi: "साफ पानी पीना स्वास्थ्य के लिए अच्छा है।",
+    Kannada: "ನಾವು ಶುದ್ಧ ನೀರನ್ನು ಕುಡಿಯಬೇಕು.",
+    Telugu: "మనం శుభ్రమైన నీరు త్రాగాలి.",
+    Tamil: "நாம் சுத்தமான தண்ணீர் குடிக்க வேண்டும்."
+  },
+  5: {
+    English: "The sun is very bright today.",
+    Hindi: "सूरज पूर्व से उगता है।",
+    Kannada: "ಇಂದು ಸೂರ್ಯ ತುಂಬಾ ಪ್ರಕಾಶಮಾನವಾಗಿದ್ದಾನೆ.",
+    Telugu: "ఈరోజు సూర్యుడు చాలా ప్రకాశవంతంగా ఉన్నాడు.",
+    Tamil: "ಇಂದು ಸೂರ್ಯನ ಬೆಳಕು ಪ್ರಕಾಶಮಾನವಾಗಿದೆ."
+  },
+  6: {
+    English: "He is my best friend.",
+    Hindi: "वह मेरा सबसे अच्छा दोस्त है।",
+    Kannada: "ಅವನು ನನ್ನ ಉತ್ತಮ ಸ್ನೇಹಿತ.",
+    Telugu: "అతడు నా బెస్ట్ ఫ్రెండ్.",
+    Tamil: "அவன் எனது சிறந்த நண்பன்."
+  },
+  7: {
+    English: "They live in a big house.",
+    Hindi: "हमारा घर बहुत सुंदर है।",
+    Kannada: "ಅವರು ದೊಡ್ಡ ಮನೆಯಲ್ಲಿ ವಾಸಿಸುತ್ತಿದ್ದಾರೆ.",
+    Telugu: "వారు పెద్ద ఇంట్లో నివసిస్తున్నారు.",
+    Tamil: "அவர்கள் ஒரு பெரிய வீட்டில் வாழ்கிறார்கள்."
+  },
+  8: {
+    English: "The birds are on the tree.",
+    Hindi: "पेड़ हमें छाया देता है।",
+    Kannada: "ಹಕ್ಕಿಗಳು ಮರದ ಮೇಲಿವೆ.",
+    Telugu: "పక్షులు చెట్టు మీద ఉన్నాయి.",
+    Tamil: "பறவைகள் மரத்தின் மேல் இருக்கின்றன."
+  },
+  9: {
+    English: "I love eating fresh fruit.",
+    Hindi: "ताजे फल खाएं।",
+    Kannada: "ನಮಗೆ ತಾಜಾ ಹಣ್ಣುಗಳನ್ನು ತಿನ್ನುವುದು ಇಷ್ಟ.",
+    Telugu: "నాకు తాజా పండ్లు తినడం ఇష్టం.",
+    Tamil: "எனக்கு புதிய பழங்களை சாப்பிட பிடிக்கும்."
+  },
+  10: {
+    English: "She has a happy family.",
+    Hindi: "वह आज बहुत खुश है।",
+    Kannada: "ಅವಳ ಕುಟುಂಬ ಸಂತೋಷವಾಗಿದೆ.",
+    Telugu: "ఆమెది సంతోషకరమైన కుటుంబం.",
+    Tamil: "அவளுக்கு ஒரு மகிழ்ச்சியான குடும்பம் உள்ளது."
+  }
+};
+
+
 // Draws a faint guide letter/word on the tracing canvas
 const drawTracingGuide = (canvas, item) => {
   if (!canvas || !item) return;
@@ -1991,7 +2078,8 @@ function App() {
       
       // Calculate dynamic XP
       const isExam = lessonSession?.lessonId?.endsWith("l5") || lessonSession?.lessonNum === 5;
-      const totalXp = isExam ? 60 : 30;
+      const isWordsPractice = lessonSession?.title === "Words Practice" || practiceType === "Words Practice";
+      const totalXp = isExam ? 60 : isWordsPractice ? 10 : 30;
       const totalQuestions = lessonAiContent?.questions?.length || 10;
       const xpPerQuestion = totalXp / totalQuestions;
       setLessonXpEarned(Math.round(lessonCorrectAnsweredRef.current * xpPerQuestion));
@@ -2141,6 +2229,42 @@ function App() {
                             selectedLanguage === "Telugu" ? "ವೆనక్కి తిప్పడానికి నొక్కండి" :
                             selectedLanguage === "Tamil" ? "பின்னால் திருப்ப தட்டவும்" : "TAP TO FLIP BACK";
 
+      const curLearningLang = learningLanguage || "English";
+      const curInterfaceLang = selectedLanguage || "English";
+
+      let frontWord = card.word || card.phrase || card.text || "";
+      let backWord = card.translation || card.meaning || card.answer || "";
+
+      // Check if this word can be translated via WORD_TRANSLATIONS dictionary
+      let rowKey = null;
+      const transRow = Object.entries(WORD_TRANSLATIONS).find(([key, row]) => {
+        const match = Object.values(row).some(val => typeof val === "string" && val.toLowerCase() === frontWord.toLowerCase()) ||
+                      Object.values(row).some(val => typeof val === "string" && val.toLowerCase() === backWord.toLowerCase());
+        if (match) {
+          rowKey = key;
+          return true;
+        }
+        return false;
+      })?.[1];
+
+      if (transRow) {
+        frontWord = transRow[curLearningLang] || frontWord;
+        backWord = transRow[curInterfaceLang] || backWord;
+      }
+
+      // Separate example sentence into learning and interface languages
+      let sentenceLearning = card.sentence || "";
+      let sentenceInterface = "";
+      
+      if (rowKey && SENTENCE_TRANSLATIONS[rowKey]) {
+        sentenceLearning = SENTENCE_TRANSLATIONS[rowKey][curLearningLang] || sentenceLearning;
+        sentenceInterface = SENTENCE_TRANSLATIONS[rowKey][curInterfaceLang] || sentenceInterface;
+      } else if (card.sentence && card.sentence.includes("(")) {
+        const parts = card.sentence.split("(");
+        sentenceLearning = parts[0].trim();
+        sentenceInterface = parts[1].replace(")", "").trim();
+      }
+
       return (
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', paddingBottom: '140px' }}>
           <div className="ai-lesson-step-header" style={{ marginBottom: '10px', textAlign: 'center', width: '100%' }}>
@@ -2154,13 +2278,13 @@ function App() {
             <div className="flashcard-inner">
               {/* Side A: Raw Word & Audio Play Button */}
               <div className="flashcard-side flashcard-front">
-                <h2 style={{ fontSize: '3rem', fontWeight: '900', color: 'var(--accent)', margin: 0 }}>{card.word}</h2>
+                <h2 style={{ fontSize: '3rem', fontWeight: '900', color: 'var(--accent)', margin: 0 }}>{frontWord}</h2>
                 <button
                   type="button"
                   className="flashcard-audio-btn"
                   onClick={(e) => {
                     e.stopPropagation();
-                    speakText(card.word, 1.0);
+                    speakText(frontWord, 1.0);
                   }}
                   title="Play Sound"
                 >
@@ -2171,13 +2295,48 @@ function App() {
 
               {/* Side B: Cartoon illustration (emoji), Example sentence, Translation */}
               <div className="flashcard-side flashcard-back">
+                {sentenceLearning && (
+                  <button
+                    type="button"
+                    style={{
+                      position: 'absolute',
+                      top: '16px',
+                      left: '16px',
+                      background: 'var(--accent-soft)',
+                      color: 'var(--accent-dark)',
+                      border: 'none',
+                      borderRadius: '50%',
+                      width: '44px',
+                      height: '44px',
+                      fontSize: '1.2rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      zIndex: 10,
+                      boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      speakText(sentenceLearning, 1.0);
+                    }}
+                    title="Speak Example Sentence"
+                  >
+                    🔊
+                  </button>
+                )}
                 <div className="flashcard-illustration">{card.emoji || "💡"}</div>
                 <h2 style={{ fontSize: '3rem', fontWeight: '900', color: 'var(--accent)', margin: '0 0 16px' }}>
-                  {card.translation || card.meaning}
+                  {backWord}
                 </h2>
-                {card.sentence && (
-                  <div className="flashcard-example-box">
-                    <p style={{ margin: 0, fontWeight: 600, color: 'var(--text)' }}>"{card.sentence}"</p>
+                {sentenceLearning && (
+                  <div className="flashcard-example-box" style={{ width: '90%', textAlign: 'center' }}>
+                    <p style={{ margin: 0, fontWeight: 600, color: 'var(--text)' }}>"{sentenceLearning}"</p>
+                    {sentenceInterface && (
+                      <p style={{ margin: '6px 0 0', fontWeight: 500, color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                        ({sentenceInterface})
+                      </p>
+                    )}
                   </div>
                 )}
                 <p style={{ marginTop: '20px', color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 600 }}>{tapToFlipBack}</p>
@@ -2200,8 +2359,29 @@ function App() {
             <button
               type="button"
               className="primary-btn"
-              style={{ background: '#10b981', borderColor: '#10b981', color: 'white', padding: '14px 60px', borderRadius: '16px', fontSize: '1.2rem', fontWeight: '800', width: '100%', maxWidth: '320px' }}
-              onClick={handleNext}
+              style={{
+                background: flashcardFlipped ? '#10b981' : '#e5e7eb',
+                borderColor: flashcardFlipped ? '#10b981' : '#d1d5db',
+                color: flashcardFlipped ? 'white' : '#9ca3af',
+                cursor: flashcardFlipped ? 'pointer' : 'not-allowed',
+                padding: '14px 60px',
+                borderRadius: '16px',
+                fontSize: '1.2rem',
+                fontWeight: '800',
+                width: '100%',
+                maxWidth: '320px',
+                opacity: flashcardFlipped ? 1 : 0.8,
+                transition: 'all 0.2s ease'
+              }}
+              disabled={!flashcardFlipped}
+              onClick={() => {
+                if (!flashcardFlipped) return;
+                recordLessonAnswer(true);
+                setFlashcardFlipped(false);
+                setTimeout(() => {
+                  handleNext();
+                }, 350);
+              }}
             >
               GOT IT
             </button>
@@ -5568,7 +5748,8 @@ function App() {
       setLessonAccuracy(accuracy);
 
       const isExam = lessonSession?.lessonId?.endsWith("l5") || lessonSession?.lessonNum === 5;
-      const totalXp = isExam ? 60 : 30;
+      const isWordsPractice = lessonSession?.title === "Words Practice" || practiceType === "Words Practice";
+      const totalXp = isExam ? 60 : isWordsPractice ? 10 : 30;
       const totalQuestions = lessonAiContent?.questions?.length || 10;
       const xpPerQuestion = totalXp / totalQuestions;
       const finalXpEarned = Math.min(totalXp, Math.round(correctAnswered * xpPerQuestion));
