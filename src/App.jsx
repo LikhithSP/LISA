@@ -154,6 +154,429 @@ const SENTENCE_TRANSLATIONS = {
   }
 };
 
+const getStoryQuestionInInterfaceLang = (rawQuestion, targetInterfaceLang = "English") => {
+  if (!rawQuestion) return "";
+  let qText = String(rawQuestion).replace(/^[❓\s]+/, "").trim();
+
+  const questionMap = {
+    "what does ana want?": {
+      English: "What does Ana want?",
+      Hindi: "अना क्या चाहती है?",
+      Kannada: "ಅನಾ ಏನು ಬಯಸುತ್ತಾಳೆ?",
+      Telugu: "అనా ఏమి కోరుకుంటుంది?",
+      Tamil: "அனா என்ன விரும்புகிறாள்?"
+    },
+    "अना क्या चाहती है?": {
+      English: "What does Ana want?",
+      Hindi: "अना क्या चाहती है?",
+      Kannada: "ಅನಾ ಏನು ಬಯಸುತ್ತಾಳೆ?",
+      Telugu: "అనా ఏమి కోరుకుంటుంది?",
+      Tamil: "அனா என்ன விரும்புகிறாள்?"
+    },
+    "ಅನಾ ಏನು ಬಯಸುತ್ತಾಳೆ?": {
+      English: "What does Ana want?",
+      Hindi: "अना क्या चाहती है?",
+      Kannada: "ಅನಾ ಏನು ಬಯಸುತ್ತಾಳೆ?",
+      Telugu: "అనా ఏమి కోరుకుంటుంది?",
+      Tamil: "அனா என்ன விரும்புகிறாள்?"
+    },
+    "అనా ఏమి కోరుకుంటుంది?": {
+      English: "What does Ana want?",
+      Hindi: "अना क्या चाहती है?",
+      Kannada: "ಅನಾ ಏನು ಬಯಸುತ್ತಾಳೆ?",
+      Telugu: "అనా ఏమి కోరుకుంటుంది?",
+      Tamil: "அனா என்ன விரும்புகிறாள்?"
+    },
+    "அனா என்ன விரும்புகிறாள்?": {
+      English: "What does Ana want?",
+      Hindi: "अना क्या चाहती है?",
+      Kannada: "ಅನಾ ಏನು ಬಯಸುತ್ತಾಳೆ?",
+      Telugu: "అనా ఏమి కోరుకుంటుంది?",
+      Tamil: "அனா என்ன விரும்புகிறாள்?"
+    },
+    "what fruit is on the tree?": {
+      English: "What fruit is on the tree?",
+      Hindi: "पेड़ पर कौन सा फल है?",
+      Kannada: "ಮರದ ಮೇಲೆ ಯಾವ ಹಣ್ಣು ಇದೆ?",
+      Telugu: "చెట్టు మీద ఏ పండు ఉంది?",
+      Tamil: "மரத்தில் என்ன பழம் இருக்கிறது?"
+    },
+    "पेड़ पर कौन सा फल है?": {
+      English: "What fruit is on the tree?",
+      Hindi: "पेड़ पर कौन सा फल है?",
+      Kannada: "ಮರದ ಮೇಲೆ ಯಾವ ಹಣ್ಣು ಇದೆ?",
+      Telugu: "చెట్టు మీద ఏ పండు ఉంది?",
+      Tamil: "மரத்தில் என்ன பழம் இருக்கிறது?"
+    },
+    "ಮರದ ಮೇಲೆ ಯಾವ ಹಣ್ಣು ಇದೆ?": {
+      English: "What fruit is on the tree?",
+      Hindi: "पेड़ पर कौन सा फल है?",
+      Kannada: "ಮರದ ಮೇಲೆ ಯಾವ ಹಣ್ಣು ಇದೆ?",
+      Telugu: "చెట్టు మీద ఏ పండు ఉంది?",
+      Tamil: "மரத்தில் என்ன பழம் இருக்கிறது?"
+    },
+    "చెట్టు మీద ఏ పండు ఉంది?": {
+      English: "What fruit is on the tree?",
+      Hindi: "पेड़ पर कौन सा फल है?",
+      Kannada: "ಮರದ ಮೇಲೆ ಯಾವ ಹಣ್ಣು ಇದೆ?",
+      Telugu: "చెట్టు మీద ఏ పండు ఉంది?",
+      Tamil: "மரத்தில் என்ன பழம் இருக்கிறது?"
+    },
+    "மரத்தில் என்ன பழம் இருக்கிறது?": {
+      English: "What fruit is on the tree?",
+      Hindi: "पेड़ पर कौन सा फल है?",
+      Kannada: "ಮರದ ಮೇಲೆ ಯಾವ ಹಣ್ಣು ಇದೆ?",
+      Telugu: "చెట్టు మీద ఏ పండు ఉంది?",
+      Tamil: "மரத்தில் என்ன பழம் இருக்கிறது?"
+    }
+  };
+
+  const key = qText.toLowerCase();
+  const keyNoQuestion = key.replace(/\?$/, "").trim();
+  const keyWithQuestion = keyNoQuestion + "?";
+
+  if (questionMap[key] && questionMap[key][targetInterfaceLang]) {
+    return questionMap[key][targetInterfaceLang];
+  }
+  if (questionMap[keyNoQuestion] && questionMap[keyNoQuestion][targetInterfaceLang]) {
+    return questionMap[keyNoQuestion][targetInterfaceLang];
+  }
+  if (questionMap[keyWithQuestion] && questionMap[keyWithQuestion][targetInterfaceLang]) {
+    return questionMap[keyWithQuestion][targetInterfaceLang];
+  }
+  return qText;
+};
+
+const getDialogueTranslation = (text, targetLang = "English") => {
+  if (!text) return "";
+  const cleanedText = String(text).trim();
+
+  const dialogueMap = {
+    "hello! my name is ana.": {
+      English: "Hello! My name is Ana.",
+      Hindi: "नमस्ते! मेरा नाम अना है।",
+      Kannada: "ನಮಸ್ಕಾರ! ನನ್ನ ಹೆಸರು ಅನಾ.",
+      Telugu: "నమస్కారం! నా పేరు అనా.",
+      Tamil: "வணக்கம்! என் பெயர் அனா."
+    },
+    "नमस्ते! मेरा नाम अना है।": {
+      English: "Hello! My name is Ana.",
+      Hindi: "नमस्ते! मेरा नाम अना है।",
+      Kannada: "ನಮಸ್ಕಾರ! ನನ್ನ ಹೆಸರು ಅನಾ.",
+      Telugu: "నమస్కారం! నా పేరు అనా.",
+      Tamil: "வணக்கம்! என் பெயர் அனா."
+    },
+    "ನಮಸ್ಕಾರ! ನನ್ನ ಹೆಸರು ಅನಾ.": {
+      English: "Hello! My name is Ana.",
+      Hindi: "नमस्ते! मेरा नाम अना है।",
+      Kannada: "ನಮಸ್ಕಾರ! ನನ್ನ ಹೆಸರು ಅನಾ.",
+      Telugu: "నమస్కారం! నా పేరు అనా.",
+      Tamil: "வணக்கம்! என் பெயர் அனா."
+    },
+    "నమస్కారం! నా పేరు అనా.": {
+      English: "Hello! My name is Ana.",
+      Hindi: "नमस्ते! मेरा नाम अना है।",
+      Kannada: "ನಮಸ್ಕಾರ! ನನ್ನ ಹೆಸರು ಅನಾ.",
+      Telugu: "నమస్కారం! నా పేరు అనా.",
+      Tamil: "வணக்கம்! என் பெயர் அனா."
+    },
+    "வணக்கம்! என் பெயர் அனா.": {
+      English: "Hello! My name is Ana.",
+      Hindi: "नमस्ते! मेरा नाम अना है।",
+      Kannada: "ನಮಸ್ಕಾರ! ನನ್ನ ಹೆಸರು ಅನಾ.",
+      Telugu: "నமస్కారం! నా పేరు అనా.",
+      Tamil: "வணக்கம்! என் பெயர் அனா."
+    },
+    "hi ana! i am ravi. welcome to our village.": {
+      English: "Hi Ana! I am Ravi. Welcome to our village.",
+      Hindi: "नमस्ते अना! मैं रवि हूँ। हमारे गाँव में आपका स्वागत है।",
+      Kannada: "ನಮಸ್ಕಾರ ಅನಾ! ನಾನು ರವಿ. ನಮ್ಮ ಹಳ್ಳಿಗೆ ನಿಮಗೆ ಸ್ವಾಗತ.",
+      Telugu: "నమస్కారం అనా! నేను రవి. మా ఊరికి మీకు స్వాగతం.",
+      Tamil: "வணக்கம் அனா! நான் ரவி. எங்கள் கிராமத்திற்கு உங்களை வரவேற்கிறேன்."
+    },
+    "नमस्ते अना! मैं रवि हूँ। हमारे गाँव में आपका स्वागत है।": {
+      English: "Hi Ana! I am Ravi. Welcome to our village.",
+      Hindi: "नमस्ते अना! मैं रवि हूँ। हमारे गाँव में आपका स्वागत है।",
+      Kannada: "ನಮಸ್ಕಾರ ಅನಾ! ನಾನು ರವಿ. ನಮ್ಮ ಹಳ್ಳಿಗೆ ನಿಮಗೆ ಸ್ವಾಗತ.",
+      Telugu: "నమస్కారం అనా! నేను రవి. మా ఊరికి మీకు స్వాగతం.",
+      Tamil: "வணக்கம் அனா! நான் ரவி. எங்கள் கிராமத்திற்கு உங்களை வரவேற்கிறேன்."
+    },
+    "ನಮಸ್ಕಾರ ಅನಾ! ನಾನು ರವಿ. ನಮ್ಮ ಹಳ್ಳಿಗೆ ನಿಮಗೆ ಸ್ವಾಗತ.": {
+      English: "Hi Ana! I am Ravi. Welcome to our village.",
+      Hindi: "नमस्ते अना! मैं रवि हूँ। हमारे गाँव में आपका स्वागत है।",
+      Kannada: "ನಮಸ್ಕಾರ ಅನಾ! ನಾನು ರವಿ. ನಮ್ಮ ಹಳ್ಳಿಗೆ ನಿಮಗೆ ಸ್ವಾಗತ.",
+      Telugu: "నమస్కారం అనా! నేను రవి. మా ఊరికి మీకు స్వాగతం.",
+      Tamil: "வணக்கம் அனா! நான் ரவி. எங்கள் கிராமத்திற்கு உங்களை வரவேற்கிறேன்."
+    },
+    "నమస్కారం అనా! నేను రవి. మా ఊరికి మీకు స్వాగతం.": {
+      English: "Hi Ana! I am Ravi. Welcome to our village.",
+      Hindi: "नमस्ते अना! मैं रवि हूँ। हमारे गाँव में आपका स्वागत है।",
+      Kannada: "ನಮಸ್ಕಾರ ಅನಾ! ನಾನು ರವಿ. ನಮ್ಮ ಹಳ್ಳಿಗೆ ನಿಮಗೆ ಸ್ವಾಗತ.",
+      Telugu: "నమస్కారం అనా! నేను రవి. మా ఊరికి మీకు స్వాగతం.",
+      Tamil: "வணக்கம் அனா! நான் ரவி. எங்கள் கிராமத்திற்கு உங்களை வரவேற்கிறேன்."
+    },
+    "வணக்கம் அனா! நான் ரவி. எங்கள் கிராமத்திற்கு உங்களை வரவேற்கிறேன்.": {
+      English: "Hi Ana! I am Ravi. Welcome to our village.",
+      Hindi: "नमस्ते अना! मैं रवि हूँ। हमारे गाँव में आपका स्वागत है।",
+      Kannada: "ನಮಸ್ಕಾರ ಅನಾ! ನಾನು ರವಿ. ನಮ್ಮ ಹಳ್ಳಿಗೆ ನಿಮಗೆ ಸ್ವಾಗತ.",
+      Telugu: "నమస్కారం అనా! నేను రవి. మా ఊరికి మీకు స్వాగతం.",
+      Tamil: "வணக்கம் அனா! நான் ரவி. எங்கள் கிராமத்திற்கு உங்களை வரவேற்கிறேன்."
+    },
+    "it is very beautiful here. i want to read a book.": {
+      English: "It is very beautiful here. I want to read a book.",
+      Hindi: "यहाँ बहुत सुंदर है। मुझे एक किताब पढ़नी है।",
+      Kannada: "ಇಲ್ಲಿ ತುಂಬಾ ಸುಂದರವಾಗಿದೆ. ನನಗೆ ಒಂದು ಪುಸ್ತಕವನ್ನು ಓದಬೇಕು.",
+      Telugu: "ఇక్కడ చాలా అందంగా ఉంది. నేను ఒక పుస్తకం చదవాలనుకుంటున్నాను.",
+      Tamil: "இடம் மிகவும் அழகாக இருக்கிறது. நான் ஒரு புத்தகம் படிக்க விரும்புகிறேன்."
+    },
+    "यहाँ बहुत सुंदर है। मुझे एक किताब पढ़नी है।": {
+      English: "It is very beautiful here. I want to read a book.",
+      Hindi: "यहाँ बहुत सुंदर है। मुझे एक किताब पढ़नी है।",
+      Kannada: "ಇಲ್ಲಿ ತುಂಬಾ ಸುಂದರವಾಗಿದೆ. ನನಗೆ ಒಂದು ಪುಸ್ತಕವನ್ನು ಓದಬೇಕು.",
+      Telugu: "ఇక్కడ చాలా అందంగా ఉంది. నేను ఒక పుస్తకం చదవాలనుకుంటున్నాను.",
+      Tamil: "இடம் மிகவும் அழகாக இருக்கிறது. நான் ஒரு புத்தகம் படிக்க விரும்புகிறேன்."
+    },
+    "ಇಲ್ಲಿ ತುಂಬಾ ಸುಂದರವಾಗಿದೆ. ನನಗೆ ಒಂದು ಪುಸ್ತಕವನ್ನು ಓದಬೇಕು.": {
+      English: "It is very beautiful here. I want to read a book.",
+      Hindi: "यहाँ बहुत सुंदर है। मुझे एक किताब पढ़नी है।",
+      Kannada: "ಇಲ್ಲಿ ತುಂಬಾ ಸುಂದರವಾಗಿದೆ. ನನಗೆ ಒಂದು ಪುಸ್ತಕವನ್ನು ಓದಬೇಕು.",
+      Telugu: "ఇక్కడ చాలా అందంగా ఉంది. నేను ఒక పుస్తకం చదవాలనుకుంటున్నాను.",
+      Tamil: "இடம் மிகவும் அழகாக இருக்கிறது. ನಾನು ಒಂದು ಪುಸ್ತಕವನ್ನು ಓದಬೇಕು."
+    },
+    "ఇక్కడ చాలా అందంగా ఉంది. నేను ఒక పుస్తకం చదవాలనుకుంటున్నాను.": {
+      English: "It is very beautiful here. I want to read a book.",
+      Hindi: "यहाँ बहुत सुंदर है। मुझे एक किताब पढ़नी है।",
+      Kannada: "ಇಲ್ಲಿ ತುಂಬಾ ಸುಂದರವಾಗಿದೆ. ನನಗೆ ಒಂದು ಪುಸ್ತಕವನ್ನು ಓದಬೇಕು.",
+      Telugu: "ఇక్కడ చాలా అందంగా ఉంది. నేను ఒక పుస్తకం చదవాలనుకుంటున్నాను.",
+      Tamil: "இடம் மிகவும் அழகாக இருக்கிறது. நான் ஒரு புத்தகம் படிக்க விரும்புகிறேன்."
+    },
+    "இடம் மிகவும் அழகாக இருக்கிறது. நான் ஒரு புத்தகம் படிக்க விரும்புகிறேன்.": {
+      English: "It is very beautiful here. I want to read a book.",
+      Hindi: "यहाँ बहुत सुंदर है। मुझे एक किताब पढ़नी है।",
+      Kannada: "ಇಲ್ಲಿ ತುಂಬಾ ಸುಂದರವಾಗಿದೆ. ನನಗೆ ಒಂದು ಪುಸ್ತಕವನ್ನು ಓದಬೇಕು.",
+      Telugu: "ఇక్కడ చాలా అందంగా ఉంది. నేను ఒక పుస్తకం చదవాలనుకుంటున్నాను.",
+      Tamil: "இடம் மிகவும் அழகாக இருக்கிறது. நான் ஒரு புத்தகம் படிக்க விரும்புகிறேன்."
+    },
+    "we have a library nearby. let's go there!": {
+      English: "We have a library nearby. Let's go there!",
+      Hindi: "हमारे पास पास ही एक पुस्तकालय है। चलो वहाँ चलते हैं!",
+      Kannada: "ನಮ್ಮ ಹತ್ತಿರವೇ ಒಂದು ಗ್ರಂಥಾಲಯವಿದೆ. ಬನ್ನಿ ಅಲ್ಲಿಗೆ ಹೋಗೋಣ!",
+      Telugu: "మాకు దగ్గరలోనే ఒక గ్రంథాలయం ఉంది. పదండి అక్కడికి వెళ్దాం!",
+      Tamil: "அருகிலேயே ஒரு நூலகம் உள்ளது. வாருங்கள் அங்கே செல்வோம்!"
+    },
+    "हमारे पास पास ही एक पुस्तकालय है। चलो वहाँ चलते हैं!": {
+      English: "We have a library nearby. Let's go there!",
+      Hindi: "हमारे पास पास ही एक पुस्तकालय है। चलो वहाँ चलते हैं!",
+      Kannada: "ನಮ್ಮ ಹತ್ತಿರವೇ ಒಂದು ಗ್ರಂಥಾಲಯವಿದೆ. ಬನ್ನಿ ಅಲ್ಲಿಗೆ ಹೋಗೋಣ!",
+      Telugu: "మాకు దగ్గరలోనే ఒక గ్రంథాలయం ఉంది. పదండి అక్కడికి వెళ్దాం!",
+      Tamil: "அருகிலேயே ஒரு நூலகம் உள்ளது. வாருங்கள் அங்கே செல்வோம்!"
+    },
+    "ನಮ್ಮ ಹತ್ತಿರವೇ ಒಂದು ಗ್ರಂಥಾಲಯವಿದೆ. ಬನ್ನಿ ಅಲ್ಲಿಗೆ ಹೋಗೋಣ!": {
+      English: "We have a library nearby. Let's go there!",
+      Hindi: "हमारे पास पास ही एक पुस्तकालय है। चलो वहाँ चलते हैं!",
+      Kannada: "ನಮ್ಮ ಹತ್ತಿರವೇ ಒಂದು ಗ್ರಂಥಾಲಯವಿದೆ. ಬನ್ನಿ ಅಲ್ಲಿಗೆ ಹೋಗೋಣ!",
+      Telugu: "మాకు దగ్గరలోనే ఒక గ్రంథాలయం ఉంది. పదండి అక్కడికి వెళ్దాಂ!",
+      Tamil: "அருகிலேயே ஒரு நூலகம் உள்ளது. வாருங்கள் அங்கே செல்வோம்!"
+    },
+    "మాకు దగ్గరలోనే ఒక గ్రంథాలయం ఉంది. పదండి అక్కడికి వెళ్దాం!": {
+      English: "We have a library nearby. Let's go there!",
+      Hindi: "हमारे पास पास ही एक पुस्तकालय है। चलो वहाँ चलते हैं!",
+      Kannada: "ನಮ್ಮ ಹತ್ತಿರವೇ ಒಂದು ಗ್ರಂಥಾಲಯವಿದೆ. ಬನ್ನಿ ಅಲ್ಲಿಗೆ ಹೋಗೋಣ!",
+      Telugu: "మాకు దగ్గరలోనే ఒక గ్రంథాలయం ఉంది. పదండి అక్కడికి వెళ్దాం!",
+      Tamil: "அருகிலேயே ஒரு நூலகம் உள்ளது. வாருங்கள் அங்கே செல்வோம்!"
+    },
+    "அருகிலேயே ஒரு நூலகம் உள்ளது. வாருங்கள் அங்கே செல்வோம்!": {
+      English: "We have a library nearby. Let's go there!",
+      Hindi: "हमारे पास पास ही एक पुस्तकालय है। चलो वहाँ चलते हैं!",
+      Kannada: "ನಮ್ಮ ಹತ್ತಿರವೇ ಒಂದು ಗ್ರಂಥಾಲಯವಿದೆ. ಬನ್ನಿ ಅಲ್ಲಿಗೆ ಹೋಗೋಣ!",
+      Telugu: "మాకు దగ్గరలోనే ఒక గ్రంథాలయం ఉంది. పదండి అక్కడికి వెళ్దాம்!",
+      Tamil: "அருகிலேயே ஒரு நூலகம் உள்ளது. வாருங்கள் அங்கே செல்வோம்!"
+    },
+    "look at that tree! it has big red apples.": {
+      English: "Look at that tree! It has big red apples.",
+      Hindi: "उस पेड़ को देखो! उस पर बड़े लाल सेब हैं।",
+      Kannada: "ಆ ಮರವನ್ನು ನೋಡಿ! ಅದರ ಮೇಲೆ ದೊಡ್ಡ ಕೆಂಪು ಸೇಬುಗಳಿವೆ.",
+      Telugu: "ఆ చెట్టును చూడండి! దానిపై పెద్ద ఎర్రటి ఆపిల్స్ ఉన్నాయి.",
+      Tamil: "அந்த மரத்தைப் பாருங்கள்! அதில் பெரிய சிவப்பு ஆப்பிள்கள் உள்ளன."
+    },
+    "उस पेड़ को देखो! उस पर बड़े लाल सेब हैं।": {
+      English: "Look at that tree! It has big red apples.",
+      Hindi: "उस पेड़ को देखो! उस पर बड़े लाल सेब हैं।",
+      Kannada: "ಆ ಮರವನ್ನು ನೋಡಿ! ಅದರ ಮೇಲೆ ದೊಡ್ಡ ಕೆಂपु ಸೇಬುಗಳಿವೆ.",
+      Telugu: "ఆ చెట్టును చూడండి! దానిపై పెద్ద ఎర్రటి ఆపిల్స్ ఉన్నాయి.",
+      Tamil: "அந்த மரத்தைப் பாருங்கள்! அதில் பெரிய சிவப்பு ஆப்பிள்கள் உள்ளன."
+    },
+    "ಆ ಮರವನ್ನು ನೋಡಿ! ಅದರ ಮೇಲೆ ದೊಡ್ಡ ಕೆಂಪು ಸೇಬುಗಳಿವೆ.": {
+      English: "Look at that tree! It has big red apples.",
+      Hindi: "उस पेड़ को देखो! उस पर बड़े लाल सेब हैं।",
+      Kannada: "ಆ ಮರವನ್ನು ನೋಡಿ! ಅದರ ಮೇಲೆ ದೊಡ್ಡ ಕೆಂಪು ಸೇಬುಗಳಿವೆ.",
+      Telugu: "ఆ చెట్టును చూడండి! దానిపై పెద్ద ఎర్రటి ఆపిల్స్ ఉన్నాయి.",
+      Tamil: "அந்த மரத்தைப் பாருங்கள்! அதில் பெரிய சிவப்பு ஆப்பிள்கள் உள்ளன."
+    },
+    "ఆ చెట్టును చూడండి! దానిపై పెద్ద ఎర్రటి ఆపిల్స్ ఉన్నాయి.": {
+      English: "Look at that tree! It has big red apples.",
+      Hindi: "उस पेड़ को देखो! उस पर बड़े लाल सेब हैं।",
+      Kannada: "ಆ ಮರವನ್ನು ನೋಡಿ! ಅದರ ಮೇಲೆ ದೊಡ್ಡ ಕೆಂಪು ಸೇಬುಗಳಿವೆ.",
+      Telugu: "ఆ చెట్టును చూడండి! దానిపై పెద్ద ఎర్రటి ఆపిల్స్ ఉన్నాయి.",
+      Tamil: "அந்த மரத்தைப் பாருங்கள்! அதில் பெரிய சிவப்பு ஆப்பிள்கள் உள்ளன."
+    },
+    "அந்த மரத்தைப் பாருங்கள்! அதில் பெரிய சிவப்பு ஆப்பிள்கள் உள்ளன.": {
+      English: "Look at that tree! It has big red apples.",
+      Hindi: "उस पेड़ को देखो! उस पर बड़े लाल सेब हैं।",
+      Kannada: "ಆ ಮರವನ್ನು ನೋಡಿ! ಅದರ ಮೇಲೆ ದೊಡ್ಡ ಕೆಂಪು ಸೇಬುಗಳಿವೆ.",
+      Telugu: "ఆ చెట్టును చూడండి! దానిపై పెద్ద ఎర్రటి ఆపిల్స్ ఉన్నాయి.",
+      Tamil: "அந்த மரத்தைப் பாருங்கள்! அதில் பெரிய சிவப்பு ஆப்பிள்கள் உள்ளன."
+    },
+    "yes, they are sweet. do you want one?": {
+      English: "Yes, they are sweet. Do you want one?",
+      Hindi: "हाँ, वे मीठे हैं। क्या तुम्हें एक चाहिए?",
+      Kannada: "ಹೌದು, ಅವು ತುಂಬಾ ಸಿಹಿಯಾಗಿವೆ. ನಿಮಗೆ ಒಂದು ಬೇಕೇ?",
+      Telugu: "అవును, అవి చాలా తీపిగా ఉంటాయి. మీకు ఒకటి కావాలా?",
+      Tamil: "ஆமாம், அவை மிகவும் இனிமையானவை. உங்களுக்கு ஒன்று வேண்டுமா?"
+    },
+    "हाँ, वे मीठे हैं। क्या तुम्हें एक चाहिए?": {
+      English: "Yes, they are sweet. Do you want one?",
+      Hindi: "हाँ, वे मीठे हैं। क्या तुम्हें एक चाहिए?",
+      Kannada: "ಹೌದು, ಅವು ತುಂಬಾ ಸಿಹಿಯಾಗಿವೆ. ನಿಮಗೆ ಒಂದು ಬೇಕೇ?",
+      Telugu: "అవును, అవి చాలా తీపిగా ఉంటాయి. మీకు ఒకటి కావాలా?",
+      Tamil: "ஆமாம், அவை மிகவும் இனிமையானவை. உங்களுக்கு ஒன்று வேண்டுமா?"
+    },
+    "ಹೌದು, ಅವು ತುಂಬಾ ಸಿಹಿಯಾಗಿವೆ. ನಿಮಗೆ ಒಂದು ಬೇಕೇ?": {
+      English: "Yes, they are sweet. Do you want one?",
+      Hindi: "हाँ, वे मीठे हैं। क्या तुम्हें एक चाहिए?",
+      Kannada: "ಹೌದು, ಅವು ತುಂಬಾ ಸಿಹಿಯಾಗಿವೆ. ನಿಮಗೆ ಒಂದು ಬೇಕೇ?",
+      Telugu: "అవును, అవి చాలా తీపిగా ఉంటాయి. మీకు ఒకటి కావాలా?",
+      Tamil: "ஆமாம், அவை மிகவும் இனிமையானவை. உங்களுக்கு ஒன்று வேண்டுமா?"
+    },
+    "అవును, అవి చాలా తీపిగా ఉంటాయి. మీకు ఒకటి కావాలా?": {
+      English: "Yes, they are sweet. Do you want one?",
+      Hindi: "हाँ, वे मीठे हैं। क्या तुम्हें एक चाहिए?",
+      Kannada: "ಹೌದು, ಅವು ತುಂಬಾ ಸಿಹಿಯಾಗಿವೆ. ನಿಮಗೆ ಒಂದು ಬೇಕೇ?",
+      Telugu: "అవును, అవి చాలా తీపిగా ఉంటాయి. మీకు ఒకటి కావాలా?",
+      Tamil: "ஆமாம், அவை மிகவும் இனிமையானவை. உங்களுக்கு ஒன்று வேண்டுமா?"
+    },
+    "ஆமாம், அவை மிகவும் இனிமையானவை. உங்களுக்கு ஒன்று வேண்டுமா?": {
+      English: "Yes, they are sweet. Do you want one?",
+      Hindi: "हाँ, वे मीठे हैं। क्या तुम्हें एक चाहिए?",
+      Kannada: "ಹೌದು, ಅವು ತುಂಬಾ ಸಿಹಿಯಾಗಿವೆ. ನಿಮಗೆ ಒಂದು ಬೇಕೇ?",
+      Telugu: "అవును, అవి చాలా తీపిగా ఉంటాయి. உங்களுக்கு ஒன்று வேண்டுமா?",
+      Tamil: "ஆமாம், அவை மிகவும் இனிமையானவை. உங்களுக்கு ஒன்று வேண்டுமா?"
+    },
+    "oh yes, please! i love sweet apples.": {
+      English: "Oh yes, please! I love sweet apples.",
+      Hindi: "हाँ, कृपया! मुझे मीठे सेब बहुत पसंद हैं।",
+      Kannada: "ಹೌದು, ದಯವಿಟ್ಟು! ನನಗೆ ಸಿಹಿ ಸೇಬುಗಳು ತುಂಬಾ ಇಷ್ಟ.",
+      Telugu: "అవును, దయచేసి! నాకు తీపి ఆపిల్స్ అంటే చాలా ఇష్టం.",
+      Tamil: "ஆமாம், தயவுசெய்து! எனக்கு இனிப்பான ஆப்பிள்கள் மிகவும் பிடிக்கும்."
+    },
+    "हाँ, कृपया! मुझे मीठे सेब बहुत पसंद हैं।": {
+      English: "Oh yes, please! I love sweet apples.",
+      Hindi: "हाँ, कृपया! मुझे मीठे सेब बहुत पसंद हैं।",
+      Kannada: "ಹೌದು, ದಯವಿಟ್ಟು! ನನಗೆ ಸಿಹಿ ಸೇಬುಗಳು ತುಂಬಾ ಇಷ್ಟ.",
+      Telugu: "అవును, దయచేసి! నాకు తీపి ఆపిల్స్ అంటే చాలా ఇష్టం.",
+      Tamil: "ஆமாம், தயவுசெய்து! எனக்கு இனிப்பான ஆப்பிள்கள் மிகவும் பிடிக்கும்."
+    },
+    "ಹೌದು, ದಯವಿಟ್ಟು! ನನಗೆ ಸಿಹಿ ಸೇಬುಗಳು ತುಂಬಾ ಇಷ್ಟ.": {
+      English: "Oh yes, please! I love sweet apples.",
+      Hindi: "हाँ, कृपया! मुझे मीठे सेब बहुत पसंद हैं।",
+      Kannada: "ಹೌದು, ದಯವಿಟ್ಟು! ನನಗೆ ಸಿಹಿ ಸೇಬುಗಳು ತುಂಬಾ ಇಷ್ಟ.",
+      Telugu: "అవును, దయచేసి! నాకు తీపి ఆపిల్స్ అంటే చాలా ఇష్టం.",
+      Tamil: "ஆமாம், தயவுசெய்து! எனக்கு இனிப்பான ஆப்பிள்கள் மிகவும் பிடிக்கும்."
+    },
+    "అవును, దయచేసి! నాకు తీపి ఆపిల్స్ అంటే చాలా ఇష్టం.": {
+      English: "Oh yes, please! I love sweet apples.",
+      Hindi: "हाँ, कृपया! मुझे मीठे सेब बहुत पसंद हैं।",
+      Kannada: "ಹೌದು, ದಯವಿಟ್ಟು! ನನಗೆ ಸಿಹಿ ಸೇಬುಗಳು ತುಂಬಾ ಇಷ್ಟ.",
+      Telugu: "అవును, దయచేసి! నాకు తీపి ఆపిల్స్ అంటే చాలా ఇష్టం.",
+      Tamil: "ஆமாம், தயவுசெய்து! எனக்கு இனிப்பான ஆப்பிள்கள் மிகவும் பிடிக்கும்."
+    },
+    "ஆமாம், தயவுசெய்து! எனக்கு இனிப்பான ஆப்பிள்கள் மிகவும் பிடிக்கும்.": {
+      English: "Oh yes, please! I love sweet apples.",
+      Hindi: "हाँ, कृपया! मुझे मीठे सेब बहुत पसंद हैं।",
+      Kannada: "ಹೌದು, ದಯವಿಟ್ಟು! ನನಗೆ ಸಿಹಿ ಸೇಬುಗಳು ತುಂಬಾ ಇಷ್ಟ.",
+      Telugu: "అవును, దయచేసి! నాకు తీపి ఆపిల్స్ అంటే చాలా ఇష్టం.",
+      Tamil: "ஆமாம், தயவுசெய்து! எனக்கு இனிப்பான ஆப்பிள்கள் மிகவும் பிடிக்கும்."
+    },
+    "here you go. now, let's find that book.": {
+      English: "Here you go. Now, let's find that book.",
+      Hindi: "यह लो। अब, चलो वह किताब ढूंढते हैं।",
+      Kannada: "ಇದು ತಗೊಳ್ಳಿ. ಈಗ, ಆ ಪುಸ್ತಕವನ್ನು ಹುಡುಕೋಣ.",
+      Telugu: "ఇదిగో తీసుకోండి. ఇప్పుడు, ఆ పుస్తకాన్ని వెతుకుదాం.",
+      Tamil: "இந்தாருங்கள். இப்போது, அந்தப் புத்தகத்தைக் கண்டுபிடிப்போம்."
+    },
+    "यह लो। अब, चलो वह किताब ढूंढते हैं।": {
+      English: "Here you go. Now, let's find that book.",
+      Hindi: "यह लो। अब, चलो वह किताब ढूंढते हैं।",
+      Kannada: "ಇದು ತಗೊಳ್ಳಿ. ಈಗ, ಆ ಪುಸ್ತಕವನ್ನು ಹುಡುಕೋಣ.",
+      Telugu: "ఇదిగో తీసుకోండి. ఇప్పుడు, ఆ పుస్తకాన్ని వెతుకుదాం.",
+      Tamil: "இந்தாருங்கள். இப்போது, அந்தப் புத்தகத்தைக் கண்டுபிடிப்போம்."
+    },
+    "ಇದು ತಗೊಳ್ಳಿ. ಈಗ, ಆ ಪುಸ್ತಕವನ್ನು ಹುಡುಕೋಣ.": {
+      English: "Here you go. Now, let's find that book.",
+      Hindi: "यह लो। अब, चलो वह किताब ढूंढते हैं।",
+      Kannada: "ಇದು ತಗೊಳ್ಳಿ. ಈಗ, ಆ ಪುಸ್ತಕವನ್ನು ಹುಡುಕೋಣ.",
+      Telugu: "ఇదిగో తీసుకోండి. ఇప్పుడు, ఆ పుస్తకాన్ని వెతుకుదాం.",
+      Tamil: "இந்தாருங்கள். இப்போது, அந்தப் புத்தகத்தைக் கண்டுபிடிப்போம்."
+    },
+    "ఇదిగో తీసుకోండి. ఇప్పుడు, ఆ పుస్తకాన్ని వెతుకుదాం.": {
+      English: "Here you go. Now, let's find that book.",
+      Hindi: "यह लो। अब, चलो वह किताब ढूंढते हैं।",
+      Kannada: "ಇದು ತಗೊಳ್ಳಿ. ಈಗ, ಆ ಪುಸ್ತಕವನ್ನು ಹುಡುಕೋಣ.",
+      Telugu: "ఇదిగో తీసుకోండి. ఇప్పుడు, ఆ పుస్తకాన్ని వెతుకుదాం.",
+      Tamil: "இந்தாருங்கள். இப்போது, அந்தப் புத்தகத்தைக் கண்டுபிடிப்போம்."
+    },
+    "இந்தாருங்கள். இப்போது, அந்தப் புத்தகத்தைக் கண்டுபிடிப்போம்.": {
+      English: "Here you go. Now, let's find that book.",
+      Hindi: "यह लो। अब, चलो वह किताब ढूंढते हैं।",
+      Kannada: "ಇದು ತಗೊಳ್ಳಿ. ಈಗ, ಆ ಪುಸ್ತಕವನ್ನು ಹುಡುಕೋಣ.",
+      Telugu: "ఇదిగో తీసుకోండి. ఇప్పుడు, ఆ పుస్తకాన్ని వెతుకుదాం.",
+      Tamil: "இந்தாருங்கள். இப்போது, அந்தப் புத்தகத்தைக் கண்டுபிடிப்போம்."
+    },
+    "thank you, ravi! you are a great friend.": {
+      English: "Thank you, Ravi! You are a great friend.",
+      Hindi: "धन्यवाद, रवि! तुम बहुत अच्छे दोस्त हो।",
+      Kannada: "ಧನ್ಯವಾದಗಳು, ರವಿ! ನೀವು ತುಂಬಾ ಒಳ್ಳೆಯ ಸ್ನೇಹಿತ.",
+      Telugu: "ధన్యవాదాలు, రవి! నువ్వు చాలా మంచి స్నేహితుడివి.",
+      Tamil: "நன்றி, ரவி! நீ ஒரு சிறந்த நண்பன்."
+    },
+    "धन्यवाद, रवि! तुम बहुत अच्छे दोस्त हो।": {
+      English: "Thank you, Ravi! You are a great friend.",
+      Hindi: "धन्यवाद, रवि! तुम बहुत अच्छे दोस्त हो।",
+      Kannada: "ಧನ್ಯವಾದಗಳು, ರವಿ! तुम्ही बहुत अच्छे दोस्त हो।",
+      Telugu: "ధన్యవాదాలు, రవి! నువ్వు చాలా మంచి స్నేహితుడివి.",
+      Tamil: "நன்றி, ரவி! நீ ஒரு சிறந்த நண்பன்."
+    },
+    "ಧನ್ಯವಾದಗಳು, ರವಿ! ನೀವು ತುಂಬಾ ಒಳ್ಳೆಯ ಸ್ನೇಹಿತ.": {
+      English: "Thank you, Ravi! You are a great friend.",
+      Hindi: "धन्यवाद, रवि! तुम बहुत अच्छे दोस्त हो।",
+      Kannada: "ಧನ್ಯವಾದಗಳು, ರವಿ! ನೀವು ತುಂಬಾ ಒಳ್ಳೆಯ ಸ್ನೇಹಿತ.",
+      Telugu: "ధన్యవాదాలు, రవి! నువ్వు చాలా మంచి స్నేహితుడివి.",
+      Tamil: "நன்றி, ரவி! நீ ஒரு சிறந்த நண்பன்."
+    },
+    "ధన్యవాదాలు, రవి! నువ్వు చాలా మంచి స్నేహితుడివి.": {
+      English: "Thank you, Ravi! You are a great friend.",
+      Hindi: "धन्यवाद, रवि! तुम बहुत अच्छे दोस्त हो।",
+      Kannada: "ಧನ್ಯವಾದಗಳು, ರವಿ! ನೀವು ತುಂಬಾ ಒಳ್ಳೆಯ ಸ್ನೇಹಿತ.",
+      Telugu: "ధన్యవాదాలు, రవి! నువ్వు చాలా మంచి స్నేహితుడివి.",
+      Tamil: "நன்றி, ரவி! நீ ஒரு சிறந்த நண்பன்."
+    },
+    "நன்றி, ரவி! நீ ஒரு சிறந்த நண்பன்.": {
+      English: "Thank you, Ravi! You are a great friend.",
+      Hindi: "धन्यवाद, रवि! तुम बहुत अच्छे दोस्त हो।",
+      Kannada: "ಧನ್ಯವಾದಗಳು, ರவி! ನೀವು ತುಂಬಾ ಒಳ್ಳೆಯ ಸ್ನೇಹಿತ.",
+      Telugu: "ధన్యవాదాలు, రవి! నువ్వు చాలా మంచి స్నేహితుడివి.",
+      Tamil: "நன்றி, ரவி! நீ ஒரு சிறந்த நண்பன்."
+    }
+  };
+
+  const key = cleanedText.toLowerCase();
+  if (dialogueMap[key] && dialogueMap[key][targetLang]) {
+    return dialogueMap[key][targetLang];
+  }
+  return text;
+};
+
+
 
 // Draws a faint guide letter/word on the tracing canvas
 const drawTracingGuide = (canvas, item) => {
@@ -1087,6 +1510,7 @@ function App() {
   const [showMistakeHint, setShowMistakeHint] = useState(false);
   const [flashcardFlipped, setFlashcardFlipped] = useState(false);
   const [storyLineIndex, setStoryLineIndex] = useState(0);
+  const [revealedStoryBubbles, setRevealedStoryBubbles] = useState({});
   const [storyQuestionIdx, setStoryQuestionIdx] = useState(null);
   const [storyQuestionAnswered, setStoryQuestionAnswered] = useState(false);
   const [storyQuestionFeedback, setStoryQuestionFeedback] = useState(null);
@@ -2076,13 +2500,22 @@ function App() {
       playChime("correct");
       triggerHaptic("correct");
       
-      // Calculate dynamic XP
+      // Calculate dynamic XP (5 XP per question for practice, max 10 XP)
       const isExam = lessonSession?.lessonId?.endsWith("l5") || lessonSession?.lessonNum === 5;
-      const isWordsPractice = lessonSession?.title === "Words Practice" || practiceType === "Words Practice";
-      const totalXp = isExam ? 60 : isWordsPractice ? 10 : 30;
-      const totalQuestions = lessonAiContent?.questions?.length || 10;
-      const xpPerQuestion = totalXp / totalQuestions;
-      setLessonXpEarned(Math.round(lessonCorrectAnsweredRef.current * xpPerQuestion));
+      const isWordsPractice = lessonSession?.title === "Words Practice" || lessonSession?.practiceType === "Words Practice";
+      const isStoriesPractice = lessonSession?.title === "Stories Practice" || lessonSession?.practiceType === "Stories Practice" || lessonSession?.practiceType === "Stories";
+      
+      let currentEarnedXp = 0;
+      if (isExam) {
+        const totalQuestions = lessonAiContent?.questions?.length || 10;
+        currentEarnedXp = Math.round(lessonCorrectAnsweredRef.current * (60 / totalQuestions));
+      } else if (isWordsPractice || isStoriesPractice) {
+        currentEarnedXp = Math.min(10, lessonCorrectAnsweredRef.current * 5);
+      } else {
+        const totalQuestions = lessonAiContent?.questions?.length || 10;
+        currentEarnedXp = Math.round(lessonCorrectAnsweredRef.current * (30 / totalQuestions));
+      }
+      setLessonXpEarned(currentEarnedXp);
 
       if (lessonSession?.title === "Mistakes Practice") {
         const currentQuestion = lessonAiContent?.questions?.[lessonStep];
@@ -2433,15 +2866,29 @@ function App() {
             if (chatLog) chatLog.scrollTop = chatLog.scrollHeight;
           }, 100);
         } else {
-          // Finished story session!
-          completeLesson(lessonSession.lessonId, 15);
+          // Finished story session! Calculate elapsed time, accuracy, and XP
+          const elapsedSeconds = lessonStartTimeRef.current ? Math.round((Date.now() - lessonStartTimeRef.current) / 1000) : 45;
+          setLessonTimeTaken(elapsedSeconds);
+
+          const totalAnswered = lessonTotalAnsweredRef.current;
+          const correctAnswered = lessonCorrectAnsweredRef.current;
+          const accuracy = totalAnswered > 0 ? Math.round((correctAnswered / totalAnswered) * 100) : 100;
+          setLessonAccuracy(accuracy);
+
+          const finalXp = correctAnswered > 0 ? Math.min(10, Math.max(5, correctAnswered * 5)) : 10;
+          setLessonXpEarned(finalXp);
+          completeLesson(lessonSession?.lessonId, finalXp);
           setLessonSession(prev => prev ? { ...prev, status: "completed" } : null);
         }
       };
 
       const handlePredictorAnswer = (optionIdx) => {
+        if (storyQuestionAnswered) return;
+
         const q = dialogue[storyQuestionIdx];
+        if (!q) return;
         const correct = optionIdx === q.correctIndex;
+
         setStoryQuestionAnswered(true);
         setStoryQuestionFeedback({
           selected: optionIdx,
@@ -2451,9 +2898,14 @@ function App() {
         if (correct) {
           recordDailyCorrect();
           recordLessonAnswer(true);
+
+          const qIdx = storyQuestionIdx;
           setTimeout(() => {
             setStoryQuestionIdx(null);
-            const nextIdx = storyLineIndex + 1;
+            setStoryQuestionAnswered(false);
+            setStoryQuestionFeedback(null);
+
+            const nextIdx = (qIdx !== null && qIdx !== undefined) ? qIdx + 1 : storyLineIndex + 1;
             setStoryLineIndex(nextIdx);
             
             const nextLine = dialogue[nextIdx];
@@ -2465,9 +2917,12 @@ function App() {
               const chatLog = document.getElementById("stories-chat-log");
               if (chatLog) chatLog.scrollTop = chatLog.scrollHeight;
             }, 100);
-          }, 1500);
+          }, 450);
         } else {
           recordLessonAnswer(false);
+          setTimeout(() => {
+            setStoryQuestionAnswered(false);
+          }, 800);
         }
       };
 
@@ -2503,13 +2958,54 @@ function App() {
                                  bubble.speaker === "ಅನಾ" || 
                                  bubble.speaker === "అనా" || 
                                  bubble.speaker === "அனா";
+                  const isRevealed = !!revealedStoryBubbles[idx];
+                  const translationText = bubble.translation || getDialogueTranslation(bubble.text, selectedLanguage || "English");
+
+                  const revealLabel = selectedLanguage === "Hindi" ? "अनुवाद देखें" :
+                                      selectedLanguage === "Kannada" ? "ಅನುವಾದ ನೋಡಿ" :
+                                      selectedLanguage === "Telugu" ? "అనువాదం చూడండి" :
+                                      selectedLanguage === "Tamil" ? "மொழிபெயர்ப்பு காண்க" : "Reveal Translation";
+
                   return (
                     <div 
                       key={idx} 
                       className={`story-chat-bubble ${isLeft ? "left" : "right"}`}
+                      style={{ cursor: 'pointer', transition: 'all 0.2s ease' }}
+                      onClick={() => {
+                        setRevealedStoryBubbles(prev => ({ ...prev, [idx]: !prev[idx] }));
+                      }}
+                      title="Tap to reveal translation"
                     >
-                      <span className="story-bubble-speaker">{bubble.speaker}</span>
-                      <span>{bubble.text}</span>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                        <span className="story-bubble-speaker">{bubble.speaker}</span>
+                        <span 
+                          style={{ 
+                            fontSize: '0.75rem', 
+                            color: isLeft ? '#0284c7' : '#059669', 
+                            fontWeight: 700, 
+                            opacity: 0.9,
+                            background: 'rgba(255,255,255,0.7)',
+                            padding: '2px 8px',
+                            borderRadius: '10px'
+                          }}
+                        >
+                          🌐 {isRevealed ? "Hide" : revealLabel}
+                        </span>
+                      </div>
+                      <span style={{ display: 'block', fontSize: '1.05rem', lineHeight: '1.4' }}>{bubble.text}</span>
+                      
+                      {isRevealed && translationText && (
+                        <div style={{ 
+                          marginTop: '8px', 
+                          paddingTop: '6px', 
+                          borderTop: '1px dashed rgba(0,0,0,0.15)', 
+                          color: '#4b5563', 
+                          fontSize: '0.95rem',
+                          fontWeight: 600
+                        }}>
+                          💬 {translationText}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -2519,10 +3015,11 @@ function App() {
               {storyQuestionIdx !== null && (
                 <div className="story-predictor-box">
                   <div className="story-predictor-title">
-                    ❓ {dialogue[storyQuestionIdx].question}
+                    {getStoryQuestionInInterfaceLang(dialogue[storyQuestionIdx].question, selectedLanguage || "English")}
                   </div>
                   <div className="story-predictor-options">
                     {dialogue[storyQuestionIdx].options.map((opt, oIdx) => {
+                      const cleanOpt = String(opt).replace(/\s*\([^)]*\)/g, "").trim();
                       const feedback = storyQuestionFeedback;
                       const isSelected = feedback?.selected === oIdx;
                       const wasWrong = isSelected && !feedback?.isCorrect;
@@ -2541,7 +3038,7 @@ function App() {
                           disabled={storyQuestionAnswered && feedback?.isCorrect}
                           onClick={() => handlePredictorAnswer(oIdx)}
                         >
-                          {opt} {showSuccess && " ✅"} {wasWrong && " ❌"}
+                          {cleanOpt} {showSuccess && " ✅"} {wasWrong && " ❌"}
                         </button>
                       );
                     })}
@@ -3860,7 +4357,10 @@ function App() {
 
             // 3. Mistakes, Words & Stories Practice Questions
             if (currentQuestion.type === "mcq" || currentQuestion.type === "meaning" || practiceType === "Stories Practice") {
-              const questionText = currentQuestion.question || `Select the correct meaning of "${currentQuestion.phrase}"`;
+              const rawQ = currentQuestion.question || `Select the correct meaning of "${currentQuestion.phrase}"`;
+              const questionText = practiceType === "Stories Practice"
+                ? getStoryQuestionInInterfaceLang(rawQ, selectedLanguage || "English")
+                : rawQ.replace(/^[❓\s]+/, "");
               const options = currentQuestion.options || [];
               const selectedAnswer = lessonMeaningAnswer;
               const isChecked = lessonMeaningFeedback !== null;
@@ -5748,11 +6248,21 @@ function App() {
       setLessonAccuracy(accuracy);
 
       const isExam = lessonSession?.lessonId?.endsWith("l5") || lessonSession?.lessonNum === 5;
-      const isWordsPractice = lessonSession?.title === "Words Practice" || practiceType === "Words Practice";
-      const totalXp = isExam ? 60 : isWordsPractice ? 10 : 30;
-      const totalQuestions = lessonAiContent?.questions?.length || 10;
-      const xpPerQuestion = totalXp / totalQuestions;
-      const finalXpEarned = Math.min(totalXp, Math.round(correctAnswered * xpPerQuestion));
+      const isWordsPractice = lessonSession?.title === "Words Practice" || lessonSession?.practiceType === "Words Practice";
+      const isStoriesPractice = lessonSession?.title === "Stories Practice" || lessonSession?.practiceType === "Stories Practice" || lessonSession?.practiceType === "Stories";
+      
+      let finalXpEarned = 0;
+      if (isExam) {
+        const totalQuestions = lessonAiContent?.questions?.length || 10;
+        finalXpEarned = Math.round(correctAnswered * (60 / totalQuestions));
+      } else if (isWordsPractice || isStoriesPractice) {
+        finalXpEarned = Math.min(10, correctAnswered * 5);
+        if (finalXpEarned === 0 && correctAnswered > 0) finalXpEarned = 5;
+        if (isStoriesPractice && finalXpEarned === 0) finalXpEarned = 10;
+      } else {
+        const totalQuestions = lessonAiContent?.questions?.length || 10;
+        finalXpEarned = Math.round(correctAnswered * (30 / totalQuestions));
+      }
       
       setLessonXpEarned(finalXpEarned);
       
