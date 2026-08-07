@@ -1437,31 +1437,23 @@ Return ONLY valid JSON with this exact structure:
   }
 
   if (practiceType === "Words Practice") {
-    return `You are LISA, an expert AI literacy tutor. Generate exactly 10 vocabulary/words practice questions in ${targetLang} suitable for a learner at Literacy Level ${literacyLevel} (${literacyLevelName}).
+    return `You are LISA, an expert AI literacy tutor. Generate exactly 10 vocabulary/words practice items in ${targetLang} suitable for a learner at Literacy Level ${literacyLevel} (${literacyLevelName}).
 The user's interface language is ${uiLang}.
-Mix of two types:
-1. "meaning": Select the correct translation of a target language word in ${uiLang}.
-2. "spelling": Fill in the blank to complete the spelling of a target language word in a sentence context.
+
+Each item must be structured as follows:
+{
+  "word": "The word in ${targetLang}",
+  "translation": "The translation of the word in ${uiLang}",
+  "emoji": "An emoji representing the word",
+  "sentence": "A simple sentence in ${targetLang} using the word"
+}
 
 Return ONLY valid JSON with this exact structure:
 {
   "questions": [
-    {
-      "id": 1,
-      "type": "meaning",
-      "phrase": "Word or short phrase in ${targetLang}",
-      "options": ["Correct translation in ${uiLang}", "incorrect distractor 1", "incorrect distractor 2"],
-      "correctIndex": 0
-    },
-    {
-      "id": 2,
-      "type": "spelling",
-      "sentence": "A simple sentence in ${targetLang} with a word missing letters, e.g. target language equivalent with ___",
-      "answer": "The missing letters/word",
-      "hint": "Hint in ${uiLang}"
-    }
+    ...
   ]
-} (Make sure there are exactly 10 items in the array)`;
+}`;
   }
 
   if (practiceType === "Stories Practice") {
