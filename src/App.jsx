@@ -1486,7 +1486,55 @@ function App() {
   const [userXp, setUserXp] = useState(0);
   const [showAllAchievementsModal, setShowAllAchievementsModal] = useState(false);
   const [shopCatalog, setShopCatalog] = useState(SHOP_CATALOG);
-  const [adminAnnouncements, setAdminAnnouncements] = useState([]);
+  const [adminAnnouncements, setAdminAnnouncements] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem("lisa_admin_announcements") || "[]");
+    } catch (e) {
+      return [];
+    }
+  });
+
+  // Trigger native device push notification when new announcements arrive (works on mobile PWA)
+  useEffect(() => {
+    if (!adminAnnouncements || adminAnnouncements.length === 0) return;
+
+    const latestAnn = adminAnnouncements[adminAnnouncements.length - 1];
+    const key = `lisa_native_notified_ann_${latestAnn.id}`;
+    if (localStorage.getItem(key)) return;
+
+    const fire = async () => {
+      if ("Notification" in window && Notification.permission === "default") {
+        await Notification.requestPermission().catch(() => {});
+      }
+      if (!("Notification" in window) || Notification.permission !== "granted") return;
+
+      const title = `${latestAnn.icon || "📢"} ${latestAnn.title}`;
+      const body = latestAnn.message;
+      const tag = `lisa-ann-${latestAnn.id}`;
+
+      if ("serviceWorker" in navigator) {
+        try {
+          const reg = await navigator.serviceWorker.ready;
+          if (navigator.serviceWorker.controller) {
+            navigator.serviceWorker.controller.postMessage({
+              type: "SHOW_NOTIFICATION",
+              title,
+              options: { body, icon: "/icon.png", badge: "/icon.png", tag, vibrate: [200, 100, 200], data: { url: "/" } }
+            });
+          } else {
+            await reg.showNotification(title, { body, icon: "/icon.png", badge: "/icon.png", tag, vibrate: [200, 100, 200] });
+          }
+        } catch (e) {
+          try { new Notification(title, { body, icon: "/icon.png" }); } catch (_) {}
+        }
+      } else {
+        try { new Notification(title, { body, icon: "/icon.png" }); } catch (_) {}
+      }
+      localStorage.setItem(key, "1");
+    };
+    fire();
+  }, [adminAnnouncements]);
+
 
   const getLevelEncouragementMessage = (level) => {
     const messages = {
@@ -1515,7 +1563,11 @@ function App() {
   const [storyQuestionAnswered, setStoryQuestionAnswered] = useState(false);
   const [storyQuestionFeedback, setStoryQuestionFeedback] = useState(null);
   const [streakCount, setStreakCount] = useState(0);
-  const [wordOfDay, setWordOfDay] = useState(null);
+  const [wordOfDay, setWordOfDay] = useState({
+    word: "Diligent",
+    meaning: "Hardworking and showing care",
+    example: "A diligent student practices reading a little every day."
+  });
   const [userMistakes, setUserMistakes] = useState([]);
   const [activeSolveMistake, setActiveSolveMistake] = useState(null);
   const [activeSolveInput, setActiveSolveInput] = useState("");
@@ -1587,12 +1639,14 @@ function App() {
   const [readNotifIds, setReadNotifIds] = useState([]);
 
   const saveNotifState = async (newReadIds, newDismissedIds) => {
+    // Never persist ann_ IDs in dismissed — announcements should always show until explicitly dismissed per-session
+    const filteredDismissed = newDismissedIds.filter(id => !id.startsWith("ann_"));
     setReadNotifIds(newReadIds);
-    setDismissedNotifIds(newDismissedIds);
+    setDismissedNotifIds(filteredDismissed);
     if (session?.user?.id) {
-      localStorage.setItem(`lisa_notif_data_${session.user.id}`, JSON.stringify({ readNotifIds: newReadIds, dismissedNotifIds: newDismissedIds }));
+      localStorage.setItem(`lisa_notif_data_${session.user.id}`, JSON.stringify({ readNotifIds: newReadIds, dismissedNotifIds: filteredDismissed }));
       try {
-        await supabase.from("profiles").update({ notif_data: { readNotifIds: newReadIds, dismissedNotifIds: newDismissedIds } }).eq("id", session.user.id);
+        await supabase.from("profiles").update({ notif_data: { readNotifIds: newReadIds, dismissedNotifIds: filteredDismissed } }).eq("id", session.user.id);
       } catch (e) {
         console.error("Could not save notification data to Supabase:", e);
       }
@@ -1654,6 +1708,23 @@ function App() {
 
   const allNotifications = useMemo(() => {
     const notifs = [];
+
+    // Admin announcements — broadcast to all users (placed at top of notifications list)
+    if (Array.isArray(adminAnnouncements) && adminAnnouncements.length > 0) {
+      adminAnnouncements.forEach((ann, idx) => {
+        const rawId = ann.id ? String(ann.id) : `ann_${idx}`;
+        const notifId = rawId.startsWith("ann_") ? rawId : `ann_${rawId}`;
+        notifs.push({
+          id: notifId,
+          icon: ann.icon || "📢",
+          title: ann.title || "Announcement",
+          message: ann.message || "",
+          color: ann.color || "#6366f1",
+          isAnnouncement: true
+        });
+      });
+    }
+
     if (streakCount > 0) {
       notifs.push({ id: "streak", icon: "🔥", title: "Streak Reminder", message: getStreakMessage(streakCount), color: "#f97316" });
     }
@@ -1705,16 +1776,6 @@ function App() {
     if (currentLevel > 1) {
       notifs.push({ id: "levelup", icon: "🎉", title: "Level Up", message: `Congratulations! You reached Level ${currentLevel}.`, color: "#8b5cf6" });
     }
-    // Admin announcements — broadcast to all users
-    adminAnnouncements.forEach(ann => {
-      notifs.push({
-        id: `ann_${ann.id}`,
-        icon: ann.icon || "📢",
-        title: ann.title || "Announcement",
-        message: ann.message || "",
-        color: ann.color || "#6366f1"
-      });
-    });
     return notifs;
   }, [streakCount, userXp, completedLessons, profileBadges, dailyLessons, activeQuests, questBonusClaimed, profile, shopOwnedItems, adminAnnouncements]);
 
@@ -1980,111 +2041,82 @@ function App() {
   useEffect(() => {
     let active = true;
     const loadWordOfDay = async () => {
-      const userId = session?.user?.id;
-      // Get the user's target learning language (learningLanguage or profile.learning_language)
-      const learnLang = profile?.learning_language || learningLanguage || "English";
       const interfaceLang = selectedLanguage || "English";
+      const learnLang = profile?.learning_language || learningLanguage || "English";
 
-      // Fallback word in case of failures or fallback mode
-      const getFallback = () => {
-        if (interfaceLang === "Hindi") {
-          return { word: "Diligent", meaning: "मेहनती और लगनशील", example: "A diligent student practices reading a little every day." };
-        } else if (interfaceLang === "Kannada") {
-          return { word: "Diligent", meaning: "ಕಷ್ಟಪಟ್ಟು ಕೆಲಸ ಮಾಡುವ ಮತ್ತು ಕಾಳಜಿ ತೋರುವ", example: "A diligent student practices reading a little every day." };
-        } else if (interfaceLang === "Telugu") {
-          return { word: "Diligent", meaning: "కష్టపడి పనిచేసే మరియు శ్రద్ధ చూపించే", example: "A diligent student practices reading a little every day." };
-        } else if (interfaceLang === "Tamil") {
-          return { word: "Diligent", meaning: "கடின உழைப்பு மற்றும் அக்கறை காட்டுதல்", example: "A diligent student practices reading a little every day." };
-        }
-        return { word: "Diligent", meaning: "Hardworking and showing care", example: "A diligent student practices reading a little every day." };
-      };
+      // Built-in dataset of vocabulary words (30+ daily words)
+      const defaultWords = [
+        { word: "Diligent", meaning: "Hardworking and showing care", meaning_hi: "मेहनती और लगनशील", meaning_kn: "ಕಷ್ಟಪಟ್ಟು ಕೆಲಸ ಮಾಡುವ ಮತ್ತು ಕಾಳಜಿ ತೋರುವ", meaning_ta: "கடின உழைப்பு மற்றும் அக்கறை காட்டுதல்", meaning_te: "కష్టపడి పనిచేసే మరియు శ్రద్ధ చూపించే", example: "A diligent student practices reading a little every day." },
+        { word: "Resilient", meaning: "Able to withstand or recover quickly from difficulties", meaning_hi: "कठिनाइयों से जल्दी उबरने वाला", meaning_kn: "ಸವಾಲುಗಳಿಂದ ಬೇಗನೆ ಚೇತರಿಸಿಕೊಳ್ಳುವ", meaning_ta: "சவால்களிலிருந்து விரைவில் மீண்டு வரும்", meaning_te: "సవాలుల నుండి త్వరగా కోలుకునే", example: "She remained resilient and kept trying until she mastered the lesson." },
+        { word: "Curious", meaning: "Eager to learn or know something", meaning_hi: "जिज्ञासु या जानने का इच्छुक", meaning_kn: "ತಿಳಿದುಕೊಳ್ಳಲು ಕುತೂಹಲವಿರುವ", meaning_ta: "அறிந்து கொள்ள ஆர்வம் கொண்ட", meaning_te: "తెలుసుకోవడానికి ఆసక్తి ఉన్న", example: "Curious learners ask thoughtful questions during class." },
+        { word: "Empathy", meaning: "The ability to understand and share feelings of others", meaning_hi: "दूसरों की भावनाओं को समझने की क्षमता", meaning_kn: "ಇತರರ ಭಾವನೆಗಳನ್ನು ಅರ್ಥಮಾಡಿಕೊಳ್ಳುವ ಸಾಮರ್ಥ್ಯ", meaning_ta: "மற்றவர்களின் உணர்வுகளைப் புரிந்து கொள்ளும் திறன்", meaning_te: "ఇతరుల భావాలను అర్థం చేసుకునే సామర్థ్యం", example: "Showing empathy makes us kinder friends and better teammates." },
+        { word: "Persistent", meaning: "Continuing firmly despite obstacles or difficulty", meaning_hi: "बाधाओं के बावजूद डटे रहने वाला", meaning_kn: "ಅಡಚಣೆಗಳಿದ್ದರೂ ಸತತವಾಗಿ ಪ್ರಯತ್ನಿಸುವ", meaning_ta: "தடைகள் இருந்தாலும் தொடர்ந்து முயலும்", meaning_te: "అంతరాయాలు ఉన్నప్పటికీ నిరంతరం ప్రయత్నించే", example: "With persistent effort, you can overcome any reading challenge." },
+        { word: "Grateful", meaning: "Feeling or showing appreciation for kindness", meaning_hi: "आभारी और कृतज्ञ", meaning_kn: "ಕೃತಜ್ಞತೆಯಿಂದ ಕೂಡಿರುವ", meaning_ta: "நன்றியுணர்வு கொண்ட", meaning_te: "కృతజ్ఞత కలిగి ఉన్న", example: "I am grateful for the encouragement from my teachers." },
+        { word: "Inspire", meaning: "Fill someone with the urge to do something creative", meaning_hi: "प्रेरित करना या हौसला बढ़ाना", meaning_kn: "ಪ್ರೇರೇಪಿಸು ಅಥವಾ ಪ್ರೋತ್ಸಾಹಿಸು", meaning_ta: "ஊக்கமளித்தல் அல்லது உத்வேகம் அளித்தல்", meaning_te: "ప్రేరేపించడం లేదా ప్రోత్సహించడం", example: "Good stories inspire us to dream big and learn more." },
+        { word: "Optimistic", meaning: "Hopeful and confident about the future", meaning_hi: "आशावादी और भविष्य के प्रति सकारात्मक", meaning_kn: "ಆಶಾವಾದಿ ಮತ್ತು ಭವಿಷ್ಯದ ಬಗ್ಗೆ ಧನಾತ್ಮಕ", meaning_ta: "நம்பிக்கையான மற்றும் எதிர்காலம் குறித்து நேர்மறையான", meaning_te: "ఆశావాదం మరియు భవిష్యత్తుపై నమ్మకం ఉన్న", example: "An optimistic attitude helps you enjoy every learning milestone." },
+        { word: "Courage", meaning: "Strength in the face of pain or grief", meaning_hi: "साहस और हिम्मत", meaning_kn: "ಧೈರ್ಯ ಮತ್ತು ಸಾಹಸ", meaning_ta: "தைரியம் மற்றும் மனவலிமை", meaning_te: "ధైర్యం మరియు గుండె నిబ్బరం", example: "It takes courage to speak up and practice a new language." },
+        { word: "Harmony", meaning: "Agreement or peace between people", meaning_hi: "सामंजस्य और शांति", meaning_kn: "ಸೌಹಾರ್ದತೆ ಮತ್ತು ಶಾಂತಿ", meaning_ta: "ஒற்றுமை மற்றும் அமைதி", meaning_te: "సామరస్యం మరియు శాంతి", example: "Working together in harmony brings success to the whole class." },
+        { word: "Generous", meaning: "Showing readiness to give more of something", meaning_hi: "उदार और दानशील", meaning_kn: "ಉದಾರ ಮನಸ್ಸಿನ ಮತ್ತು ನೆರವಾಗುವ", meaning_ta: "தாராள குணமுள்ள மற்றும் உதவும்", meaning_te: "ఉదారమైన మరియు సహాయపడే", example: "A generous friend shares their books and learning tips." },
+        { word: "Knowledge", meaning: "Information and skills acquired through experience or education", meaning_hi: "ज्ञान और जानकारी", meaning_kn: "ಜ್ಞಾನ ಮತ್ತು ಮಾಹಿತಿ", meaning_ta: "அறிவு மற்றும் தகவல்", meaning_te: "జ్ఞానం మరియు సమాచారం", example: "Reading books expands your knowledge every single day." },
+        { word: "Patience", meaning: "The capacity to accept delay or trouble without getting angry", meaning_hi: "धैर्य और सहनशीलता", meaning_kn: "ಸಹನೆ ಮತ್ತು ತಾಳ್ಮೆ", meaning_ta: "பொறுமை ಮತ್ತು ಸಕಿಪ್ಪುத்தன்மை", meaning_te: "ఓర్పు మరియు సహనం", example: "Learning a new skill requires practice and patience." },
+        { word: "Creative", meaning: "Relating to or involving the use of imagination", meaning_hi: "रचनात्मक और कल्पनाशील", meaning_kn: "ಸೃಜನಶೀಲ ಮತ್ತು ಕಲ್ಪನಾತ್ಮಕ", meaning_ta: "படைப்பாற்றல் கொண்ட", meaning_te: "సృజనాత్మకత కలిగిన", example: "Drawing and writing stories lets your creative mind shine." },
+        { word: "Wisdom", meaning: "The quality of having experience, knowledge, and good judgment", meaning_hi: "बुद्धिमत्ता और समझदारी", meaning_kn: "ಜ್ಞಾನ ಮತ್ತು ಜಾಣತನ", meaning_ta: "ஞானம் மற்றும் புத்தி கூர்மை", meaning_te: "వివేకం మరియు తెలివి", example: "Wisdom comes from listening carefully and learning from mistakes." }
+      ];
 
-      // If AI is disabled, we still attempt to fetch the word of the day from the database.
-      // Fallback will be used only if fetching fails.
-
-
-      if (!userId) {
-        if (active) setWordOfDay(getFallback());
-        return;
-      }
+      let allWords = [...defaultWords];
 
       try {
-        const today = new Date().toLocaleDateString("en-CA");
-
-        // 1. Fetch all words for this target learning language
-        const { data: words, error: fetchErr } = await supabase
+        // Fetch all word_of_day entries from Supabase database
+        const { data: dbWords, error: fetchErr } = await supabase
           .from("word_of_day")
-          .select("*")
-          .eq("language", learnLang)
-          .order("word"); // Ordering consistently to maintain index ordering
+          .select("*");
 
-        if (fetchErr || !words || words.length === 0) {
-          console.warn("Could not fetch words from database, generating AI word:", fetchErr);
-          const li = profile?.literacy_level || 1;
-          const aiWord = await fetchWordOfDay(
-            learnLang,
-            {
-              level: li,
-              age: profile?.age || 20,
-              education: profile?.education_level || "No Formal Education"
-            },
-            false
+        if (!fetchErr && dbWords && dbWords.length > 0) {
+          // Filter dbWords matching language or include all database words
+          const matchingDbWords = dbWords.filter(w => 
+            !w.language || w.language.toLowerCase() === learnLang.toLowerCase() || w.language.toLowerCase() === "english"
           );
-          if (active && aiWord) setWordOfDay(aiWord);
-          return;
-        }
-
-        // 2. Check if the user needs a new word rotation today
-        let currentIndex = profile?.word_of_day_index ?? 0;
-        let lastDate = profile?.word_of_day_date;
-
-        if (!lastDate || lastDate !== today) {
-          // It's a new day or first login ever: rotate index
-          if (lastDate) {
-            currentIndex = (currentIndex + 1) % words.length;
+          if (matchingDbWords.length > 0) {
+            allWords = matchingDbWords;
           } else {
-            currentIndex = currentIndex % words.length;
+            allWords = dbWords;
           }
-
-          // Update profile in DB first
-          await supabase
-            .from("profiles")
-            .update({
-              word_of_day_date: today,
-              word_of_day_index: currentIndex
-            })
-            .eq("id", userId);
-
-          // Update local profile state
-          setProfile(prev => prev ? { ...prev, word_of_day_date: today, word_of_day_index: currentIndex } : null);
-        }
-
-        const selectedWordObj = words[currentIndex];
-
-        // Map word and example in learningLanguage, meaning resolved to the selected interfaceLanguage (UI language)
-        if (active && selectedWordObj) {
-          let resolvedMeaning = selectedWordObj.meaning;
-          if (interfaceLang === "Hindi" && selectedWordObj.meaning_hi) {
-            resolvedMeaning = selectedWordObj.meaning_hi;
-          } else if (interfaceLang === "Kannada" && selectedWordObj.meaning_kn) {
-            resolvedMeaning = selectedWordObj.meaning_kn;
-          } else if (interfaceLang === "Telugu" && selectedWordObj.meaning_te) {
-            resolvedMeaning = selectedWordObj.meaning_te;
-          } else if (interfaceLang === "Tamil" && selectedWordObj.meaning_ta) {
-            resolvedMeaning = selectedWordObj.meaning_ta;
-          }
-
-          setWordOfDay({
-            word: selectedWordObj.word,
-            meaning: resolvedMeaning,
-            example: selectedWordObj.example
-          });
         }
       } catch (err) {
-        console.error("Error loading word of the day:", err);
-        if (active) setWordOfDay(getFallback());
+        console.warn("Supabase word_of_day fetch notice:", err);
+      }
+
+      // Calculate deterministic Day Index (rotates automatically every day at 12:00 AM)
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth();
+      const date = now.getDate();
+
+      // Days since epoch
+      const dayNumber = Math.floor(Date.UTC(year, month, date) / (1000 * 60 * 60 * 24));
+      const wordIndex = Math.abs(dayNumber) % allWords.length;
+      const selectedWordObj = allWords[wordIndex];
+
+      if (active && selectedWordObj) {
+        let resolvedMeaning = selectedWordObj.meaning;
+        if (interfaceLang === "Hindi" && selectedWordObj.meaning_hi) {
+          resolvedMeaning = selectedWordObj.meaning_hi;
+        } else if (interfaceLang === "Kannada" && selectedWordObj.meaning_kn) {
+          resolvedMeaning = selectedWordObj.meaning_kn;
+        } else if (interfaceLang === "Telugu" && selectedWordObj.meaning_te) {
+          resolvedMeaning = selectedWordObj.meaning_te;
+        } else if (interfaceLang === "Tamil" && selectedWordObj.meaning_ta) {
+          resolvedMeaning = selectedWordObj.meaning_ta;
+        }
+
+        setWordOfDay({
+          word: selectedWordObj.word,
+          meaning: resolvedMeaning,
+          example: selectedWordObj.example || `Practice using the word '${selectedWordObj.word}' in your daily reading.`
+        });
       }
     };
+
     loadWordOfDay();
     return () => { active = false; };
   }, [selectedLanguage, learningLanguage, profile?.learning_language, session?.user?.id]);
@@ -6598,6 +6630,59 @@ function App() {
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [deleteError, setDeleteError] = useState("");
 
+  // User Feedback & Bug Report States
+  const [feedbackCategory, setFeedbackCategory] = useState("Bug Report");
+  const [feedbackRating, setFeedbackRating] = useState(5);
+  const [feedbackSubject, setFeedbackSubject] = useState("");
+  const [feedbackMessage, setFeedbackMessage] = useState("");
+  const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
+  const [feedbackSuccess, setFeedbackSuccess] = useState(false);
+  const [devControlsHidden, setDevControlsHidden] = useState(false);
+
+  const handleSendUserFeedback = async (e) => {
+    e.preventDefault();
+    if (!feedbackMessage.trim()) return;
+    setFeedbackSubmitting(true);
+
+    const newFeedback = {
+      id: "fb_" + Date.now(),
+      user_id: session?.user?.id || "anon",
+      user_name: profileData?.full_name || editFullName || session?.user?.email || "Learner",
+      user_email: session?.user?.email || "user@example.com",
+      category: feedbackCategory,
+      rating: feedbackRating,
+      subject: feedbackSubject.trim() || (feedbackCategory === "Bug Report" ? "Bug Report" : "User Feedback"),
+      message: feedbackMessage.trim(),
+      status: "New",
+      created_at: new Date().toISOString()
+    };
+
+    // 1. Try Supabase insert
+    try {
+      await supabase.from("user_feedback").insert([newFeedback]);
+    } catch (err) {
+      console.warn("Supabase insert user_feedback:", err);
+    }
+
+    // 2. Always persist to localStorage for local/offline sync
+    try {
+      const existing = JSON.parse(localStorage.getItem("lisa_user_feedback") || "[]");
+      localStorage.setItem("lisa_user_feedback", JSON.stringify([newFeedback, ...existing]));
+    } catch (err) {
+      console.error("LocalStorage write error:", err);
+    }
+
+    setFeedbackSubmitting(false);
+    setFeedbackSuccess(true);
+    setFeedbackSubject("");
+    setFeedbackMessage("");
+    setFeedbackRating(5);
+
+    setTimeout(() => {
+      setFeedbackSuccess(false);
+    }, 4500);
+  };
+
   // Reset scroll position on view / tab switch
   useEffect(() => {
     const resetScroll = () => {
@@ -7421,29 +7506,52 @@ function App() {
   useEffect(() => {
     const fetchCustomConfig = async () => {
       try {
+        // Fetch curriculum + shop catalog from profiles (admin reads own row, others get their row)
         const { data, error } = await supabase.from("profiles").select("shop_data");
         if (data && !error) {
-          const adminProf = data.find(p => p.shop_data && (p.shop_data.custom_curriculum || p.shop_data.global_shop_catalog));
-          if (adminProf) {
-            if (adminProf.shop_data.custom_curriculum && Array.isArray(adminProf.shop_data.custom_curriculum)) {
-              CURRICULUM_SECTIONS.length = 0;
-              CURRICULUM_SECTIONS.push(...adminProf.shop_data.custom_curriculum);
-              setCurriculumVersion(v => v + 1);
+          data.forEach(p => {
+            if (p.shop_data) {
+              if (p.shop_data.custom_curriculum && Array.isArray(p.shop_data.custom_curriculum)) {
+                CURRICULUM_SECTIONS.length = 0;
+                CURRICULUM_SECTIONS.push(...p.shop_data.custom_curriculum);
+                setCurriculumVersion(v => v + 1);
+              }
+              if (p.shop_data.global_shop_catalog && typeof p.shop_data.global_shop_catalog === "object") {
+                setShopCatalog(p.shop_data.global_shop_catalog);
+                localStorage.setItem("lisa_global_shop_catalog", JSON.stringify(p.shop_data.global_shop_catalog));
+              }
             }
-            if (adminProf.shop_data.global_shop_catalog && typeof adminProf.shop_data.global_shop_catalog === "object") {
-              setShopCatalog(adminProf.shop_data.global_shop_catalog);
-              localStorage.setItem("lisa_global_shop_catalog", JSON.stringify(adminProf.shop_data.global_shop_catalog));
-            }
-            if (adminProf.shop_data.announcements && Array.isArray(adminProf.shop_data.announcements)) {
-              setAdminAnnouncements(adminProf.shop_data.announcements);
-            }
-          }
+          });
         }
       } catch (e) {
         console.error("Failed to load custom config from Supabase:", e);
       }
+
+      // Fetch announcements from dedicated public table (bypasses profile RLS — all users can read this)
+      try {
+        const { data: annData, error: annError } = await supabase
+          .from("announcements")
+          .select("*")
+          .order("created_at", { ascending: true });
+
+        if (annData && !annError) {
+          const normalized = annData.map(a => ({ ...a, createdAt: a.createdAt || a.created_at }));
+          setAdminAnnouncements(normalized);
+          localStorage.setItem("lisa_admin_announcements", JSON.stringify(normalized));
+        } else if (annError) {
+          console.warn("Announcements table read error:", annError.message);
+          try {
+            const local = JSON.parse(localStorage.getItem("lisa_admin_announcements") || "[]");
+            if (local && local.length > 0) setAdminAnnouncements(local);
+          } catch (e) {}
+        }
+      } catch (e) {
+        console.warn("Failed to load announcements:", e);
+      }
     };
     fetchCustomConfig();
+    const interval = setInterval(fetchCustomConfig, 3000);
+    return () => clearInterval(interval);
   }, [session]);
 
   // Update document title dynamically based on the current page/state
@@ -7668,7 +7776,8 @@ function App() {
         if (storedNotifData) {
           try {
             const parsed = JSON.parse(storedNotifData);
-            const loadedDismissed = Array.isArray(parsed.dismissedNotifIds) ? parsed.dismissedNotifIds : [];
+            // Never load ann_ IDs as dismissed — announcements must always be visible
+            const loadedDismissed = (Array.isArray(parsed.dismissedNotifIds) ? parsed.dismissedNotifIds : []).filter(id => !id.startsWith("ann_"));
             const loadedRead = Array.isArray(parsed.readNotifIds) ? parsed.readNotifIds : [];
             setDismissedNotifIds(loadedDismissed);
             setReadNotifIds(loadedRead);
@@ -7678,7 +7787,7 @@ function App() {
         } else {
           const nd = mergedProfile.notif_data;
           if (nd && typeof nd === "object") {
-            const loadedDismissed = Array.isArray(nd.dismissedNotifIds) ? nd.dismissedNotifIds : [];
+            const loadedDismissed = (Array.isArray(nd.dismissedNotifIds) ? nd.dismissedNotifIds : []).filter(id => !id.startsWith("ann_"));
             const loadedRead = Array.isArray(nd.readNotifIds) ? nd.readNotifIds : [];
             setDismissedNotifIds(loadedDismissed);
             setReadNotifIds(loadedRead);
@@ -10322,20 +10431,20 @@ function App() {
                         <button
                           type="button"
                           className="word-of-day-speak"
-                          onClick={() => speakWord(wordOfDay.word)}
+                          onClick={() => speakWord(wordOfDay?.word || "")}
                           aria-label="Listen to word"
                         >
                           🔊
                         </button>
                       </div>
-                      <h3 className="word-of-day-word" style={{ marginTop: '8px', marginBottom: '16px' }}>{wordOfDay.word}</h3>
+                      <h3 className="word-of-day-word" style={{ marginTop: '8px', marginBottom: '16px' }}>{wordOfDay?.word || "Loading..."}</h3>
                       <div className="word-of-day-block" style={{ marginBottom: '12px' }}>
                         <span className="word-of-day-heading" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                           {t("meaning")}
                           <button
                             type="button"
                             className="word-of-day-speak word-of-day-speak-inline"
-                            onClick={() => speakText(wordOfDay.meaning || "", 0.9, selectedLanguage || "English")}
+                            onClick={() => speakText(wordOfDay?.meaning || "", 0.9, selectedLanguage || "English")}
                             style={{ margin: 0, padding: '2px 4px', fontSize: '0.8rem', background: 'transparent', border: 'none', cursor: 'pointer' }}
                             aria-label="Listen to meaning"
                           >
@@ -10343,27 +10452,29 @@ function App() {
                           </button>
                         </span>
                         <p className="word-of-day-meaning" style={{ marginTop: '4px' }}>
-                          {wordOfDay.meaning}
+                          {wordOfDay?.meaning || "Loading word definition..."}
                         </p>
                       </div>
                     </div>
-                    <div className="word-of-day-block" style={{ marginTop: 'auto' }}>
-                      <span className="word-of-day-heading" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                        {t("example")}
-                        <button
-                          type="button"
-                          className="word-of-day-speak word-of-day-speak-inline"
-                          onClick={() => speakText(wordOfDay.example || "", 0.9, learningLanguage || "English")}
-                          style={{ margin: 0, padding: '2px 4px', fontSize: '0.8rem', background: 'transparent', border: 'none', cursor: 'pointer' }}
-                          aria-label="Listen to example"
-                        >
-                          🔊
-                        </button>
-                      </span>
-                      <p className="word-of-day-example" style={{ marginTop: '4px' }}>
-                        "{wordOfDay.example}"
-                      </p>
-                    </div>
+                    {wordOfDay?.example && (
+                      <div className="word-of-day-block" style={{ marginTop: 'auto' }}>
+                        <span className="word-of-day-heading" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                          {t("example")}
+                          <button
+                            type="button"
+                            className="word-of-day-speak word-of-day-speak-inline"
+                            onClick={() => speakText(wordOfDay?.example || "", 0.9, learningLanguage || "English")}
+                            style={{ margin: 0, padding: '2px 4px', fontSize: '0.8rem', background: 'transparent', border: 'none', cursor: 'pointer' }}
+                            aria-label="Listen to example"
+                          >
+                            🔊
+                          </button>
+                        </span>
+                        <p className="word-of-day-example" style={{ marginTop: '4px' }}>
+                          "{wordOfDay.example}"
+                        </p>
+                      </div>
+                    )}
                   </div>
 
                   <div className="current-level-card" style={{
@@ -11903,40 +12014,150 @@ style={(() => {
                       </div>
 
                       <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-                        <div className="current-level-card dev-control-card" style={{ margin: 0, padding: "24px" }}>
-                          <h3 className="current-level-title">{t("profileDevControl")}</h3>
-                          <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "16px" }}>{t("profileDevControlDesc")}</p>
-                          <div className="ai-toggle-container" style={{ marginBottom: "16px" }} title={aiEnabled ? "AI ON — lessons & word of day use AI" : "AI OFF — lessons & word of day use fallback"}>
-                            <button
-                              type="button"
-                              className={`ai-toggle-btn ${aiEnabled ? "ai-on" : "ai-off"}`}
-                              onClick={toggleAiMode}
-                              aria-pressed={aiEnabled}
-                              aria-label={aiEnabled ? "Turn AI off (development mode)" : "Turn AI on"}
-                              style={{ width: "100%" }}
-                            >
-                              <span className="ai-toggle-dot" />
-                              <span className="ai-toggle-label">{aiEnabled ? "AI ON" : "AI OFF"}</span>
-                            </button>
-                          </div>
-                          <button
-                            type="button"
-                            className="secondary-btn dev-action-btn reset-assessment"
-                            style={{ width: "100%", marginBottom: "12px" }}
-                            onClick={() => handleResetAssessmentStatus()}
-                          >
-                            {t("profileResetAssessment")}
-                          </button>
-                          <button
-                            type="button"
-                            className="secondary-btn dev-action-btn reset-lessons"
-                            style={{ width: "100%" }}
-                            onClick={() => handleResetLessons()}
-                          >
-                            {t("profileResetLessons")}
-                          </button>
+                        {/* User Feedback & Bug Report Form (TOP) */}
+                        <div className="profile-settings-card user-feedback-card" style={{ margin: 0, padding: "24px" }}>
+                          <h3 className="profile-section-title">💬 {t("sendFeedbackOrReportBug")}</h3>
+                          <p style={{ fontSize: "0.85rem", color: "var(--muted)", marginBottom: "16px", lineHeight: "1.4" }}>
+                            {t("feedbackHelpDesc")}
+                          </p>
+
+                          {feedbackSuccess ? (
+                            <div style={{ background: "rgba(16, 185, 129, 0.12)", border: "1px solid #10b981", borderRadius: "14px", padding: "16px", color: "#10b981", fontWeight: 700, textAlign: "center" }}>
+                              {t("feedbackSuccessMsg")}
+                            </div>
+                          ) : (
+                            <form onSubmit={handleSendUserFeedback} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+                              <label className="profile-dropdown-label">
+                                {t("feedbackCategoryLabel")}
+                                <select
+                                  value={feedbackCategory}
+                                  onChange={(e) => setFeedbackCategory(e.target.value)}
+                                  className="settings-select-input"
+                                >
+                                  <option value="Bug Report">{t("feedbackBugReport")}</option>
+                                  <option value="Feature Request">{t("feedbackFeatureRequest")}</option>
+                                  <option value="UI / Visual Feedback">{t("feedbackUiDesign")}</option>
+                                  <option value="General Feedback">{t("feedbackGeneral")}</option>
+                                </select>
+                              </label>
+
+                              <label className="profile-dropdown-label">
+                                {t("feedbackRatingLabel")}
+                                <div style={{ display: "flex", gap: "8px", marginTop: "6px" }}>
+                                  {[1, 2, 3, 4, 5].map((star) => (
+                                    <button
+                                      key={star}
+                                      type="button"
+                                      onClick={() => setFeedbackRating(star)}
+                                      style={{
+                                        background: star <= feedbackRating ? "rgba(245, 158, 11, 0.18)" : "var(--bg)",
+                                        border: star <= feedbackRating ? "1px solid #f59e0b" : "1px solid var(--line)",
+                                        borderRadius: "10px",
+                                        padding: "6px 12px",
+                                        fontSize: "1.1rem",
+                                        cursor: "pointer",
+                                        transition: "all 0.15s ease"
+                                      }}
+                                    >
+                                      ⭐
+                                    </button>
+                                  ))}
+                                </div>
+                              </label>
+
+                              <label className="profile-dropdown-label">
+                                {t("feedbackSubjectLabel")}
+                                <input
+                                  type="text"
+                                  placeholder={t("feedbackSubjectPlaceholder")}
+                                  value={feedbackSubject}
+                                  onChange={(e) => setFeedbackSubject(e.target.value)}
+                                  className="settings-text-input"
+                                />
+                              </label>
+
+                              <label className="profile-dropdown-label">
+                                {t("feedbackMessageLabel")}
+                                <textarea
+                                  required
+                                  rows={3}
+                                  placeholder={t("feedbackMessagePlaceholder")}
+                                  value={feedbackMessage}
+                                  onChange={(e) => setFeedbackMessage(e.target.value)}
+                                  className="settings-text-input"
+                                  style={{ resize: "vertical", fontFamily: "inherit" }}
+                                />
+                              </label>
+
+                              <button type="submit" className="primary-btn" disabled={feedbackSubmitting} style={{ width: "100%", marginTop: "4px" }}>
+                                {feedbackSubmitting ? t("feedbackSubmittingBtn") : t("feedbackSubmitBtn")}
+                              </button>
+                            </form>
+                          )}
                         </div>
 
+                        {/* Diagnostic & Dev Control Card (BELOW FEEDBACK) */}
+                        <div className="current-level-card dev-control-card" style={{ margin: 0, padding: "24px" }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: devControlsHidden ? 0 : '12px' }}>
+                            <h3 className="current-level-title" style={{ margin: 0 }}>{t("profileDevControl")}</h3>
+                            <button
+                              type="button"
+                              onClick={() => setDevControlsHidden(!devControlsHidden)}
+                              style={{
+                                background: 'rgba(128, 128, 128, 0.12)',
+                                border: '1px solid var(--line)',
+                                borderRadius: '10px',
+                                padding: '4px 12px',
+                                fontSize: '0.8rem',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                color: 'var(--text)',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px'
+                              }}
+                            >
+                              {devControlsHidden ? `👁️ ${t("showDevControl") || "Show"}` : `🙈 ${t("hideDevControl") || "Hide"}`}
+                            </button>
+                          </div>
+
+                          {!devControlsHidden && (
+                            <>
+                              <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "16px" }}>{t("profileDevControlDesc")}</p>
+                              <div className="ai-toggle-container" style={{ marginBottom: "16px" }} title={aiEnabled ? "AI ON — lessons & word of day use AI" : "AI OFF — lessons & word of day use fallback"}>
+                                <button
+                                  type="button"
+                                  className={`ai-toggle-btn ${aiEnabled ? "ai-on" : "ai-off"}`}
+                                  onClick={toggleAiMode}
+                                  aria-pressed={aiEnabled}
+                                  aria-label={aiEnabled ? "Turn AI off (development mode)" : "Turn AI on"}
+                                  style={{ width: "100%" }}
+                                >
+                                  <span className="ai-toggle-dot" />
+                                  <span className="ai-toggle-label">{aiEnabled ? "AI ON" : "AI OFF"}</span>
+                                </button>
+                              </div>
+                              <button
+                                type="button"
+                                className="secondary-btn dev-action-btn reset-assessment"
+                                style={{ width: "100%", marginBottom: "12px" }}
+                                onClick={() => handleResetAssessmentStatus()}
+                              >
+                                {t("profileResetAssessment")}
+                              </button>
+                              <button
+                                type="button"
+                                className="secondary-btn dev-action-btn reset-lessons"
+                                style={{ width: "100%" }}
+                                onClick={() => handleResetLessons()}
+                              >
+                                {t("profileResetLessons")}
+                              </button>
+                            </>
+                          )}
+                        </div>
+
+                        {/* Danger Zone / Delete Account (BOTTOM) */}
                         <div className="current-level-card danger-zone-card" style={{ margin: 0, padding: "24px" }}>
                           <h3 className="current-level-title">{t("profileDangerZone")}</h3>
                           <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "16px" }}>{t("profileDeleteAccountDesc")}</p>
@@ -12167,6 +12388,12 @@ style={(() => {
               adminAnnouncements={adminAnnouncements}
               onAnnouncementsChange={(newAnnouncements) => {
                 setAdminAnnouncements(newAnnouncements);
+                localStorage.setItem("lisa_admin_announcements", JSON.stringify(newAnnouncements));
+                if (Array.isArray(newAnnouncements)) {
+                  const annIds = newAnnouncements.flatMap(a => [String(a.id), `ann_${a.id}`]);
+                  setDismissedNotifIds(prev => prev.filter(id => !annIds.includes(id)));
+                  setReadNotifIds(prev => prev.filter(id => !annIds.includes(id)));
+                }
               }}
             />
           )}

@@ -92,55 +92,187 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
   const [annSaving, setAnnSaving] = useState(false);
   const [annDeleteId, setAnnDeleteId] = useState(null);
 
+  // Keep admin's announcement list in sync with the dedicated `announcements` table
+  useEffect(() => {
+    const loadAnnouncements = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("announcements")
+          .select("*")
+          .order("created_at", { ascending: true });
+        if (data && !error) {
+          const normalized = data.map(a => ({ ...a, createdAt: a.createdAt || a.created_at }));
+          onAnnouncementsChange?.(normalized);
+        }
+      } catch (e) {
+        console.warn("AdminDashboard: failed to load announcements:", e);
+      }
+    };
+    loadAnnouncements();
+  }, []);
+
+  // States for User Feedback & Bugs
+  const [feedbackList, setFeedbackList] = useState([]);
+  const [feedbackLoading, setFeedbackLoading] = useState(false);
+  const [feedbackSearch, setFeedbackSearch] = useState("");
+  const [feedbackCategoryFilter, setFeedbackCategoryFilter] = useState("all");
+  const [feedbackStatusFilter, setFeedbackStatusFilter] = useState("all");
+
+  const fetchFeedbackList = async () => {
+    setFeedbackLoading(true);
+    let items = [];
+    try {
+      const { data, error } = await supabase.from("user_feedback").select("*").order("created_at", { ascending: false });
+      if (!error && data) items = data;
+    } catch (e) {
+      console.warn("Supabase fetch user_feedback:", e);
+    }
+
+    try {
+      const local = JSON.parse(localStorage.getItem("lisa_user_feedback") || "[]");
+      const map = new Map();
+      [...items, ...local].forEach(item => {
+        if (item.id && !map.has(item.id)) {
+          map.set(item.id, item);
+        }
+      });
+      items = Array.from(map.values());
+    } catch (e) {
+      console.warn("LocalStorage fetch user_feedback:", e);
+    }
+
+    setFeedbackList(items);
+    setFeedbackLoading(false);
+  };
+
+  useEffect(() => {
+    if (activeSubTab === "feedback") {
+      fetchFeedbackList();
+    }
+  }, [activeSubTab]);
+
+  const handleUpdateFeedbackStatus = async (feedbackId, newStatus) => {
+    setFeedbackList(prev => prev.map(item => item.id === feedbackId ? { ...item, status: newStatus } : item));
+
+    try {
+      await supabase.from("user_feedback").update({ status: newStatus }).eq("id", feedbackId);
+    } catch (e) {
+      console.warn("Supabase status update error:", e);
+    }
+
+    try {
+      const local = JSON.parse(localStorage.getItem("lisa_user_feedback") || "[]");
+      const updated = local.map(item => item.id === feedbackId ? { ...item, status: newStatus } : item);
+      localStorage.setItem("lisa_user_feedback", JSON.stringify(updated));
+    } catch (e) {
+      console.warn("LocalStorage status update error:", e);
+    }
+  };
+
+  const handleDeleteFeedbackItem = async (feedbackId) => {
+    if (!window.confirm("Are you sure you want to delete this feedback report?")) return;
+    setFeedbackList(prev => prev.filter(item => item.id !== feedbackId));
+
+    try {
+      await supabase.from("user_feedback").delete().eq("id", feedbackId);
+    } catch (e) {
+      console.warn("Supabase delete error:", e);
+    }
+
+    try {
+      const local = JSON.parse(localStorage.getItem("lisa_user_feedback") || "[]");
+      const updated = local.filter(item => item.id !== feedbackId);
+      localStorage.setItem("lisa_user_feedback", JSON.stringify(updated));
+    } catch (e) {
+      console.warn("LocalStorage delete error:", e);
+    }
+  };
+
+  const filteredFeedbackList = useMemo(() => {
+    return feedbackList.filter(item => {
+      const matchesSearch = !feedbackSearch.trim() || 
+        (item.user_name || "").toLowerCase().includes(feedbackSearch.toLowerCase()) ||
+        (item.user_email || "").toLowerCase().includes(feedbackSearch.toLowerCase()) ||
+        (item.subject || "").toLowerCase().includes(feedbackSearch.toLowerCase()) ||
+        (item.message || "").toLowerCase().includes(feedbackSearch.toLowerCase());
+
+      const matchesCategory = feedbackCategoryFilter === "all" || item.category === feedbackCategoryFilter;
+      const matchesStatus = feedbackStatusFilter === "all" || item.status === feedbackStatusFilter;
+
+      return matchesSearch && matchesCategory && matchesStatus;
+    });
+  }, [feedbackList, feedbackSearch, feedbackCategoryFilter, feedbackStatusFilter]);
+
+  const feedbackStats = useMemo(() => {
+    const total = feedbackList.length;
+    const bugs = feedbackList.filter(f => f.category === "Bug Report").length;
+    const features = feedbackList.filter(f => f.category === "Feature Request").length;
+    const resolved = feedbackList.filter(f => f.status === "Resolved").length;
+    return { total, bugs, features, resolved };
+  }, [feedbackList]);
+
   const handleSaveAnnouncement = async () => {
     if (!annTitle.trim() || !annMessage.trim()) {
       alert("Please fill in both title and message.");
       return;
     }
     setAnnSaving(true);
+    const newAnn = {
+      id: Date.now().toString(),
+      title: annTitle.trim(),
+      message: annMessage.trim(),
+      icon: annIcon || "📢",
+      color: annColor || "#6366f1",
+      created_at: new Date().toISOString()
+    };
+
     try {
-      const newAnn = {
-        id: Date.now().toString(),
-        title: annTitle.trim(),
-        message: annMessage.trim(),
-        icon: annIcon || "📢",
-        color: annColor || "#6366f1",
-        createdAt: new Date().toISOString()
-      };
-      const updated = [...adminAnnouncements, newAnn];
-      // Fetch admin's current shop_data first to not overwrite other keys
-      const { data: adminRows } = await supabase.from("profiles").select("id, shop_data").eq("email", "admin@gmail.com");
-      if (adminRows && adminRows.length > 0) {
-        const adminId = adminRows[0].id;
-        const existingShopData = adminRows[0].shop_data || {};
-        await supabase.from("profiles").update({ shop_data: { ...existingShopData, announcements: updated } }).eq("id", adminId);
-        onAnnouncementsChange?.(updated);
-        setAnnTitle("");
-        setAnnMessage("");
-        setAnnIcon("📢");
-      } else {
-        alert("Could not find admin profile in database.");
+      // Write to dedicated announcements table (publicly readable by all users)
+      const { error } = await supabase.from("announcements").insert(newAnn);
+      if (error) {
+        console.warn("Supabase announcement insert error:", error.message);
+        alert("Failed to save announcement: " + error.message);
+        setAnnSaving(false);
+        return;
       }
     } catch (e) {
-      console.error("Failed to save announcement:", e);
-      alert("Failed to save announcement: " + e.message);
+      console.warn("Supabase announcement save notice:", e);
+      alert("Failed to save announcement.");
+      setAnnSaving(false);
+      return;
     }
+
+    const updated = [...adminAnnouncements, { ...newAnn, createdAt: newAnn.created_at }];
+    try {
+      localStorage.setItem("lisa_admin_announcements", JSON.stringify(updated));
+    } catch (e) {
+      console.warn("LocalStorage announcement save notice:", e);
+    }
+    onAnnouncementsChange?.(updated);
+    setAnnTitle("");
+    setAnnMessage("");
+    setAnnIcon("📢");
     setAnnSaving(false);
   };
 
   const handleDeleteAnnouncement = async (annId) => {
+    const updated = adminAnnouncements.filter(a => a.id !== annId);
     try {
-      const updated = adminAnnouncements.filter(a => a.id !== annId);
-      const { data: adminRows } = await supabase.from("profiles").select("id, shop_data").eq("email", "admin@gmail.com");
-      if (adminRows && adminRows.length > 0) {
-        const adminId = adminRows[0].id;
-        const existingShopData = adminRows[0].shop_data || {};
-        await supabase.from("profiles").update({ shop_data: { ...existingShopData, announcements: updated } }).eq("id", adminId);
-        onAnnouncementsChange?.(updated);
+      // Delete from dedicated announcements table
+      const { error } = await supabase.from("announcements").delete().eq("id", annId);
+      if (error) {
+        console.warn("Failed to delete announcement from Supabase:", error.message);
       }
     } catch (e) {
-      console.error("Failed to delete announcement:", e);
+      console.warn("Failed to delete announcement from Supabase:", e);
     }
+
+    try {
+      localStorage.setItem("lisa_admin_announcements", JSON.stringify(updated));
+    } catch (e) {
+      console.warn("LocalStorage announcement delete notice:", e);
+    }
+    onAnnouncementsChange?.(updated);
     setAnnDeleteId(null);
   };
 
@@ -168,6 +300,19 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
     }
   }, [activeSubTab]);
 
+  const isNotAdminUser = (u) => {
+    if (!u) return false;
+    const email = (u.email || "").toLowerCase();
+    const name = (u.full_name || "").toLowerCase();
+    return (
+      email !== "admin@gmail.com" &&
+      !email.startsWith("admin@") &&
+      !email.includes("admin") &&
+      name !== "admin" &&
+      !name.includes("admin")
+    );
+  };
+
   // Fetch Users & Stats
   const fetchUsersData = async () => {
     setUsersLoading(true);
@@ -180,11 +325,13 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
       if (error) throw error;
 
       if (data) {
-        setUsers(data);
+        // Filter out admin profile (by email, full_name, etc.) from student roster and analytics stats
+        const studentProfiles = data.filter(isNotAdminUser);
+        setUsers(studentProfiles);
         
         // Calculate stats
-        const totalUsers = data.length;
-        const totalXp = data.reduce((acc, curr) => acc + (curr.xp || 0), 0);
+        const totalUsers = studentProfiles.length;
+        const totalXp = studentProfiles.reduce((acc, curr) => acc + (curr.xp || 0), 0);
         
         let literacySum = 0;
         let literacyCount = 0;
@@ -195,7 +342,7 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
         const langCount = {};
         const learningLangCount = {};
 
-        data.forEach(user => {
+        studentProfiles.forEach(user => {
           if (user.literacy_level) {
             literacySum += user.literacy_level;
             literacyCount++;
@@ -325,7 +472,7 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
 
   // Filtered and sorted lists
   const filteredUsers = useMemo(() => {
-    let result = [...users];
+    let result = users.filter(isNotAdminUser);
 
     // Search query filter
     if (userSearch.trim()) {
@@ -343,8 +490,6 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
       result = result.filter(user => user.assessment_completed === true);
     } else if (userFilter === "pending") {
       result = result.filter(user => !user.assessment_completed);
-    } else if (userFilter === "not_diagnosed") {
-      result = result.filter(user => !user.literacy_level);
     }
 
     // Sort order logic
@@ -862,6 +1007,13 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
           >
             📢 Announcements
           </button>
+          <button 
+            type="button" 
+            className={`admin-tab-btn ${activeSubTab === "feedback" ? "active" : ""}`}
+            onClick={() => setActiveSubTab("feedback")}
+          >
+            💬 User Feedback & Bugs {feedbackStats.total > 0 && <span style={{ background: '#ef4444', color: '#fff', padding: '2px 8px', borderRadius: '999px', fontSize: '0.72rem', marginLeft: '6px', fontWeight: 800 }}>{feedbackStats.total}</span>}
+          </button>
         </div>
       </div>
 
@@ -871,28 +1023,54 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
           <div className="admin-section animate-fade-in">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
               <h3 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 800, color: 'var(--text)' }}>📊 Platform Insights & Analytics</h3>
-              <button 
-                type="button" 
-                className="admin-export-btn"
-                onClick={exportUsersCSV}
-                style={{ 
-                  display: 'inline-flex', 
-                  alignItems: 'center', 
-                  gap: '8px', 
-                  background: 'linear-gradient(135deg, var(--accent), #df7f3d)', 
-                  color: 'white', 
-                  padding: '10px 20px', 
-                  borderRadius: '16px', 
-                  fontWeight: 800, 
-                  border: 'none', 
-                  cursor: 'pointer',
-                  boxShadow: '0 4px 12px rgba(198, 95, 45, 0.2)',
-                  fontFamily: 'var(--font-family)',
-                  fontSize: '0.85rem'
-                }}
-              >
-                <Download size={15} style={{ strokeWidth: 3 }} /> Export CSV
-              </button>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <button 
+                  type="button" 
+                  className="admin-export-btn"
+                  onClick={fetchUsersData}
+                  disabled={usersLoading}
+                  style={{ 
+                    display: 'inline-flex', 
+                    alignItems: 'center', 
+                    gap: '8px', 
+                    background: 'var(--panel-strong)', 
+                    color: 'var(--text)', 
+                    padding: '10px 18px', 
+                    borderRadius: '16px', 
+                    fontWeight: 800, 
+                    border: '1.5px solid var(--line)', 
+                    cursor: usersLoading ? 'not-allowed' : 'pointer',
+                    fontSize: '0.85rem',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  <RefreshCw size={15} className={usersLoading ? "animate-spin" : ""} />
+                  {usersLoading ? "Refreshing..." : "Refresh Data"}
+                </button>
+
+                <button 
+                  type="button" 
+                  className="admin-export-btn"
+                  onClick={exportUsersCSV}
+                  style={{ 
+                    display: 'inline-flex', 
+                    alignItems: 'center', 
+                    gap: '8px', 
+                    background: 'linear-gradient(135deg, var(--accent), #df7f3d)', 
+                    color: 'white', 
+                    padding: '10px 20px', 
+                    borderRadius: '16px', 
+                    fontWeight: 800, 
+                    border: 'none', 
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 12px rgba(198, 95, 45, 0.2)',
+                    fontFamily: 'var(--font-family)',
+                    fontSize: '0.85rem'
+                  }}
+                >
+                  <Download size={15} style={{ strokeWidth: 3 }} /> Export CSV
+                </button>
+              </div>
             </div>
              <div className="admin-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '16px', marginBottom: '24px' }}>
               <div className="admin-stat-card" style={{ transition: 'transform 0.2s ease', cursor: 'pointer' }} onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseLeave={e => e.currentTarget.style.transform = 'none'}>
@@ -1174,8 +1352,7 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
                   {[
                     { key: "all", label: "All Students" },
                     { key: "completed", label: "Assessment Done" },
-                    { key: "pending", label: "Assessment Pending" },
-                    { key: "not_diagnosed", label: "No Diagnosis" }
+                    { key: "pending", label: "Assessment Pending" }
                   ].map(pill => (
                     <button
                       key={pill.key}
@@ -2224,6 +2401,200 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
                 )}
               </div>
             </div>
+          </div>
+        )}
+
+        {/* USER FEEDBACK & BUGS SUB-TAB */}
+        {activeSubTab === "feedback" && (
+          <div className="admin-section animate-fade-in">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 800, color: 'var(--text)' }}>💬 User Feedback & Bug Reports</h3>
+                <p style={{ margin: '4px 0 0', fontSize: '0.88rem', color: 'var(--muted)' }}>Review learner bug reports, feature suggestions, and app satisfaction feedback.</p>
+              </div>
+              <button 
+                type="button" 
+                className="admin-export-btn"
+                onClick={fetchFeedbackList}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+              >
+                <RefreshCw size={16} /> Refresh Reports
+              </button>
+            </div>
+
+            {/* Stats row */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+              <div style={{ background: 'var(--panel-strong)', border: '1.5px solid var(--line)', borderRadius: '20px', padding: '18px 22px', display: 'flex', alignItems: 'center', gap: '16px', boxShadow: '0 4px 14px rgba(0,0,0,0.03)' }}>
+                <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'rgba(99, 102, 241, 0.14)', color: '#6366f1', display: 'grid', placeItems: 'center', fontSize: '1.4rem', flexShrink: 0 }}>📩</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Submissions</span>
+                  <span style={{ fontSize: '1.6rem', fontWeight: 900, color: 'var(--text)', lineHeight: 1 }}>{feedbackStats.total}</span>
+                </div>
+              </div>
+
+              <div style={{ background: 'var(--panel-strong)', border: '1.5px solid var(--line)', borderRadius: '20px', padding: '18px 22px', display: 'flex', alignItems: 'center', gap: '16px', boxShadow: '0 4px 14px rgba(0,0,0,0.03)' }}>
+                <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'rgba(239, 68, 68, 0.14)', color: '#ef4444', display: 'grid', placeItems: 'center', fontSize: '1.4rem', flexShrink: 0 }}>🐞</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Bug Reports</span>
+                  <span style={{ fontSize: '1.6rem', fontWeight: 900, color: '#ef4444', lineHeight: 1 }}>{feedbackStats.bugs}</span>
+                </div>
+              </div>
+
+              <div style={{ background: 'var(--panel-strong)', border: '1.5px solid var(--line)', borderRadius: '20px', padding: '18px 22px', display: 'flex', alignItems: 'center', gap: '16px', boxShadow: '0 4px 14px rgba(0,0,0,0.03)' }}>
+                <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'rgba(59, 130, 246, 0.14)', color: '#3b82f6', display: 'grid', placeItems: 'center', fontSize: '1.4rem', flexShrink: 0 }}>💡</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Feature Requests</span>
+                  <span style={{ fontSize: '1.6rem', fontWeight: 900, color: '#3b82f6', lineHeight: 1 }}>{feedbackStats.features}</span>
+                </div>
+              </div>
+
+              <div style={{ background: 'var(--panel-strong)', border: '1.5px solid var(--line)', borderRadius: '20px', padding: '18px 22px', display: 'flex', alignItems: 'center', gap: '16px', boxShadow: '0 4px 14px rgba(0,0,0,0.03)' }}>
+                <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'rgba(16, 185, 129, 0.14)', color: '#10b981', display: 'grid', placeItems: 'center', fontSize: '1.4rem', flexShrink: 0 }}>✅</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Resolved Issues</span>
+                  <span style={{ fontSize: '1.6rem', fontWeight: 900, color: '#10b981', lineHeight: 1 }}>{feedbackStats.resolved}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Filter & Search Bar - Grid proportions (No Overflow / No Scrollbar) */}
+            <div className="admin-table-filter-bar" style={{ background: 'var(--panel-strong)', padding: '14px 18px', borderRadius: '20px', border: '1.5px solid var(--line)', marginBottom: '24px', display: 'grid', gridTemplateColumns: 'minmax(240px, 2fr) minmax(170px, 1fr) minmax(150px, 1fr)', gap: '12px', alignItems: 'center', width: '100%', boxSizing: 'border-box' }}>
+              <div style={{ position: 'relative', width: '100%' }}>
+                <Search size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--muted)', pointerEvents: 'none' }} />
+                <input
+                  type="text"
+                  placeholder="Search feedback by user name, email, or message..."
+                  value={feedbackSearch}
+                  onChange={(e) => setFeedbackSearch(e.target.value)}
+                  style={{ width: '100%', paddingLeft: '42px', paddingRight: '14px', height: '44px', borderRadius: '14px', border: '1.5px solid var(--line)', background: 'var(--bg)', color: 'var(--text)', fontSize: '0.9rem', fontWeight: 600, boxSizing: 'border-box', outline: 'none' }}
+                />
+              </div>
+
+              <select
+                value={feedbackCategoryFilter}
+                onChange={(e) => setFeedbackCategoryFilter(e.target.value)}
+                style={{ width: '100%', height: '44px', padding: '0 14px', borderRadius: '14px', border: '1.5px solid var(--line)', background: 'var(--bg)', color: 'var(--text)', fontWeight: 700, fontSize: '0.88rem', cursor: 'pointer', outline: 'none', boxSizing: 'border-box' }}
+              >
+                <option value="all">All Categories</option>
+                <option value="Bug Report">🐞 Bug Reports</option>
+                <option value="Feature Request">💡 Feature Requests</option>
+                <option value="UI / Visual Feedback">🎨 UI & Design</option>
+                <option value="General Feedback">💬 General Feedback</option>
+              </select>
+
+              <select
+                value={feedbackStatusFilter}
+                onChange={(e) => setFeedbackStatusFilter(e.target.value)}
+                style={{ width: '100%', height: '44px', padding: '0 14px', borderRadius: '14px', border: '1.5px solid var(--line)', background: 'var(--bg)', color: 'var(--text)', fontWeight: 700, fontSize: '0.88rem', cursor: 'pointer', outline: 'none', boxSizing: 'border-box' }}
+              >
+                <option value="all">All Statuses</option>
+                <option value="New">📩 New</option>
+                <option value="In Progress">⏳ In Progress</option>
+                <option value="Resolved">✅ Resolved</option>
+              </select>
+            </div>
+
+            {/* Reports List */}
+            {feedbackLoading ? (
+              <div style={{ padding: '60px', textAlign: 'center', color: 'var(--muted)' }}>
+                <RefreshCw size={28} className="animate-spin" style={{ margin: '0 auto 12px' }} />
+                <div>Loading user reports...</div>
+              </div>
+            ) : filteredFeedbackList.length === 0 ? (
+              <div style={{ padding: '60px', textAlign: 'center', background: 'var(--panel-strong)', borderRadius: '20px', border: '1px dashed var(--line)' }}>
+                <div style={{ fontSize: '2.5rem', marginBottom: '10px' }}>📬</div>
+                <h4 style={{ margin: '0 0 6px 0', fontSize: '1.1rem', color: 'var(--text)' }}>No user feedback reports found</h4>
+                <p style={{ margin: 0, fontSize: '0.88rem', color: 'var(--muted)' }}>When learners submit feedback or report bugs in Profile Settings, they will appear right here!</p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                {filteredFeedbackList.map((item) => {
+                  const isBug = item.category === "Bug Report";
+                  const isFeature = item.category === "Feature Request";
+                  const isUI = item.category === "UI / Visual Feedback";
+
+                  const badgeBg = isBug ? 'rgba(239, 68, 68, 0.14)' : isFeature ? 'rgba(59, 130, 246, 0.14)' : isUI ? 'rgba(168, 85, 247, 0.14)' : 'rgba(16, 185, 129, 0.14)';
+                  const badgeColor = isBug ? '#ef4444' : isFeature ? '#3b82f6' : isUI ? '#a855f7' : '#10b981';
+
+                  const statusColor = item.status === "Resolved" ? "#10b981" : item.status === "In Progress" ? "#f59e0b" : "#6366f1";
+                  const statusBg = item.status === "Resolved" ? "rgba(16, 185, 129, 0.14)" : item.status === "In Progress" ? "rgba(245, 158, 11, 0.14)" : "rgba(99, 102, 241, 0.14)";
+
+                  return (
+                    <div
+                      key={item.id}
+                      style={{
+                        background: 'var(--panel-strong)',
+                        border: '1px solid var(--line)',
+                        borderRadius: '18px',
+                        padding: '20px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '12px',
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.02)'
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                          <span style={{ background: badgeBg, color: badgeColor, padding: '4px 12px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 800 }}>
+                            {isBug ? '🐞 Bug Report' : isFeature ? '💡 Feature Request' : isUI ? '🎨 UI & Design' : '💬 General Feedback'}
+                          </span>
+
+                          <span style={{ background: statusBg, color: statusColor, padding: '4px 12px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 800 }}>
+                            {item.status || 'New'}
+                          </span>
+
+                          {item.rating && (
+                            <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#f59e0b' }}>
+                              {"⭐".repeat(item.rating)}
+                            </span>
+                          )}
+                        </div>
+
+                        <div style={{ fontSize: '0.78rem', color: 'var(--muted)', fontWeight: 700 }}>
+                          🕒 {item.created_at ? new Date(item.created_at).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Recently'}
+                        </div>
+                      </div>
+
+                      <div>
+                        <h4 style={{ margin: '0 0 6px 0', fontSize: '1.1rem', fontWeight: 800, color: 'var(--text)' }}>
+                          {item.subject || item.category}
+                        </h4>
+                        <p style={{ margin: 0, fontSize: '0.94rem', color: 'var(--text)', lineHeight: '1.5', whiteSpace: 'pre-wrap' }}>
+                          {item.message}
+                        </p>
+                      </div>
+
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '12px', borderTop: '1px solid var(--line)', flexWrap: 'wrap', gap: '12px' }}>
+                        <div style={{ fontSize: '0.82rem', color: 'var(--muted)', fontWeight: 700 }}>
+                          👤 Submitted by: <b style={{ color: 'var(--text)' }}>{item.user_name || 'Anonymous User'}</b> ({item.user_email || 'No email'})
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <select
+                            value={item.status || "New"}
+                            onChange={(e) => handleUpdateFeedbackStatus(item.id, e.target.value)}
+                            style={{ height: '34px', padding: '0 10px', borderRadius: '10px', border: '1px solid var(--line)', background: 'var(--bg)', color: 'var(--text)', fontSize: '0.8rem', fontWeight: 700 }}
+                          >
+                            <option value="New">📩 Mark New</option>
+                            <option value="In Progress">⏳ Mark In Progress</option>
+                            <option value="Resolved">✅ Mark Resolved</option>
+                          </select>
+
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteFeedbackItem(item.id)}
+                            style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#ef4444', borderRadius: '10px', padding: '6px 12px', fontSize: '0.8rem', fontWeight: 800, cursor: 'pointer' }}
+                            title="Delete report"
+                          >
+                            🗑️ Delete
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 

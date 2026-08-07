@@ -360,5 +360,20 @@
   "banner_bookshelf_name": "புத்தக அயல்",
   "banner_bookshelf_desc": "தாவரங்களுடன் அருக்கடிப்பு",
   "banner_confidence_name": "நம்பிக்கை",
-  "banner_confidence_desc": "பிரபலமான கற்றல் நம்பிக்கை"
+  "banner_confidence_desc": "பிரபலமான கற்றல் நம்பிக்கை",
+  "sendFeedbackOrReportBug": "கருத்து அனுப்பவும் & பிழைகளைப் புகாரளிக்கவும்",
+  "feedbackHelpDesc": "பரிந்துரைகள் உள்ளதா அல்லது சிக்கலைச் சந்தித்தீர்களா? LISA ஐ மேம்படுத்த எங்களுக்கு உதவ உங்கள் கருத்தைப் பகிரவும்!",
+  "feedbackCategoryLabel": "வகை",
+  "feedbackBugReport": "🐞 பிழை அறிக்கை",
+  "feedbackFeatureRequest": "💡 புதிய அம்சக் கோரிக்கை",
+  "feedbackUiDesign": "🎨 UI & வடிவமைப்பு கருத்து",
+  "feedbackGeneral": "💬 பொதுவான கருத்து",
+  "feedbackRatingLabel": "திருப்தி மதிப்பீடு",
+  "feedbackSubjectLabel": "பொருள் தலைப்பு",
+  "feedbackSubjectPlaceholder": "எ.கா. பாடத்தில் ஒலி சிக்கல்",
+  "feedbackMessageLabel": "செய்தி / விளக்கம்",
+  "feedbackMessagePlaceholder": "உங்கள் கருத்து அல்லது பிழை விவரங்களை விவரிக்கவும்...",
+  "feedbackSubmitBtn": "🚀 கருத்தைச் சமர்ப்பிக்கவும்",
+  "feedbackSubmittingBtn": "சமர்ப்பிக்கப்படுகிறது...",
+  "feedbackSuccessMsg": "🎉 நன்றி! உங்கள் கருத்து எங்கள் நிர்வாகக் குழுவிற்கு அனுப்பப்பட்டது."
 }

@@ -360,5 +360,20 @@
   "banner_bookshelf_name": "పుస్తకాల అయిల్పు",
   "banner_bookshelf_desc": "ముల్యంతో పుస్తకాల అయిల్పు",
   "banner_confidence_name": "నమ్మకం",
-  "banner_confidence_desc": "బ్రాండెడ్ నేపథ్యం"
+  "banner_confidence_desc": "బ్రాండెడ్ నేపథ్యం",
+  "sendFeedbackOrReportBug": "అభిప్రాయాన్ని పంపండి & బగ్స్ నివేదించండి",
+  "feedbackHelpDesc": "సూచనలు ఉన్నాయా లేదా సమస్య ఎదురైందా? LISA ని మెరుగుపరచడంలో మాకు సహాయపడటానికి మీ అభిప్రాయాన్ని భాగస్వామ్యం చేయండి!",
+  "feedbackCategoryLabel": "వర్గం",
+  "feedbackBugReport": "🐞 బగ్ నివేదిక",
+  "feedbackFeatureRequest": "💡 ఫీచర్ అభ్యర్థన",
+  "feedbackUiDesign": "🎨 UI & డిజైన్ అభిప్రాయం",
+  "feedbackGeneral": "💬 సాధారణ అభిప్రాయం",
+  "feedbackRatingLabel": "సంతృప్తి రేటింగ్",
+  "feedbackSubjectLabel": "విషయ శీర్షిక",
+  "feedbackSubjectPlaceholder": "ఉదా. పాఠంలో ఆడియో సమస్య",
+  "feedbackMessageLabel": "సందేశం / వివరణ",
+  "feedbackMessagePlaceholder": "మీ అభిప్రాయం లేదా బగ్ వివరాలను వివరించండి...",
+  "feedbackSubmitBtn": "🚀 అభిప్రాయాన్ని సమర్పించండి",
+  "feedbackSubmittingBtn": "సమర్పిస్తోంది...",
+  "feedbackSuccessMsg": "🎉 ధన్యవాదాలు! మీ అభిప్రాయం మా అడ్మిన్ బృందానికి పంపబడింది."
 }

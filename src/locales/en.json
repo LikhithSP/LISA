@@ -360,5 +360,20 @@
   "avatarUnlockedPresets": "Unlocked presets",
   "avatarBackgroundColor": "Background Color",
   "avatarSaveAndSet": "✓ Save & Set Avatar",
-  "noFormalEducation": "No Formal Education"
+  "noFormalEducation": "No Formal Education",
+  "sendFeedbackOrReportBug": "Send Feedback & Report Bugs",
+  "feedbackHelpDesc": "Have suggestions or encountered an issue? Share your feedback to help us improve LISA!",
+  "feedbackCategoryLabel": "Category",
+  "feedbackBugReport": "🐞 Bug / Error Report",
+  "feedbackFeatureRequest": "💡 Feature Request",
+  "feedbackUiDesign": "🎨 UI & Design Feedback",
+  "feedbackGeneral": "💬 General Feedback",
+  "feedbackRatingLabel": "Satisfaction Rating",
+  "feedbackSubjectLabel": "Subject Title",
+  "feedbackSubjectPlaceholder": "e.g. Audio issue in lesson",
+  "feedbackMessageLabel": "Message / Description",
+  "feedbackMessagePlaceholder": "Describe your feedback, bug details, or feature idea...",
+  "feedbackSubmitBtn": "🚀 Submit Feedback",
+  "feedbackSubmittingBtn": "Submitting...",
+  "feedbackSuccessMsg": "🎉 Thank you! Your feedback has been sent to our Admin team."
 }
