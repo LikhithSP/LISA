@@ -1884,7 +1884,7 @@ const getFallbackPractice = (params) => {
       {
         type: "question",
         question: "अना क्या चाहती है?",
-        options: ["एक किताब (A book)", "पानी (Water)", "एक खिलौना (A toy)"],
+        options: ["एक किताब", "पानी", "एक खिलौना"],
         correctIndex: 0
       },
       { speaker: "रवि", text: "हमारे पास पास ही एक पुस्तकालय है। चलो वहाँ चलते हैं!", audioText: "हमारे पास पास ही एक पुस्तकालय है। चलो वहाँ चलते हैं!" },
@@ -1893,7 +1893,7 @@ const getFallbackPractice = (params) => {
       {
         type: "question",
         question: "पेड़ पर कौन सा फल है?",
-        options: ["आम (Mango)", "सेब (Apple)", "केला (Banana)"],
+        options: ["आम", "सेब", "केला"],
         correctIndex: 1
       },
       { speaker: "अना", text: "हाँ, कृपया! मुझे मीठे सेब बहुत पसंद हैं।", audioText: "हाँ, कृपया! मुझे मीठे सेब बहुत पसंद हैं।" },
@@ -1906,7 +1906,7 @@ const getFallbackPractice = (params) => {
       {
         type: "question",
         question: "ಅನಾ ಏನು ಬಯಸುತ್ತಾಳೆ?",
-        options: ["ಒಂದು ಪುಸ್ತಕ (A book)", "ನೀರು (Water)", "ಒಂದು ಆಟಿಕೆ (A toy)"],
+        options: ["ಒಂದು ಪುಸ್ತಕ", "ನೀರು", "ಒಂದು ಆಟಿಕೆ"],
         correctIndex: 0
       },
       { speaker: "ರವಿ", text: "ನಮ್ಮ ಹತ್ತಿರವೇ ಒಂದು ಗ್ರಂಥಾಲಯವಿದೆ. ಬನ್ನಿ ಅಲ್ಲಿಗೆ ಹೋಗೋಣ!", audioText: "ನಮ್ಮ ಹತ್ತಿರವೇ ಒಂದು ಗ್ರಂಥಾಲಯವಿದೆ. ಬನ್ನಿ ಅಲ್ಲಿಗೆ ಹೋಗೋಣ!" },
@@ -1915,7 +1915,7 @@ const getFallbackPractice = (params) => {
       {
         type: "question",
         question: "ಮರದ ಮೇಲೆ ಯಾವ ಹಣ್ಣು ಇದೆ?",
-        options: ["ಮಾವು (Mango)", "ಸೇಬು (Apple)", "ಬಾಳೆಹಣ್ಣು (Banana)"],
+        options: ["ಮಾವು", "ಸೇಬು", "ಬಾಳೆಹಣ್ಣು"],
         correctIndex: 1
       },
       { speaker: "ಅನಾ", text: "ಹೌದು, ದಯವಿಟ್ಟು! ನನಗೆ ಸಿಹಿ ಸೇಬುಗಳು ತುಂಬಾ ಇಷ್ಟ.", audioText: "ಹೌದು, ದಯವಿಟ್ಟು! ನನಗೆ ಸಿಹಿ ಸೇಬುಗಳು ತುಂಬಾ ಇಷ್ಟ." },
@@ -1928,7 +1928,7 @@ const getFallbackPractice = (params) => {
       {
         type: "question",
         question: "అనా ఏమి కోరుకుంటుంది?",
-        options: ["ఒక పుస్తకం (A book)", "నీరు (Water)", "ఒక బొమ్మ (A toy)"],
+        options: ["ఒక పుస్తకం", "నీరు", "ఒక బొమ్మ"],
         correctIndex: 0
       },
       { speaker: "రవి", text: "మాకు దగ్గరలోనే ఒక గ్రంథాలయం ఉంది. పదండి అక్కడికి వెళ్దాం!", audioText: "మాకు దగ్గరలోనే ఒక గ్రంథాలయం ఉంది. పదండి అక్కడికి వెళ్దాం!" },
@@ -1937,7 +1937,7 @@ const getFallbackPractice = (params) => {
       {
         type: "question",
         question: "చెట్టు మీద ఏ పండు ఉంది?",
-        options: ["మామిడి (Mango)", "ఆపిల్ (Apple)", "అరటిపండు (Banana)"],
+        options: ["మామిడి", "ఆపిల్", "అరటిపండు"],
         correctIndex: 1
       },
       { speaker: "అనా", text: "అవును, దయచేసి! నాకు తీపి ఆపిల్స్ అంటే చాలా ఇష్టం.", audioText: "అవును, దయచేసి! నాకు తీపి ఆపిల్స్ అంటే చాలా ఇష్టం." },
@@ -1950,7 +1950,7 @@ const getFallbackPractice = (params) => {
       {
         type: "question",
         question: "அனா என்ன விரும்புகிறாள்?",
-        options: ["ஒரு புத்தகம் (A book)", "தண்ணீர் (Water)", "ஒரு பொம்மை (A toy)"],
+        options: ["ஒரு புத்தகம்", "தண்ணீர்", "ஒரு பொம்மை"],
         correctIndex: 0
       },
       { speaker: "ரவி", text: "அருகிலேயே ஒரு நூலகம் உள்ளது. வாருங்கள் அங்கே செல்வோம்!", audioText: "அருகிலேயே ஒரு நூலகம் உள்ளது. வாருங்கள் அங்கே செல்வோம்!" },
@@ -1959,7 +1959,7 @@ const getFallbackPractice = (params) => {
       {
         type: "question",
         question: "மரத்தில் என்ன பழம் இருக்கிறது?",
-        options: ["மாம்பழம் (Mango)", "ஆப்பிள் (Apple)", "வாழைப்பழம் (Banana)"],
+        options: ["மாம்பழம்", "ஆப்பிள்", "வாழைப்பழம்"],
         correctIndex: 1
       },
       { speaker: "அனா", text: "ஆமாம், தயவுசெய்து! எனக்கு இனிப்பான ஆப்பிள்கள் மிகவும் பிடிக்கும்.", audioText: "ஆமாம், தயவுசெய்து! எனக்கு இனிப்பான ஆப்பிள்கள் மிகவும் பிடிக்கும்." },
