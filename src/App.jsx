@@ -10073,7 +10073,7 @@ function App() {
         <div className="dashboard-topbar">
           <div className="topbar-left">
             {session?.user?.email === "admin@gmail.com" ? (
-              <div style={{ fontSize: '1.25rem', fontWeight: '900', color: 'var(--accent)', paddingLeft: '8px' }}>
+              <div className="admin-topbar-title" style={{ fontSize: '1.25rem', fontWeight: '900', color: 'var(--accent)', paddingLeft: '8px' }}>
                 🛡️ LISA System Administrator
               </div>
             ) : (

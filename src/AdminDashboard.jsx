@@ -1146,7 +1146,7 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
                 </button>
               </div>
             </div>
-             <div className="admin-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+             <div className="admin-stats-grid">
               <div className="admin-stat-card" style={{ transition: 'transform 0.2s ease', cursor: 'pointer' }} onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseLeave={e => e.currentTarget.style.transform = 'none'}>
                 <span className="stat-card-icon" style={{ background: 'rgba(198, 95, 45, 0.1)', color: 'var(--accent)' }}>👥</span>
                 <div className="stat-card-info">
@@ -1419,10 +1419,10 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
               </button>
             </div>
 
-            <div className="table-filters-sorting" style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginBottom: '24px', alignItems: 'center' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--muted)', letterSpacing: '0.03em' }}>FILTER:</span>
-                <div className="filter-pills" style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <div className="table-filters-sorting">
+              <div className="table-filters-left">
+                <span className="filter-label">FILTER:</span>
+                <div className="filter-pills">
                   {[
                     { key: "all", label: "All Students" },
                     { key: "completed", label: "Assessment Done" },
@@ -1449,8 +1449,8 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
                   ))}
                 </div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: 'auto' }}>
-                <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--muted)', letterSpacing: '0.03em' }}>SORT:</span>
+              <div className="table-sorting-right">
+                <span className="sort-label">SORT:</span>
                 <select
                   value={userSort}
                   onChange={e => setUserSort(e.target.value)}
@@ -1904,7 +1904,7 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
                         ⚙️ Section Configuration: {section.title}
                       </h4>
                       
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+                      <div className="admin-two-col-grid" style={{ marginBottom: '16px' }}>
                         <div>
                           <label style={{ fontWeight: 800, fontSize: '0.78rem', color: 'var(--muted)', display: 'block', marginBottom: '6px' }}>SECTION TITLE</label>
                           <input
@@ -2019,7 +2019,7 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
                                 </button>
                               </div>
 
-                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+                              <div className="admin-two-col-grid" style={{ gap: '12px', marginBottom: '12px' }}>
                                 <div>
                                   <label style={{ fontWeight: 800, fontSize: '0.7rem', color: 'var(--muted)', display: 'block', marginBottom: '4px' }}>UNIT TITLE</label>
                                   <input
@@ -2155,7 +2155,7 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div className="admin-two-col-grid">
                 {flattenAssessmentQuestions(assessmentQuestionsByLanguage[selectedCurriculumLang]).map((q, idx) => (
                   <div key={q.id || idx} style={{ background: 'var(--panel-strong)', border: '1px solid var(--line)', borderRadius: '16px', padding: '16px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px', gap: '8px' }}>
@@ -2238,7 +2238,8 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
                     color: activeShopCategory === cat ? '#fff' : 'var(--text)',
                     cursor: 'pointer',
                     textTransform: 'capitalize',
-                    transition: 'all 0.2s ease'
+                    transition: 'all 0.2s ease',
+                    flexShrink: 0
                   }}
                 >
                   {cat}
@@ -2564,7 +2565,7 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', alignItems: 'flex-start' }}>
+            <div className="admin-announcements-grid">
               {/* Compose Form */}
               <div style={{ background: 'var(--panel-strong)', border: '1px solid var(--line)', borderRadius: '24px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 900, color: 'var(--text)' }}>✍️ Compose New Announcement</h4>
@@ -2588,7 +2589,7 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
                     style={{ width: '100%', padding: '10px 14px', borderRadius: '12px', border: '2px solid var(--line)', background: 'var(--bg)', color: 'var(--text)', fontWeight: 600, resize: 'vertical', outline: 'none', fontFamily: 'var(--font-family)', fontSize: '0.88rem', boxSizing: 'border-box' }}
                   />
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div className="admin-two-col-grid" style={{ gap: '12px' }}>
                   <div>
                     <label style={{ fontWeight: 800, fontSize: '0.75rem', color: 'var(--muted)', display: 'block', marginBottom: '6px' }}>ICON (EMOJI)</label>
                     <input
@@ -2705,9 +2706,8 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
               </div>
               <button 
                 type="button" 
-                className="admin-export-btn"
+                className="refresh-data-btn"
                 onClick={fetchFeedbackList}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
               >
                 <RefreshCw size={16} /> Refresh Reports
               </button>
@@ -2749,7 +2749,7 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
             </div>
 
             {/* Filter & Search Bar - Grid proportions (No Overflow / No Scrollbar) */}
-            <div className="admin-table-filter-bar" style={{ background: 'var(--panel-strong)', padding: '14px 18px', borderRadius: '20px', border: '1.5px solid var(--line)', marginBottom: '24px', display: 'grid', gridTemplateColumns: 'minmax(240px, 2fr) minmax(170px, 1fr) minmax(150px, 1fr)', gap: '12px', alignItems: 'center', width: '100%', boxSizing: 'border-box' }}>
+            <div className="admin-table-filter-bar">
               <div style={{ position: 'relative', width: '100%' }}>
                 <Search size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--muted)', pointerEvents: 'none' }} />
                 <input
