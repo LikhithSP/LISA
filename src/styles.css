@@ -3340,14 +3340,18 @@ select:focus-visible {
   background-position: center !important;
   background-repeat: no-repeat !important;
   background-attachment: fixed !important;
-  padding: 40px;
+  padding: 18px 40px 40px;
   width: 100%;
 }
 
 [data-theme="dark"] .dashboard-main-view {
-  background-color: #121217 !important;
-  background-image: linear-gradient(rgba(18, 18, 23, 0.82), rgba(18, 18, 23, 0.82)),
+  background-color: #060608 !important;
+  background-image: linear-gradient(180deg, rgba(6, 6, 8, 0.95) 0%, rgba(8, 8, 11, 0.93) 50%, rgba(4, 4, 6, 0.97) 100%),
     url("https://images.rawpixel.com/image_social_landscape/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTA5L3Jhd3BpeGVsX29mZmljZV8yMl9zaW1wbGlmaWVkX2VtcHR5X2NvdW50cnlzaWRlX2hpbGxfbGFuZHNjYXBlX182NmUzNTJjMi1iZTA2LTQ3ZjAtYThmMC1kZmM4ZGM4NTg1NWFfMS5qcGc.jpg") !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-attachment: fixed !important;
 }
 
 /* Tutor Announcement Bar */
@@ -4486,7 +4490,13 @@ select:focus-visible {
 }
 
 [data-theme="dark"] .dashboard-main-view {
-  background: #0a0a0b !important;
+  background-color: #060608 !important;
+  background-image: linear-gradient(180deg, rgba(6, 6, 8, 0.95) 0%, rgba(8, 8, 11, 0.93) 50%, rgba(4, 4, 6, 0.97) 100%),
+    url("https://images.rawpixel.com/image_social_landscape/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTA5L3Jhd3BpeGVsX29mZmljZV8yMl9zaW1wbGlmaWVkX2VtcHR5X2NvdW50cnlzaWRlX2hpbGxfbGFuZHNjYXBlX182NmUzNTJjMi1iZTA2LTQ3ZjAtYThmMC1kZmM4ZGM4NTg1NWFfMS5qcGc.jpg") !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-attachment: fixed !important;
 }
 
 /* Metric / stat cards */
@@ -5824,82 +5834,86 @@ select:focus-visible {
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  background: linear-gradient(135deg, var(--panel-strong) 0%, var(--accent-soft) 100%);
+  background: var(--panel);
   color: var(--text);
-  border-radius: 24px;
-  padding: 32px;
-  border: 1px solid var(--line);
-  min-height: 150px;
+  border-radius: 26px;
+  padding: 28px 32px;
+  border: 2px solid var(--line);
+  min-height: 140px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
   transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .resume-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 16px 36px rgba(79, 70, 229, 0.25);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.06);
 }
 
 [data-theme="dark"] .resume-card {
-  background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%);
-  border: 1.5px solid rgba(99, 102, 241, 0.28);
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45), 0 4px 20px rgba(99, 102, 241, 0.06);
+  background: var(--panel);
+  border: 2px solid var(--line);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
 }
 
 .resume-card-info {
   min-width: 0;
+  z-index: 1;
 }
 
 .resume-card-label {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.8px;
-  opacity: 0.85;
+  letter-spacing: 0.9px;
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+  padding: 4px 14px;
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .resume-card-title {
-  margin: 8px 0 6px;
-  font-size: 1.6rem;
-  font-weight: 850;
-  letter-spacing: -0.3px;
+  margin: 10px 0 6px;
+  font-size: 1.75rem;
+  font-weight: 900;
+  letter-spacing: -0.4px;
+  color: var(--text);
 }
 
 .resume-card-sub {
   margin: 0;
-  font-size: 0.92rem;
-  opacity: 0.9;
+  font-size: 0.9rem;
+  color: var(--text-muted);
   line-height: 1.4;
 }
 
 .resume-btn {
   flex: 0 0 auto;
   border: none;
-  border-radius: 12px;
-  padding: 10px 20px;
-  font-size: 0.92rem;
-  font-weight: 800;
+  border-radius: 18px;
+  padding: 12px 24px;
+  font-size: 0.95rem;
+  font-weight: 850;
   cursor: pointer;
-  background: #ffffff;
+  background: var(--accent-soft);
   color: var(--accent-dark);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  box-shadow: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 1;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .resume-btn:hover {
   transform: translateY(-2px);
   background: var(--accent);
-  color: #fff;
-  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.1);
-}
-
-[data-theme="dark"] .resume-btn {
-  background: var(--accent);
-  color: #fff;
-  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.25);
-}
-
-[data-theme="dark"] .resume-btn:hover {
-  background: var(--accent-dark);
-  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.35);
+  color: #ffffff;
+  box-shadow: 0 6px 18px var(--accent-soft);
 }
 
 @media (max-width: 560px) {
@@ -15049,7 +15063,13 @@ select {
 }
 
 [data-theme="dark"] .dashboard-main-view {
-  background: #0e0e12 !important;
+  background-color: #060608 !important;
+  background-image: linear-gradient(180deg, rgba(6, 6, 8, 0.95) 0%, rgba(8, 8, 11, 0.93) 50%, rgba(4, 4, 6, 0.97) 100%),
+    url("https://images.rawpixel.com/image_social_landscape/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTA5L3Jhd3BpeGVsX29mZmljZV8yMl9zaW1wbGlmaWVkX2VtcHR5X2NvdW50cnlzaWRlX2hpbGxfbGFuZHNjYXBlX182NmUzNTJjMi1iZTA2LTQ3ZjAtYThmMC1kZmM4ZGM4NTg1NWFfMS5qcGc.jpg") !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-attachment: fixed !important;
 }
 
 

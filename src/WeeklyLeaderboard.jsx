@@ -90,12 +90,76 @@ const resolveAvatar = (u, canUsePhoto) => {
   return fallbackAvatar(u.full_name);
 };
 
+// Confetti animation for #1 Rank user on Weekly Leaderboard
+const triggerLeaderboardConfetti = () => {
+  const canvas = document.createElement("canvas");
+  canvas.style.position = "fixed";
+  canvas.style.top = "0";
+  canvas.style.left = "0";
+  canvas.style.width = "100vw";
+  canvas.style.height = "100vh";
+  canvas.style.pointerEvents = "none";
+  canvas.style.zIndex = "99999";
+  document.body.appendChild(canvas);
+
+  const ctx = canvas.getContext("2d");
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const pieces = [];
+  const colors = ["#f59e0b", "#ec4899", "#8b5cf6", "#10b981", "#3b82f6", "#ef4444", "#fbbf24"];
+
+  for (let i = 0; i < 90; i++) {
+    pieces.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * (canvas.height * 0.4) - canvas.height * 0.1,
+      w: Math.random() * 10 + 6,
+      h: Math.random() * 8 + 4,
+      vx: Math.random() * 4 - 2,
+      vy: Math.random() * 4 + 2,
+      rot: Math.random() * 360,
+      vrot: Math.random() * 10 - 5,
+      color: colors[Math.floor(Math.random() * colors.length)]
+    });
+  }
+
+  let animationFrame;
+  let startTime = Date.now();
+
+  const render = () => {
+    const elapsed = Date.now() - startTime;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    pieces.forEach(p => {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.rot += p.vrot;
+
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate((p.rot * Math.PI) / 180);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      ctx.restore();
+    });
+
+    if (elapsed < 3500) {
+      animationFrame = requestAnimationFrame(render);
+    } else {
+      canvas.remove();
+    }
+  };
+
+  render();
+};
+
 export default function WeeklyLeaderboard({ t = (key) => key, session, profile, weeklyXp, canUsePhoto }) {
   const [allProfiles, setAllProfiles] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const currentUserId = session?.user?.id || null;
-  const currentUserName = profile?.full_name || session?.user?.user_metadata?.full_name || "You";
+  const currentUserEmail = session?.user?.email || "";
+  const currentUserName = profile?.full_name || session?.user?.user_metadata?.full_name || (currentUserEmail === "admin@gmail.com" ? "ADMIN" : "You");
   const pollRef = useRef(null);
 
   // Fetch real users from Supabase (ordered by weekly_xp) so the leaderboard
@@ -111,15 +175,18 @@ export default function WeeklyLeaderboard({ t = (key) => key, session, profile, 
       if (error) throw error;
 
       const weekStart = getWeekStartDate();
-      const cleaned = (data || []).map((p) => {
-        let wx = p.weekly_start && p.weekly_start !== weekStart ? 0 : (p.weekly_xp || 0);
-        return {
-          ...p,
-          weekly_xp: wx,
-        };
-      });
+      // Filter out ADMIN profiles from weekly leaderboard so only student learners are shown
+      const studentOnlyProfiles = (data || [])
+        .filter(p => !p.full_name?.toUpperCase().includes("ADMIN") && p.id !== "admin_profile" && p.role !== "admin")
+        .map((p) => {
+          let wx = p.weekly_start && p.weekly_start !== weekStart ? 0 : (p.weekly_xp || 0);
+          return {
+            ...p,
+            weekly_xp: wx,
+          };
+        });
 
-      setAllProfiles(cleaned);
+      setAllProfiles(studentOnlyProfiles);
     } catch (err) {
       console.warn("Could not load weekly leaderboard:", err);
       setAllProfiles([]);
@@ -136,28 +203,34 @@ export default function WeeklyLeaderboard({ t = (key) => key, session, profile, 
   }, []);
 
   const leaderboardData = useMemo(() => {
-    const rows = allProfiles.map((p) => ({
-      id: p.id,
-      name: p.full_name || "Learner",
-      avatar: resolveAvatar(p, canUsePhoto),
-      weeklyXp: p.weekly_xp || 0,
-      isCurrentUser: p.id === currentUserId,
-    }));
+    // Filter out any admin entries
+    const rows = allProfiles
+      .filter((p) => !p.full_name?.toUpperCase().includes("ADMIN") && !p.isAdmin)
+      .map((p) => ({
+        id: p.id,
+        name: p.full_name || "Learner",
+        avatar: resolveAvatar(p, canUsePhoto),
+        weeklyXp: p.weekly_xp || 0,
+        isCurrentUser: p.id === currentUserId,
+      }));
 
-    // Ensure the current user is always present using their live local weekly XP.
-    const me = rows.find((r) => r.isCurrentUser);
-    if (!me) {
-      rows.push({
-        id: currentUserId || "me",
-        name: currentUserName,
-        avatar: profile ? resolveAvatar(profile, canUsePhoto) : fallbackAvatar(currentUserName),
-        weeklyXp: weeklyXp !== undefined && weeklyXp !== null ? weeklyXp : 0,
-        isCurrentUser: true,
-      });
-    } else {
-      me.weeklyXp = (weeklyXp !== undefined && weeklyXp !== null) ? weeklyXp : me.weeklyXp;
-      me.name = currentUserName;
-      me.avatar = profile ? resolveAvatar(profile, canUsePhoto) : me.avatar;
+    // Ensure the current user is added ONLY IF they are NOT an admin
+    const isAdminUser = currentUserEmail === "admin@gmail.com" || currentUserName?.toUpperCase().includes("ADMIN");
+    if (!isAdminUser) {
+      const me = rows.find((r) => r.isCurrentUser);
+      if (!me) {
+        rows.push({
+          id: currentUserId || "me",
+          name: currentUserName,
+          avatar: profile ? resolveAvatar(profile, canUsePhoto) : fallbackAvatar(currentUserName),
+          weeklyXp: weeklyXp !== undefined && weeklyXp !== null ? weeklyXp : 0,
+          isCurrentUser: true,
+        });
+      } else {
+        me.weeklyXp = (weeklyXp !== undefined && weeklyXp !== null) ? weeklyXp : me.weeklyXp;
+        me.name = currentUserName;
+        me.avatar = profile ? resolveAvatar(profile, canUsePhoto) : me.avatar;
+      }
     }
 
     rows.sort((a, b) => b.weeklyXp - a.weeklyXp);
@@ -175,7 +248,17 @@ export default function WeeklyLeaderboard({ t = (key) => key, session, profile, 
     const currentUserRank = meIndex !== -1 ? rows[meIndex].rank : 1;
 
     return { sorted: rows, currentUserRank };
-  }, [allProfiles, currentUserId, currentUserName, weeklyXp, canUsePhoto, profile]);
+  }, [allProfiles, currentUserId, currentUserName, currentUserEmail, weeklyXp, canUsePhoto, profile]);
+
+  // Trigger celebratory confetti ONLY if the user is in Top 1 (#1 Rank)
+  useEffect(() => {
+    if (!loading && leaderboardData.currentUserRank === 1) {
+      const timer = setTimeout(() => {
+        triggerLeaderboardConfetti();
+      }, 350);
+      return () => clearTimeout(timer);
+    }
+  }, [loading, leaderboardData.currentUserRank]);
 
   const weekDates = useMemo(() => getWeekDates(), []);
 
@@ -277,7 +360,8 @@ export default function WeeklyLeaderboard({ t = (key) => key, session, profile, 
                   <div className="podium-rank-badge">{getRankBadge(rank)}</div>
                   <div className="podium-name">
                     {user.name}
-                    {user.isCurrentUser && <span className="you-badge">{t("youBadge")}</span>}
+                    {user.isAdmin && <span className="you-badge" style={{ background: "#f59e0b", color: "#fff", marginLeft: "4px" }}>👑 ADMIN</span>}
+                    {user.isCurrentUser && !user.isAdmin && <span className="you-badge">{t("youBadge")}</span>}
                   </div>
                   <div className="podium-xp" style={{ color: getRankColor(rank) }}>
                     {user.weeklyXp.toLocaleString()} XP
@@ -302,7 +386,8 @@ export default function WeeklyLeaderboard({ t = (key) => key, session, profile, 
                   <div className="leaderboard-info">
                     <div className="leaderboard-name">
                       {user.name}
-                      {user.isCurrentUser && <span className="you-badge">{t("youBadge")}</span>}
+                      {user.isAdmin && <span className="you-badge" style={{ background: "#f59e0b", color: "#fff", marginLeft: "4px" }}>👑 ADMIN</span>}
+                      {user.isCurrentUser && !user.isAdmin && <span className="you-badge">{t("youBadge")}</span>}
                     </div>
                   </div>
                   <div className="leaderboard-xp">{user.weeklyXp.toLocaleString()} XP</div>
