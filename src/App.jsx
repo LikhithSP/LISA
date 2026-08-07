@@ -6648,6 +6648,8 @@ function App() {
       practiceTodaysReview: "Today's Review",
       practicePerfectPronunciation: "Perfect Pronunciation",
       practicePerfectPronunciationDesc: "Finish this session to build confidence with speaking!",
+      practicePronunciation: "Pronunciation",
+      practicePronunciationDesc: "Improve your pronunciation and speak more clearly",
       practiceStart: "START",
       practiceConversation: "Conversation",
       practiceSpeak: "Speak",
@@ -6781,6 +6783,8 @@ function App() {
       practiceTodaysReview: "आज की समीक्षा",
       practicePerfectPronunciation: "उत्कृष्ट उच्चारण",
       practicePerfectPronunciationDesc: "बोलने में आत्मविश्वास बढ़ाने के लिए यह सत्र पूरा करें!",
+      practicePronunciation: "उच्चारण",
+      practicePronunciationDesc: "अपना उच्चारण सुधारें और अधिक स्पष्ट बोलें",
       practiceStart: "शुरू करें",
       practiceConversation: "बातचीत",
       practiceSpeak: "बोलें",
@@ -6914,6 +6918,8 @@ function App() {
       practiceTodaysReview: "ಇಂದಿನ ವಿಮರ್ಶೆ",
       practicePerfectPronunciation: "ಪರಿಪೂರ್ಣ ಉಚ್ಚಾರಣೆ",
       practicePerfectPronunciationDesc: "ಮಾತನಾಡುವಲ್ಲಿ ಆತ್ಮವಿಶ್ವಾಸ ಬೆಳೆಸಿಕೊಳ್ಳಲು ಈ ಸೆಷನ್ ಪೂರ್ಣಗೊಳಿಸಿ!",
+      practicePronunciation: "ಉಚ್ಚಾರಣೆ",
+      practicePronunciationDesc: "ನಿಮ್ಮ ಉಚ್ಚಾರಣೆಯನ್ನು ಸುಧಾರಿಸಿ ಮತ್ತು ಇನ್ನಷ್ಟು ಸ್ಪಷ್ಟವಾಗಿ ಮಾತನಾಡಿ",
       practiceStart: "ಪ್ರಾರಂಭಿಸಿ",
       practiceConversation: "ಸಂಭಾಷಣೆ",
       practiceSpeak: "ಮಾತನಾಡು",
@@ -7047,6 +7053,8 @@ function App() {
       practiceTodaysReview: "ఈ రోజు సమీక్ష",
       practicePerfectPronunciation: "ఖచ్చితమైన ఉచ్చారణ",
       practicePerfectPronunciationDesc: "మాట్లాడటంలో ఆత్మవిశ్వాసం పెంచుకోవడానికి ఈ సెషన్‌ను పూర్తి చేయండి!",
+      practicePronunciation: "ఉచ్చారణ",
+      practicePronunciationDesc: "మీ ఉచ్చారణను మెరుగుపరచుకోండి మరియు మరింత స్పష్టంగా మాట్లాడండి",
       practiceStart: "ప్రారంభించు",
       practiceConversation: "సంభాషణ",
       practiceSpeak: "మాట్లాడండి",
@@ -7180,6 +7188,8 @@ function App() {
       practiceTodaysReview: "இன்றைய ஆய்வு",
       practicePerfectPronunciation: "சரியான உச்சரிப்பு",
       practicePerfectPronunciationDesc: "பேசுவதில் நம்பிக்கையை வளர்க்க இந்த அமர்வை முடிக்கவும்!",
+      practicePronunciation: "உச்சரிப்பு",
+      practicePronunciationDesc: "உங்கள் உச்சரிப்பை மேம்படுத்தி மேலும் தெளிவாகப் பேசுங்கள்",
       practiceStart: "தொடங்கு",
       practiceConversation: "உரையாடல்",
       practiceSpeak: "பேசு",
@@ -10277,13 +10287,14 @@ function App() {
                     <span className="resume-card-label">{t("dashboardContinueLearning")}</span>
                     <h3 className="resume-card-title">{t(`${activeDashboardSections[currentUnitPos.sectionIdx]?.units[currentUnitPos.unitIdx]?.id}_title`) || activeDashboardSections[currentUnitPos.sectionIdx]?.units[currentUnitPos.unitIdx]?.title || t("dashboardStartLearning")}</h3>
                     <div className="resume-card-sub" style={{ display: 'flex', flexDirection: 'column' }}>
-                      <span style={{ fontSize: '0.85rem' }}>
+                      <span style={{ fontSize: '0.88rem', fontWeight: 600 }}>
                         {t("dashboardSection")}: {t(`${activeDashboardSections[currentUnitPos.sectionIdx]?.id}_title`) || activeDashboardSections[currentUnitPos.sectionIdx]?.title || `${t("dashboardSection")} ${currentUnitPos.sectionIdx + 1}`}
                       </span>
                       <span style={{
-                        fontSize: '0.78rem',
-                        marginTop: '10px',
-                        whiteSpace: 'nowrap'
+                        fontSize: '0.82rem',
+                        marginTop: '6px',
+                        whiteSpace: 'nowrap',
+                        opacity: 0.9
                       }}>
                         {t("dashboardLesson")}: {currentUnit?.title || `${t("dashboardLesson")} ${currentUnitPos.lessonIdx + 1}`}
                       </span>
@@ -10296,7 +10307,8 @@ function App() {
                       setDashboardTab("learn");
                     }}
                   >
-                    ▶ {t("dashboardResume")}
+                    <span style={{ fontSize: '0.9rem' }}>▶</span>
+                    <span>{t("dashboardResume")}</span>
                   </button>
                 </div>
 
@@ -11327,10 +11339,10 @@ function App() {
                       <div className="practice-row-card" onClick={() => openPracticeCollection("pronunciation")}>
                         <div className="practice-row-card-content">
                           <h3 className="practice-row-card-title">
-                            {t("practicePronunciation") && t("practicePronunciation") !== "practicePronunciation" ? t("practicePronunciation") : "Pronunciation"}
+                            {t("practicePronunciation") || "Pronunciation"}
                           </h3>
                           <p className="practice-row-card-desc">
-                            {t("practicePronunciationDesc") && t("practicePronunciationDesc") !== "practicePronunciationDesc" ? t("practicePronunciationDesc") : "Improve your pronunciation skills"}
+                            {t("practicePronunciationDesc") || "Improve your pronunciation and speak more clearly"}
                           </p>
                         </div>
                         <div className="practice-row-card-icon pronunciation-icon">🗣️</div>
