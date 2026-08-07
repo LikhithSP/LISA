@@ -6643,44 +6643,48 @@ function App() {
     e.preventDefault();
     if (!feedbackMessage.trim()) return;
     setFeedbackSubmitting(true);
-
-    const newFeedback = {
-      id: "fb_" + Date.now(),
-      user_id: session?.user?.id || "anon",
-      user_name: profileData?.full_name || editFullName || session?.user?.email || "Learner",
-      user_email: session?.user?.email || "user@example.com",
-      category: feedbackCategory,
-      rating: feedbackRating,
-      subject: feedbackSubject.trim() || (feedbackCategory === "Bug Report" ? "Bug Report" : "User Feedback"),
-      message: feedbackMessage.trim(),
-      status: "New",
-      created_at: new Date().toISOString()
-    };
-
-    // 1. Try Supabase insert
     try {
-      await supabase.from("user_feedback").insert([newFeedback]);
-    } catch (err) {
-      console.warn("Supabase insert user_feedback:", err);
+      const newFeedback = {
+        id: "fb_" + Date.now(),
+        user_id: session?.user?.id || "anon",
+        user_name: profile?.full_name || session?.user?.email || "Learner",
+        user_email: session?.user?.email || "user@example.com",
+        category: feedbackCategory,
+        rating: feedbackRating,
+        subject: feedbackSubject.trim() || (feedbackCategory === "Bug Report" ? "Bug Report" : "User Feedback"),
+        message: feedbackMessage.trim(),
+        status: "New",
+        created_at: new Date().toISOString()
+      };
+
+      // 1. Try Supabase insert
+      try {
+        await supabase.from("user_feedback").insert([newFeedback]);
+      } catch (err) {
+        console.warn("Supabase insert user_feedback:", err);
+      }
+
+      // 2. Always persist to localStorage for local/offline sync
+      try {
+        const existing = JSON.parse(localStorage.getItem("lisa_user_feedback") || "[]");
+        localStorage.setItem("lisa_user_feedback", JSON.stringify([newFeedback, ...existing]));
+      } catch (err) {
+        console.error("LocalStorage write error:", err);
+      }
+
+      setFeedbackSuccess(true);
+      setFeedbackSubject("");
+      setFeedbackMessage("");
+      setFeedbackRating(5);
+
+      setTimeout(() => {
+        setFeedbackSuccess(false);
+      }, 5000);
+    } catch (error) {
+      console.error("Feedback submission error:", error);
+    } finally {
+      setFeedbackSubmitting(false);
     }
-
-    // 2. Always persist to localStorage for local/offline sync
-    try {
-      const existing = JSON.parse(localStorage.getItem("lisa_user_feedback") || "[]");
-      localStorage.setItem("lisa_user_feedback", JSON.stringify([newFeedback, ...existing]));
-    } catch (err) {
-      console.error("LocalStorage write error:", err);
-    }
-
-    setFeedbackSubmitting(false);
-    setFeedbackSuccess(true);
-    setFeedbackSubject("");
-    setFeedbackMessage("");
-    setFeedbackRating(5);
-
-    setTimeout(() => {
-      setFeedbackSuccess(false);
-    }, 4500);
   };
 
   // Reset scroll position on view / tab switch
