@@ -11521,163 +11521,164 @@ function App() {
           {/* 3.3. Profile Tab */}
           {dashboardTab === "profile" && (
             <div className="profile-view-container">
-              <div className="profile-card-large">
-                <div
-                  className="profile-cover"
-style={(() => {
-                      const bannerObj = SHOP_CATALOG.banners.find(b => b.id === shopBanner);
-                      return bannerObj
-                        ? { backgroundImage: `url(${bannerObj.image})` }
-                        : { backgroundImage: "url('https://media.globaldev.tech/images/header_kids_learning.format-jpeg.jpg')" };
-                    })()}
-                />
-                <div className="profile-card-body">
-                  <div
-                    className="profile-avatar-large"
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      overflow: "hidden",
-                      position: "relative",
-                      border: "4px solid var(--accent)",
-                      boxShadow: "0 8px 24px rgba(0,0,0,0.12)"
-                    }}
-                  >
-                    {(() => {
-                      const resolved = resolveProfileAvatar(profileAvatar);
-                      if (profileAvatar && currentLevelNum >= 10 && resolved?.type === "photo") {
-                        return <img src={resolved.value} alt="Profile" style={{ width: "100%", height: "100%", objectFit: "cover" }} />;
-                      }
-                      if (resolved?.type === "emoji") {
-                        return <span style={{ fontSize: "3.2rem" }}>{resolved.emoji}</span>;
-                      }
-                      if (resolved?.type === "builder") {
-                        const shape = AVATAR_SHAPE_STYLE[resolved.shape] || AVATAR_SHAPE_STYLE.circle;
-                        return (
-                          <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: resolved.bg, ...shape }}>
-                            <span style={{ fontSize: "3.2rem" }}>{resolved.emoji}</span>
+              <div className="profile-layout-grid">
+                <div className="profile-sidebar">
+                  <div className="profile-card-large">
+                    <div
+                      className="profile-cover"
+                      style={(() => {
+                        const bannerObj = SHOP_CATALOG.banners.find(b => b.id === shopBanner);
+                        return bannerObj
+                          ? { backgroundImage: `url(${bannerObj.image})` }
+                          : { backgroundImage: "url('https://media.globaldev.tech/images/header_kids_learning.format-jpeg.jpg')" };
+                      })()}
+                    />
+                    <div className="profile-card-body">
+                      <div className="profile-avatar-large">
+                        {(() => {
+                          const resolved = resolveProfileAvatar(profileAvatar);
+                          if (profileAvatar && currentLevelNum >= 10 && resolved?.type === "photo") {
+                            return <img src={resolved.value} alt="Profile" style={{ width: "100%", height: "100%", objectFit: "cover" }} />;
+                          }
+                          if (resolved?.type === "emoji") {
+                            return <span style={{ fontSize: "3.2rem" }}>{resolved.emoji}</span>;
+                          }
+                          if (resolved?.type === "builder") {
+                            const shape = AVATAR_SHAPE_STYLE[resolved.shape] || AVATAR_SHAPE_STYLE.circle;
+                            return (
+                              <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: resolved.bg, ...shape }}>
+                                <span style={{ fontSize: "3.2rem" }}>{resolved.emoji}</span>
+                              </div>
+                            );
+                          }
+                          return getUserInitials(profile?.full_name);
+                        })()}
+
+                        {/* Custom profile picture upload is unlocked once the learner reaches Section 10. */}
+                        {/* Until then, the avatar is shown as initials (or an emoji avatar from the shop). */}
+                        {currentLevelNum >= 10 && (
+                          <>
+                            {/* Direct Image File Uploader Input */}
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleAvatarUpload}
+                              disabled={submitting}
+                              style={{ display: "none" }}
+                              id="direct-avatar-upload-file"
+                            />
+
+                            {/* Pencil Edit Badge overlay at bottom right */}
+                            <label
+                              htmlFor="direct-avatar-upload-file"
+                              style={{
+                                position: "absolute",
+                                bottom: "4px",
+                                right: "4px",
+                                width: "32px",
+                                height: "32px",
+                                borderRadius: "50%",
+                                background: "var(--accent)",
+                                color: "white",
+                                display: "grid",
+                                placeItems: "center",
+                                cursor: "pointer",
+                                fontSize: "0.85rem",
+                                boxShadow: "0 4px 10px rgba(0,0,0,0.25)",
+                                transition: "all 0.15s ease",
+                                border: "none",
+                                zIndex: 20
+                              }}
+                              title={submitting ? "Uploading image..." : "Upload Profile Picture"}
+                              className="profile-avatar-edit-badge"
+                            >
+                              {submitting ? (
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ animation: "spin 1s linear infinite" }}>
+                                  <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                                </svg>
+                              ) : (
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                                  <path d="m15 5 4 4" />
+                                </svg>
+                              )}
+                            </label>
+                          </>
+                        )}
+
+                        {/* Locked hint before Section 10 */}
+                        {currentLevelNum < 10 && (
+                          <div
+                            title="Unlocks at Section 10"
+                            style={{
+                              position: "absolute",
+                              bottom: "4px",
+                              right: "4px",
+                              width: "32px",
+                              height: "32px",
+                              borderRadius: "50%",
+                              background: "rgba(0,0,0,0.45)",
+                              color: "white",
+                              display: "grid",
+                              placeItems: "center",
+                              fontSize: "0.85rem",
+                              boxShadow: "0 4px 10px rgba(0,0,0,0.25)",
+                              zIndex: 20
+                            }}
+                          >
+                            🔒
                           </div>
-                        );
-                      }
-                      return getUserInitials(profile?.full_name);
-                    })()}
-
-                    {/* Custom profile picture upload is unlocked once the learner reaches Section 10. */}
-                    {/* Until then, the avatar is shown as initials (or an emoji avatar from the shop). */}
-                    {currentLevelNum >= 10 && (
-                      <>
-                        {/* Direct Image File Uploader Input */}
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleAvatarUpload}
-                          disabled={submitting}
-                          style={{ display: "none" }}
-                          id="direct-avatar-upload-file"
-                        />
-
-                        {/* Pencil Edit Badge overlay at bottom right */}
-                        <label
-                          htmlFor="direct-avatar-upload-file"
-                          style={{
-                            position: "absolute",
-                            bottom: "4px",
-                            right: "4px",
-                            width: "28px",
-                            height: "28px",
-                            borderRadius: "50%",
-                            background: "var(--accent)",
-                            color: "white",
-                            display: "grid",
-                            placeItems: "center",
-                            cursor: "pointer",
-                            fontSize: "0.75rem",
-                            boxShadow: "0 4px 10px rgba(0,0,0,0.25)",
-                            transition: "all 0.15s ease",
-                            border: "none"
-                          }}
-                          title={submitting ? "Uploading image..." : "Upload Profile Picture"}
-                          className="profile-avatar-edit-badge"
-                        >
-                          {submitting ? (
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ animation: "spin 1s linear infinite" }}>
-                              <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-                            </svg>
-                          ) : (
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-                              <path d="m15 5 4 4" />
-                            </svg>
-                          )}
-                        </label>
-                      </>
-                    )}
-
-                    {/* Locked hint before Section 10 */}
-                    {currentLevelNum < 10 && (
-                      <div
-                        title="Unlocks at Section 10"
-                        style={{
-                          position: "absolute",
-                          bottom: "4px",
-                          right: "4px",
-                          width: "28px",
-                          height: "28px",
-                          borderRadius: "50%",
-                          background: "rgba(0,0,0,0.45)",
-                          color: "white",
-                          display: "grid",
-                          placeItems: "center",
-                          fontSize: "0.75rem",
-                          boxShadow: "0 4px 10px rgba(0,0,0,0.25)",
-                        }}
-                      >
-                        🔒
+                        )}
                       </div>
-                    )}
-                  </div>
-                  <div className="profile-info-large">
-                    <h2>{profile?.full_name || "Learner"}</h2>
-                    <p>{session.user.email}</p>
-                    <div className="profile-details-list">
-                      <span style={{ fontWeight: 700 }}>{t("profileAge")}: {profile?.age || t("naText")}</span>
-                      <span style={{ fontWeight: 700 }}>{t("profileEducation")}: {profile?.education_level ? t(profile.education_level + "Option") : t("naText")}</span>
-                      {profile?.experience_level && (
-                        <span style={{ fontWeight: 700 }}>{t("profileExperienceStatus")}: {t(experienceLevelOptionKeys[profile.experience_level] || profile.experience_level)}</span>
-                      )}
+                      <div className="profile-info-large">
+                        <h2>{profile?.full_name || "Learner"}</h2>
+                        <p>{session.user.email}</p>
+                        <div className="profile-details-list">
+                          <span>{t("profileAge")}: {profile?.age || t("naText")}</span>
+                          <span>{t("profileEducation")}: {profile?.education_level ? t(profile.education_level + "Option") : t("naText")}</span>
+                          {profile?.experience_level && (
+                            <span>{t("profileExperienceStatus")}: {t(experienceLevelOptionKeys[profile.experience_level] || profile.experience_level)}</span>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
+                  {/* Duolingo-like Tabbed Profile Sub-navigation */}
+                  <div className="profile-sub-tabs">
+                    <button
+                      type="button"
+                      className={`profile-sub-tab-btn ${profileSubTab === "stats" ? "active" : ""}`}
+                      onClick={() => setProfileSubTab("stats")}
+                    >
+                      📊 {t("profileStatsBadges")}
+                    </button>
+                    <button
+                      type="button"
+                      className={`profile-sub-tab-btn ${profileSubTab === "avatar" ? "active" : ""}`}
+                      onClick={() => setProfileSubTab("avatar")}
+                    >
+                      🎨 {t("profileAvatarCreator")}
+                    </button>
+                    <button
+                      type="button"
+                      className={`profile-sub-tab-btn ${profileSubTab === "settings" ? "active" : ""}`}
+                      onClick={() => setProfileSubTab("settings")}
+                    >
+                      ⚙️ {t("profileAccountSettings")}
+                    </button>
+                    <button
+                      type="button"
+                      className={`profile-sub-tab-btn ${profileSubTab === "feedback" ? "active" : ""}`}
+                      onClick={() => setProfileSubTab("feedback")}
+                    >
+                      💬 {t("profileFeedbackTab") || "Feedback & Bugs"}
+                    </button>
+                  </div>
                 </div>
-              </div>
 
-              {/* Duolingo-like Tabbed Profile Sub-navigation */}
-              <div className="profile-sub-tabs">
-                <button
-                  type="button"
-                  className={`profile-sub-tab-btn ${profileSubTab === "stats" ? "active" : ""}`}
-                  onClick={() => setProfileSubTab("stats")}
-                >
-                  📊 {t("profileStatsBadges")}
-                </button>
-                <button
-                  type="button"
-                  className={`profile-sub-tab-btn ${profileSubTab === "avatar" ? "active" : ""}`}
-                  onClick={() => setProfileSubTab("avatar")}
-                >
-                  🎨 {t("profileAvatarCreator")}
-                </button>
-                <button
-                  type="button"
-                  className={`profile-sub-tab-btn ${profileSubTab === "settings" ? "active" : ""}`}
-                  onClick={() => setProfileSubTab("settings")}
-                >
-                  ⚙️ {t("profileAccountSettings")}
-                </button>
-              </div>
-
-              <div className="profile-tab-content-area">
-                {profileSubTab === "stats" && (
+                <div className="profile-main-content">
+                  <div className="profile-tab-content-area">
+                    {profileSubTab === "stats" && (
                   <div className="profile-stats-dashboard">
                     <div className="profile-stats-grid">
                       <div className="profile-stat-card streak">
@@ -11738,7 +11739,7 @@ style={(() => {
                       </div>
                     </div>
 
-                    <div className="achievements-card" style={{ margin: '24px 0 0 0' }}>
+                    <div className="achievements-card">
                       <div className="achievements-card-header">
                         <h4>{t("badgesEarned")}</h4>
                         <button className="achievements-view-all" onClick={() => setShowAllAchievementsModal(true)}>{t("dashboardViewAll")}</button>
@@ -12018,89 +12019,7 @@ style={(() => {
                       </div>
 
                       <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-                        {/* User Feedback & Bug Report Form (TOP) */}
-                        <div className="profile-settings-card user-feedback-card" style={{ margin: 0, padding: "24px" }}>
-                          <h3 className="profile-section-title">💬 {t("sendFeedbackOrReportBug")}</h3>
-                          <p style={{ fontSize: "0.85rem", color: "var(--muted)", marginBottom: "16px", lineHeight: "1.4" }}>
-                            {t("feedbackHelpDesc")}
-                          </p>
-
-                          {feedbackSuccess ? (
-                            <div style={{ background: "rgba(16, 185, 129, 0.12)", border: "1px solid #10b981", borderRadius: "14px", padding: "16px", color: "#10b981", fontWeight: 700, textAlign: "center" }}>
-                              {t("feedbackSuccessMsg")}
-                            </div>
-                          ) : (
-                            <form onSubmit={handleSendUserFeedback} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-                              <label className="profile-dropdown-label">
-                                {t("feedbackCategoryLabel")}
-                                <select
-                                  value={feedbackCategory}
-                                  onChange={(e) => setFeedbackCategory(e.target.value)}
-                                  className="settings-select-input"
-                                >
-                                  <option value="Bug Report">{t("feedbackBugReport")}</option>
-                                  <option value="Feature Request">{t("feedbackFeatureRequest")}</option>
-                                  <option value="UI / Visual Feedback">{t("feedbackUiDesign")}</option>
-                                  <option value="General Feedback">{t("feedbackGeneral")}</option>
-                                </select>
-                              </label>
-
-                              <label className="profile-dropdown-label">
-                                {t("feedbackRatingLabel")}
-                                <div style={{ display: "flex", gap: "8px", marginTop: "6px" }}>
-                                  {[1, 2, 3, 4, 5].map((star) => (
-                                    <button
-                                      key={star}
-                                      type="button"
-                                      onClick={() => setFeedbackRating(star)}
-                                      style={{
-                                        background: star <= feedbackRating ? "rgba(245, 158, 11, 0.18)" : "var(--bg)",
-                                        border: star <= feedbackRating ? "1px solid #f59e0b" : "1px solid var(--line)",
-                                        borderRadius: "10px",
-                                        padding: "6px 12px",
-                                        fontSize: "1.1rem",
-                                        cursor: "pointer",
-                                        transition: "all 0.15s ease"
-                                      }}
-                                    >
-                                      ⭐
-                                    </button>
-                                  ))}
-                                </div>
-                              </label>
-
-                              <label className="profile-dropdown-label">
-                                {t("feedbackSubjectLabel")}
-                                <input
-                                  type="text"
-                                  placeholder={t("feedbackSubjectPlaceholder")}
-                                  value={feedbackSubject}
-                                  onChange={(e) => setFeedbackSubject(e.target.value)}
-                                  className="settings-text-input"
-                                />
-                              </label>
-
-                              <label className="profile-dropdown-label">
-                                {t("feedbackMessageLabel")}
-                                <textarea
-                                  required
-                                  rows={3}
-                                  placeholder={t("feedbackMessagePlaceholder")}
-                                  value={feedbackMessage}
-                                  onChange={(e) => setFeedbackMessage(e.target.value)}
-                                  className="settings-text-input"
-                                  style={{ resize: "vertical", fontFamily: "inherit" }}
-                                />
-                              </label>
-
-                              <button type="submit" className="primary-btn" disabled={feedbackSubmitting} style={{ width: "100%", marginTop: "4px" }}>
-                                {feedbackSubmitting ? t("feedbackSubmittingBtn") : t("feedbackSubmitBtn")}
-                              </button>
-                            </form>
-                          )}
-                        </div>
-
-                        {/* Diagnostic & Dev Control Card (BELOW FEEDBACK) */}
+                        {/* Diagnostic & Dev Control Card */}
                         <div className="current-level-card dev-control-card" style={{ margin: 0, padding: "24px" }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: devControlsHidden ? 0 : '12px' }}>
                             <h3 className="current-level-title" style={{ margin: 0 }}>{t("profileDevControl")}</h3>
@@ -12178,6 +12097,93 @@ style={(() => {
                     </div>
                   </div>
                 )}
+
+                {profileSubTab === "feedback" && (
+                  <div className="profile-feedback-tab">
+                    <div className="profile-settings-card user-feedback-card" style={{ margin: 0, padding: "24px" }}>
+                      <h3 className="profile-section-title">💬 {t("sendFeedbackOrReportBug")}</h3>
+                      <p style={{ fontSize: "0.85rem", color: "var(--muted)", marginBottom: "16px", lineHeight: "1.4" }}>
+                        {t("feedbackHelpDesc")}
+                      </p>
+
+                      {feedbackSuccess ? (
+                        <div style={{ background: "rgba(16, 185, 129, 0.12)", border: "1px solid #10b981", borderRadius: "14px", padding: "16px", color: "#10b981", fontWeight: 700, textAlign: "center" }}>
+                          {t("feedbackSuccessMsg")}
+                        </div>
+                      ) : (
+                        <form onSubmit={handleSendUserFeedback} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+                          <label className="profile-dropdown-label">
+                            {t("feedbackCategoryLabel")}
+                            <select
+                              value={feedbackCategory}
+                              onChange={(e) => setFeedbackCategory(e.target.value)}
+                              className="settings-select-input"
+                            >
+                              <option value="Bug Report">{t("feedbackBugReport")}</option>
+                              <option value="Feature Request">{t("feedbackFeatureRequest")}</option>
+                              <option value="UI / Visual Feedback">{t("feedbackUiDesign")}</option>
+                              <option value="General Feedback">{t("feedbackGeneral")}</option>
+                            </select>
+                          </label>
+
+                          <label className="profile-dropdown-label">
+                            {t("feedbackRatingLabel")}
+                            <div style={{ display: "flex", gap: "8px", marginTop: "6px" }}>
+                              {[1, 2, 3, 4, 5].map((star) => (
+                                <button
+                                  key={star}
+                                  type="button"
+                                  onClick={() => setFeedbackRating(star)}
+                                  style={{
+                                    background: star <= feedbackRating ? "rgba(245, 158, 11, 0.18)" : "var(--bg)",
+                                    border: star <= feedbackRating ? "1px solid #f59e0b" : "1px solid var(--line)",
+                                    borderRadius: "10px",
+                                    padding: "6px 12px",
+                                    fontSize: "1.1rem",
+                                    cursor: "pointer",
+                                    transition: "all 0.15s ease"
+                                  }}
+                                >
+                                  ⭐
+                                </button>
+                              ))}
+                            </div>
+                          </label>
+
+                          <label className="profile-dropdown-label">
+                            {t("feedbackSubjectLabel")}
+                            <input
+                              type="text"
+                              placeholder={t("feedbackSubjectPlaceholder")}
+                              value={feedbackSubject}
+                              onChange={(e) => setFeedbackSubject(e.target.value)}
+                              className="settings-text-input"
+                            />
+                          </label>
+
+                          <label className="profile-dropdown-label">
+                            {t("feedbackMessageLabel")}
+                            <textarea
+                              required
+                              rows={4}
+                              placeholder={t("feedbackMessagePlaceholder")}
+                              value={feedbackMessage}
+                              onChange={(e) => setFeedbackMessage(e.target.value)}
+                              className="settings-text-input"
+                              style={{ resize: "vertical", fontFamily: "inherit" }}
+                            />
+                          </label>
+
+                          <button type="submit" className="primary-btn" disabled={feedbackSubmitting} style={{ width: "100%", marginTop: "4px" }}>
+                            {feedbackSubmitting ? t("feedbackSubmittingBtn") : t("feedbackSubmitBtn")}
+                          </button>
+                        </form>
+                      )}
+                    </div>
+                  </div>
+                )}
+                  </div>
+                </div>
               </div>
               
               {/* Mobile-only Logout button */}
