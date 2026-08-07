@@ -6743,9 +6743,7 @@ select:focus-visible {
 }
 
 .profile-details-list span {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: block;
   background: var(--bg);
   padding: 10px 14px;
   border-radius: 16px;
@@ -6755,6 +6753,8 @@ select:focus-visible {
   border: 1.5px solid var(--line);
   box-shadow: 0 2px 8px rgba(0,0,0,0.02);
   text-align: center;
+  word-break: break-word;
+  white-space: normal;
 }
 
 @media (max-width: 1024px) {
@@ -15462,58 +15462,22 @@ select {
 @media (max-width: 768px) {
   .profile-settings-tab-grid {
     gap: 20px !important;
-  }
-
-  /* Profile sub tabs scrollable on mobile */
-  .profile-sub-tabs {
-    display: flex !important;
-    justify-content: flex-start !important;
-    /* Fix flexbox center overflow clipping! */
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch !important;
-    gap: 8px !important;
-    padding: 8px 16px !important;
-    border: none !important;
-    border-bottom: 2px solid var(--line) !important;
-    border-radius: 0 !important;
-    background: transparent !important;
-    box-shadow: none !important;
-    margin-bottom: 20px !important;
-  }
-
-  .profile-sub-tab-btn {
-    white-space: nowrap !important;
-    flex-shrink: 0 !important;
-    font-size: 0.85rem !important;
-    padding: 10px 14px !important;
-    background: var(--panel) !important;
-    border: 2px solid var(--line) !important;
-    border-radius: 12px !important;
-  }
-
-  .profile-sub-tab-btn.active {
-    background: var(--accent-soft) !important;
-    border-color: var(--accent) !important;
-    color: var(--accent) !important;
-  }
-
-  .profile-main-content {
-    padding: 0 16px !important;
-  }
-
-  .profile-card-large {
-    margin: 0 16px 24px !important;
-    border-radius: 20px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
 
   .profile-avatar-creator-tab {
     padding: 20px 16px !important;
     border-radius: 20px !important;
     margin-bottom: 24px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
 
   .profile-settings-tab {
     margin-bottom: 24px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
 
   .avatar-creator-preview-card,
@@ -15521,12 +15485,8 @@ select {
   .profile-settings-card {
     padding: 16px !important;
     border-radius: 16px !important;
-  }
-
-  .profile-stat-card {
-    padding: 14px 16px !important;
-    border-radius: 14px !important;
-    justify-content: flex-start !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
 }
 
@@ -15706,19 +15666,62 @@ select {
 }
 
 @media (max-width: 768px) {
+  .profile-view-container {
+    padding: 0 12px 24px !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+    min-width: 0 !important;
+  }
+
+  .profile-layout-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    min-width: 0 !important;
+  }
+
+  .profile-sidebar,
+  .profile-main-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    min-width: 0 !important;
+  }
+
+  .profile-card-large {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    margin-bottom: 16px !important;
+    min-width: 0 !important;
+  }
+
   .profile-cover {
     height: 120px !important;
+    width: 100% !important;
   }
 
   .profile-card-body {
     flex-direction: column !important;
     text-align: center !important;
-    padding: 0 16px 24px !important;
+    padding: 0 16px 20px !important;
     margin-top: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    min-width: 0 !important;
   }
 
   .profile-avatar-large {
-    margin-top: -48px !important;
+    position: absolute !important;
+    top: -44px !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    margin-top: 0 !important;
     z-index: 10 !important;
     border: 4px solid var(--panel-strong) !important;
     width: 88px !important;
@@ -15730,6 +15733,9 @@ select {
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
+    padding-top: 52px !important;
+    box-sizing: border-box !important;
+    min-width: 0 !important;
   }
 
   .profile-details-list {
@@ -15738,6 +15744,7 @@ select {
     gap: 8px !important;
     width: 100% !important;
     text-align: center !important;
+    box-sizing: border-box !important;
   }
 
   .profile-details-list span {
@@ -15745,8 +15752,80 @@ select {
     padding: 8px 12px !important;
     border-radius: 10px !important;
     width: 100% !important;
+    max-width: 100% !important;
     text-align: center !important;
     box-sizing: border-box !important;
+  }
+
+  /* Profile sub tabs scrollable on mobile */
+  .profile-sub-tabs {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: flex-start !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    gap: 8px !important;
+    padding: 8px 12px !important;
+    background: var(--panel) !important;
+    border: 2px solid var(--line) !important;
+    border-radius: 16px !important;
+    margin-bottom: 20px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.03) !important;
+    scrollbar-width: none !important;
+    min-width: 0 !important;
+  }
+
+  .profile-sub-tabs::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .profile-sub-tab-btn {
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    font-size: 0.85rem !important;
+    padding: 10px 14px !important;
+    border-radius: 10px !important;
+  }
+
+  .profile-stats-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .profile-stat-card {
+    padding: 12px 14px !important;
+    border-radius: 14px !important;
+    gap: 10px !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    box-sizing: border-box !important;
+  }
+
+  .profile-stat-card .stat-icon {
+    font-size: 1.5rem !important;
+  }
+
+  .profile-stat-card .stat-content {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    text-align: left !important;
+  }
+
+  .profile-stat-card .stat-val {
+    font-size: 1.1rem !important;
+    line-height: 1.2 !important;
+  }
+
+  .profile-stat-card .stat-lbl {
+    font-size: 0.72rem !important;
+    line-height: 1.2 !important;
   }
 }
 
@@ -16307,13 +16386,20 @@ select {
     margin: 0 !important;
   }
 
-  .dashboard-topbar .lang-selector-relative {
+  .dashboard-topbar.admin-topbar .lang-selector-relative {
     position: absolute !important;
     left: 12px !important;
     top: 50% !important;
     transform: translateY(-50%) !important;
     right: auto !important;
     z-index: 1000 !important;
+    margin: 0 !important;
+  }
+
+  .dashboard-topbar:not(.admin-topbar) .lang-selector-relative {
+    position: static !important;
+    transform: none !important;
+    z-index: auto !important;
     margin: 0 !important;
   }
 
@@ -16658,9 +16744,9 @@ select {
     overflow: hidden !important;
   }
 
-  /* Remove left/right padding from profile page on mobile */
+  /* Add nice left/right padding from profile page on mobile */
   .profile-view-container {
-    padding: 0 0 24px !important;
+    padding: 0 16px 24px !important;
   }
 }
 
