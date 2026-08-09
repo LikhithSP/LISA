@@ -14946,14 +14946,14 @@ function App() {
                 className="lp-btn lp-btn-ghost"
                 onClick={() => { setActiveTab("login"); setMessage(""); setShowLanding(false); }}
               >
-                Sign In
+                {t("signIn")}
               </button>
               <button
                 type="button"
                 className="lp-btn lp-btn-accent"
                 onClick={() => { setActiveTab("register"); setMessage(""); setShowLanding(false); }}
               >
-                Get Started
+                {t("register")}
               </button>
             </div>
           </div>
@@ -14964,10 +14964,10 @@ function App() {
           <div className="lp-hero-glow" />
           <div className="lp-hero-inner">
             <div className="lp-hero-text">
-              <p className="lp-eyebrow">AI-Powered Literacy Platform</p>
+              <p className="lp-eyebrow">{t("aiPoweredPlatform")}</p>
               <h1 className="lp-hero-h1">
-                Learn to read &amp; write<br />
-                <span className="lp-hero-gradient">in your language.</span>
+                {t("learnToReadWrite")}<br />
+                <span className="lp-hero-gradient">{t("inYourLanguage")}</span>
               </h1>
               <p className="lp-hero-desc">{t("heroCopy")}</p>
               <div className="lp-hero-actions">
@@ -14976,20 +14976,20 @@ function App() {
                   className="lp-btn lp-btn-accent lp-btn-lg"
                   onClick={() => { setActiveTab("register"); setMessage(""); setShowLanding(false); }}
                 >
-                  Start for free
+                  {t("startForFree")}
                 </button>
                 <button
                   type="button"
                   className="lp-btn lp-btn-outline lp-btn-lg"
                   onClick={() => { setActiveTab("login"); setMessage(""); setShowLanding(false); }}
                 >
-                  Sign in
+                  {t("signIn")}
                 </button>
               </div>
               <div className="lp-trust-row">
-                <span className="lp-trust-chip">✓ Free forever</span>
-                <span className="lp-trust-chip">✓ 5 Indian languages</span>
-                <span className="lp-trust-chip">✓ No downloads</span>
+                <span className="lp-trust-chip">{t("freeForever")}</span>
+                <span className="lp-trust-chip">{t("fiveLanguages")}</span>
+                <span className="lp-trust-chip">{t("noDownloads")}</span>
               </div>
             </div>
             <div className="lp-hero-visual">
@@ -14999,30 +14999,30 @@ function App() {
                     <span className="lp-preview-dot lp-dot-red" />
                     <span className="lp-preview-dot lp-dot-yellow" />
                     <span className="lp-preview-dot lp-dot-green" />
-                    <span className="lp-preview-title">LISA · Lesson</span>
+                    <span className="lp-preview-title">{t("lisaLesson")}</span>
                   </div>
                   <img src="/as1.png" alt="LISA mascot" className="lp-preview-mascot" />
-                  <div className="lp-preview-prompt">What sound does this make?</div>
+                  <div className="lp-preview-prompt">{t("whatSoundDoesThisMake")}</div>
                   <div className="lp-preview-choices">
                     <span className="lp-choice lp-choice-active">क</span>
                     <span className="lp-choice">ख</span>
                     <span className="lp-choice">ग</span>
                     <span className="lp-choice">घ</span>
                   </div>
-                  <div className="lp-preview-xp">+10 XP · Streak 🔥 7</div>
+                  <div className="lp-preview-xp">{t("lisaLessonXP")}</div>
                 </div>
                 <div className="lp-hero-badge lp-hbadge-1">
                   <span>🎯</span>
                   <div>
-                    <strong>Adaptive AI</strong>
-                    <p>Learns with you</p>
+                    <strong>{t("adaptiveAiTitle")}</strong>
+                    <p>{t("learnsWithYou")}</p>
                   </div>
                 </div>
                 <div className="lp-hero-badge lp-hbadge-2">
                   <span>🗣️</span>
                   <div>
-                    <strong>Speech Practice</strong>
-                    <p>Real-time feedback</p>
+                    <strong>{t("speechPracticeTitle")}</strong>
+                    <p>{t("realtimeFeedbackTitle")}</p>
                   </div>
                 </div>
               </div>
@@ -15030,64 +15030,42 @@ function App() {
           </div>
         </section>
 
-        {/* Language selector */}
-        <section className="lp-lang-bar">
-          <div className="lp-lang-bar-inner">
-            <span className="lp-lang-label">{t("chooseLanguage")}:</span>
-            <div className="lp-lang-pills">
-              {languages.map((l) => (
-                <button
-                  key={l}
-                  type="button"
-                  className={`lp-lang-pill ${selectedLanguage === l ? "active" : ""}`}
-                  onClick={() => handleLanguageSelect(l)}
-                >
-                  {l === "English" && "🇺🇸 English"}
-                  {l === "Hindi" && "🇮🇳 हिन्दी"}
-                  {l === "Kannada" && "🇮🇳 ಕನ್ನಡ"}
-                  {l === "Telugu" && "🇮🇳 తెలుగు"}
-                  {l === "Tamil" && "🇮🇳 தமிழ்"}
-                </button>
-              ))}
-            </div>
-          </div>
-        </section>
 
         {/* Feature cards */}
         <section className="lp-features">
           <div className="lp-features-inner">
-            <div className="lp-section-label">What makes LISA different</div>
-            <h2 className="lp-section-h2">Everything you need to become literate</h2>
+            <div className="lp-section-label">{t("whyLisa")}</div>
+            <h2 className="lp-section-h2">{t("everythingYouNeed")}</h2>
             <div className="lp-cards-grid">
               <div className="lp-feat-card">
                 <div className="lp-feat-icon lp-icon-blue">🧠</div>
-                <h3>AI Diagnostic</h3>
-                <p>Smart assessment maps your skill level and builds a personalized learning path from day one.</p>
+                <h3>{t("feat1Title")}</h3>
+                <p>{t("feat1Desc")}</p>
               </div>
               <div className="lp-feat-card">
                 <div className="lp-feat-icon lp-icon-purple">🗣️</div>
-                <h3>Speech Recognition</h3>
-                <p>Practice pronunciation with live Web Speech API feedback — no microphone setup required.</p>
+                <h3>{t("feat2Title")}</h3>
+                <p>{t("feat2Desc")}</p>
               </div>
               <div className="lp-feat-card">
                 <div className="lp-feat-icon lp-icon-orange">✍️</div>
-                <h3>Handwriting Canvas</h3>
-                <p>Draw characters on an interactive canvas and get instant AI grading on letter formation.</p>
+                <h3>{t("feat3Title")}</h3>
+                <p>{t("feat3Desc")}</p>
               </div>
               <div className="lp-feat-card">
                 <div className="lp-feat-icon lp-icon-green">🏆</div>
-                <h3>Streaks & XP</h3>
-                <p>Stay motivated with daily streaks, experience points, and achievement badges.</p>
+                <h3>{t("feat4Title")}</h3>
+                <p>{t("feat4Desc")}</p>
               </div>
               <div className="lp-feat-card">
                 <div className="lp-feat-icon lp-icon-red">🌐</div>
-                <h3>5 Indian Languages</h3>
-                <p>English, Hindi, Kannada, Telugu, and Tamil — choose any and switch at any time.</p>
+                <h3>{t("feat5Title")}</h3>
+                <p>{t("feat5Desc")}</p>
               </div>
               <div className="lp-feat-card">
                 <div className="lp-feat-icon lp-icon-teal">📊</div>
-                <h3>Progress Analytics</h3>
-                <p>Track comprehension, fluency, and writing skill scores through detailed dashboards.</p>
+                <h3>{t("feat6Title")}</h3>
+                <p>{t("feat6Desc")}</p>
               </div>
             </div>
           </div>
@@ -15101,15 +15079,15 @@ function App() {
                 <img src="/as2.png" alt="Interactive Learning" />
               </div>
               <div className="lp-showcase-text">
-                <p className="lp-eyebrow">Free &amp; Accessible</p>
-                <h2>Fun, bite-sized lessons</h2>
-                <p>LISA breaks down complex literacy concepts into short, engaging lessons. Earn XP, unlock badges, and track your improvement — all at your own pace.</p>
+                <p className="lp-eyebrow">{t("freeAccessibleTag")}</p>
+                <h2>{t("showcase1Title")}</h2>
+                <p>{t("showcase1Desc")}</p>
                 <button
                   type="button"
                   className="lp-btn lp-btn-accent"
                   onClick={() => { setActiveTab("register"); setMessage(""); setShowLanding(false); }}
                 >
-                  Try a lesson →
+                  {t("tryALesson")}
                 </button>
               </div>
             </div>
@@ -15118,9 +15096,9 @@ function App() {
                 <img src="/as3.png" alt="Personalized Path" />
               </div>
               <div className="lp-showcase-text">
-                <p className="lp-eyebrow">AI Engine</p>
-                <h2>Personalized for every learner</h2>
-                <p>Our diagnostic engine tests comprehension and writing, then adapts difficulty in real time. You always learn at the right level — never bored, never overwhelmed.</p>
+                <p className="lp-eyebrow">{t("aiEngineTag")}</p>
+                <h2>{t("showcase2Title")}</h2>
+                <p>{t("showcase2Desc")}</p>
               </div>
             </div>
             <div className="lp-showcase-row">
@@ -15128,9 +15106,9 @@ function App() {
                 <img src="/as4.png" alt="Speech & Canvas" />
               </div>
               <div className="lp-showcase-text">
-                <p className="lp-eyebrow">Speech &amp; Handwriting</p>
-                <h2>Speak and write, not just tap</h2>
-                <p>Go beyond multiple choice — speak words out loud for pronunciation scores and draw characters on a digital canvas. True multi-modal literacy training.</p>
+                <p className="lp-eyebrow">{t("speechHandwritingTag")}</p>
+                <h2>{t("showcase3Title")}</h2>
+                <p>{t("showcase3Desc")}</p>
               </div>
             </div>
           </div>
@@ -15139,40 +15117,27 @@ function App() {
         {/* CTA Banner */}
         <section className="lp-cta-banner">
           <div className="lp-cta-inner">
-            <h2>Ready to start your literacy journey?</h2>
-            <p>Join thousands of learners building reading and writing skills with LISA — completely free.</p>
+            <h2>{t("readyToStart")}</h2>
+            <p>{t("readyToStartDesc")}</p>
             <div className="lp-cta-actions">
               <button
                 type="button"
                 className="lp-btn lp-btn-white lp-btn-lg"
                 onClick={() => { setActiveTab("register"); setMessage(""); setShowLanding(false); }}
               >
-                Create free account
+                {t("createFreeAccount")}
               </button>
               <button
                 type="button"
                 className="lp-btn lp-btn-outline-white lp-btn-lg"
                 onClick={() => { setActiveTab("login"); setMessage(""); setShowLanding(false); }}
               >
-                Sign in
+                {t("signIn")}
               </button>
             </div>
           </div>
         </section>
 
-        {/* Footer */}
-        <footer className="lp-footer">
-          <div className="lp-footer-inner">
-            <div className="lp-footer-brand">
-              <div className="lp-brand-mark lp-brand-mark-sm">L</div>
-              <div>
-                <span className="lp-brand-name">LISA</span>
-                <p className="lp-footer-tagline">Literacy Intelligence Support Assistant</p>
-              </div>
-            </div>
-            <p className="lp-footer-copy">Empowering multi-lingual literacy for learners everywhere.</p>
-          </div>
-        </footer>
 
         {/* Language Modal */}
         {!selectedLanguage && (
