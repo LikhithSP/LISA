@@ -17365,7 +17365,7 @@ select {
 
 /* ─── Feature cards section ─── */
 .lp-features {
-  padding: 40px 32px 80px;
+  padding: 40px 32px 40px;
 }
 .lp-features-inner {
   max-width: 1200px;
@@ -17441,11 +17441,11 @@ select {
 
 /* ─── Feature showcase rows ─── */
 .lp-showcase {
-  padding: 80px 32px;
+  padding: 40px 32px 80px;
   background: var(--bg);
 }
 .lp-showcase-inner {
-  max-width: 1100px;
+  max-width: 1200px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -17499,26 +17499,26 @@ select {
 /* ─── CTA Banner ─── */
 .lp-cta-banner {
   background: var(--accent-dark);
-  padding: 80px 32px;
+  padding: 48px 32px;
 }
 .lp-cta-inner {
-  max-width: 700px;
+  max-width: 1200px;
   margin: 0 auto;
   text-align: center;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 12px;
   align-items: center;
 }
 .lp-cta-inner h2 {
-  font-size: clamp(1.6rem, 3vw, 2.4rem);
+  font-size: clamp(1.4rem, 2.5vw, 1.8rem);
   font-weight: 900;
   letter-spacing: -0.02em;
   color: #fff;
   margin: 0;
 }
 .lp-cta-inner p {
-  font-size: 1.05rem;
+  font-size: 0.95rem;
   color: rgba(255,255,255,0.85);
   line-height: 1.6;
   margin: 0;
@@ -17529,7 +17529,7 @@ select {
   gap: 12px;
   flex-wrap: wrap;
   justify-content: center;
-  margin-top: 8px;
+  margin-top: 4px;
 }
 
 /* ─── Footer ─── */

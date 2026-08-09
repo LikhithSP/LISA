@@ -15096,7 +15096,6 @@ function App() {
           </div>
         </section>
 
-        {/* Feature rows */}
         <section className="lp-showcase">
           <div className="lp-showcase-inner">
             <div className="lp-showcase-row">
@@ -15107,13 +15106,6 @@ function App() {
                 <p className="lp-eyebrow">{t("freeAccessibleTag")}</p>
                 <h2>{t("showcase1Title")}</h2>
                 <p>{t("showcase1Desc")}</p>
-                <button
-                  type="button"
-                  className="lp-btn lp-btn-accent"
-                  onClick={() => { setActiveTab("register"); setMessage(""); setShowLanding(false); }}
-                >
-                  {t("tryALesson")}
-                </button>
               </div>
             </div>
             <div className="lp-showcase-row lp-showcase-row-rev">
