@@ -1445,6 +1445,7 @@ function App() {
   const [profileAvatar, setProfileAvatar] = useState("/as1.png");
   const [isEditingCover, setIsEditingCover] = useState(false);
   const [activeTab, setActiveTab] = useState("login"); // "login", "register", "forgot"
+  const [showLanding, setShowLanding] = useState(true);
   const [dashboardTab, setDashboardTab] = useState("dashboard"); // "dashboard", "learn", "practice", "profile", "shop", "leaderboard", "analytics"
   const switchDashboardTab = (tab) => {
     playChime("tab");
@@ -14923,7 +14924,284 @@ function App() {
       </div>
     );
   }
-  // LOGIN / REGISTER SCREENS (Not Logged In)
+  // LISA LANDING PAGE (Unauthenticated)
+  if (showLanding) {
+    return (
+      <div className="lp-root">
+        {/* Navbar */}
+        <header className="lp-nav">
+          <div className="lp-nav-inner">
+            <div className="lp-brand">
+              <div className="lp-brand-mark">L</div>
+              <div className="lp-brand-text">
+                <span className="lp-brand-name">LISA</span>
+                <span className="lp-brand-sub">Literacy AI</span>
+              </div>
+            </div>
+            <div className="lp-nav-right">
+              {renderThemeToggle()}
+              {renderLanguageDropdown()}
+              <button
+                type="button"
+                className="lp-btn lp-btn-ghost"
+                onClick={() => { setActiveTab("login"); setMessage(""); setShowLanding(false); }}
+              >
+                Sign In
+              </button>
+              <button
+                type="button"
+                className="lp-btn lp-btn-accent"
+                onClick={() => { setActiveTab("register"); setMessage(""); setShowLanding(false); }}
+              >
+                Get Started
+              </button>
+            </div>
+          </div>
+        </header>
+
+        {/* Hero */}
+        <section className="lp-hero">
+          <div className="lp-hero-glow" />
+          <div className="lp-hero-inner">
+            <div className="lp-hero-text">
+              <p className="lp-eyebrow">AI-Powered Literacy Platform</p>
+              <h1 className="lp-hero-h1">
+                Learn to read &amp; write<br />
+                <span className="lp-hero-gradient">in your language.</span>
+              </h1>
+              <p className="lp-hero-desc">{t("heroCopy")}</p>
+              <div className="lp-hero-actions">
+                <button
+                  type="button"
+                  className="lp-btn lp-btn-accent lp-btn-lg"
+                  onClick={() => { setActiveTab("register"); setMessage(""); setShowLanding(false); }}
+                >
+                  Start for free
+                </button>
+                <button
+                  type="button"
+                  className="lp-btn lp-btn-outline lp-btn-lg"
+                  onClick={() => { setActiveTab("login"); setMessage(""); setShowLanding(false); }}
+                >
+                  Sign in
+                </button>
+              </div>
+              <div className="lp-trust-row">
+                <span className="lp-trust-chip">✓ Free forever</span>
+                <span className="lp-trust-chip">✓ 5 Indian languages</span>
+                <span className="lp-trust-chip">✓ No downloads</span>
+              </div>
+            </div>
+            <div className="lp-hero-visual">
+              <div className="lp-hero-card-wrap">
+                <div className="lp-preview-card">
+                  <div className="lp-preview-header">
+                    <span className="lp-preview-dot lp-dot-red" />
+                    <span className="lp-preview-dot lp-dot-yellow" />
+                    <span className="lp-preview-dot lp-dot-green" />
+                    <span className="lp-preview-title">LISA · Lesson</span>
+                  </div>
+                  <img src="/as1.png" alt="LISA mascot" className="lp-preview-mascot" />
+                  <div className="lp-preview-prompt">What sound does this make?</div>
+                  <div className="lp-preview-choices">
+                    <span className="lp-choice lp-choice-active">क</span>
+                    <span className="lp-choice">ख</span>
+                    <span className="lp-choice">ग</span>
+                    <span className="lp-choice">घ</span>
+                  </div>
+                  <div className="lp-preview-xp">+10 XP · Streak 🔥 7</div>
+                </div>
+                <div className="lp-hero-badge lp-hbadge-1">
+                  <span>🎯</span>
+                  <div>
+                    <strong>Adaptive AI</strong>
+                    <p>Learns with you</p>
+                  </div>
+                </div>
+                <div className="lp-hero-badge lp-hbadge-2">
+                  <span>🗣️</span>
+                  <div>
+                    <strong>Speech Practice</strong>
+                    <p>Real-time feedback</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Language selector */}
+        <section className="lp-lang-bar">
+          <div className="lp-lang-bar-inner">
+            <span className="lp-lang-label">{t("chooseLanguage")}:</span>
+            <div className="lp-lang-pills">
+              {languages.map((l) => (
+                <button
+                  key={l}
+                  type="button"
+                  className={`lp-lang-pill ${selectedLanguage === l ? "active" : ""}`}
+                  onClick={() => handleLanguageSelect(l)}
+                >
+                  {l === "English" && "🇺🇸 English"}
+                  {l === "Hindi" && "🇮🇳 हिन्दी"}
+                  {l === "Kannada" && "🇮🇳 ಕನ್ನಡ"}
+                  {l === "Telugu" && "🇮🇳 తెలుగు"}
+                  {l === "Tamil" && "🇮🇳 தமிழ்"}
+                </button>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Feature cards */}
+        <section className="lp-features">
+          <div className="lp-features-inner">
+            <div className="lp-section-label">What makes LISA different</div>
+            <h2 className="lp-section-h2">Everything you need to become literate</h2>
+            <div className="lp-cards-grid">
+              <div className="lp-feat-card">
+                <div className="lp-feat-icon lp-icon-blue">🧠</div>
+                <h3>AI Diagnostic</h3>
+                <p>Smart assessment maps your skill level and builds a personalized learning path from day one.</p>
+              </div>
+              <div className="lp-feat-card">
+                <div className="lp-feat-icon lp-icon-purple">🗣️</div>
+                <h3>Speech Recognition</h3>
+                <p>Practice pronunciation with live Web Speech API feedback — no microphone setup required.</p>
+              </div>
+              <div className="lp-feat-card">
+                <div className="lp-feat-icon lp-icon-orange">✍️</div>
+                <h3>Handwriting Canvas</h3>
+                <p>Draw characters on an interactive canvas and get instant AI grading on letter formation.</p>
+              </div>
+              <div className="lp-feat-card">
+                <div className="lp-feat-icon lp-icon-green">🏆</div>
+                <h3>Streaks & XP</h3>
+                <p>Stay motivated with daily streaks, experience points, and achievement badges.</p>
+              </div>
+              <div className="lp-feat-card">
+                <div className="lp-feat-icon lp-icon-red">🌐</div>
+                <h3>5 Indian Languages</h3>
+                <p>English, Hindi, Kannada, Telugu, and Tamil — choose any and switch at any time.</p>
+              </div>
+              <div className="lp-feat-card">
+                <div className="lp-feat-icon lp-icon-teal">📊</div>
+                <h3>Progress Analytics</h3>
+                <p>Track comprehension, fluency, and writing skill scores through detailed dashboards.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Feature rows */}
+        <section className="lp-showcase">
+          <div className="lp-showcase-inner">
+            <div className="lp-showcase-row">
+              <div className="lp-showcase-img">
+                <img src="/as2.png" alt="Interactive Learning" />
+              </div>
+              <div className="lp-showcase-text">
+                <p className="lp-eyebrow">Free &amp; Accessible</p>
+                <h2>Fun, bite-sized lessons</h2>
+                <p>LISA breaks down complex literacy concepts into short, engaging lessons. Earn XP, unlock badges, and track your improvement — all at your own pace.</p>
+                <button
+                  type="button"
+                  className="lp-btn lp-btn-accent"
+                  onClick={() => { setActiveTab("register"); setMessage(""); setShowLanding(false); }}
+                >
+                  Try a lesson →
+                </button>
+              </div>
+            </div>
+            <div className="lp-showcase-row lp-showcase-row-rev">
+              <div className="lp-showcase-img">
+                <img src="/as3.png" alt="Personalized Path" />
+              </div>
+              <div className="lp-showcase-text">
+                <p className="lp-eyebrow">AI Engine</p>
+                <h2>Personalized for every learner</h2>
+                <p>Our diagnostic engine tests comprehension and writing, then adapts difficulty in real time. You always learn at the right level — never bored, never overwhelmed.</p>
+              </div>
+            </div>
+            <div className="lp-showcase-row">
+              <div className="lp-showcase-img">
+                <img src="/as4.png" alt="Speech & Canvas" />
+              </div>
+              <div className="lp-showcase-text">
+                <p className="lp-eyebrow">Speech &amp; Handwriting</p>
+                <h2>Speak and write, not just tap</h2>
+                <p>Go beyond multiple choice — speak words out loud for pronunciation scores and draw characters on a digital canvas. True multi-modal literacy training.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* CTA Banner */}
+        <section className="lp-cta-banner">
+          <div className="lp-cta-inner">
+            <h2>Ready to start your literacy journey?</h2>
+            <p>Join thousands of learners building reading and writing skills with LISA — completely free.</p>
+            <div className="lp-cta-actions">
+              <button
+                type="button"
+                className="lp-btn lp-btn-white lp-btn-lg"
+                onClick={() => { setActiveTab("register"); setMessage(""); setShowLanding(false); }}
+              >
+                Create free account
+              </button>
+              <button
+                type="button"
+                className="lp-btn lp-btn-outline-white lp-btn-lg"
+                onClick={() => { setActiveTab("login"); setMessage(""); setShowLanding(false); }}
+              >
+                Sign in
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* Footer */}
+        <footer className="lp-footer">
+          <div className="lp-footer-inner">
+            <div className="lp-footer-brand">
+              <div className="lp-brand-mark lp-brand-mark-sm">L</div>
+              <div>
+                <span className="lp-brand-name">LISA</span>
+                <p className="lp-footer-tagline">Literacy Intelligence Support Assistant</p>
+              </div>
+            </div>
+            <p className="lp-footer-copy">Empowering multi-lingual literacy for learners everywhere.</p>
+          </div>
+        </footer>
+
+        {/* Language Modal */}
+        {!selectedLanguage && (
+          <div className="lang-screen">
+            <div className="lang-card">
+              <h2>{t("chooseLanguage")}</h2>
+              <p>{t("selectLanguagePrompt")}</p>
+              <div className="lang-grid">
+                {languages.map((l) => (
+                  <button key={l} className="lang-btn" onClick={() => handleLanguageSelect(l)}>
+                    <span className="native">
+                      {l === "English" && "English"}
+                      {l === "Hindi" && "हिन्दी"}
+                      {l === "Kannada" && "ಕನ್ನಡ"}
+                      {l === "Telugu" && "తెలుగు"}
+                      {l === "Tamil" && "தமிழ்"}
+                    </span>
+                    <span style={{ fontSize: "0.85rem", opacity: 0.7 }}>{l}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ORIGINAL LOGIN / REGISTER SCREENS (Not Logged In)
   return (
     <main className="shell">
       <div className="brand-logo-top">
@@ -15276,6 +15554,17 @@ function App() {
           {message ? <p className="status-message">{message}</p> : null}
         </div>
       </section>
+
+      <div style={{ display: "flex", justifyContent: "center", marginTop: "24px" }}>
+        <button
+          type="button"
+          className="duo-btn duo-btn-secondary"
+          onClick={() => setShowLanding(true)}
+        >
+          Back to Welcome Page
+        </button>
+      </div>
+
       {!selectedLanguage && (
         <div className="lang-screen">
           <div className="lang-card">
