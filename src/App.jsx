@@ -9109,8 +9109,8 @@ function App() {
     return (
       <main className="shell">
         <div className="brand-logo-top">LISA</div>
-        {renderThemeToggle()}
         {renderLanguageDropdown()}
+        {renderThemeToggle()}
         <section className="hero-panel">
           <h1>{t("resetAccountPassword")}</h1>
           <p className="hero-copy">{t("regainAccessCopy")}</p>
@@ -9243,8 +9243,8 @@ function App() {
 
             {/* Right User Actions Area */}
             <div className="dashboard-user-actions" style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-              {renderThemeToggle()}
               {renderLanguageDropdown(true)}
+              {renderThemeToggle()}
               {renderProfileDropdown()}
             </div>
           </header>
@@ -10382,8 +10382,8 @@ function App() {
               )}
             </div>
             )}
-            {renderThemeToggle()}
             {renderLanguageDropdown(true)}
+            {renderThemeToggle()}
           </div>
         </div>
 
@@ -14939,14 +14939,14 @@ function App() {
               </div>
             </div>
             <div className="lp-nav-right">
-              {renderThemeToggle()}
               {renderLanguageDropdown()}
+              {renderThemeToggle()}
               <button
                 type="button"
                 className="lp-btn lp-btn-ghost"
                 onClick={() => { setActiveTab("login"); setMessage(""); setShowLanding(false); }}
               >
-                {t("signIn")}
+                {t("login")}
               </button>
               <button
                 type="button"
@@ -15002,13 +15002,38 @@ function App() {
                     <span className="lp-preview-title">{t("lisaLesson")}</span>
                   </div>
                   <img src="/as1.png" alt="LISA mascot" className="lp-preview-mascot" />
-                  <div className="lp-preview-prompt">{t("whatSoundDoesThisMake")}</div>
-                  <div className="lp-preview-choices">
-                    <span className="lp-choice lp-choice-active">क</span>
-                    <span className="lp-choice">ख</span>
-                    <span className="lp-choice">ग</span>
-                    <span className="lp-choice">घ</span>
-                  </div>
+                  {(() => {
+                    const lettersMap = {
+                      English: ["A", "B", "C", "D"],
+                      Hindi: ["क", "ख", "ग", "घ"],
+                      Kannada: ["ಕ", "ಖ", "ಗ", "ಘ"],
+                      Telugu: ["క", "ఖ", "గ", "ఘ"],
+                      Tamil: ["க", "ங", "ச", "ஞ"]
+                    };
+                    const betterQuestionMap = {
+                      English: "Which of these is the letter 'A'?",
+                      Hindi: "इनमें से कौन सा अक्षर 'क' है?",
+                      Kannada: "ಇವುಗಳಲ್ಲಿ 'ಕ' ಅಕ್ಷರ ಯಾವುದು?",
+                      Telugu: "వీటిలో 'క' అక్షరం ఏది?",
+                      Tamil: "இவற்றில் 'க' எழுத்து எது?"
+                    };
+                    const letters = lettersMap[selectedLanguage] || lettersMap["English"];
+                    const question = betterQuestionMap[selectedLanguage] || betterQuestionMap["English"];
+                    return (
+                      <>
+                        <div className="lp-preview-prompt">
+                          {question}
+                        </div>
+                        <div className="lp-preview-choices">
+                          {letters.map((char, index) => (
+                            <span key={index} className={`lp-choice ${index === 0 ? "lp-choice-active" : ""}`}>
+                              {char}
+                            </span>
+                          ))}
+                        </div>
+                      </>
+                    );
+                  })()}
                   <div className="lp-preview-xp">{t("lisaLessonXP")}</div>
                 </div>
                 <div className="lp-hero-badge lp-hbadge-1">
@@ -15173,8 +15198,8 @@ function App() {
         LISA
         <span className="brand-logo-tagline">Literacy Intelligence Support Assistant</span>
       </div>
-      {renderThemeToggle()}
       {renderLanguageDropdown()}
+      {renderThemeToggle()}
       <section className="hero-panel">
         <h1>{t("heroTitle")}</h1>
         <p className="hero-copy">{t("heroCopy")}</p>

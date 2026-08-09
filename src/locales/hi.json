@@ -383,9 +383,9 @@
   "signIn": "लॉग इन करें",
   "freeForever": "✓ हमेशा मुफ़्त",
   "fiveLanguages": "✓ 5 भारतीय भाषाएँ",
-  "noDownloads": "✓ कोई डाउनलोड नहीं",
+  "noDownloads": "✓ विज्ञापन-मुक्त",
   "whyLisa": "LISA को क्या अलग बनाता है",
-  "everythingYouNeed": "साक्षर बनने के लिए वह सब कुछ जो आपको चाहिए",
+  "everythingYouNeed": "सीखने, अभ्यास करने और आगे बढ़ने के लिए वह सब कुछ जो आपको चाहिए",
   "feat1Title": "एआई डायग्नोस्टिक",
   "feat1Desc": "स्मार्ट मूल्यांकन आपके कौशल स्तर को मैप करता है और पहले दिन से एक व्यक्तिगत शिक्षण पथ बनाता है।",
   "feat2Title": "भाषण पहचान",
@@ -414,8 +414,8 @@
   "whatSoundDoesThisMake": "यह कैसी आवाज़ निकालता है?",
   "speechPracticeTitle": "भाषण अभ्यास",
   "realtimeFeedbackTitle": "वास्तविक समय प्रतिक्रिया",
-  "adaptiveAiTitle": "अनुकूलनशील एआई",
-  "learnsWithYou": "आपके साथ सीखता है",
+  "adaptiveAiTitle": "व्यक्तिगत पथ",
+  "learnsWithYou": "आपकी गति के अनुकूल",
   "lisaLesson": "LISA · पाठ",
   "lisaLessonXP": "+10 XP · स्ट्रीक 🔥 7"
 }
