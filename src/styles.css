@@ -17033,6 +17033,15 @@ select {
    LISA LANDING PAGE — Native Design System  (lp- prefix)
    ========================================================================== */
 
+/* Make fixed-position controls sit inline when inside the landing navbar */
+.lp-nav .theme-toggle-container,
+.lp-nav .lang-selector-container {
+  position: static;
+  top: auto;
+  right: auto;
+  z-index: auto;
+}
+
 /* Root wrapper */
 .lp-root {
   min-height: 100vh;
@@ -17072,13 +17081,13 @@ select {
   width: 40px;
   height: 40px;
   border-radius: 12px;
-  background: linear-gradient(135deg, var(--accent), #df7f3d);
+  background: var(--accent);
   color: #fff;
   font-weight: 900;
   font-size: 1.2rem;
   display: grid;
   place-items: center;
-  box-shadow: 0 8px 20px rgba(var(--accent-rgb), 0.3);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
   flex-shrink: 0;
 }
 .lp-brand-mark-sm {
@@ -17134,13 +17143,13 @@ select {
   border-radius: 16px;
 }
 .lp-btn-accent {
-  background: linear-gradient(135deg, var(--accent), #df7f3d);
+  background: var(--accent);
   color: #fff;
-  box-shadow: 0 6px 20px rgba(var(--accent-rgb), 0.28);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
 .lp-btn-accent:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 28px rgba(var(--accent-rgb), 0.38);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.2);
 }
 .lp-btn-accent:active { transform: translateY(0); }
 .lp-btn-ghost {
@@ -17178,18 +17187,11 @@ select {
 /* ─── Hero ─── */
 .lp-hero {
   position: relative;
-  padding: 80px 32px 100px;
+  padding: 80px 32px 40px;
   overflow: hidden;
 }
 .lp-hero-glow {
-  position: absolute;
-  width: 700px;
-  height: 700px;
-  background: radial-gradient(circle, rgba(var(--accent-rgb), 0.12) 0%, transparent 70%);
-  top: -200px;
-  right: -100px;
-  pointer-events: none;
-  border-radius: 50%;
+  display: none;
 }
 .lp-hero-inner {
   max-width: 1200px;
@@ -17221,10 +17223,7 @@ select {
   color: var(--text);
 }
 .lp-hero-gradient {
-  background: linear-gradient(135deg, var(--accent), #df7f3d);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--accent);
 }
 .lp-hero-desc {
   font-size: 1.05rem;
@@ -17274,11 +17273,6 @@ select {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  animation: lpFloat 5s ease-in-out infinite;
-}
-@keyframes lpFloat {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
 }
 .lp-preview-header {
   display: flex;
@@ -17361,75 +17355,17 @@ select {
 .lp-hero-badge strong { display: block; font-weight: 800; font-size: 0.85rem; color: var(--text); }
 .lp-hero-badge p { margin: 0; color: var(--muted); font-size: 0.75rem; }
 .lp-hbadge-1 {
-  top: -20px;
-  left: -30px;
-  animation: lpBadge1 6s ease-in-out infinite;
+  top: -30px;
+  left: -60px;
 }
 .lp-hbadge-2 {
-  bottom: 20px;
-  right: -30px;
-  animation: lpBadge2 6s ease-in-out 1.5s infinite;
-}
-@keyframes lpBadge1 {
-  0%, 100% { transform: translateY(0) rotate(-2deg); }
-  50% { transform: translateY(-8px) rotate(0deg); }
-}
-@keyframes lpBadge2 {
-  0%, 100% { transform: translateY(0) rotate(2deg); }
-  50% { transform: translateY(-6px) rotate(0deg); }
-}
-
-/* ─── Language bar ─── */
-.lp-lang-bar {
-  background: var(--panel);
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
-  padding: 16px 32px;
-}
-.lp-lang-bar-inner {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-.lp-lang-label {
-  font-size: 0.78rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--muted);
-  white-space: nowrap;
-}
-.lp-lang-pills {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-.lp-lang-pill {
-  background: var(--panel-strong);
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  padding: 7px 16px;
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: var(--text);
-  cursor: pointer;
-  transition: all 160ms ease;
-  font-family: var(--font-family);
-}
-.lp-lang-pill:hover { border-color: var(--accent); color: var(--accent); }
-.lp-lang-pill.active {
-  background: var(--accent-soft);
-  border-color: var(--accent);
-  color: var(--accent);
-  font-weight: 700;
+  bottom: -20px;
+  right: -50px;
 }
 
 /* ─── Feature cards section ─── */
 .lp-features {
-  padding: 96px 32px;
+  padding: 40px 32px 80px;
 }
 .lp-features-inner {
   max-width: 1200px;
@@ -17506,7 +17442,7 @@ select {
 /* ─── Feature showcase rows ─── */
 .lp-showcase {
   padding: 80px 32px;
-  background: var(--panel);
+  background: var(--bg);
 }
 .lp-showcase-inner {
   max-width: 1100px;
@@ -17532,11 +17468,13 @@ select {
 }
 .lp-showcase-img img {
   width: 100%;
-  max-width: 360px;
+  max-width: 260px;
   height: auto;
-  border-radius: 24px;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.1);
   transition: transform 300ms ease;
+}
+.lp-showcase-img img[src="/as2.png"],
+.lp-showcase-img img[src="/as3.png"] {
+  max-width: 200px;
 }
 .lp-showcase-img img:hover { transform: scale(1.03); }
 .lp-showcase-text {
@@ -17560,7 +17498,7 @@ select {
 
 /* ─── CTA Banner ─── */
 .lp-cta-banner {
-  background: linear-gradient(135deg, var(--accent) 0%, #8b5cf6 60%, #df7f3d 100%);
+  background: var(--accent-dark);
   padding: 80px 32px;
 }
 .lp-cta-inner {
