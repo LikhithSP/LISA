@@ -383,9 +383,9 @@
   "signIn": "లాగిన్",
   "freeForever": "✓ శాశ్వతంగా ఉచితం",
   "fiveLanguages": "✓ 5 భారతీయ భాషలు",
-  "noDownloads": "✓ డౌన్‌లోడ్‌లు లేవు",
+  "noDownloads": "✓ ప్రకటనలు లేవు",
   "whyLisa": "LISA ను ఏది ప్రత్యేకంగా చేస్తుంది",
-  "everythingYouNeed": "సాక్షరులుగా మారడానికి మీకు కావలసినవన్నీ",
+  "everythingYouNeed": "మీరు నేర్చుకోవడానికి, సాధన చేయడానికి మరియు ఎదగడానికి కావలసినవన్నీ",
   "feat1Title": "AI డయాగ్నోస్టిక్",
   "feat1Desc": "స్మార్ట్ అసెస్‌మెంట్ మీ నైపుణ్య స్థాయిని గుర్తిస్తుంది మరియు మొదటి రోజు నుండే వ్యక్తిగతీకరించిన అభ్యాస మార్గాన్ని నిర్మిస్తుంది.",
   "feat2Title": "ధ్వని గుర్తింపు (Speech Recognition)",
@@ -414,8 +414,8 @@
   "whatSoundDoesThisMake": "ఇది ఎలాంటి శబ్దాన్ని చేస్తుంది?",
   "speechPracticeTitle": "ధ్వని సాధన",
   "realtimeFeedbackTitle": "నిజ-సమయ అభిప్రాయం",
-  "adaptiveAiTitle": "అడాప్టివ్ AI",
-  "learnsWithYou": "మీతో పాటు నేర్చుకుంటుంది",
+  "adaptiveAiTitle": "వ్యక్తిగతీకరించిన మార్గం",
+  "learnsWithYou": "మీ వేగానికి అనుగుణంగా మారుతుంది",
   "lisaLesson": "LISA · పాఠం",
   "lisaLessonXP": "+10 XP · స్ట్రీక్ 🔥 7"
 }

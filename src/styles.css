@@ -3522,8 +3522,8 @@ select:focus-visible {
 
 /* Main content view overrides */
 .dashboard-main-view {
-  background-color: var(--theme-bg) !important;
-  background-image: linear-gradient(color-mix(in srgb, var(--theme-bg) 82%, transparent), color-mix(in srgb, var(--theme-bg) 82%, transparent)),
+  background-color: #ffffff !important;
+  background-image: linear-gradient(rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.88)),
     url("https://images.rawpixel.com/image_social_landscape/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTA5L3Jhd3BpeGVsX29mZmljZV8yMl9zaW1wbGlmaWVkX2VtcHR5X2NvdW50cnlzaWRlX2hpbGxfbGFuZHNjYXBlX182NmUzNTJjMi1iZTA2LTQ3ZjAtYThmMC1kZmM4ZGM4NTg1NWFfMS5qcGc.jpg") !important;
   background-size: cover !important;
   background-position: center !important;

@@ -384,9 +384,9 @@
   "signIn": "Sign in",
   "freeForever": "✓ Free forever",
   "fiveLanguages": "✓ 5 Indian languages",
-  "noDownloads": "✓ No downloads",
+  "noDownloads": "✓ Ad-free",
   "whyLisa": "What makes LISA different",
-  "everythingYouNeed": "Everything you need to become literate",
+  "everythingYouNeed": "Everything you need to learn, practice, and grow",
   "feat1Title": "AI Diagnostic",
   "feat1Desc": "Smart assessment maps your skill level and builds a personalized learning path from day one.",
   "feat2Title": "Speech Recognition",
@@ -415,8 +415,8 @@
   "whatSoundDoesThisMake": "What sound does this make?",
   "speechPracticeTitle": "Speech Practice",
   "realtimeFeedbackTitle": "Real-time feedback",
-  "adaptiveAiTitle": "Adaptive AI",
-  "learnsWithYou": "Learns with you",
+  "adaptiveAiTitle": "Personalized Path",
+  "learnsWithYou": "Adapts to your pace",
   "lisaLesson": "LISA · Lesson",
   "lisaLessonXP": "+10 XP · Streak 🔥 7"
 }
