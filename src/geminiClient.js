@@ -20,6 +20,10 @@ const GROQ_MODEL     = import.meta.env.VITE_GROQ_MODEL       || "groq/compound";
 
 // API Fetch Helper with Fallbacks
 const fetchAI = async (prompt, maxTokens = 4096) => {
+  if (localStorage.getItem("lisa_ai_enabled") === "false") {
+    console.log("AI is disabled in dev control. Skipping fetchAI call.");
+    return null;
+  }
   if (PRIMARY_KEY) {
     try {
       console.log("Calling OpenRouter API...");
@@ -1362,8 +1366,9 @@ Return ONLY valid JSON with this exact structure:
 The user's preferred interface language is ${uiLang}. All options, instructions, prompts, and explanations must be translated to or explained in ${uiLang} wherever applicable.
 The questions must be a mix of the following reading/comprehension activity types:
 1. "mcq": A multiple choice question in ${targetLang} testing reading comprehension, grammar, or word usage. Explanation in ${uiLang}.
-2. "meaning": Select the correct translation/meaning of a target language word in ${uiLang}.
-3. "passage": A short reading passage with a multiple-choice comprehension question:
+2. "fillBlank": A sentence in ${targetLang} with a blank (___) for the learner to select or type the correct word, with a hint in ${uiLang}.
+3. "meaning": Select the correct translation/meaning of a target language word in ${uiLang}.
+4. "passage": A short reading passage with a multiple-choice comprehension question:
    {
      "id": idx,
      "type": "passage",
@@ -1373,7 +1378,7 @@ The questions must be a mix of the following reading/comprehension activity type
      "correctIndex": 0,
      "explanation": "Why this is correct, written in ${uiLang}"
    }
-4. "matchingPairs": Make correct pairs of words:
+5. "matchingPairs": Make correct pairs of words:
    {
      "id": idx,
      "type": "matchingPairs",
@@ -1384,7 +1389,7 @@ The questions must be a mix of the following reading/comprehension activity type
        {"left": "word 4 in ${targetLang}", "right": "its meaning/translation/definition in ${uiLang}"}
      ]
    }
-5. "imageChoice": Choose the correct picture:
+6. "imageChoice": Choose the correct picture:
    {
      "id": idx,
      "type": "imageChoice",
@@ -1479,18 +1484,24 @@ Return ONLY valid JSON with this exact structure:
   if (practiceType === "Write Practice") {
     return `You are LISA, an expert AI literacy tutor. Generate exactly 10 writing practice questions in ${targetLang} suitable for a learner at Literacy Level ${literacyLevel} (${literacyLevelName}).
 The user's interface language is ${uiLang}. Write prompts, hints, and translation cues in ${uiLang}.
-The questions must be a mix of the following writing activity types:
-1. "fillBlank": A sentence in ${targetLang} with a blank (___) for the learner to type the correct word.
-2. "unscramble": Shuffled letter tiles in ${targetLang} that the learner rearranges to form a word.
-3. "writingActivity": A short writing prompt in ${uiLang} for the learner to write a short response in ${targetLang}.
-4. "tracing": A letter or simple word in ${targetLang} to trace.
-5. "translationTask": Arrange the words:
+The questions must be a mix of the following writing activity types ONLY:
+1. "unscramble": Shuffled letter tiles of a word in ${targetLang} (learning language) that the learner rearranges to form the target word. The question prompt/hint must be in ${uiLang} (interface language), e.g.:
+   {
+     "id": idx,
+     "type": "unscramble",
+     "hint": "Prompt/hint description of the word in ${uiLang}",
+     "emoji": "An emoji representing the word",
+     "answer": "TARGET_WORD_IN_${targetLang}",
+     "tiles": ["Individual", "letter", "tiles", "of", "the", "word", "in", "${targetLang}"]
+   }
+2. "tracing": A letter or simple word in ${targetLang} to trace.
+3. "translationTask": Arrange the words to form a sentence:
    {
      "id": idx,
      "type": "translationTask",
-     "prompt": "Arrange the words to form a sentence translating: [English sentence translated to ${uiLang}]",
+     "prompt": "Arrange the words to form a sentence translating: [Sentence in ${uiLang}]",
      "englishTranslation": "The correct target sentence in ${targetLang}",
-     "tiles": ["shuffled", "words", "containing", "correct", "ones", "plus", "distractors"]
+     "tiles": ["shuffled", "words", "in", "${targetLang}"]
    }
 
 Return ONLY valid JSON with this exact structure:
@@ -1498,7 +1509,7 @@ Return ONLY valid JSON with this exact structure:
   "questions": [
     ...
   ]
-} (Make sure there are exactly 10 items in the array, using a mix of these types)`;
+} (Make sure there are exactly 10 items in the array, using a mix of these 3 types. Do NOT include fillBlank or writingActivity questions)`;
   }
 
   if (practiceType === "Word Sprint") {
@@ -1559,8 +1570,138 @@ Return ONLY valid JSON with this exact structure:
   return "";
 };;
 
+const UNSCRAMBLE_HINTS = {
+  school: {
+    English: "Place of study and learning",
+    Hindi: "अध्ययन का स्थान",
+    Kannada: "ಕಲಿಯುವ ಸ್ಥಳ",
+    Telugu: "మనం చదువుకునే చోటు",
+    Tamil: "நாங்கள் படிக்கும் இடம்"
+  },
+  apple: {
+    English: "A sweet red fruit",
+    Hindi: "एक लाल या हरा फल",
+    Kannada: "ಒಂದು ಸಿಹಿ ಕೆಂಪು ಹಣ್ಣು",
+    Telugu: "ఒక తియ్యటి ఎర్రని పండు",
+    Tamil: "ஒரு இனிப்பான சிவப்பு பழம்"
+  },
+  book: {
+    English: "Book to read and learn",
+    Hindi: "पढ़ने की पुस्तक",
+    Kannada: "ಓದುವ ಪುಸ್ತಕ",
+    Telugu: "చదువుకునే పుస్తకం",
+    Tamil: "படிக்க உதவும் புத்தகம்"
+  },
+  sun: {
+    English: "Bright star in the sky",
+    Hindi: "आसमान में चमकता तारा",
+    Kannada: "ಆಕಾಶದಲ್ಲಿ ಪ್ರಕಾಶಿಸುವ ಸೂರ್ಯ",
+    Telugu: "ఆకాశంలో ప్రకాశించే సూర్యుడు",
+    Tamil: "வானத்தில் பிரகாசிக்கும் சூரியன்"
+  }
+};
+
+const TRACING_INFOS = {
+  English: (char) => `Trace the letter ${char}`,
+  Hindi: (char) => `अक्षर '${char}' को ट्रेस करें`,
+  Kannada: (char) => `ಅಕ್ಷರ '${char}' ಅನ್ನು ಟ್ರೇಸ್ ಮಾಡಿ`,
+  Telugu: (char) => `అక్షరం '${char}' ను ట్రేస్ చేయండి`,
+  Tamil: (char) => `எழுத்து '${char}' ஐ டிரேஸ் செய்யவும்`
+};
+
+const TRANSLATION_PROMPTS = {
+  school: {
+    English: "Arrange the words to form: 'our school is beautiful'",
+    Hindi: "Arrange the words to form: 'हमारा स्कूल सुंदर है'",
+    Kannada: "Arrange the words to form: 'ನಮ್ಮ ಶಾಲೆ ಸುಂದರವಾಗಿದೆ'",
+    Telugu: "Arrange the words to form: 'మా బడి చాలా అందంగా ఉంటుంది'",
+    Tamil: "Arrange the words to form: 'எங்கள் பள்ளி அழகாக இருக்கிறது'"
+  },
+  cat: {
+    English: "Arrange the words to form: 'this is a cat'",
+    Hindi: "Arrange the words to form: 'यह एक बिल्ली है'",
+    Kannada: "Arrange the words to form: 'ಇದು ಒಂದು ಬೆಕ್ಕು'",
+    Telugu: "Arrange the words to form: 'ఇది ఒక పిల్లి'",
+    Tamil: "Arrange the words to form: 'இது ஒரு பூனை'"
+  },
+  sun: {
+    English: "Arrange the words to form: 'the sun rises in the east'",
+    Hindi: "Arrange the words to form: 'सूरज पूर्व से उगता है'",
+    Kannada: "Arrange the words to form: 'ಸೂರ್ಯನು ಪೂರ್ವದಲ್ಲಿ ಉದಯಿಸುತ್ತಾನೆ'",
+    Telugu: "Arrange the words to form: 'సూర్యుడు తూర్పున ఉదయిస్తాడు'",
+    Tamil: "Arrange the words to form: 'சூரியன் கிழக்கில் உதிக்கிறது'"
+  }
+};
+const WORD_SPRINT_HINTS = {
+  apple: { English: "A red or green fruit", Hindi: "एक लाल या हरा फल", Kannada: "ಒಂದು ಕೆಂಪು ಅಥವಾ ಹಸಿರು ಹಣ್ಣು", Telugu: "ఒక ఎరుపు లేదా ఆకుపచ్చ పండు", Tamil: "ஒரு சிவப்பு அல்லது பச்சை பழம்" },
+  bridge: { English: "You cross water on it", Hindi: "आप इससे पानी पार करते हैं", Kannada: "ನೀವು ಇದರ ಮೇಲೆ ನೀರನ್ನು ದಾಟುತ್ತೀರಿ", Telugu: "దీనిపై నీటిని దాటుతాము", Tamil: "இதன் மூலம் நீங்கள் நீரை கடக்கலாம்" },
+  cloud: { English: "Found in the sky", Hindi: "आसमान में पाया जाता है", Kannada: "ಆಕಾಶದಲ್ಲಿ ಕಂಡುಬರುತ್ತದೆ", Telugu: "ఆకాశంలో కనిపిస్తుంది", Tamil: "வானத்தில் காணப்படும்" },
+  dream: { English: "What you see when sleeping", Hindi: "सोते समय जो आप देखते हैं", Kannada: "ನಿದ್ರಿಸುವಾಗ ನೀವು ಕಾಣುವ ದೃಶ್ಯ", Telugu: "నిద్రపోతున్నప్పుడు వచ్చేది", Tamil: "தூங்கும் போது நீங்கள் காண்பது" },
+  earth: { English: "Our home planet", Hindi: "हमारा गृह ग्रह", Kannada: "ನಮ್ಮ ವಾಸಸ್ಥಾನ ಗ್ರಹ", Telugu: "మన నివాస గ్రహం", Tamil: "நமது தாய் கிரகம்" },
+  fire: { English: "Hot and bright", Hindi: "गर्म और चमकदार", Kannada: "ಬಿಸಿ ಮತ್ತು ಪ್ರಕಾಶಮಾನ", Telugu: "వేడిగా మరియు ప్రకాశవంతంగా ఉంటుంది", Tamil: "வெப்பமான மற்றும் பிரகாசமானது" },
+  garden: { English: "Where flowers grow", Hindi: "जहाँ फूल उगते हैं", Kannada: "ಹೂವುಗಳು ಬೆಳೆಯುವ ಸ್ಥಳ", Telugu: "పువ్వులు పెరిగే స్థలం", Tamil: "பூக்கள் வளரும் இடம்" },
+  happy: { English: "A joyful feeling", Hindi: "एक आनंदमय भावना", Kannada: "ಆನಂದದಾಯಕ ಭಾವನೆ", Telugu: "ఒక ఆనందకరమైన అనుభೂति", Tamil: "ஒரு மகிழ்ச்சியான உணர்வு" },
+  island: { English: "Land surrounded by water", Hindi: "पानी से घिरी भूमि", Kannada: "ನೀರಿನಿಂದ ಆವೃತವಾದ ಭೂಮಿ", Telugu: "నీటితో చుట్టబడిన భూమి", Tamil: "நீரால் சூழப்பட்ட நிலப்பகுதி" },
+  jungle: { English: "A dense tropical forest", Hindi: "एक घना उष्णकटिबंधीय वन", Kannada: "ದಟ್ಟವಾದ ಉಷ್ಣವಲಯದ ಕಾಡು", Telugu: "దట్టమైన ఉష్ణమండల అరణ్యం", Tamil: "அடர்ந்த வெப்பமண்டல காடு" }
+};
+
+const CATEGORIES_BY_LANG = {
+  Emotions: { English: "Emotions", Hindi: "भावनाएँ", Kannada: "ಭಾವನೆಗಳು", Telugu: "భావోద్వేగాలు", Tamil: "உணர்ச்சிகள்" },
+  Adjectives: { English: "Adjectives", Hindi: "विशेषण", Kannada: "ಗುಣವಾಚಕಗಳು", Telugu: "విశేషణాలు", Tamil: "உரிச்சொற்கள்" },
+  Food: { English: "Food", Hindi: "भोजन", Kannada: "ಆಹಾರ", Telugu: "ఆహారం", Tamil: "உணவு" },
+  Nature: { English: "Nature", Hindi: "प्रकृति", Kannada: "ಪ್ರಕೃತಿ", Telugu: "ప్రకృతి", Tamil: "இயற்கை" },
+  World: { English: "World", Hindi: "दुनिया", Kannada: "ಪ್ರಪಂಚ", Telugu: "ప్రపంచం", Tamil: "உலகம்" },
+  Arts: { English: "Arts", Hindi: "कला", Kannada: "ಕಲೆಗಳು", Telugu: "కళలు", Tamil: "கலைகள்" },
+  Science: { English: "Science", Hindi: "विज्ञान", Kannada: "ವಿಜ್ಞಾನ", Telugu: "విజ్ఞానం", Tamil: "அறிவியல்" },
+  Concepts: { English: "Concepts", Hindi: "अवधारणाएँ", Kannada: "ಪರಿಕಲ್ಪನೆಗಳು", Telugu: "భావనలు", Tamil: "கருத்துக்கள்" },
+  Education: { English: "Education", Hindi: "शिक्षा", Kannada: "ಶಿಕ್ಷಣ", Telugu: "విద్య", Tamil: "கல்வி" },
+  Skills: { English: "Skills", Hindi: "कौशल", Kannada: "ಕೌಶಲ್ಯಗಳು", Telugu: "నైపుణ్యాలు", Tamil: "திறன்கள்" },
+  Language: { English: "Language", Hindi: "भाषा", Kannada: "ಭಾಷೆ", Telugu: "భాష", Tamil: "மொழி" },
+  Traits: { English: "Traits", Hindi: "गुण", Kannada: "ಗುಣಲಕ್ಷಣಗಳು", Telugu: "లక్షణాలు", Tamil: "பண்புகள்" }
+};
+
+const READ_QUESTIONS = {
+  sun_mcq: {
+    English: { q: "From which direction does the sun rise?", opt: ["East", "West", "North", "South"], exp: "The sun rises in the east." },
+    Hindi: { q: "सूरज किस दिशा से उगता है?", opt: ["पूर्व", "पश्चिम", "उत्तर", "दक्षिण"], exp: "सूरज पूर्व से उगता है।" },
+    Kannada: { q: "ಸೂರ್ಯನು ಯಾವ ದಿಕ್ಕಿನಲ್ಲಿ ಉದಯಿಸುತ್ತಾನೆ?", opt: ["ಪೂರ್ವ", "ಪಶ್ಚಿಮ", "ಉತ್ತರ", "ದಕ್ಷಿಣ"], exp: "ಸೂರ್ಯನು ಪೂರ್ವದಲ್ಲಿ ಉದಯಿಸುತ್ತಾನೆ." },
+    Telugu: { q: "సూర్యుడు ఏ దిశలో ఉదయిస్తాడు?", opt: ["తూర్పు", "పడమర", "ఉత్తరం", "దక్షిణం"], exp: "సూర్యుడు తూర్పున ఉదయిస్తాడు." },
+    Tamil: { q: "சூரியன் எந்த திசையில் உதிக்கிறது?", opt: ["கிழக்கு", "மேற்கு", "வடக்கு", "தெற்கு"], exp: "சூரியன் கிழக்கில் உதிக்கிறது." }
+  },
+  lion_passage: {
+    English: { q: "Where did the lion live?", opt: ["In the forest", "In a cave", "In the zoo", "On the hill"], exp: "The lion lived in the forest." },
+    Hindi: { q: "शेर कहाँ रहता था?", opt: ["जंगल में", "गुफा में", "चिड़ियाघर में", "पहाड़ पर"], exp: "शेर जंगल में रहता था।" },
+    Kannada: { q: "ಸಿಂಹ ಎಲ್ಲಿ ವಾಸಿಸುತ್ತಿತ್ತು?", opt: ["ಕಾಡಿನಲ್ಲಿ", "ಗುಹೆಯಲ್ಲಿ", "ಮೃಗಾಲಯದಲ್ಲಿ", "ಬೆಟ್ಟದ ಮೇಲೆ"], exp: "ಸಿಂಹ ಕಾಡಿನಲ್ಲಿ ಇತ್ತು." },
+    Telugu: { q: "సింహం ఎక్కడ ఉండేది?", opt: ["అడవిలో", "గుహలో", "జూలో", "కొండపై"], exp: "సింహం అడవిలో ఉండేది." },
+    Tamil: { q: "சிங்கம் எங்கு வாழ்ந்தது?", opt: ["காட்டில்", "குகையில்", "மிருகக்காட்சிசாலையில்", "மலையில்"], exp: "சிங்கம் காட்டில் வாழ்ந்தது." }
+  },
+  dog_passage: {
+    English: { q: "What is Raju's dog name?", opt: ["Sheru", "Kalu", "Moti", "Tommy"], exp: "The dog name is Sheru." },
+    Hindi: { q: "राजू के कुत्ते का नाम क्या है?", opt: ["शेरू", "कालू", "मोती", "टॉमी"], exp: "राजू के कुत्ते का नाम शेरू है।" },
+    Kannada: { q: "ರಾಜು ನಾಯಿಯ ಹೆಸರೇನು?", opt: ["ಶೇರು", "ಕಾಲು", "ಮೋತಿ", "ಟಾಮಿ"], exp: "ನಾಯಿಯ ಹೆಸರು ಶೇರು." },
+    Telugu: { q: "రాజు కుక్క పేరు ఏమిటి?", opt: ["షేరు", "కాలు", "మోతీ", "టామీ"], exp: "రాజు కుక్క పేరు షేరు." },
+    Tamil: { q: "ராஜுவின் நாயின் பெயர் என்ன?", opt: ["ஷேரு", "காலும்", "மோதி", "டாமி"], exp: "நாயின் பெயர் ஷேரு." }
+  },
+  book_img: {
+    English: "Choose the correct picture for Book:",
+    Hindi: "किताब (Book) के लिए सही चित्र चुनें:",
+    Kannada: "ಪುಸ್ತಕ (Book) ಕ್ಕೆ ಸರಿಯಾದ ಚಿತ್ರವನ್ನು ಆರಿಸಿ:",
+    Telugu: "పుస్తకం (Book) కొరకు సరైన చిత్రాన్ని ఎంచుకోండి:",
+    Tamil: "புத்தகம் (Book) க்கான சரியான படத்தை தேர்வு செய்யவும்:"
+  },
+  sun_img: {
+    English: "Choose the correct picture for Sun:",
+    Hindi: "सूरज (Sun) के लिए सही चित्र चुनें:",
+    Kannada: "ಸೂರ್ಯ (Sun) ನಿಗೆ ಸರಿಯಾದ ಚಿತ್ರವನ್ನು ಆರಿಸಿ:",
+    Telugu: "సూర్యుడు (Sun) కొరకు సరైన చిత్రాన్ని ఎంచుకోండి:",
+    Tamil: "சூரியன் (Sun) க்கான சரியான படத்தை தேர்வு செய்யவும்:"
+  }
+};
+
 const getFallbackPractice = (params) => {
-  const { practiceType, language } = params;
+  const { practiceType, language, learningLanguage, interfaceLanguage, preferredLanguage } = params;
+  const targetLang = learningLanguage || language || "English";
+  const uiLang = interfaceLanguage || preferredLanguage || "English";
   
   const rawPractice = (() => {
     if (practiceType === "Perfect Pronunciation") {
@@ -1686,134 +1827,219 @@ const getFallbackPractice = (params) => {
   });
 
   if (practiceType === "Read Practice") {
-    const readingQuestions = language === "Hindi" ? [
-      { id: 1, type: "mcq", question: "सूरज किस दिशा से उगता है?", options: ["पूर्व", "पश्चिम", "उत्तर", "दक्षिण"], correctIndex: 0, explanation: "सूरज पूर्व से उगता है।" },
-      { id: 2, type: "meaning", phrase: "पुस्तकालय", options: ["A place with books to read or borrow", "A place where students study", "A place to buy things"], correctIndex: 0 },
-      { id: 3, type: "passage", passage: "एक जंगल में एक शेर रहता था। वह बहुत शक्तिशाली था। सभी जानवर उससे डरते थे।", question: "शेर कहाँ रहता था?", options: ["जंगल में", "गुफा में", "चिड़ियाघर में", "पहाड़ पर"], correctIndex: 0, explanation: "पहली पंक्ति बताती है कि शेर जंगल में रहता था।" },
+    const sunMcq = READ_QUESTIONS.sun_mcq[uiLang] || READ_QUESTIONS.sun_mcq.English;
+    const lionPass = READ_QUESTIONS.lion_passage[uiLang] || READ_QUESTIONS.lion_passage.English;
+    const dogPass = READ_QUESTIONS.dog_passage[uiLang] || READ_QUESTIONS.dog_passage.English;
+    const bookPrompt = READ_QUESTIONS.book_img[uiLang] || READ_QUESTIONS.book_img.English;
+    const sunPrompt = READ_QUESTIONS.sun_img[uiLang] || READ_QUESTIONS.sun_img.English;
+    const fillBlankDirHint = uiLang === "Hindi" ? "दिशा से संबंधित" : uiLang === "Kannada" ? "ದಿಕ್ಕಿನ ಸೂಚನೆ" : uiLang === "Telugu" ? "దిశకు సంబంధించి" : uiLang === "Tamil" ? "திசை பற்றிய குறிப்பு" : "A cardinal direction";
+    const fillBlankWaterHint = uiLang === "Hindi" ? "पेय पदार्थ" : uiLang === "Kannada" ? "ಪಾನೀಯ" : uiLang === "Telugu" ? "పానీయం" : uiLang === "Tamil" ? "பானம்" : "Essential liquid";
+
+    const readingQuestions = targetLang === "Hindi" ? [
+      { id: 1, type: "mcq", question: sunMcq.q, options: ["पूर्व", "पश्चिम", "उत्तर", "दक्षिण"], correctIndex: 0, explanation: sunMcq.exp },
+      { id: 2, type: "fillBlank", sentence: "सूरज पूर्व से ___ है।", answer: "उगता", hint: fillBlankDirHint },
+      { id: 3, type: "passage", passage: "एक जंगल में एक शेर रहता था। वह बहुत शक्तिशाली था। सभी जानवर उससे डरते थे।", question: lionPass.q, options: lionPass.opt, correctIndex: 0, explanation: lionPass.exp },
       { id: 4, type: "matchingPairs", pairs: [{ left: "विद्यालय", right: "School" }, { left: "बाज़ार", right: "Market" }, { left: "मित्र", right: "Friend" }, { left: "घर", right: "Home" }] },
-      { id: 5, type: "imageChoice", word: "किताब", prompt: "किताब (Book) के लिए सही चित्र चुनें:", options: ["📚", "🍎", "🏫"], correctIndex: 0 },
-      { id: 6, type: "mcq", question: "हमारा राष्ट्रीय पक्षी कौन सा है?", options: ["मोर", "तोता", "कबूतर", "चिड़िया"], correctIndex: 0, explanation: "भारत का राष्ट्रीय पक्षी मोर है।" },
-      { id: 7, type: "meaning", phrase: "विद्यालय", options: ["A place where students learn and study", "An institution for higher learning", "A place where people work"], correctIndex: 0 },
-      { id: 8, type: "passage", passage: "राजू के पास एक सुंदर कुत्ता है। उसका नाम शेरू है। राजू उसके साथ खेलता है।", question: "राजू के कुत्ते का नाम क्या है?", options: ["शेरू", "कालू", "मोती", "टॉमी"], correctIndex: 0, explanation: "राजू के कुत्ते का नाम शेरू है।" },
+      { id: 5, type: "imageChoice", word: "किताब", prompt: bookPrompt, options: ["📚", "🍎", "🏫"], correctIndex: 0 },
+      { id: 6, type: "fillBlank", sentence: "हमें हर दिन स्वच्छ ___ पीना चाहिए।", answer: "पानी", hint: fillBlankWaterHint },
+      { id: 7, type: "meaning", phrase: "पुस्तकालय", options: ["A place with books to read or borrow", "A place where students study", "A place to buy things"], correctIndex: 0 },
+      { id: 8, type: "passage", passage: "राजू के पास एक सुंदर कुत्ता है। उसका नाम शेरू है। राजू उसके साथ खेलता है।", question: dogPass.q, options: dogPass.opt, correctIndex: 0, explanation: dogPass.exp },
       { id: 9, type: "matchingPairs", pairs: [{ left: "जल", right: "Water" }, { left: "अग्नि", right: "Fire" }, { left: "वायु", right: "Air" }, { left: "आकाश", right: "Sky" }] },
-      { id: 10, type: "imageChoice", word: "सूरज", prompt: "सूरज (Sun) के लिए सही चित्र चुनें:", options: ["🌞", "🌙", "⭐"], correctIndex: 0 }
-    ] : language === "Kannada" ? [
-      { id: 1, type: "mcq", question: "ಸೂರ್ಯನು ಯಾವ ದಿಕ್ಕಿನಲ್ಲಿ ಉದಯಿಸುತ್ತಾನೆ?", options: ["ಪೂರ್ವ", "ಪಶ್ಚಿಮ", "ಉತ್ತರ", "ದಕ್ಷಿಣ"], correctIndex: 0, explanation: "ಸೂರ್ಯನು ಪೂರ್ವದಲ್ಲಿ ಉದಯಿಸುತ್ತಾನೆ." },
-      { id: 2, type: "meaning", phrase: "ಗ್ರಂಥಾಲಯ", options: ["A place with books to read or borrow", "A place where students study", "A place to buy things"], correctIndex: 0 },
-      { id: 3, type: "passage", passage: "ಒಂದು ಕಾಡಿನಲ್ಲಿ ಸಿಂಹವಿತ್ತು. ಅದು ತುಂಬಾ ಬಲಶಾಲಿಯಾಗಿತ್ತು. ಎಲ್ಲಾ ಪ್ರಾಣಿಗಳು ಅದಕ್ಕೆ ಹೆದರುತ್ತಿದ್ದವು.", question: "ಸಿಂಹ ಎಲ್ಲ ಇತ್ತು?", options: ["ಕಾಡಿನಲ್ಲಿ", "ಗುಹೆಯಲ್ಲಿ", "ಮೃಗಾಲಯದಲ್ಲಿ", "ಬೆಟ್ಟದ ಮೇಲೆ"], correctIndex: 0, explanation: "ಸಿಂಹ ಕಾಡಿನಲ್ಲಿ ಇತ್ತು." },
+      { id: 10, type: "imageChoice", word: "सूरज", prompt: sunPrompt, options: ["🌞", "🌙", "⭐"], correctIndex: 0 }
+    ] : targetLang === "Kannada" ? [
+      { id: 1, type: "mcq", question: sunMcq.q, options: ["ಪೂರ್ವ", "ಪಶ್ಚಿಮ", "ಉತ್ತರ", "ದಕ್ಷಿಣ"], correctIndex: 0, explanation: sunMcq.exp },
+      { id: 2, type: "fillBlank", sentence: "ಸೂರ್ಯನು ಪೂರ್ವದಲ್ಲಿ ___.", answer: "ಉದಯಿಸುತ್ತಾನೆ", hint: fillBlankDirHint },
+      { id: 3, type: "passage", passage: "ಒಂದು ಕಾಡಿನಲ್ಲಿ ಸಿಂಹವಿತ್ತು. ಅದು ತುಂಬಾ ಬಲಶಾಲಿಯಾಗಿತ್ತು. ಎಲ್ಲಾ ಪ್ರಾಣಿಗಳು ಅದಕ್ಕೆ ಹೆದರುತ್ತಿದ್ದವು.", question: lionPass.q, options: lionPass.opt, correctIndex: 0, explanation: lionPass.exp },
       { id: 4, type: "matchingPairs", pairs: [{ left: "ಶಾಲೆ", right: "School" }, { left: "ಮಾರುಕಟ್ಟೆ", right: "Market" }, { left: "ಸ್ನೇಹಿತ", right: "Friend" }, { left: "ಮನೆ", right: "Home" }] },
-      { id: 5, type: "imageChoice", word: "ಪುಸ್ತಕ", prompt: "ಪುಸ್ತಕ (Book) ಕ್ಕೆ ಸರಿಯಾದ ಚಿತ್ರವನ್ನು ಆರಿಸಿ:", options: ["📚", "🍎", "🏫"], correctIndex: 0 },
-      { id: 6, type: "mcq", question: "ನಮ್ಮ ರಾಷ್ಟ್ರೀಯ ಪಕ್ಷಿ ಯಾವುದು?", options: ["ನವಿಲು", "ಗಿಳಿ", "ಪಾರಿವಾಳ", "ಗುಬ್ಬಚ್ಚಿ"], correctIndex: 0, explanation: "ನಮ್ಮ ರಾಷ್ಟ್ರೀಯ ಪಕ್ಷಿ ನವಿಲು." },
-      { id: 7, type: "meaning", phrase: "ಶಾಲೆ", options: ["A place where students learn and study", "An institution for higher learning", "A place where people work"], correctIndex: 0 },
-      { id: 8, type: "passage", passage: "ರಾಜು ಬಳಿ ಒಂದು ಸುಂದರ ನಾಯಿ ಇದೆ. ಅದರ ಹೆಸರು ಶೇರು. ರಾಜು ಅದರೊಂದಿಗೆ ಆಟವಾಡುತ್ತಾನೆ.", question: "ರಾಜು ನಾಯಿಯ ಹೆಸರೇನು?", options: ["ಶೇರು", "ಕಾಲು", "ಮೋತಿ", "ಟಾಮಿ"], correctIndex: 0, explanation: "ನಾಯಿಯ ಹೆಸರು ಶೇರು." },
+      { id: 5, type: "imageChoice", word: "ಪುಸ್ತಕ", prompt: bookPrompt, options: ["📚", "🍎", "🏫"], correctIndex: 0 },
+      { id: 6, type: "fillBlank", sentence: "ನಾವು ಪ್ರತಿದಿನ ___ ಕುಡಿಯಬೇಕು.", answer: "ನೀರು", hint: fillBlankWaterHint },
+      { id: 7, type: "meaning", phrase: "ಗ್ರಂಥಾಲಯ", options: ["A place with books to read or borrow", "A place where students study", "A place to buy things"], correctIndex: 0 },
+      { id: 8, type: "passage", passage: "ರಾಜು ಬಳಿ ಒಂದು ಸುಂದರ ನಾಯಿ ಇದೆ. ಅದರ ಹೆಸರು ಶೇರು. ರಾಜು ಅದರೊಂದಿಗೆ ಆಟವಾಡುತ್ತಾನೆ.", question: dogPass.q, options: dogPass.opt, correctIndex: 0, explanation: dogPass.exp },
       { id: 9, type: "matchingPairs", pairs: [{ left: "ನೀರು", right: "Water" }, { left: "ಬೆಂಕಿ", right: "Fire" }, { left: "ಗಾಳಿ", right: "Air" }, { left: "ಆಕಾಶ", right: "Sky" }] },
-      { id: 10, type: "imageChoice", word: "ಸೂರ್ಯ", prompt: "ಸೂರ್ಯ (Sun) ನಿಗೆ ಸರಿಯಾದ ಚಿತ್ರವನ್ನು ಆರಿಸಿ:", options: ["🌞", "🌙", "⭐"], correctIndex: 0 }
-    ] : language === "Telugu" ? [
-      { id: 1, type: "mcq", question: "సూర్యుడు ఏ దిశలో ఉదయిస్తాడు?", options: ["తూర్పు", "పడమర", "ఉత్తరం", "దక్షిణం"], correctIndex: 0, explanation: "సూర్యుడు తూర్పున ఉదయిస్తాడు." },
-      { id: 2, type: "meaning", phrase: "గ్రంథాలయం", options: ["A place with books to read or borrow", "A place where students study", "A place to buy things"], correctIndex: 0 },
-      { id: 3, type: "passage", passage: "ఒక అడవిలో సింహం ఉండేది. అది చాలా శక్తివంతమైనది. జంతువులన్నీ దానికి భయపడేవి.", question: "సింహం ఎక్కడ ఉండేది?", options: ["అడవిలో", "గుహలో", "జూలో", "కొండపై"], correctIndex: 0, explanation: "సింహం అడవిలో ఉండేది." },
+      { id: 10, type: "imageChoice", word: "ಸೂರ್ಯ", prompt: sunPrompt, options: ["🌞", "🌙", "⭐"], correctIndex: 0 }
+    ] : targetLang === "Telugu" ? [
+      { id: 1, type: "mcq", question: sunMcq.q, options: ["తూర్పు", "పడమర", "ఉత్తరం", "దక్షిణం"], correctIndex: 0, explanation: sunMcq.exp },
+      { id: 2, type: "fillBlank", sentence: "సూర్యుడు తూర్పున ___.", answer: "ఉదయిస్తాడు", hint: fillBlankDirHint },
+      { id: 3, type: "passage", passage: "ఒక అడవిలో సింహం ఉండేది. అది చాలా శక్తివంతమైనది. జంతువులన్నీ దానికి భయపడేవి.", question: lionPass.q, options: lionPass.opt, correctIndex: 0, explanation: lionPass.exp },
       { id: 4, type: "matchingPairs", pairs: [{ left: "పాఠశాల", right: "School" }, { left: "మార్కెట్", right: "Market" }, { left: "స్నేహితుడు", right: "Friend" }, { left: "ఇల్లు", right: "Home" }] },
-      { id: 5, type: "imageChoice", word: "పుస్తకం", prompt: "పుస్తకం (Book) కొరకు సరైన చిత్రాన్ని ఎంచుకోండి:", options: ["📚", "🍎", "🏫"], correctIndex: 0 },
-      { id: 6, type: "mcq", question: "మన జాతీయ పక్షి ఏది?", options: ["నెమలి", "చిలుక", "పావురం", "పిచ్చుక"], correctIndex: 0, explanation: "నెమలి మన జాతీయ పక్షి." },
-      { id: 7, type: "meaning", phrase: "పాఠశాల", options: ["A place where students learn and study", "An institution for higher learning", "A place where people work"], correctIndex: 0 },
-      { id: 8, type: "passage", passage: "రాజు దగ్గర ఒక అందమైన కుక్క ఉంది. దాని పేరు షేరు. రాజు దానితో ఆడుకుంటాడు.", question: "రాజు కుక్క పేరు ఏమిటి?", options: ["షేరు", "కాలు", "మోతీ", "టామీ"], correctIndex: 0, explanation: "రాజు కుక్క పేరు షేరు." },
+      { id: 5, type: "imageChoice", word: "పుస్తకం", prompt: bookPrompt, options: ["📚", "🍎", "🏫"], correctIndex: 0 },
+      { id: 6, type: "fillBlank", sentence: "మనం ప్రతిరోజూ శుభ్రమైన ___ తాగాలి.", answer: "నీరు", hint: fillBlankWaterHint },
+      { id: 7, type: "meaning", phrase: "గ్రంథాలయం", options: ["A place with books to read or borrow", "A place where students study", "A place to buy things"], correctIndex: 0 },
+      { id: 8, type: "passage", passage: "రాజు దగ్గర ఒక అందమైన కుక్క ఉంది. దాని పేరు షేరు. రాజు దానితో ఆడుకుంటాడు.", question: dogPass.q, options: dogPass.opt, correctIndex: 0, explanation: dogPass.exp },
       { id: 9, type: "matchingPairs", pairs: [{ left: "నీరు", right: "Water" }, { left: "నిప్పు", right: "Fire" }, { left: "గాలి", right: "Air" }, { left: "ఆకాశం", right: "Sky" }] },
-      { id: 10, type: "imageChoice", word: "సూర్యుడు", prompt: "సూర్యుడు (Sun) కొరకు సరైన చిత్రాన్ని ఎంచుకోండి:", options: ["🌞", "🌙", "⭐"], correctIndex: 0 }
-    ] : language === "Tamil" ? [
-      { id: 1, type: "mcq", question: "சூரியன் எந்த திசையில் உதிக்கிறது?", options: ["கிழக்கு", "மேற்கு", "வடக்கு", "தெற்கு"], correctIndex: 0, explanation: "சூரியன் கிழக்கில் உதிக்கிறது." },
-      { id: 2, type: "meaning", phrase: "நூலகம்", options: ["A place with books to read or borrow", "A place where students study", "A place to buy things"], correctIndex: 0 },
-      { id: 3, type: "passage", passage: "ஒரு காட்டில் ஒரு சிங்கம் வாழ்ந்தது. அது மிகவும் பலசாலி. அனைத்து விலங்குகளும் அதைக் கண்டு அஞ்சின.", question: "சிங்கம் எங்கு வாழ்ந்தது?", options: ["காட்டில்", "குகையில்", "மிருகக்காட்சிசாலையில்", "மலையில்"], correctIndex: 0, explanation: "சிங்கம் காட்டில் வாழ்ந்தது." },
+      { id: 10, type: "imageChoice", word: "సూర్యుడు", prompt: sunPrompt, options: ["🌞", "🌙", "⭐"], correctIndex: 0 }
+    ] : targetLang === "Tamil" ? [
+      { id: 1, type: "mcq", question: sunMcq.q, options: ["கிழக்கு", "மேற்கு", "வடக்கு", "தெற்கு"], correctIndex: 0, explanation: sunMcq.exp },
+      { id: 2, type: "fillBlank", sentence: "சூரியன் கிழக்கில் ___.", answer: "உதிக்கிறது", hint: fillBlankDirHint },
+      { id: 3, type: "passage", passage: "ஒரு காட்டில் ஒரு சிங்கம் வாழ்ந்தது. அது மிகவும் பலசாலி. அனைத்து விலங்குகளும் அதைக் கண்டு அஞ்சின.", question: lionPass.q, options: lionPass.opt, correctIndex: 0, explanation: lionPass.exp },
       { id: 4, type: "matchingPairs", pairs: [{ left: "பள்ளி", right: "School" }, { left: "சந்தை", right: "Market" }, { left: "நண்பன்", right: "Friend" }, { left: "வீடு", right: "Home" }] },
-      { id: 5, type: "imageChoice", word: "புத்தகம்", prompt: "புத்தகம் (Book) க்கான சரியான படத்தை தேர்வு செய்யவும்:", options: ["📚", "🍎", "🏫"], correctIndex: 0 },
-      { id: 6, type: "mcq", question: "நமது தேசிய பறவை எது?", options: ["மயில்", "கிளி", "புறா", "சிட்டுக்குருவி"], correctIndex: 0, explanation: "நமது தேசிய பறவை மயில்." },
-      { id: 7, type: "meaning", phrase: "பள்ளி", options: ["A place where students learn and study", "An institution for higher learning", "A place where people work"], correctIndex: 0 },
-      { id: 8, type: "passage", passage: "ராஜுவிடம் ஒரு அழகான நாய் உள்ளது. அதன் பெயர் ஷேரு. ராஜு அதனுடன் விளையாடுகிறான்.", question: "ராஜுவின் நாயின் பெயர் என்ன?", options: ["ஷேரு", "காலும்", "மோதி", "டாமி"], correctIndex: 0, explanation: "நாயின் பெயர் ஷேரு." },
+      { id: 5, type: "imageChoice", word: "புத்தகம்", prompt: bookPrompt, options: ["📚", "🍎", "🏫"], correctIndex: 0 },
+      { id: 6, type: "fillBlank", sentence: "நாம் தினமும் சுத்தமான ___ குடிக்க வேண்டும்.", answer: "தண்ணீர்", hint: fillBlankWaterHint },
+      { id: 7, type: "meaning", phrase: "நூலகம்", options: ["A place with books to read or borrow", "A place where students study", "A place to buy things"], correctIndex: 0 },
+      { id: 8, type: "passage", passage: "ராஜுவிடம் ஒரு அழகான நாய் உள்ளது. அதன் பெயர் ஷேரு. ராஜு அதனுடன் விளையாடுகிறான்.", question: dogPass.q, options: dogPass.opt, correctIndex: 0, explanation: dogPass.exp },
       { id: 9, type: "matchingPairs", pairs: [{ left: "தண்ணீர்", right: "Water" }, { left: "நெருப்பு", right: "Fire" }, { left: "காற்று", right: "Air" }, { left: "வானம்", right: "Sky" }] },
-      { id: 10, type: "imageChoice", word: "சூரியன்", prompt: "சூரியன் (Sun) க்கான சரியான படத்தை தேர்வு செய்யவும்:", options: ["🌞", "🌙", "⭐"], correctIndex: 0 }
+      { id: 10, type: "imageChoice", word: "சூரியன்", prompt: sunPrompt, options: ["🌞", "🌙", "⭐"], correctIndex: 0 }
     ] : [
-      { id: 1, type: "mcq", question: "From which direction does the sun rise?", options: ["East", "West", "North", "South"], correctIndex: 0, explanation: "The sun rises in the east." },
-      { id: 2, type: "meaning", phrase: "Library", options: ["A place with books to read or borrow", "A place where students study", "A place to buy things"], correctIndex: 0 },
-      { id: 3, type: "passage", passage: "A lion lived in a forest. It was very strong. All animals were afraid of it.", question: "Where did the lion live?", options: ["In the forest", "In a cave", "In the zoo", "On the hill"], correctIndex: 0, explanation: "The lion lived in the forest." },
+      { id: 1, type: "mcq", question: sunMcq.q, options: ["East", "West", "North", "South"], correctIndex: 0, explanation: sunMcq.exp },
+      { id: 2, type: "fillBlank", sentence: "The sun rises in the ___.", answer: "east", hint: fillBlankDirHint },
+      { id: 3, type: "passage", passage: "A lion lived in a forest. It was very strong. All animals were afraid of it.", question: lionPass.q, options: lionPass.opt, correctIndex: 0, explanation: lionPass.exp },
       { id: 4, type: "matchingPairs", pairs: [{ left: "School", right: "A place to learn" }, { left: "Market", right: "A place to buy things" }, { left: "Friend", right: "A person you like" }, { left: "Home", right: "Where you live" }] },
-      { id: 5, type: "imageChoice", word: "Book", prompt: "Choose the correct picture for Book:", options: ["📚", "🍎", "🏫"], correctIndex: 0 },
-      { id: 6, type: "mcq", question: "What is our national bird?", options: ["Peacock", "Parrot", "Pigeon", "Sparrow"], correctIndex: 0, explanation: "The national bird is the peacock." },
-      { id: 7, type: "meaning", phrase: "School", options: ["A place where students learn and study", "An institution for higher learning", "A place where people work"], correctIndex: 0 },
-      { id: 8, type: "passage", passage: "Raju has a beautiful dog. Its name is Sheru. Raju plays with it.", question: "What is Raju's dog name?", options: ["Sheru", "Kalu", "Moti", "Tommy"], correctIndex: 0, explanation: "The dog name is Sheru." },
+      { id: 5, type: "imageChoice", word: "Book", prompt: bookPrompt, options: ["📚", "🍎", "🏫"], correctIndex: 0 },
+      { id: 6, type: "fillBlank", sentence: "We should drink clean ___ every day.", answer: "water", hint: fillBlankWaterHint },
+      { id: 7, type: "meaning", phrase: "Library", options: ["A place with books to read or borrow", "A place where students study", "A place to buy things"], correctIndex: 0 },
+      { id: 8, type: "passage", passage: "Raju has a beautiful dog. Its name is Sheru. Raju plays with it.", question: dogPass.q, options: dogPass.opt, correctIndex: 0, explanation: dogPass.exp },
       { id: 9, type: "matchingPairs", pairs: [{ left: "Water", right: "Liquid to drink" }, { left: "Fire", right: "Hot flame" }, { left: "Air", right: "Gas to breathe" }, { left: "Sky", right: "Blue space above" }] },
-      { id: 10, type: "imageChoice", word: "Sun", prompt: "Choose the correct picture for Sun:", options: ["🌞", "🌙", "⭐"], correctIndex: 0 }
+      { id: 10, type: "imageChoice", word: "Sun", prompt: sunPrompt, options: ["🌞", "🌙", "⭐"], correctIndex: 0 }
     ];
     return { questions: readingQuestions };
   }
 
-  if (practiceType === "Mistakes Practice") {
-    let list = (params.mistakesList && params.mistakesList.length > 0) ? [...params.mistakesList] : [];
-    if (list.length === 0) {
-      list = [
-        { id: 1, type: "fillBlank", sentence: "The sun rises in the ___.", answer: "east", hint: "A direction", clue: "Opposite of west" },
-        { id: 2, type: "unscramble", hint: "Where we study", emoji: "🏫", answer: "SCHOOL", tiles: ["L","O","C","S","H","O"], clue: "An educational institution" },
-        { id: 3, type: "fillBlank", sentence: "We should drink clean ___ every day.", answer: "water", hint: "Essential liquid", clue: "H2O" },
-        { id: 4, type: "unscramble", hint: "A sweet red fruit", emoji: "🍎", answer: "APPLE", tiles: ["P","L","A","P","E"], clue: "Keep the doctor away" }
-      ];
-    }
-    const finalQuestions = [];
-    for (let i = 0; i < 10; i++) {
-      const original = list[i % list.length];
-      
-      let mappedType = original.type || "fillBlank";
-      if (mappedType !== "fillBlank" && mappedType !== "unscramble") {
-        mappedType = i % 2 === 0 ? "fillBlank" : "unscramble";
-      }
+  if (practiceType === "Write Practice") {
+    const getHint = (key) => UNSCRAMBLE_HINTS[key]?.[uiLang] || UNSCRAMBLE_HINTS[key]?.English;
+    const getTracingInfo = (char) => (TRACING_INFOS[uiLang] || TRACING_INFOS.English)(char);
+    const getTransPrompt = (key) => TRANSLATION_PROMPTS[key]?.[uiLang] || TRANSLATION_PROMPTS[key]?.English;
 
-      let sentence = original.sentence || original.text || "";
-      let answer = original.answer || "";
-      let tiles = original.tiles || [];
-      let hint = original.hint || "";
+    const getWordTracingInfo = (word) => {
+      if (uiLang === "Hindi") return `शब्द '${word}' लिखें`;
+      if (uiLang === "Kannada") return `${word} ಪದವನ್ನು ಬರೆಯಿರಿ`;
+      if (uiLang === "Telugu") return `${word} పదాన్ని రాయండి`;
+      if (uiLang === "Tamil") return `${word} வார்த்தையை எழுதவும்`;
+      return `Write the word '${word}'`;
+    };
 
-      if (mappedType === "fillBlank") {
-        if (!sentence.includes("___")) {
-          if (answer && sentence.toLowerCase().includes(answer.toLowerCase())) {
-            const regex = new RegExp(`\\b${answer}\\b`, 'i');
-            sentence = sentence.replace(regex, "___");
-          } else {
-            const words = sentence.split(/\s+/).filter(Boolean);
-            if (words.length > 0) {
-              const targetIdx = Math.floor(words.length / 2);
-              answer = words[targetIdx].replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g, "");
-              words[targetIdx] = "___";
-              sentence = words.join(" ");
-            } else {
-              sentence = "We should learn ___ every day.";
-              answer = "words";
-            }
-          }
-        }
-      }
+    const writingQuestions = targetLang === "Hindi" ? [
+      // 4 Tracing Questions (2 Letter, 2 Word)
+      { id: 1, type: "tracing", letter: "क", word: "कमल", emoji: "🪷", englishWord: "Lotus", info: getTracingInfo("क"), sound: "क" },
+      { id: 2, type: "tracing", letter: "म", word: "मोर", emoji: "🦚", englishWord: "Peacock", info: getTracingInfo("म"), sound: "म" },
+      { id: 3, type: "tracing", word: "पानी", emoji: "💧", englishWord: "Water", info: getWordTracingInfo("पानी"), sound: "पानी" },
+      { id: 4, type: "tracing", word: "सूरज", emoji: "☀️", englishWord: "Sun", info: getWordTracingInfo("सूरज"), sound: "सूरज" },
+      // 3 Unscramble Questions
+      { id: 5, type: "unscramble", hint: getHint("school"), emoji: "🏫", answer: "स्कूल", tiles: ["स्", "कू", "ल"] },
+      { id: 6, type: "unscramble", hint: getHint("apple"), emoji: "🍎", answer: "सेब", tiles: ["से", "ब"] },
+      { id: 7, type: "unscramble", hint: getHint("book"), emoji: "📚", answer: "किताब", tiles: ["कि", "ता", "ब"] },
+      // 3 Arrange / Translation Questions
+      { id: 8, type: "translationTask", prompt: getTransPrompt("school"), englishTranslation: "our school is beautiful", targetSentence: "हमारा स्कूल सुंदर है", tiles: ["हमारा", "स्कूल", "सुंदर", "है", "घर", "बड़ा"] },
+      { id: 9, type: "translationTask", prompt: getTransPrompt("cat"), englishTranslation: "this is a cat", targetSentence: "यह एक बिल्ली है", tiles: ["यह", "एक", "बिल्ली", "है", "कुत्ता", "छोटा"] },
+      { id: 10, type: "translationTask", prompt: getTransPrompt("sun"), englishTranslation: "the sun rises in the east", targetSentence: "सूरज पूर्व से उगता है", tiles: ["सूरज", "पूर्व", "से", "उगता", "है", "पश्चिम"] }
+    ] : targetLang === "Kannada" ? [
+      // 4 Tracing Questions (2 Letter, 2 Word)
+      { id: 1, type: "tracing", letter: "ಕ", word: "ಕಮಲ", emoji: "🪷", englishWord: "Lotus", info: getTracingInfo("ಕ"), sound: "ಕ" },
+      { id: 2, type: "tracing", letter: "ಮ", word: "ಮನೆ", emoji: "🏠", englishWord: "House", info: getTracingInfo("ಮ"), sound: "ಮ" },
+      { id: 3, type: "tracing", word: "ನೀರು", emoji: "💧", englishWord: "Water", info: getWordTracingInfo("ನೀರು"), sound: "ನೀರು" },
+      { id: 4, type: "tracing", word: "ಸೂರ್ಯ", emoji: "☀️", englishWord: "Sun", info: getWordTracingInfo("ಸೂರ್ಯ"), sound: "ಸೂರ್ಯ" },
+      // 3 Unscramble Questions
+      { id: 5, type: "unscramble", hint: getHint("school"), emoji: "🏫", answer: "ಶಾಲೆ", tiles: ["ಶಾ", "ಲೆ"] },
+      { id: 6, type: "unscramble", hint: getHint("apple"), emoji: "🍎", answer: "ಸೇಬು", tiles: ["ಸೇ", "ಬು"] },
+      { id: 7, type: "unscramble", hint: getHint("book"), emoji: "📚", answer: "ಪುಸ್ತಕ", tiles: ["ಪು", "ಸ್ತ", "ಕ"] },
+      // 3 Arrange / Translation Questions
+      { id: 8, type: "translationTask", prompt: getTransPrompt("school"), englishTranslation: "our school is beautiful", targetSentence: "ನಮ್ಮ ಶಾಲೆ ಸುಂದರವಾಗಿದೆ", tiles: ["ನಮ್ಮ", "ಶಾಲೆ", "ಸುಂದರವಾಗಿದೆ", "ಮನೆ", "ಒಳ್ಳೆಯ", "ದೊಡ್ಡ"] },
+      { id: 9, type: "translationTask", prompt: getTransPrompt("cat"), englishTranslation: "this is a cat", targetSentence: "ಇದು ಒಂದು ಬೆಕ್ಕು", tiles: ["ಇದು", "ಒಂದು", "ಬೆಕ್ಕು", "ನಾಯಿ", "ಚಿಕ್ಕ", "ಹಾಲು"] },
+      { id: 10, type: "translationTask", prompt: getTransPrompt("sun"), englishTranslation: "the sun rises in the east", targetSentence: "ಸೂರ್ಯನು ಪೂರ್ವದಲ್ಲಿ ಉದಯಿಸುತ್ತಾನೆ", tiles: ["ಸೂರ್ಯನು", "ಪೂರ್ವದಲ್ಲಿ", "ಉದಯಿಸುತ್ತಾನೆ", "ಪಶ್ಚಿಮದಲ್ಲಿ", "ರಾತ್ರಿ", "ಚಂದ್ರ"] }
+    ] : targetLang === "Telugu" ? [
+      // 4 Tracing Questions (2 Letter, 2 Word)
+      { id: 1, type: "tracing", letter: "క", word: "కమలం", emoji: "🪷", englishWord: "Lotus", info: getTracingInfo("క"), sound: "క" },
+      { id: 2, type: "tracing", letter: "మ", word: "ఇల్లు", emoji: "🏠", englishWord: "House", info: getTracingInfo("మ"), sound: "మ" },
+      { id: 3, type: "tracing", word: "నీరు", emoji: "💧", englishWord: "Water", info: getWordTracingInfo("నీరు"), sound: "నీరు" },
+      { id: 4, type: "tracing", word: "సూర్యుడు", emoji: "☀️", englishWord: "Sun", info: getWordTracingInfo("సూర్యుడు"), sound: "సూర్యుడు" },
+      // 3 Unscramble Questions
+      { id: 5, type: "unscramble", hint: getHint("school"), emoji: "🏫", answer: "బడి", tiles: ["బ", "డి"] },
+      { id: 6, type: "unscramble", hint: getHint("apple"), emoji: "🍎", answer: "ఆపిల్", tiles: ["ఆ", "పి", "ల్"] },
+      { id: 7, type: "unscramble", hint: getHint("book"), emoji: "📚", answer: "పుస్తకం", tiles: ["పు", "స్త", "కం"] },
+      // 3 Arrange / Translation Questions
+      { id: 8, type: "translationTask", prompt: getTransPrompt("school"), englishTranslation: "our school is beautiful", targetSentence: "మా బడి చాలా అందంగా ఉంటుంది", tiles: ["మా", "బడి", "చాలా", "అందంగా", "ఉంటుంది", "ఇల్లు"] },
+      { id: 9, type: "translationTask", prompt: getTransPrompt("cat"), englishTranslation: "this is a cat", targetSentence: "ఇది ఒక పిల్లి", tiles: ["ఇది", "ఒక", "పిల్లి", "కుక్క", "చిన్న"] },
+      { id: 10, type: "translationTask", prompt: getTransPrompt("sun"), englishTranslation: "the sun rises in the east", targetSentence: "సూర్యుడు తూర్పున ఉదయిస్తాడు", tiles: ["సూర్యుడు", "తూర్పున", "ఉదయిస్తాడు", "పశ్చిమాన", "రాత్రి"] }
+    ] : targetLang === "Tamil" ? [
+      // 4 Tracing Questions (2 Letter, 2 Word)
+      { id: 1, type: "tracing", letter: "க", word: "கமலம்", emoji: "🪷", englishWord: "Lotus", info: getTracingInfo("க"), sound: "க" },
+      { id: 2, type: "tracing", letter: "ம", word: "மரம்", emoji: "🌳", englishWord: "Tree", info: getTracingInfo("ம"), sound: "ம" },
+      { id: 3, type: "tracing", word: "நீர்", emoji: "💧", englishWord: "Water", info: getWordTracingInfo("நீர்"), sound: "நீர்" },
+      { id: 4, type: "tracing", word: "சூரியன்", emoji: "☀️", englishWord: "Sun", info: getWordTracingInfo("சூரியன்"), sound: "சூரியன்" },
+      // 3 Unscramble Questions
+      { id: 5, type: "unscramble", hint: getHint("school"), emoji: "🏫", answer: "பள்ளி", tiles: ["பள்", "ளி"] },
+      { id: 6, type: "unscramble", hint: getHint("apple"), emoji: "🍎", answer: "ஆப்பிள்", tiles: ["ஆப்", "பி", "ள்"] },
+      { id: 7, type: "unscramble", hint: getHint("book"), emoji: "📚", answer: "புத்தகம்", tiles: ["புத்", "த", "கம்"] },
+      // 3 Arrange / Translation Questions
+      { id: 8, type: "translationTask", prompt: getTransPrompt("school"), englishTranslation: "our school is beautiful", targetSentence: "எங்கள் பள்ளி அழகாக இருக்கிறது", tiles: ["எங்கள்", "பள்ளி", "அழகாக", "இருக்கிறது", "வீடு"] },
+      { id: 9, type: "translationTask", prompt: getTransPrompt("cat"), englishTranslation: "this is a cat", targetSentence: "இது ஒரு பூனை", tiles: ["இது", "ஒரு", "பூனை", "நாய்", "சின்ன"] },
+      { id: 10, type: "translationTask", prompt: getTransPrompt("sun"), englishTranslation: "the sun rises in the east", targetSentence: "சூரியன் கிழக்கில் உதிக்கிறது", tiles: ["சூரியன்", "கிழக்கில்", "உதிக்கிறது", "மேற்கில்", "இரவு"] }
+    ] : [
+      // 4 Tracing Questions (2 Letter, 2 Word)
+      { id: 1, type: "tracing", letter: "B", word: "Ball", emoji: "⚽", englishWord: "Ball", info: getTracingInfo("B"), sound: "B" },
+      { id: 2, type: "tracing", letter: "C", word: "Cat", emoji: "🐱", englishWord: "Cat", info: getTracingInfo("C"), sound: "C" },
+      { id: 3, type: "tracing", word: "Water", emoji: "💧", englishWord: "Water", info: getWordTracingInfo("Water"), sound: "Water" },
+      { id: 4, type: "tracing", word: "Sun", emoji: "☀️", englishWord: "Sun", info: getWordTracingInfo("Sun"), sound: "Sun" },
+      // 3 Unscramble Questions
+      { id: 5, type: "unscramble", hint: getHint("school"), emoji: "🏫", answer: "SCHOOL", tiles: ["L", "O", "C", "S", "H", "O"] },
+      { id: 6, type: "unscramble", hint: getHint("apple"), emoji: "🍎", answer: "APPLE", tiles: ["P", "L", "A", "P", "E"] },
+      { id: 7, type: "unscramble", hint: getHint("book"), emoji: "📚", answer: "BOOK", tiles: ["K", "O", "B", "O"] },
+      // 3 Arrange / Translation Questions
+      { id: 8, type: "translationTask", prompt: getTransPrompt("school"), englishTranslation: "our school is beautiful", targetSentence: "our school is beautiful", tiles: ["our", "school", "is", "beautiful", "good", "house"] },
+      { id: 9, type: "translationTask", prompt: getTransPrompt("cat"), englishTranslation: "this is a cat", targetSentence: "this is a cat", tiles: ["this", "is", "a", "cat", "dog", "rat"] },
+      { id: 10, type: "translationTask", prompt: getTransPrompt("sun"), englishTranslation: "the sun rises in the east", targetSentence: "the sun rises in the east", tiles: ["the", "sun", "rises", "in", "the", "east", "west"] }
+    ];
+    return { questions: writingQuestions };
+  }
 
-      if (mappedType === "unscramble") {
-        if (!answer) {
-          const words = sentence.split(/\s+/).filter(Boolean);
-          answer = (words[0] || "LEARN").replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?]/g, "");
-        }
-        if (!tiles || tiles.length === 0) {
-          tiles = answer.toUpperCase().split("");
-          for (let k = tiles.length - 1; k > 0; k--) {
-            const j = Math.floor(Math.random() * (k + 1));
-            [tiles[k], tiles[j]] = [tiles[j], tiles[k]];
-          }
-        }
-      }
-
-      finalQuestions.push({
-        id: i + 1,
-        type: mappedType,
-        sentence: sentence,
-        answer: answer,
-        tiles: tiles,
-        hint: hint || "Recent mistake review",
-        clue: original.clue || original.hint || (answer ? `Starts with "${answer[0].toUpperCase()}"` : "Review your mistake")
-      });
-    }
-    return { questions: finalQuestions };
+  if (practiceType === "Word Sprint") {
+    const getSprintHint = (key) => WORD_SPRINT_HINTS[key]?.[uiLang] || WORD_SPRINT_HINTS[key]?.English;
+    const list = targetLang === "Hindi" ? [
+      { word: "सेब", emoji: "🍎", hint: getSprintHint("apple") },
+      { word: "पुल", emoji: "🌉", hint: getSprintHint("bridge") },
+      { word: "बादल", emoji: "☁️", hint: getSprintHint("cloud") },
+      { word: "सपना", emoji: "💭", hint: getSprintHint("dream") },
+      { word: "पृथ्वी", emoji: "🌍", hint: getSprintHint("earth") },
+      { word: "आग", emoji: "🔥", hint: getSprintHint("fire") },
+      { word: "बगीचा", emoji: "🌷", hint: getSprintHint("garden") },
+      { word: "खुश", emoji: "😊", hint: getSprintHint("happy") },
+      { word: "द्वीप", emoji: "🏝️", hint: getSprintHint("island") },
+      { word: "जंगल", emoji: "🌿", hint: getSprintHint("jungle") }
+    ] : targetLang === "Kannada" ? [
+      { word: "ಸೇಬು", emoji: "🍎", hint: getSprintHint("apple") },
+      { word: "ಸೇತುವೆ", emoji: "🌉", hint: getSprintHint("bridge") },
+      { word: "ಮೋಡ", emoji: "☁️", hint: getSprintHint("cloud") },
+      { word: "ಕನಸು", emoji: "💭", hint: getSprintHint("dream") },
+      { word: "ಭೂಮಿ", emoji: "🌍", hint: getSprintHint("earth") },
+      { word: "ಬೆಂಕಿ", emoji: "🔥", hint: getSprintHint("fire") },
+      { word: "ತೋಟ", emoji: "🌷", hint: getSprintHint("garden") },
+      { word: "ಸಂತೋಷ", emoji: "😊", hint: getSprintHint("happy") },
+      { word: "ದ್ವೀಪ", emoji: "🏝️", hint: getSprintHint("island") },
+      { word: "ಅರಣ್ಯ", emoji: "🌿", hint: getSprintHint("jungle") }
+    ] : targetLang === "Telugu" ? [
+      { word: "ఆపిల్", emoji: "🍎", hint: getSprintHint("apple") },
+      { word: "వంతెన", emoji: "🌉", hint: getSprintHint("bridge") },
+      { word: "మేఘం", emoji: "☁️", hint: getSprintHint("cloud") },
+      { word: "కల", emoji: "💭", hint: getSprintHint("dream") },
+      { word: "భూమి", emoji: "🌍", hint: getSprintHint("earth") },
+      { word: "నిప్పు", emoji: "🔥", hint: getSprintHint("fire") },
+      { word: "తోట", emoji: "🌷", hint: getSprintHint("garden") },
+      { word: "సంతోషం", emoji: "😊", hint: getSprintHint("happy") },
+      { word: "ద్వీపం", emoji: "🏝️", hint: getSprintHint("island") },
+      { word: "అడవి", emoji: "🌿", hint: getSprintHint("jungle") }
+    ] : targetLang === "Tamil" ? [
+      { word: "ஆப்பிள்", emoji: "🍎", hint: getSprintHint("apple") },
+      { word: "பாலம்", emoji: "🌉", hint: getSprintHint("bridge") },
+      { word: "மேகம்", emoji: "☁️", hint: getSprintHint("cloud") },
+      { word: "கனவு", emoji: "💭", hint: getSprintHint("dream") },
+      { word: "பூமி", emoji: "🌍", hint: getSprintHint("earth") },
+      { word: "நெருப்பு", emoji: "🔥", hint: getSprintHint("fire") },
+      { word: "தோட்டம்", emoji: "🌷", hint: getSprintHint("garden") },
+      { word: "மகிழ்ச்சி", emoji: "😊", hint: getSprintHint("happy") },
+      { word: "தீவு", emoji: "🏝️", hint: getSprintHint("island") },
+      { word: "காடு", emoji: "🌿", hint: getSprintHint("jungle") }
+    ] : [
+      { word: "apple", emoji: "🍎", hint: getSprintHint("apple") },
+      { word: "bridge", emoji: "🌉", hint: getSprintHint("bridge") },
+      { word: "cloud", emoji: "☁️", hint: getSprintHint("cloud") },
+      { word: "dream", emoji: "💭", hint: getSprintHint("dream") },
+      { word: "earth", emoji: "🌍", hint: getSprintHint("earth") },
+      { word: "fire", emoji: "🔥", hint: getSprintHint("fire") },
+      { word: "garden", emoji: "🌷", hint: getSprintHint("garden") },
+      { word: "happy", emoji: "😊", hint: getSprintHint("happy") },
+      { word: "island", emoji: "🏝️", hint: getSprintHint("island") },
+      { word: "jungle", emoji: "🌿", hint: getSprintHint("jungle") }
+    ];
+    return { questions: list };
   }
 
   if (practiceType === "Words Practice") {
@@ -1992,61 +2218,65 @@ const getFallbackPractice = (params) => {
   }
 
   if (practiceType === "Write Practice") {
-    const writingQuestions = language === "Hindi" ? [
-      { id: 1, type: "fillBlank", sentence: "सूरज पूर्व से ___ है।", answer: "उगता", hint: "दिशा" },
-      { id: 2, type: "unscramble", hint: "अध्ययन का स्थान", emoji: "🏫", answer: "स्कूल", tiles: ["कू", "स", "ल"] },
-      { id: 3, type: "writingActivity", prompt: "अपने पसंदीदा भोजन के बारे में 2 पंक्तियाँ लिखें।" },
-      { id: 4, type: "tracing", letter: "B", word: "Ball", info: "Trace the letter B", sound: "Ball" },
-      { id: 5, type: "translationTask", prompt: "Arrange the words to form: 'हमारा स्कूल सुंदर है'", englishTranslation: "our school is beautiful", tiles: ["our", "school", "is", "beautiful", "good", "house"] },
-      { id: 6, type: "fillBlank", sentence: "हमें हर दिन ___ पीना चाहिए।", answer: "पानी", hint: "पेय" },
-      { id: 7, type: "unscramble", hint: "एक फल", emoji: "🍎", answer: "सेब", tiles: ["ब", "से"] },
-      { id: 8, type: "writingActivity", prompt: "आप सप्ताहांत में क्या करते हैं?" },
-      { id: 9, type: "tracing", letter: "C", word: "Cat", info: "Trace the letter C", sound: "Cat" },
-      { id: 10, type: "translationTask", prompt: "Arrange the words to form: 'यह एक बिल्ली है'", englishTranslation: "this is a cat", tiles: ["this", "is", "a", "cat", "dog", "rat"] }
-    ] : language === "Kannada" ? [
-      { id: 1, type: "fillBlank", sentence: "ಸೂರ್ಯನು ಪೂರ್ವದಲ್ಲಿ ___.", answer: "ಉದಯಿಸುತ್ತಾನೆ", hint: "ದಿಕ್ಕು" },
-      { id: 2, type: "unscramble", hint: "ಕಲಿಯುವ ಸ್ಥಳ", emoji: "🏫", answer: "ಶಾಲೆ", tiles: ["ಲೆ", "ಶಾ"] },
-      { id: 3, type: "writingActivity", prompt: "ನಿಮ್ಮ ನೆಚ್ಚಿನ ಆಹಾರದ ಬಗ್ಗೆ 2 ಸಾಲುಗಳನ್ನು ಬರೆಯಿರಿ." },
-      { id: 4, type: "tracing", letter: "B", word: "Ball", info: "Trace the letter B", sound: "Ball" },
-      { id: 5, type: "translationTask", prompt: "Arrange the words to form: 'ನಮ್ಮ ಶಾಲೆ ಸುಂದರವಾಗಿದೆ'", englishTranslation: "our school is beautiful", tiles: ["our", "school", "is", "beautiful", "good", "house"] },
-      { id: 6, type: "fillBlank", sentence: "ನಾವು ಪ್ರತಿದಿನ ___ ಕುಡಿಯಬೇಕು.", answer: "ನೀರು", hint: "ಪಾನೀಯ" },
-      { id: 7, type: "unscramble", hint: "ಒಂದು ಹಣ್ಣು", emoji: "🍎", answer: "ಸೇಬು", tiles: ["ಬು", "ಸೇ"] },
-      { id: 8, type: "writingActivity", prompt: "ನೀವು ವಾರಾಂತ್ಯದಲ್ಲಿ ಏನು ಮಾಡುತ್ತೀರಿ?" },
-      { id: 9, type: "tracing", letter: "C", word: "Cat", info: "Trace the letter C", sound: "Cat" },
-      { id: 10, type: "translationTask", prompt: "Arrange the words to form: 'ಇದು ಒಂದು ಬೆಕ್ಕು'", englishTranslation: "this is a cat", tiles: ["this", "is", "a", "cat", "dog", "rat"] }
-    ] : language === "Telugu" ? [
-      { id: 1, type: "fillBlank", sentence: "సూర్యుడు తూర్పున ___.", answer: "ఉదయిస్తాడు", hint: "దిశ" },
-      { id: 2, type: "unscramble", hint: "మనం చదువుకునే చోటు", emoji: "🏫", answer: "బడి", tiles: ["డి", "బ"] },
-      { id: 3, type: "writingActivity", prompt: "మీకు ఇష్టమైన ఆహారం గురించి 2 వాక్యాలు రాయండి." },
-      { id: 4, type: "tracing", letter: "B", word: "Ball", info: "Trace the letter B", sound: "Ball" },
-      { id: 5, type: "translationTask", prompt: "Arrange the words to form: 'మా బడి చాలా అందంగా ఉంటుంది'", englishTranslation: "our school is beautiful", tiles: ["our", "school", "is", "beautiful", "good", "house"] },
-      { id: 6, type: "fillBlank", sentence: "మనం ప్రతిరోజూ శుభ్రమైన ___ తాగాలి.", answer: "నీరు", hint: "పానీయం" },
-      { id: 7, type: "unscramble", hint: "ఒక పండు", emoji: "🍎", answer: "ఆపిల్", tiles: ["ల్", "పి", "ఆ"] },
-      { id: 8, type: "writingActivity", prompt: "మీరు వారాంతాల్లో ఏమి చేస్తారు?" },
-      { id: 9, type: "tracing", letter: "C", word: "Cat", info: "Trace the letter C", sound: "Cat" },
-      { id: 10, type: "translationTask", prompt: "Arrange the words to form: 'ఇది ఒక పిల్లి'", englishTranslation: "this is a cat", tiles: ["this", "is", "a", "cat", "dog", "rat"] }
-    ] : language === "Tamil" ? [
-      { id: 1, type: "fillBlank", sentence: "சூரியன் கிழக்கில் ___.", answer: "உதிக்கிறது", hint: "திசை" },
-      { id: 2, type: "unscramble", hint: "நாங்கள் படிக்கும் இடம்", emoji: "🏫", answer: "பள்ளி", tiles: ["ளி", "பல்"] },
-      { id: 3, type: "writingActivity", prompt: "உங்களுக்கு பிடித்த உணவை பற்றி 2 வரிகள் எழுதவும்." },
-      { id: 4, type: "tracing", letter: "B", word: "Ball", info: "Trace the letter B", sound: "Ball" },
-      { id: 5, type: "translationTask", prompt: "Arrange the words to form: 'எங்கள் பள்ளி அழகாக இருக்கிறது'", englishTranslation: "our school is beautiful", tiles: ["our", "school", "is", "beautiful", "good", "house"] },
-      { id: 6, type: "fillBlank", sentence: "நாம் தினமும் சுத்தமான ___ குடிக்க வேண்டும்.", answer: "தண்ணீர்", hint: "பானம்" },
-      { id: 7, type: "unscramble", hint: "ஒரு பழம்", emoji: "🍎", answer: "ஆப்பிள்", tiles: ["ள்", "பி", "ஆப்"] },
-      { id: 8, type: "writingActivity", prompt: "வார இறுதியில் நீங்கள் என்ன செய்கிறீர்கள்?" },
-      { id: 9, type: "tracing", letter: "C", word: "Cat", info: "Trace the letter C", sound: "Cat" },
-      { id: 10, type: "translationTask", prompt: "Arrange the words to form: 'இது ஒரு பூனை'", englishTranslation: "this is a cat", tiles: ["this", "is", "a", "cat", "dog", "rat"] }
+    const getHint = (key) => UNSCRAMBLE_HINTS[key]?.[uiLang] || UNSCRAMBLE_HINTS[key]?.English;
+    const getTracingInfo = (char) => (TRACING_INFOS[uiLang] || TRACING_INFOS.English)(char);
+    const getTransPrompt = (key) => TRANSLATION_PROMPTS[key]?.[uiLang] || TRANSLATION_PROMPTS[key]?.English;
+
+    const writingQuestions = targetLang === "Hindi" ? [
+      { id: 1, type: "unscramble", hint: getHint("school"), emoji: "<ctrl42>", answer: "स्कूल", tiles: ["स्", "कू", "ल"] },
+      { id: 2, type: "tracing", letter: "क", word: "कमल", info: getTracingInfo("क"), sound: "Kamal" },
+      { id: 3, type: "translationTask", prompt: getTransPrompt("school"), englishTranslation: "our school is beautiful", targetSentence: "हमारा स्कूल सुंदर है", tiles: ["हमारा", "स्कूल", "सुंदर", "है", "घर", "बड़ा"] },
+      { id: 4, type: "unscramble", hint: getHint("apple"), emoji: "🍎", answer: "सेब", tiles: ["से", "ब"] },
+      { id: 5, type: "tracing", letter: "म", word: "मोर", info: getTracingInfo("म"), sound: "Mor" },
+      { id: 6, type: "translationTask", prompt: getTransPrompt("cat"), englishTranslation: "this is a cat", targetSentence: "यह एक बिल्ली है", tiles: ["यह", "एक", "बिल्ली", "है", "कुत्ता", "छोटा"] },
+      { id: 7, type: "unscramble", hint: getHint("book"), emoji: "📚", answer: "किताब", tiles: ["कि", "ता", "ब"] },
+      { id: 8, type: "tracing", letter: "प", word: "पानी", info: getTracingInfo("प"), sound: "Paani" },
+      { id: 9, type: "unscramble", hint: getHint("sun"), emoji: "🌞", answer: "सूरज", tiles: ["सू", "र", "ज"] },
+      { id: 10, type: "translationTask", prompt: getTransPrompt("sun"), englishTranslation: "the sun rises in the east", targetSentence: "सूरज पूर्व से उगता है", tiles: ["सूरज", "पूर्व", "से", "उगता", "है", "पश्चिम"] }
+    ] : targetLang === "Kannada" ? [
+      { id: 1, type: "unscramble", hint: getHint("school"), emoji: "🏫", answer: "ಶಾಲೆ", tiles: ["ಶಾ", "ಲೆ"] },
+      { id: 2, type: "tracing", letter: "ಕ", word: "ಕಮಲ", info: getTracingInfo("ಕ"), sound: "Kamala" },
+      { id: 3, type: "translationTask", prompt: getTransPrompt("school"), englishTranslation: "our school is beautiful", targetSentence: "ನಮ್ಮ ಶಾಲೆ ಸುಂದರವಾಗಿದೆ", tiles: ["ನಮ್ಮ", "ಶಾಲೆ", "ಸುಂದರವಾಗಿದೆ", "ಮನೆ", "ಒಳ್ಳೆಯ", "ದೊಡ್ಡ"] },
+      { id: 4, type: "unscramble", hint: getHint("apple"), emoji: "🍎", answer: "ಸೇಬು", tiles: ["ಸೇ", "ಬು"] },
+      { id: 5, type: "tracing", letter: "ಮ", word: "ಮನೆ", info: getTracingInfo("ಮ"), sound: "Mane" },
+      { id: 6, type: "translationTask", prompt: getTransPrompt("cat"), englishTranslation: "this is a cat", targetSentence: "ಇದು ಒಂದು ಬೆಕ್ಕು", tiles: ["ಇದು", "ಒಂದು", "ಬೆಕ್ಕು", "ನಾಯಿ", "ಚಿಕ್ಕ", "ಹಾಲು"] },
+      { id: 7, type: "unscramble", hint: getHint("book"), emoji: "📚", answer: "ಪುಸ್ತಕ", tiles: ["ಪು", "ಸ್ತ", "ಕ"] },
+      { id: 8, type: "tracing", letter: "ನ", word: "ನೀರು", info: getTracingInfo("ನ"), sound: "Neeru" },
+      { id: 9, type: "unscramble", hint: getHint("sun"), emoji: "🌞", answer: "ಸೂರ್ಯ", tiles: ["ಸೂ", "ರ್ಯ"] },
+      { id: 10, type: "translationTask", prompt: getTransPrompt("sun"), englishTranslation: "the sun rises in the east", targetSentence: "ಸೂರ್ಯನು ಪೂರ್ವದಲ್ಲಿ ಉದಯಿಸುತ್ತಾನೆ", tiles: ["ಸೂರ್ಯನು", "ಪೂರ್ವದಲ್ಲಿ", "ಉದಯಿಸುತ್ತಾನೆ", "ಪಶ್ಚಿಮದಲ್ಲಿ", "ರಾತ್ರಿ", "ಚಂದ್ರ"] }
+    ] : targetLang === "Telugu" ? [
+      { id: 1, type: "unscramble", hint: getHint("school"), emoji: "🏫", answer: "బడి", tiles: ["బ", "డి"] },
+      { id: 2, type: "tracing", letter: "క", word: "కమలం", info: getTracingInfo("క"), sound: "Kamalam" },
+      { id: 3, type: "translationTask", prompt: getTransPrompt("school"), englishTranslation: "our school is beautiful", targetSentence: "మా బడి చాలా అందంగా ఉంటుంది", tiles: ["మా", "బడి", "చాలా", "అందంగా", "ఉంటుంది", "ఇల్లు"] },
+      { id: 4, type: "unscramble", hint: getHint("apple"), emoji: "🍎", answer: "ఆపిల్", tiles: ["ఆ", "పి", "ల్"] },
+      { id: 5, type: "tracing", letter: "మ", word: "ఇల్లు", info: getTracingInfo("ఇ"), sound: "Illu" },
+      { id: 6, type: "translationTask", prompt: getTransPrompt("cat"), englishTranslation: "this is a cat", targetSentence: "ఇది ఒక పిల్లి", tiles: ["ఇది", "ఒక", "పిల్లి", "కుక్క", "చిన్న"] },
+      { id: 7, type: "unscramble", hint: getHint("book"), emoji: "📚", answer: "పుస్తకం", tiles: ["పు", "స్త", "కం"] },
+      { id: 8, type: "tracing", letter: "న", word: "నీరు", info: getTracingInfo("న"), sound: "Neeru" },
+      { id: 9, type: "unscramble", hint: getHint("sun"), emoji: "🌞", answer: "సూర్యుడు", tiles: ["సూ", "ర్యు", "డు"] },
+      { id: 10, type: "translationTask", prompt: getTransPrompt("sun"), englishTranslation: "the sun rises in the east", targetSentence: "సూర్యుడు తూర్పున ఉదయిస్తాడు", tiles: ["సూర్యుడు", "తూర్పున", "ఉదయిస్తాడు", "పశ్చిమాన", "రాత్రి"] }
+    ] : targetLang === "Tamil" ? [
+      { id: 1, type: "unscramble", hint: getHint("school"), emoji: "🏫", answer: "பள்ளி", tiles: ["பள்", "ளி"] },
+      { id: 2, type: "tracing", letter: "க", word: "கமலம்", info: getTracingInfo("க"), sound: "Kamalam" },
+      { id: 3, type: "translationTask", prompt: getTransPrompt("school"), englishTranslation: "our school is beautiful", targetSentence: "எங்கள் பள்ளி அழகாக இருக்கிறது", tiles: ["எங்கள்", "பள்ளி", "அழகாக", "இருக்கிறது", "வீடு"] },
+      { id: 4, type: "unscramble", hint: getHint("apple"), emoji: "🍎", answer: "ஆப்பிள்", tiles: ["ஆப்", "பி", "ள்"] },
+      { id: 5, type: "tracing", letter: "ம", word: "மரம்", info: getTracingInfo("ம"), sound: "Maram" },
+      { id: 6, type: "translationTask", prompt: getTransPrompt("cat"), englishTranslation: "this is a cat", targetSentence: "இது ஒரு பூனை", tiles: ["இது", "ஒரு", "பூனை", "நாய்", "சின்ன"] },
+      { id: 7, type: "unscramble", hint: getHint("book"), emoji: "📚", answer: "புத்தகம்", tiles: ["புத்", "த", "கம்"] },
+      { id: 8, type: "tracing", letter: "ந", word: "நீர்", info: getTracingInfo("ந"), sound: "Neer" },
+      { id: 9, type: "unscramble", hint: getHint("sun"), emoji: "🌞", answer: "சூரியன்", tiles: ["சூ", "ரி", "யன்"] },
+      { id: 10, type: "translationTask", prompt: getTransPrompt("sun"), englishTranslation: "the sun rises in the east", targetSentence: "சூரியன் கிழக்கில் உதிக்கிறது", tiles: ["சூரியன்", "கிழக்கில்", "உதிக்கிறது", "மேற்கில்", "இரவு"] }
     ] : [
-      { id: 1, type: "fillBlank", sentence: "The sun rises in the ___.", answer: "east", hint: "A cardinal direction" },
-      { id: 2, type: "unscramble", hint: "Where we study", emoji: "🏫", answer: "SCHOOL", tiles: ["L","O","C","S","H","O"] },
-      { id: 3, type: "writingActivity", prompt: "Write 2 sentences about your favorite food." },
-      { id: 4, type: "tracing", letter: "B", word: "Ball", info: "Trace the letter B", sound: "Ball" },
-      { id: 5, type: "translationTask", prompt: "Arrange the words to form: 'our school is beautiful'", englishTranslation: "our school is beautiful", tiles: ["our", "school", "is", "beautiful", "good", "house"] },
-      { id: 6, type: "fillBlank", sentence: "We should drink clean ___ every day.", answer: "water", hint: "Essential liquid" },
-      { id: 7, type: "unscramble", hint: "A sweet red fruit", emoji: "🍎", answer: "APPLE", tiles: ["P","L","A","P","E"] },
-      { id: 8, type: "writingActivity", prompt: "What do you do on weekends?" },
-      { id: 9, type: "tracing", letter: "C", word: "Cat", info: "Trace the letter C", sound: "Cat" },
-      { id: 10, type: "translationTask", prompt: "Arrange the words to form: 'this is a cat'", englishTranslation: "this is a cat", tiles: ["this", "is", "a", "cat", "dog", "rat"] }
+      { id: 1, type: "unscramble", hint: getHint("school"), emoji: "🏫", answer: "SCHOOL", tiles: ["L", "O", "C", "S", "H", "O"] },
+      { id: 2, type: "tracing", letter: "B", word: "Ball", info: getTracingInfo("B"), sound: "Ball" },
+      { id: 3, type: "translationTask", prompt: getTransPrompt("school"), englishTranslation: "our school is beautiful", targetSentence: "our school is beautiful", tiles: ["our", "school", "is", "beautiful", "good", "house"] },
+      { id: 4, type: "unscramble", hint: getHint("apple"), emoji: "🍎", answer: "APPLE", tiles: ["P", "L", "A", "P", "E"] },
+      { id: 5, type: "tracing", letter: "C", word: "Cat", info: getTracingInfo("C"), sound: "Cat" },
+      { id: 6, type: "translationTask", prompt: getTransPrompt("cat"), englishTranslation: "this is a cat", targetSentence: "this is a cat", tiles: ["this", "is", "a", "cat", "dog", "rat"] },
+      { id: 7, type: "unscramble", hint: getHint("book"), emoji: "📚", answer: "BOOK", tiles: ["K", "O", "B", "O"] },
+      { id: 8, type: "tracing", letter: "D", word: "Dog", info: getTracingInfo("D"), sound: "Dog" },
+      { id: 9, type: "unscramble", hint: getHint("sun"), emoji: "🌞", answer: "SUN", tiles: ["N", "S", "U"] },
+      { id: 10, type: "translationTask", prompt: getTransPrompt("sun"), englishTranslation: "the sun rises in the east", targetSentence: "the sun rises in the east", tiles: ["the", "sun", "rises", "in", "the", "east", "west"] }
     ];
     return { questions: writingQuestions };
   }
@@ -2134,7 +2364,7 @@ const getFallbackPractice = (params) => {
       { word: "ಖುಷಿ", tiles: ["ಖು", "ಷಿ"], category: "Emotions", emoji: "😄" },
       { word: "ನದಿ", tiles: ["ನ", "ದಿ"], category: "Nature", emoji: "🏞️" },
       { word: "ಕನಸು", tiles: ["ಕ", "ನ", "ಸು"], category: "Concepts", emoji: "💭" }
-    ] : language === "Telugu" ? [
+    ] : targetLang === "Telugu" ? [
       { word: "నవ్వు", tiles: ["న", "వ్వు"], category: "Emotions", emoji: "😊" },
       { word: "శుభ్రం", tiles: ["శు", "భ్రం"], category: "Adjectives", emoji: "✨" },
       { word: "రొట్టె", tiles: ["రొ", "ట్టె"], category: "Food", emoji: "🍞" },
@@ -2145,7 +2375,7 @@ const getFallbackPractice = (params) => {
       { word: "సంతోషం", tiles: ["సం", "తో", "షం"], category: "Emotions", emoji: "😄" },
       { word: "నది", tiles: ["న", "ది"], category: "Nature", emoji: "🏞️" },
       { word: "కల", tiles: ["క", "ల"], category: "Concepts", emoji: "💭" }
-    ] : language === "Tamil" ? [
+    ] : targetLang === "Tamil" ? [
       { word: "நகை", tiles: ["ந", "கை"], category: "Emotions", emoji: "😊" },
       { word: "சுத்தம்", tiles: ["சுத்", "தம்"], category: "Adjectives", emoji: "✨" },
       { word: "ரொட்டி", tiles: ["ரொத்", "தி"], category: "Food", emoji: "🍞" },
@@ -2289,9 +2519,7 @@ const getFallbackPractice = (params) => {
     ]
   };
 
-  const interfaceLang = params.preferredLanguage || params.interfaceLanguage || "English";
-  const learningLang = params.language || "English";
-  return translateFallbackPractice(rawPractice, interfaceLang, learningLang);
+  return rawPractice;
 };
 
 export const generatePracticeContent = async (params) => {
@@ -2325,6 +2553,7 @@ const getHash = (str) => {
 
 export const translateTextContent = async (text, targetLanguage) => {
   if (!targetLanguage || targetLanguage === "English") return text;
+  if (localStorage.getItem("lisa_ai_enabled") === "false") return text;
   
   const cacheKey = `lisa_trans_${targetLanguage}_${getHash(text)}`;
   try {
@@ -2364,6 +2593,9 @@ Input:
 
 export const translateMCQContent = async (questionText, optionsArray, targetLanguage) => {
   if (!targetLanguage || targetLanguage === "English") {
+    return { question: questionText, options: optionsArray };
+  }
+  if (localStorage.getItem("lisa_ai_enabled") === "false") {
     return { question: questionText, options: optionsArray };
   }
 
@@ -2706,6 +2938,80 @@ const translateFallbackPractice = (practice, interfaceLang, learningLang) => {
   if (!translations) return practice;
   
   practice.questions.forEach(q => {
+    // Translate Unscramble hints dynamically based on interfaceLang
+    if (q.type === "unscramble") {
+      if (q.hint === "अध्ययन का स्थान" || q.hint === "ಕಲಿಯುವ ಸ್ಥಳ" || q.hint === "మనం చదువుకునే చోటు" || q.hint === "நாங்கள் படிக்கும் இடம்" || q.hint === "Place of study and learning" || q.hint === "Where we study" || q.answer === "SCHOOL" || q.answer === "स्कूल" || q.answer === "ಶಾಲೆ" || q.answer === "బడి" || q.answer === "பள்ளி") {
+        q.hint = interfaceLang === "Hindi" ? "अध्ययन का स्थान" :
+                 interfaceLang === "Kannada" ? "ಕಲಿಯುವ ಸ್ಥಳ" :
+                 interfaceLang === "Telugu" ? "మనం చదువుకునే చోటు" :
+                 interfaceLang === "Tamil" ? "நாங்கள் படிக்கும் இடம்" : "Place of study and learning";
+      }
+      else if (q.hint === "एक लाल या हरा फल" || q.hint === "ಒಂದು ಸಿಹಿ ಕೆಂಪು ಹಣ್ಣು" || q.hint === "ఒక తియ్యటి ఎర్రని పండు" || q.hint === "ஒரு இனிப்பான சிவப்பு பழம்" || q.hint === "A sweet red fruit" || q.hint === "एक फल" || q.hint === "ಒಂದು ಹಣ್ಣು" || q.hint === "ఒక పండు" || q.hint === "ஒரு பழம்" || q.answer === "APPLE" || q.answer === "सेब" || q.answer === "ಸೇಬು" || q.answer === "ఆపిల్" || q.answer === "ஆப்பிள்") {
+        q.hint = interfaceLang === "Hindi" ? "एक लाल या हरा फल" :
+                 interfaceLang === "Kannada" ? "ಒಂದು ಸಿಹಿ ಕೆಂಪು ಹಣ್ಣು" :
+                 interfaceLang === "Telugu" ? "ఒక తియ్యటి ఎర్రని పండు" :
+                 interfaceLang === "Tamil" ? "ஒரு இனிப்பான சிவப்பு பழம்" : "A sweet red fruit";
+      }
+      else if (q.hint === "पढ़ने की पुस्तक" || q.hint === "ಓದುವ ಪುಸ್ತಕ" || q.hint === "చదువుకునే పుస్తకం" || q.hint === "படிக்க உதவும் புத்தகம்" || q.hint === "Book to read and learn" || q.answer === "BOOK" || q.answer === "किताब" || q.answer === "ಪುಸ್ತಕ" || q.answer === "పుస్తకం" || q.answer === "புத்தகம்") {
+        q.hint = interfaceLang === "Hindi" ? "पढ़ने की पुस्तक" :
+                 interfaceLang === "Kannada" ? "ಓದುವ ಪುಸ್ತಕ" :
+                 interfaceLang === "Telugu" ? "చదువుకునే పుస్తకం" :
+                 interfaceLang === "Tamil" ? "படிக்க உதவும் புத்தகம்" : "Book to read and learn";
+      }
+      else if (q.hint === "आसमान में चमकता तारा" || q.hint === "ಆಕಾಶದಲ್ಲಿ ಪ್ರಕಾಶಿಸುವ ಸೂರ್ಯ" || q.hint === "ఆకాశంలో ప్రకాశించే సూర్యుడు" || q.hint === "வானத்தில் பிரகாசிக்கும் சூரியன்" || q.hint === "Bright star in the sky" || q.answer === "SUN" || q.answer === "सूरज" || q.answer === "ಸೂರ್ಯ" || q.answer === "సూర్యుడు" || q.answer === "சூரியன்") {
+        q.hint = interfaceLang === "Hindi" ? "आसमान में चमकता तारा" :
+                 interfaceLang === "Kannada" ? "ಆಕಾಶದಲ್ಲಿ ಪ್ರಕಾಶಿಸುವ ಸೂರ್ಯ" :
+                 interfaceLang === "Telugu" ? "ఆకాశంలో ప్రకాశించే సూర్యుడు" :
+                 interfaceLang === "Tamil" ? "வானத்தில் பிரகாசிக்கும் சூரியன்" : "Bright star in the sky";
+      }
+    }
+
+    // Translate fillBlank hints dynamically based on interfaceLang
+    if (q.type === "fillBlank" && q.hint) {
+      if (q.hint === "दिशा से संबंधित क्रिया" || q.hint === "दिशा" || q.hint === "ದಿಕ್ಕು" || q.hint === "దిశ" || q.hint === "திசை" || q.hint === "A cardinal direction") {
+        q.hint = interfaceLang === "Hindi" ? "दिशा से संबंधित" :
+                 interfaceLang === "Kannada" ? "ದಿಕ್ಕಿನ ಸೂಚನೆ" :
+                 interfaceLang === "Telugu" ? "దిశకు సంబంధించి" :
+                 interfaceLang === "Tamil" ? "திசை பற்றிய குறிப்பு" : "A cardinal direction";
+      }
+      else if (q.hint === "पेय पदार्थ" || q.hint === "पेय" || q.hint === "ಪಾನೀಯ" || q.hint === "పానీయం" || q.hint === "பானம்" || q.hint === "Essential liquid") {
+        q.hint = interfaceLang === "Hindi" ? "पेय पदार्थ" :
+                 interfaceLang === "Kannada" ? "ಪಾನೀಯ" :
+                 interfaceLang === "Telugu" ? "పానీయం" :
+                 interfaceLang === "Tamil" ? "பானம்" : "Essential liquid";
+      }
+    }
+
+    // Translate tracing info dynamically based on interfaceLang
+    if (q.type === "tracing" && q.info) {
+      q.info = interfaceLang === "Hindi" ? `अक्षर '${q.letter || q.word}' को ट्रेस करें` :
+               interfaceLang === "Kannada" ? `ಅಕ್ಷರ '${q.letter || q.word}' ಅನ್ನು ಟ್ರೇಸ್ ಮಾಡಿ` :
+               interfaceLang === "Telugu" ? `అక్షరం '${q.letter || q.word}' ను ట్రేస్ చేయండి` :
+               interfaceLang === "Tamil" ? `எழுத்து '${q.letter || q.word}' ஐ டிரேஸ் செய்யவும்` : `Trace the letter ${q.letter || q.word}`;
+    }
+
+    // Translate translationTask prompt dynamically based on interfaceLang
+    if (q.type === "translationTask" && q.prompt) {
+      if (q.englishTranslation === "our school is beautiful" || q.prompt.includes("school") || q.prompt.includes("स्कूल") || q.prompt.includes("ಶಾಲೆ") || q.prompt.includes("బడి") || q.prompt.includes("பள்ளி")) {
+        q.prompt = interfaceLang === "Hindi" ? "Arrange the words to form: 'हमारा स्कूल सुंदर है'" :
+                   interfaceLang === "Kannada" ? "Arrange the words to form: 'ನಮ್ಮ ಶಾಲೆ ಸುಂದರವಾಗಿದೆ'" :
+                   interfaceLang === "Telugu" ? "Arrange the words to form: 'మా బడి చాలా అందంగా ఉంటుంది'" :
+                   interfaceLang === "Tamil" ? "Arrange the words to form: 'எங்கள் பள்ளி அழகாக இருக்கிறது'" : "Arrange the words to form: 'our school is beautiful'";
+      }
+      else if (q.englishTranslation === "this is a cat" || q.prompt.includes("cat") || q.prompt.includes("बिल्ली") || q.prompt.includes("ಬೆಕ್ಕು") || q.prompt.includes("పిల్లి") || q.prompt.includes("பூனை")) {
+        q.prompt = interfaceLang === "Hindi" ? "Arrange the words to form: 'यह एक बिल्ली है'" :
+                   interfaceLang === "Kannada" ? "Arrange the words to form: 'ಇದು ಒಂದು ಬೆಕ್ಕು'" :
+                   interfaceLang === "Telugu" ? "Arrange the words to form: 'ఇది ఒక పిల్లి'" :
+                   interfaceLang === "Tamil" ? "Arrange the words to form: 'இது ஒரு பூனை'" : "Arrange the words to form: 'this is a cat'";
+      }
+      else if (q.englishTranslation === "the sun rises in the east" || q.prompt.includes("sun") || q.prompt.includes("सूरज") || q.prompt.includes("ಸೂರ್ಯ") || q.prompt.includes("సూర్యుడు") || q.prompt.includes("சூரியன்")) {
+        q.prompt = interfaceLang === "Hindi" ? "Arrange the words to form: 'सूरज पूर्व से उगता है'" :
+                   interfaceLang === "Kannada" ? "Arrange the words to form: 'ಸೂರ್ಯನು ಪೂರ್ವದಲ್ಲಿ ಉದಯಿಸುತ್ತಾನೆ'" :
+                   interfaceLang === "Telugu" ? "Arrange the words to form: 'సూర్యుడు తూర్పున ఉదయిస్తాడు'" :
+                   interfaceLang === "Tamil" ? "Arrange the words to form: 'சூரியன் கிழக்கில் உதிக்கிறது'" : "Arrange the words to form: 'the sun rises in the east'";
+      }
+    }
+
     // Translate Word Sprint hints dynamically based on interfaceLang
     if (q.word && q.hint && !q.tiles && !q.sentence) {
       if (q.hint.toLowerCase().includes("red or green fruit") || q.word === "apple" || q.word === "सेब" || q.word === "ಸೇಬು" || q.word === "ఆపిల్" || q.word === "ஆப்பிள்") {

@@ -583,69 +583,65 @@ const drawTracingGuide = (canvas, item) => {
   if (!canvas || !item) return;
   const ctx = canvas.getContext("2d");
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.strokeStyle = "rgba(2,132,199,0.25)";
-  ctx.lineWidth = 2;
-  ctx.strokeRect(1, 1, canvas.width - 2, canvas.height - 2);
 
   const text = (item.kind === "playground" ? "playground" : (item.letter || item.word || "A")).toString();
-  if (text.trim() === "ಮನೆ") {
-    // Hide tracing guide for the word ಮನೆ so user writes from memory
-    return;
+
+  let fontSize = Math.floor(canvas.height * 0.52);
+  ctx.font = `bold ${fontSize}px sans-serif`;
+  const maxAllowedWidth = canvas.width * 0.88;
+  while (ctx.measureText(text).width > maxAllowedWidth && fontSize > 16) {
+    fontSize -= 2;
+    ctx.font = `bold ${fontSize}px sans-serif`;
   }
+
   ctx.save();
-  ctx.globalAlpha = 0.18;
+  ctx.globalAlpha = 0.12;
   ctx.fillStyle = "#0284c7";
-  ctx.font = `bold ${Math.floor(canvas.width * 0.28)}px sans-serif`;
+  ctx.font = `bold ${fontSize}px sans-serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillText(text, canvas.width / 2, canvas.height / 2);
   ctx.restore();
+  // Tag canvas so ref callback knows guide is already drawn
+  canvas._guideDrwn = text;
 };
 
+// Improved tracing accuracy: counts user ink coverage relative to expected strokes
 const evaluateDrawingAccuracy = (userCanvas, targetText) => {
   if (!userCanvas || !targetText) return 0;
-  
-  // Create a hidden canvas to render the guide text
-  const hiddenCanvas = document.createElement("canvas");
-  hiddenCanvas.width = userCanvas.width || 300;
-  hiddenCanvas.height = userCanvas.height || 300;
-  const hCtx = hiddenCanvas.getContext("2d");
-  
-  // Draw the target text in a thick font on the hidden canvas
-  hCtx.fillStyle = "black";
-  hCtx.font = `bold ${Math.floor(hiddenCanvas.width * 0.28)}px sans-serif`;
-  hCtx.textAlign = "center";
-  hCtx.textBaseline = "middle";
-  hCtx.fillText(targetText, hiddenCanvas.width / 2, hiddenCanvas.height / 2);
-  
-  // Get image data
+
   const userCtx = userCanvas.getContext("2d");
   const userData = userCtx.getImageData(0, 0, userCanvas.width, userCanvas.height).data;
-  const guideData = hCtx.getImageData(0, 0, hiddenCanvas.width, hiddenCanvas.height).data;
-  
-  let overlap = 0;
+
   let userPixels = 0;
-  let guidePixels = 0;
-  
+  const totalPixels = userCanvas.width * userCanvas.height;
+
   for (let i = 0; i < userData.length; i += 4) {
-    const userAlpha = userData[i + 3];
-    const guideAlpha = guideData[i + 3];
-    
-    const isUserPainted = userAlpha > 100;
-    const isGuidePainted = guideAlpha > 50;
-    
-    if (isUserPainted) userPixels++;
-    if (isGuidePainted) guidePixels++;
-    if (isUserPainted && isGuidePainted) overlap++;
+    if (userData[i + 3] > 80) userPixels++;
   }
-  
-  if (userPixels === 0) return 0;
-  
-  const union = userPixels + guidePixels - overlap;
-  const score = union > 0 ? (overlap / union) * 100 : 0;
-  
-  const scaledScore = Math.min(100, Math.round(score * 4.0));
-  return scaledScore;
+
+  // Estimate expected ink coverage based on text length
+  // A single letter needs ~3-6% of canvas inked; a longer word needs proportionally more
+  const charCount = [...targetText].length;
+  const minExpectedCoverage = Math.min(0.03 + charCount * 0.012, 0.18);
+  const maxExpectedCoverage = Math.min(0.08 + charCount * 0.025, 0.45);
+
+  const userCoverage = userPixels / totalPixels;
+
+  if (userCoverage < minExpectedCoverage * 0.25) return 0; // basically nothing drawn
+
+  // Score based on how close user coverage is to expected range
+  let score;
+  if (userCoverage >= minExpectedCoverage && userCoverage <= maxExpectedCoverage) {
+    score = 100;
+  } else if (userCoverage < minExpectedCoverage) {
+    score = Math.round((userCoverage / minExpectedCoverage) * 100);
+  } else {
+    // Over-inked — still give a good score but not perfect
+    score = Math.max(60, Math.round(100 - ((userCoverage - maxExpectedCoverage) / maxExpectedCoverage) * 40));
+  }
+
+  return Math.min(100, score);
 };
 
 const DashboardIcon = ({ className, style }) => (
@@ -3143,8 +3139,8 @@ function App() {
 
     return (
       <div className="ai-lesson-content">
-        <div className="ai-lesson-step" style={{ paddingBottom: '140px' }}>
-          <div className="ai-lesson-step-header" style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="ai-lesson-step" style={{ paddingBottom: '0' }}>
+          <div className="ai-lesson-step-header" style={{ marginBottom: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span className="ai-step-badge">
               {lessonSession?.isPracticeSession ? (
                 <>⚡ {t("practiceMode")}: {(() => {
@@ -3282,7 +3278,7 @@ function App() {
               const displayTiles = lessonListeningShuffleRef.current.tiles;
 
               return (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '120px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '0' }}>
                   <div style={{ marginBottom: '16px', textAlign: 'center' }}>
                     <span className="ai-step-badge">🎧 Choose the words you hear</span>
                   </div>
@@ -3577,7 +3573,7 @@ function App() {
               };
 
               return (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '120px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '0' }}>
                   <div style={{ textAlign: 'center', marginBottom: '10px' }}>
                     <p style={{ fontSize: '1.2rem', fontWeight: '700', margin: 0 }}>
                       {selectedLanguage === "Hindi" ? "मिलान करें" : 
@@ -3662,7 +3658,7 @@ function App() {
               const isChecked = lessonImageChoiceFeedback !== null;
 
               return (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '120px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '0' }}>
                   <div style={{ marginBottom: '16px', textAlign: 'center' }}>
                     <span className="ai-step-badge">🖼️ Choose the correct picture</span>
                   </div>
@@ -3777,7 +3773,7 @@ function App() {
               const shuffledTiles = lessonTranslationShuffleRef.current.tiles;
 
               return (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '120px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '0' }}>
                   <div style={{ marginBottom: '16px', textAlign: 'center' }}>
                     <span className="ai-step-badge">🧩 Translation Exercise</span>
                   </div>
@@ -3913,11 +3909,7 @@ function App() {
               const shuffledTiles = lessonTranslationShuffleRef.current.tiles;
 
               return (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '120px' }}>
-                  <div style={{ background: 'rgba(2,132,199,0.05)', border: '2px solid rgba(2,132,199,0.2)', borderRadius: '16px', padding: '16px 20px', fontSize: '1.1rem', fontWeight: '700', textAlign: 'center' }}>
-                    {tt.prompt}
-                  </div>
-
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '0' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '20px', margin: '10px 0' }}>
                     <img src="/as1.png" alt="LISA Mascot" style={{ width: '80px', height: '80px', objectFit: 'contain' }} />
                     <div className="duo-speech-bubble" style={{ flexGrow: 1 }}>
@@ -4827,11 +4819,17 @@ function App() {
 
             // 6. Tracing
             if (currentQuestion.type === "tracing") {
+              const isWordTracing = !!currentQuestion.word && !currentQuestion.letter;
+              const tracingTarget = (currentQuestion.letter || currentQuestion.word || "A").toString();
+
               const getPos = (e) => {
                 const canvas = tracingCanvasRef.current;
                 if (!canvas) return { x: 0, y: 0 };
                 const rect = canvas.getBoundingClientRect();
-                return { x: (e.clientX - rect.left) * (canvas.width / rect.width), y: (e.clientY - rect.top) * (canvas.height / rect.height) };
+                return {
+                  x: (e.clientX - rect.left) * (canvas.width / rect.width),
+                  y: (e.clientY - rect.top) * (canvas.height / rect.height)
+                };
               };
               const startDraw = (e) => {
                 const canvas = tracingCanvasRef.current;
@@ -4841,7 +4839,8 @@ function App() {
                 const p = getPos(e);
                 ctx.beginPath();
                 ctx.moveTo(p.x, p.y);
-                setLessonTracingDone(true);
+                // Mark as started (without causing re-render for first stroke)
+                if (!lessonTracingDone) setLessonTracingDone(true);
               };
               const moveDraw = (e) => {
                 const canvas = tracingCanvasRef.current;
@@ -4849,13 +4848,15 @@ function App() {
                 const ctx = canvas.getContext("2d");
                 const p = getPos(e);
                 ctx.lineTo(p.x, p.y);
-                ctx.strokeStyle = "#0284c7";
-                ctx.lineWidth = 8;
+                ctx.strokeStyle = "#1d4ed8";
+                ctx.lineWidth = 9;
                 ctx.lineCap = "round";
                 ctx.lineJoin = "round";
                 ctx.stroke();
               };
-              const endDraw = () => { if (tracingCanvasRef.current) tracingCanvasRef.current.isDrawing = false; };
+              const endDraw = () => {
+                if (tracingCanvasRef.current) tracingCanvasRef.current.isDrawing = false;
+              };
               const clearCanvas = () => {
                 if (tracingCanvasRef.current) {
                   drawTracingGuide(tracingCanvasRef.current, currentQuestion);
@@ -4864,46 +4865,111 @@ function App() {
               };
 
               return (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '20px', margin: '16px 0' }}>
-                    <img src="/as1.png" alt="LISA Mascot" style={{ width: '80px', height: '80px', objectFit: 'contain' }} />
-                    <div style={{ flexGrow: 1, background: 'var(--panel)', border: '2px solid var(--line)', borderRadius: '20px', padding: '16px 24px', position: 'relative' }}>
-                      <div style={{ position: 'absolute', left: '-9px', top: '32px', width: '14px', height: '14px', background: 'var(--panel)', borderLeft: '2px solid var(--line)', borderBottom: '2px solid var(--line)', transform: 'rotate(45deg)' }}></div>
-                      <p style={{ margin: 0, fontSize: '1.1rem', fontWeight: '700' }}>{currentQuestion.info || `Trace the letter ${currentQuestion.letter}`}</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  {/* Mascot + instruction bubble */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px', margin: '0 0 8px' }}>
+                    <img src="/as1.png" alt="LISA Mascot" style={{ width: '72px', height: '72px', objectFit: 'contain', flexShrink: 0 }} />
+                    <div style={{ flexGrow: 1, background: 'var(--panel)', border: '2px solid var(--line)', borderRadius: '20px', padding: '14px 20px', position: 'relative' }}>
+                      <div style={{ position: 'absolute', left: '-9px', top: '28px', width: '14px', height: '14px', background: 'var(--panel)', borderLeft: '2px solid var(--line)', borderBottom: '2px solid var(--line)', transform: 'rotate(45deg)' }}></div>
+                      <p style={{ margin: 0, fontSize: '1.05rem', fontWeight: '700' }}>{currentQuestion.info || (isWordTracing ? `Write the word shown below` : `Trace the letter: ${tracingTarget}`)}</p>
                     </div>
                   </div>
 
-                  <div style={{ display: 'flex', justifyContent: 'center', margin: '16px 0' }}>
-                    <canvas
-                      ref={tracingCanvasRef}
-                      width={300}
-                      height={300}
-                      onPointerDown={startDraw}
-                      onPointerMove={moveDraw}
-                      onPointerUp={endDraw}
-                      onPointerLeave={endDraw}
-                      style={{ border: '2px solid var(--line)', borderRadius: '16px', background: 'var(--panel)', touchAction: 'none', maxWidth: '100%' }}
-                    />
+                  {/* Canvas & Word Info Container (Side-by-Side on Desktop, Stacked on Mobile) */}
+                  <div className="tracing-container">
+                    {/* Info card — shown for both letter and word tracing */}
+                    {(isWordTracing || currentQuestion.letter) && (
+                      <div className="tracing-word-card">
+                        <span style={{ fontSize: '3rem', lineHeight: 1 }}>{currentQuestion.emoji || '📝'}</span>
+                        <div style={{ textAlign: 'center' }}>
+                          {isWordTracing ? (
+                            /* Word tracing: show the full word */
+                            <div style={{ fontSize: '1.8rem', fontWeight: '900', color: 'var(--accent)', letterSpacing: '0.03em' }}>{tracingTarget}</div>
+                          ) : (
+                            /* Letter tracing: show big letter + example word starting with it */
+                            <>
+                              <div style={{ fontSize: '2.6rem', fontWeight: '900', color: 'var(--accent)', lineHeight: 1 }}>{currentQuestion.letter}</div>
+                              {currentQuestion.word && (
+                                <div style={{ fontSize: '1.05rem', fontWeight: '700', color: 'var(--text)', marginTop: '4px' }}>{currentQuestion.word}</div>
+                              )}
+                            </>
+                          )}
+                          {currentQuestion.englishWord && (
+                            <div style={{ fontSize: '0.88rem', color: 'var(--muted)', fontWeight: '600', marginTop: '3px' }}>{currentQuestion.englishWord}</div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+
+                    {/* Canvas */}
+                    <div className="tracing-canvas-wrapper">
+                      <canvas
+                        ref={(el) => {
+                          // Only draw guide when element first mounts or question changes
+                          const questionId = currentQuestion.id || tracingTarget;
+                          if (el && el._guideDrwn !== tracingTarget) {
+                            tracingCanvasRef.current = el;
+                            drawTracingGuide(el, currentQuestion);
+                          } else if (el) {
+                            tracingCanvasRef.current = el;
+                          }
+                        }}
+                        width={isWordTracing ? 450 : 400}
+                        height={240}
+                        onPointerDown={startDraw}
+                        onPointerMove={moveDraw}
+                        onPointerUp={endDraw}
+                        onPointerLeave={endDraw}
+                        style={{
+                          border: '2px solid var(--line)',
+                          borderRadius: '16px',
+                          background: '#ffffff',
+                          touchAction: 'none',
+                          maxWidth: '100%',
+                          boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+                          cursor: 'crosshair'
+                        }}
+                      />
+                    </div>
                   </div>
 
-                  <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', margin: '16px 0' }}>
-                    <button type="button" onClick={() => speakText(currentQuestion.sound || currentQuestion.word)} style={{ background: '#38bdf8', border: 'none', color: 'white', borderRadius: '12px', padding: '12px 20px', fontWeight: '800', cursor: 'pointer', fontSize: '1rem' }}>🔊 Play sound</button>
-                    <button type="button" onClick={clearCanvas} style={{ background: 'var(--panel-strong)', border: '2px solid var(--line)', borderRadius: '12px', padding: '12px 20px', fontWeight: '800', cursor: 'pointer', fontSize: '1rem' }}>↺ Clear</button>
+                  {/* Controls */}
+                  <div style={{ display: 'flex', justifyContent: 'center', gap: '12px' }}>
+                    <button
+                      type="button"
+                      onClick={() => speakText(currentQuestion.sound || currentQuestion.word || currentQuestion.letter)}
+                      style={{ background: '#38bdf8', border: 'none', color: 'white', borderRadius: '12px', padding: '11px 20px', fontWeight: '800', cursor: 'pointer', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+                    >
+                      🔊 Play sound
+                    </button>
+                    <button
+                      type="button"
+                      onClick={clearCanvas}
+                      style={{ background: 'var(--panel)', border: '2px solid var(--line)', borderRadius: '12px', padding: '11px 20px', fontWeight: '800', cursor: 'pointer', fontSize: '0.95rem' }}
+                    >
+                      ↺ Clear
+                    </button>
                   </div>
 
+                  {/* Check button / feedback */}
                   {!lessonTracingFeedback ? (
-                    <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
-                      <button type="button" className="duo-check-btn"
+                    <div style={{ display: 'flex', justifyContent: 'center', marginTop: '8px' }}>
+                      <button
+                        type="button"
+                        className="duo-check-btn"
                         onClick={() => {
-                          const targetText = (currentQuestion.letter || currentQuestion.word || "A").toString();
-                          const score = evaluateDrawingAccuracy(tracingCanvasRef.current, targetText);
+                          const score = evaluateDrawingAccuracy(tracingCanvasRef.current, tracingTarget);
                           setLessonTracingAccuracy(score);
-                          setLessonTracingFeedback(score >= 20 ? "correct" : "incorrect");
-                          const correct = score >= 20;
+                          const correct = score >= 25;
+                          setLessonTracingFeedback(correct ? "correct" : "incorrect");
                           if (correct) recordDailyCorrect();
                           recordLessonAnswer(correct);
                         }}
-                        disabled={!lessonTracingDone}>Check Writing</button>
+                        disabled={!lessonTracingDone}
+                      >
+                        Check Writing
+                      </button>
                     </div>
                   ) : (
                     <div style={{
@@ -4919,10 +4985,10 @@ function App() {
                     }}>
                       <div>
                         <h4 style={{ margin: 0, color: lessonTracingFeedback === "correct" ? '#065f46' : '#991b1b', fontWeight: '800', fontSize: '1.2rem' }}>
-                          {lessonTracingFeedback === "correct" ? `Excellent! (Accuracy: ${lessonTracingAccuracy}%)` : `Incorrect (Accuracy: ${lessonTracingAccuracy}%)`}
+                          {lessonTracingFeedback === "correct" ? '✅ Excellent!' : '❌ Keep practising!'}
                         </h4>
                         <p style={{ margin: '4px 0 0', color: lessonTracingFeedback === "correct" ? '#047857' : '#b91c1c', fontSize: '0.95rem' }}>
-                          {lessonTracingFeedback === "correct" ? 'Your handwriting matches the word!' : 'Try to write it closer to the target shape next time.'}
+                          {lessonTracingFeedback === "correct" ? `Great job tracing "${tracingTarget}"!` : `Try to fill in the full shape of "${tracingTarget}" next time.`}
                         </p>
                       </div>
                       <button type="button" className="primary-btn" onClick={handleNext}>Continue</button>
@@ -4954,7 +5020,7 @@ function App() {
               const tiles2 = q.tiles;
               const isChecked2 = lessonTranslationFeedback !== null;
               return (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '120px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '0' }}>
                   <div style={{ background: 'rgba(2,132,199,0.05)', border: '2px solid rgba(2,132,199,0.2)', borderRadius: '16px', padding: '16px 20px', fontSize: '1.1rem', fontWeight: '700', textAlign: 'center' }}>
                     {q.prompt}
                   </div>
@@ -5101,7 +5167,7 @@ function App() {
               };
 
               return (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '120px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '0' }}>
                   <div style={{ textAlign: 'center' }}>
                     <span className="ai-step-badge">
                       {currentQuestion.type === "speak" && "🗣️ Read Aloud"}
@@ -5265,7 +5331,7 @@ function App() {
               const isChecked = lessonListenWordMCQFeedback !== null;
 
               return (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '120px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '0' }}>
                   <div style={{ marginBottom: '16px', textAlign: 'center' }}>
                     <span className="ai-step-badge">🎧 Listen & Choose the Word</span>
                   </div>
@@ -5415,7 +5481,7 @@ function App() {
               const isChecked = lessonMeaningFeedback !== null;
 
               return (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '120px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '0' }}>
                   <div style={{ marginBottom: '16px', textAlign: 'center' }}>
                     <span className="ai-step-badge">🎧 Listen to the Passage</span>
                   </div>
@@ -5573,7 +5639,7 @@ function App() {
               const lines_chat = scenario.split("\n").map(l => l.trim()).filter(Boolean);
 
               return (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '120px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '0' }}>
                   <div style={{ background: 'rgba(2,132,199,0.05)', border: '2px solid rgba(2,132,199,0.2)', borderRadius: '16px', padding: '16px 20px', fontSize: '1.1rem', fontWeight: '700', textAlign: 'center' }}>
                     {questionText}
                   </div>
@@ -5728,7 +5794,7 @@ function App() {
               const isChecked = lessonMeaningFeedback !== null;
 
               return (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '120px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '0' }}>
                   <div style={{ marginBottom: '16px', textAlign: 'center' }}>
                     <span className="ai-step-badge">🌍 Real-World Scenario</span>
                   </div>
@@ -11053,7 +11119,7 @@ function App() {
                           literacyLevel: level,
                           literacyLevelName: levelName,
                           interfaceLanguage: selectedLanguage || "English",
-                          useFallback: true
+                          useFallback: !aiEnabled
                         }).then(res => {
                           if (res && res.questions) setPronunciationQuestions(res.questions);
                           setPronunciationStep(0);
@@ -11513,6 +11579,7 @@ function App() {
                         recordWeeklyXp(amount);
                       }
                     }}
+                    aiEnabled={aiEnabled}
                   />
                 </div>
               </div>
@@ -12683,7 +12750,7 @@ function App() {
                       const isCorrect = isAnswered && selected === q.correctIndex;
 
                       return (
-                        <div className="ai-lesson-step" style={{ paddingBottom: '120px' }}>
+                        <div className="ai-lesson-step" style={{ paddingBottom: '0' }}>
                           <div className="ai-lesson-step-header" style={{ marginBottom: '16px' }}>
                             <span className="ai-step-badge">🎯 Multiple Choice</span>
                           </div>
@@ -12886,7 +12953,7 @@ function App() {
                       const allChoices = Array.from(new Set([fb.answer, ...otherBlanks])).slice(0, 4);
 
                       return (
-                        <div className="ai-lesson-step" style={{ paddingBottom: '120px' }}>
+                        <div className="ai-lesson-step" style={{ paddingBottom: '0' }}>
                           <div className="ai-lesson-step-header" style={{ marginBottom: '16px' }}>
                             <span className="ai-step-badge">✍️ Fill in the Blank{ai.fillBlanks.length > 1 && false ? ` (Question {lessonFillIndex + 1} of {ai.fillBlanks.length})` : ""}</span>
                           </div>
@@ -13110,7 +13177,7 @@ function App() {
                     {lessonStep === 3 && (() => {
                       const isChecked = lessonReadingFeedback !== null;
                       return (
-                        <div className="ai-lesson-step" style={{ paddingBottom: '120px' }}>
+                        <div className="ai-lesson-step" style={{ paddingBottom: '0' }}>
                           <div className="ai-lesson-step-header" style={{ marginBottom: '16px' }}>
                             <span className="ai-step-badge">📚 Reading Comprehension</span>
                           </div>
@@ -13257,7 +13324,7 @@ function App() {
 
                     {/* Step 4: Writing Activity */}
                     {lessonStep === 4 && (
-                      <div className="ai-lesson-step" style={{ paddingBottom: '120px' }}>
+                      <div className="ai-lesson-step" style={{ paddingBottom: '0' }}>
                         <div className="ai-lesson-step-header" style={{ marginBottom: '16px' }}>
                           <span className="ai-step-badge">✍️ Writing Activity</span>
                         </div>
@@ -13423,7 +13490,7 @@ function App() {
                       };
 
                       return (
-                        <div className="ai-lesson-step" style={{ paddingBottom: '120px' }}>
+                        <div className="ai-lesson-step" style={{ paddingBottom: '0' }}>
                           <div className="ai-lesson-step-header" style={{ marginBottom: '16px' }}>
                             <span className="ai-step-badge">🎤 Speak this sentence</span>
                           </div>
@@ -13561,7 +13628,7 @@ function App() {
                       const isChecked = lessonMeaningFeedback !== null;
 
                       return (
-                        <div className="ai-lesson-step" style={{ paddingBottom: '120px' }}>
+                        <div className="ai-lesson-step" style={{ paddingBottom: '0' }}>
                           <div className="ai-lesson-step-header" style={{ marginBottom: '16px' }}>
                             <span className="ai-step-badge">🧠 Select the correct meaning</span>
                           </div>
@@ -13739,7 +13806,7 @@ function App() {
                       const shuffledTiles = lessonTranslationShuffleRef.current.tiles;
 
                       return (
-                        <div className="ai-lesson-step" style={{ paddingBottom: '120px' }}>
+                        <div className="ai-lesson-step" style={{ paddingBottom: '0' }}>
                           <div className="ai-lesson-step-header" style={{ marginBottom: '16px' }}>
                             <span className="ai-step-badge">🧩 Arrange the words</span>
                           </div>
@@ -13980,7 +14047,7 @@ function App() {
                       };
 
                       return (
-                        <div className="ai-lesson-step" style={{ paddingBottom: '120px' }}>
+                        <div className="ai-lesson-step" style={{ paddingBottom: '0' }}>
                           <div className="ai-lesson-step-header" style={{ marginBottom: '16px' }}>
                             <span className="ai-step-badge">🔗 Make the correct pairs of words</span>
                           </div>
@@ -14133,7 +14200,7 @@ function App() {
                       const isChecked = lessonListeningFeedback !== null;
 
                       return (
-                        <div className="ai-lesson-step" style={{ paddingBottom: '120px' }}>
+                        <div className="ai-lesson-step" style={{ paddingBottom: '0' }}>
                           <div className="ai-lesson-step-header" style={{ marginBottom: '16px' }}>
                             <span className="ai-step-badge">🎧 Choose the words you hear</span>
                           </div>
@@ -14377,7 +14444,7 @@ function App() {
                       };
 
                       return (
-                        <div className="ai-lesson-step" style={{ paddingBottom: '120px' }}>
+                        <div className="ai-lesson-step" style={{ paddingBottom: '0' }}>
                           <div className="ai-lesson-step-header" style={{ marginBottom: '16px' }}>
                             <span className="ai-step-badge">🔤 Unscramble</span>
                           </div>
@@ -14462,7 +14529,7 @@ function App() {
                       const isChecked = lessonImageChoiceFeedback !== null;
 
                       return (
-                        <div className="ai-lesson-step" style={{ paddingBottom: '120px' }}>
+                        <div className="ai-lesson-step" style={{ paddingBottom: '0' }}>
                           <div className="ai-lesson-step-header" style={{ marginBottom: '16px' }}>
                             <span className="ai-step-badge">🖼️ Choose the correct picture</span>
                           </div>
@@ -14573,7 +14640,7 @@ function App() {
                       };
 
                       return (
-                        <div className="ai-lesson-step" style={{ paddingBottom: '120px' }}>
+                        <div className="ai-lesson-step" style={{ paddingBottom: '0' }}>
                           <div className="ai-lesson-step-header" style={{ marginBottom: '16px' }}>
                             <span className="ai-step-badge">✏️ Draw the picture</span>
                           </div>

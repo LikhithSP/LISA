@@ -203,7 +203,7 @@ function WordSprintGame({ t = (key) => key, learningLanguage = "English", interf
       literacyLevel: 5,
       literacyLevelName: "Intermediate",
       interfaceLanguage: interfaceLanguage || "English",
-      useFallback: false
+      useFallback: !aiEnabled
     }).then(res => {
       let list = [];
       if (res && res.questions) {
@@ -599,7 +599,7 @@ function WordScrambleGame({ t = (key) => key, learningLanguage = "English", inte
       literacyLevel: 5,
       literacyLevelName: "Intermediate",
       interfaceLanguage: interfaceLanguage || "English",
-      useFallback: false
+      useFallback: !aiEnabled
     }).then(res => {
       let list = [];
       if (res && res.questions) {
@@ -867,7 +867,7 @@ function MemoryMatchGame({ t = (key) => key, learningLanguage = "English", speak
       literacyLevel: 5,
       literacyLevelName: "Intermediate",
       interfaceLanguage: "English",
-      useFallback: false
+      useFallback: !aiEnabled
     }).then(res => {
       let listData = [];
       if (res && res.questions) {
@@ -1058,7 +1058,7 @@ function MemoryMatchGame({ t = (key) => key, learningLanguage = "English", speak
 }
 
 // ─── Fun & Learn Zone Shell ────────────────────────────────────────────────────
-export default function FunLearnZone({ t = (key) => key, learningLanguage = "English", interfaceLanguage = "English", speakText, onXpEarned }) {
+export default function FunLearnZone({ t = (key) => key, learningLanguage = "English", interfaceLanguage = "English", speakText, onXpEarned, aiEnabled = true }) {
   const [activeGame, setActiveGame] = useState(null);
   const [xpToast, setXpToast] = useState(null);
 

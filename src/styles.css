@@ -6777,6 +6777,7 @@ select:focus-visible {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .lesson-overlay-header {
@@ -6844,12 +6845,13 @@ select:focus-visible {
 }
 
 .lesson-overlay-body {
-  flex-grow: 1;
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 40px 24px 120px;
+  padding: 16px 24px 0;
   overflow-y: auto;
+  min-height: 0;
 }
 
 .lesson-question-container {
@@ -7094,6 +7096,7 @@ select:focus-visible {
 .ai-lesson-content {
   width: 100%;
   max-width: 700px;
+  padding-bottom: 100px;
 }
 
 .ai-lesson-step-bar {
@@ -7159,8 +7162,8 @@ select:focus-visible {
 }
 
 .ai-lesson-step-header {
-  margin-bottom: 20px;
-  margin-top: 40px;
+  margin-bottom: 8px;
+  margin-top: 0;
 }
 
 .ai-lesson-step-header h3 {
@@ -18266,5 +18269,59 @@ select {
 
   .duo-form-grid-2 {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Tracing layout responsive rules */
+.tracing-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  margin: 8px 0;
+  width: 100%;
+}
+
+.tracing-word-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(135deg, rgba(2,132,199,0.08) 0%, rgba(99,102,241,0.06) 100%);
+  border: 2px solid rgba(2,132,199,0.25);
+  border-radius: 20px;
+  padding: 20px 24px;
+  width: 160px;
+  height: 240px;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.tracing-canvas-wrapper {
+  display: flex;
+  justify-content: center;
+  flex-shrink: 1;
+  max-width: calc(100% - 184px);
+}
+
+@media (max-width: 768px) {
+  .tracing-container {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .tracing-word-card {
+    flex-direction: row;
+    width: 100%;
+    height: auto;
+    padding: 14px 24px;
+    gap: 16px;
+  }
+
+  .tracing-canvas-wrapper {
+    max-width: 100%;
+    width: 100%;
   }
 }
