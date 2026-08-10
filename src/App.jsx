@@ -7048,7 +7048,7 @@ function App() {
     setWritingAnswers({});
     setReadingAttempts({});
     setTranslatedQ(null);
-  }, [learningLanguage]);
+  }, [learningLanguage, profile?.experience_level, profile?.age]);
 
   // Only count practice time while the learner is actively in a lesson, practice, or assessment.
   useEffect(() => {
@@ -9017,7 +9017,12 @@ function App() {
         ).length;
 
         const startLevel = assessmentQuestionsList[0]?.blockLevel || 1;
-        const desiredLevelForB = scoreA === 3 ? Math.min(startLevel + 1, 5) : startLevel;
+        let desiredLevelForB = startLevel;
+        if (scoreA >= 2) {
+          desiredLevelForB = Math.min(startLevel + 1, 5);
+        } else if (scoreA === 0) {
+          desiredLevelForB = Math.max(1, startLevel - 1);
+        }
         const currentLevelForB = assessmentQuestionsList[3]?.blockLevel;
 
         if (currentLevelForB !== desiredLevelForB) {
@@ -9044,7 +9049,12 @@ function App() {
         ).length;
 
         const blockBLevel = assessmentQuestionsList[3]?.blockLevel || 1;
-        const desiredLevelForC = scoreB === 3 ? Math.min(blockBLevel + 1, 5) : blockBLevel;
+        let desiredLevelForC = blockBLevel;
+        if (scoreB >= 2) {
+          desiredLevelForC = Math.min(blockBLevel + 1, 5);
+        } else if (scoreB === 0) {
+          desiredLevelForC = Math.max(1, blockBLevel - 1);
+        }
         const currentLevelForC = assessmentQuestionsList[6]?.blockLevel;
 
         if (currentLevelForC !== desiredLevelForC) {
