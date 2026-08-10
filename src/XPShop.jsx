@@ -228,7 +228,6 @@ export default function XPShop({
       onOwnedItemsChange(newOwned);
       handleEquip(confirmItem, newOwned);
     }
-    showToast(t("itemUnlockedToast").replace("{name}", getItemName(confirmItem)), "success");
     setConfirmItem(null);
   };
 
@@ -252,10 +251,8 @@ export default function XPShop({
       const current = activeProfileBadges || [];
       if (current.includes(item.id)) {
         onBadgesChange(current.filter(b => b !== item.id));
-      } else if (current.length < 3) {
-        onBadgesChange([...current, item.id]);
       } else {
-        showToast(t("maxBadgesError"), "error");
+        onBadgesChange([...current, item.id]);
       }
     }
   };
@@ -461,12 +458,7 @@ export default function XPShop({
 
   return (
     <div className="shop-zone">
-      {/* Toast */}
-      {toast && (
-        <div className={`shop-toast ${toast.type}`}>
-          {toast.type === "success" ? "🎉" : "⚠️"} {toast.msg}
-        </div>
-      )}
+
 
       {/* Confirm Modal */}
       {confirmItem && (

@@ -9060,19 +9060,15 @@ select:focus-visible {
 }
 
 .flz-zone-title {
-  font-size: 1.7rem;
-  font-weight: 900;
-  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 800;
+  margin: 0 0 4px 0;
   color: var(--text);
-  background: linear-gradient(135deg, var(--text) 0%, var(--accent) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 
 .flz-zone-subtitle {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   color: var(--muted);
   font-weight: 500;
 }
@@ -9111,17 +9107,17 @@ select:focus-visible {
 }
 
 .flz-game-card {
-  border-radius: 24px;
-  padding: 28px 24px;
+  border-radius: 18px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
   cursor: pointer;
   position: relative;
   overflow: hidden;
   background: var(--panel);
   border: 2px solid var(--line);
-  box-shadow: 0 10px 30px rgba(24, 32, 43, 0.06);
+  box-shadow: 0 4px 16px rgba(24, 32, 43, 0.04);
   transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease, border-color 0.25s ease;
 }
 
@@ -9130,77 +9126,69 @@ select:focus-visible {
 }
 
 .flz-game-card:hover {
-  transform: translateY(-6px) scale(1.01);
+  transform: translateY(-4px);
   border-color: var(--game-accent);
-  box-shadow: 0 20px 50px rgba(24, 32, 43, 0.14);
+  box-shadow: 0 12px 30px rgba(24, 32, 43, 0.1);
 }
 
-.flz-game-card-tag {
-  display: inline-flex;
-  align-items: center;
-  font-size: 0.68rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  color: #fff;
-  background: var(--game-accent);
-  padding: 3px 10px;
-  border-radius: 20px;
-  width: fit-content;
+.flz-game-card-top-right {
+  position: absolute;
+  top: 16px;
+  right: 16px;
 }
 
 .flz-game-card-icon {
-  font-size: 3rem;
+  font-size: 2.2rem;
   line-height: 1;
-  margin: 4px 0;
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.12));
+  margin: 0 0 2px 0;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.1));
 }
 
 .flz-game-card-title {
-  font-size: 1.4rem;
-  font-weight: 900;
+  font-size: 1.15rem;
+  font-weight: 800;
   color: var(--text);
   margin: 0;
-  letter-spacing: -0.3px;
+  letter-spacing: -0.2px;
 }
 
 .flz-game-card-desc {
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   color: var(--muted);
   margin: 0;
-  line-height: 1.45;
+  line-height: 1.4;
   flex: 1;
 }
 
 .flz-game-card-footer {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   margin-top: 8px;
-  gap: 12px;
 }
 
 .flz-game-xp-badge {
-  font-size: 0.5rem;
+  font-size: 0.7rem;
   font-weight: 800;
   border: 1.5px solid var(--game-accent);
   border-radius: 20px;
-  padding: 4px 10px;
-  background: var(--flz-tint);
+  padding: 3px 10px;
+  background: var(--flz-tint, rgba(198, 95, 45, 0.08));
   color: var(--game-accent);
+  white-space: nowrap;
 }
 
 .flz-play-btn {
   border: none;
   border-radius: 10px;
-  padding: 9px 16px;
-  font-size: 0.85rem;
+  padding: 7px 14px;
+  font-size: 0.8rem;
   font-weight: 800;
   color: #fff;
   background: var(--game-accent);
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.14);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
   white-space: nowrap;
   flex-shrink: 0;
 }
@@ -9337,9 +9325,17 @@ select:focus-visible {
   margin-bottom: 12px;
 }
 
+.flz-timer-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  width: 100%;
+}
+
 .flz-timer-track {
   flex: 1;
-  height: 8px;
+  height: 10px;
   background: var(--line);
   border-radius: 99px;
   overflow: hidden;
@@ -9352,19 +9348,21 @@ select:focus-visible {
 }
 
 .flz-timer-num {
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   font-weight: 800;
-  min-width: 32px;
+  min-width: 36px;
   text-align: right;
+  flex-shrink: 0;
 }
 
-/* Chips */
+/* Chips & Stats Row */
 .flz-sprint-top {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 10px;
   margin-bottom: 16px;
-  flex-wrap: wrap;
+  width: 100%;
 }
 
 .flz-score-chip {
@@ -9374,6 +9372,8 @@ select:focus-visible {
   font-weight: 800;
   padding: 6px 14px;
   border-radius: 99px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .flz-combo-chip {
@@ -9384,6 +9384,8 @@ select:focus-visible {
   padding: 6px 14px;
   border-radius: 99px;
   animation: flz-pulse-chip 0.5s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 @keyframes flz-pulse-chip {
@@ -9401,10 +9403,15 @@ select:focus-visible {
 }
 
 .flz-word-count {
-  margin-left: auto;
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--text);
+  background: var(--panel-strong);
+  border: 1.5px solid var(--line);
+  padding: 5px 12px;
+  border-radius: 12px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* Skip button */
@@ -9517,7 +9524,7 @@ select:focus-visible {
   background: var(--panel-strong);
   border: 2.5px solid var(--line);
   border-radius: 20px;
-  padding: 28px;
+  padding: 34px 20px 24px;
   text-align: center;
   margin-bottom: 20px;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
@@ -9532,12 +9539,14 @@ select:focus-visible {
 
 .flz-word-card.correct {
   border-color: #10b981;
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+  background: rgba(16, 185, 129, 0.05);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
 }
 
 .flz-word-card.wrong {
   border-color: #ef4444;
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+  background: rgba(239, 68, 68, 0.05);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
   animation: flz-shake 0.35s ease;
 }
 
@@ -9557,21 +9566,24 @@ select:focus-visible {
 .flz-feedback {
   position: absolute;
   top: 10px;
-  right: 14px;
-  font-size: 0.85rem;
+  right: 12px;
+  font-size: 0.78rem;
   font-weight: 800;
-  border-radius: 8px;
-  padding: 4px 10px;
+  border-radius: 99px;
+  padding: 4px 12px;
+  letter-spacing: 0.3px;
+  z-index: 5;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
 .flz-feedback.correct {
-  background: rgba(16, 185, 129, 0.15);
-  color: #10b981;
+  background: #10b981;
+  color: #ffffff;
 }
 
 .flz-feedback.wrong {
-  background: rgba(239, 68, 68, 0.15);
-  color: #ef4444;
+  background: #ef4444;
+  color: #ffffff;
 }
 
 .flz-sprint-form {
@@ -9826,14 +9838,18 @@ select:focus-visible {
 .flz-memory-game {
   display: flex;
   flex-direction: column;
+  align-items: center;
   width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
 }
 
 .flz-memory-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  margin-top: 8px;
+  gap: 10px;
+  width: 100%;
+  margin-top: 12px;
 }
 
 @media (max-width: 480px) {
@@ -9844,7 +9860,9 @@ select:focus-visible {
 }
 
 .flz-memory-card {
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 1 / 1;
+  width: 100%;
+  height: auto;
   cursor: pointer;
   perspective: 600px;
   border-radius: 14px;
@@ -9916,11 +9934,11 @@ select:focus-visible {
 }
 
 .flz-card-word {
-  font-size: 0.7rem;
-  font-weight: 900;
+  font-size: 0.78rem;
+  font-weight: 800;
   color: var(--text);
   text-align: center;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -13988,9 +14006,9 @@ select:focus-visible {
 }
 
 .profile-badges-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 14px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
 }
 
 .profile-badges-empty {
@@ -15846,7 +15864,6 @@ select {
 @media (max-width: 768px) {
 
   /* Game Area Container */
-  .flz-active-game-panel,
   .flz-game-card {
     width: calc(100% - 24px) !important;
     max-width: calc(100% - 24px) !important;
@@ -15880,14 +15897,15 @@ select {
   .flz-memory-grid {
     justify-content: center !important;
     align-content: center !important;
-    margin: 16px auto !important;
+    margin: 12px auto !important;
     width: 100% !important;
-    max-width: 320px !important;
+    max-width: 360px !important;
     gap: 8px !important;
   }
 
   .flz-memory-card {
-    height: 72px !important;
+    aspect-ratio: 1 / 1 !important;
+    height: auto !important;
     width: 100% !important;
   }
 
@@ -18393,5 +18411,288 @@ select {
   .tracing-action-btns button {
     padding: 9px 14px !important;
     font-size: 0.88rem !important;
+  }
+}
+
+/* ─── Fun & Learn Zone Full-Page Standalone Game Screen ─── */
+.flz-active-game-panel {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  z-index: 99999 !important;
+  background: var(--bg, #f8fafc) !important;
+  color: var(--text, #0f172a) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow-y: auto !important;
+  box-sizing: border-box !important;
+  padding: 16px 24px 32px !important;
+}
+
+.flz-full-page-nav {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+  max-width: 900px !important;
+  margin: 0 auto 16px !important;
+  padding-bottom: 12px !important;
+  border-bottom: 2px solid var(--line, #e2e8f0) !important;
+  flex-shrink: 0 !important;
+}
+
+.flz-full-page-back-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  background: var(--panel-strong, #ffffff) !important;
+  color: var(--text, #0f172a) !important;
+  border: 2px solid var(--line, #cbd5e1) !important;
+  box-shadow: 0 3px 0 var(--line, #cbd5e1) !important;
+  border-radius: 14px !important;
+  padding: 10px 18px !important;
+  font-size: 0.95rem !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+}
+
+.flz-full-page-back-btn:hover {
+  background: var(--line, #e2e8f0) !important;
+  transform: translateY(-1px) !important;
+}
+
+.flz-full-page-back-btn:active {
+  transform: translateY(1px) !important;
+  box-shadow: 0 0 0 transparent !important;
+}
+
+.flz-full-page-game-title {
+  font-size: 1.15rem !important;
+  font-weight: 800 !important;
+  color: var(--text, #0f172a) !important;
+}
+
+.flz-full-page-game-content {
+  width: 100% !important;
+  max-width: 900px !important;
+  margin: 0 auto !important;
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+}
+
+@media (max-width: 768px) {
+  .flz-active-game-panel {
+    padding: 12px 12px 24px !important;
+  }
+  .flz-full-page-nav {
+    margin-bottom: 12px !important;
+    padding-bottom: 8px !important;
+  }
+  .flz-full-page-back-btn {
+    padding: 7px 12px !important;
+    font-size: 0.85rem !important;
+  }
+  .flz-full-page-game-title {
+    font-size: 1rem !important;
+  }
+
+  /* Timer & Stats Row Mobile Layout */
+  .flz-sprint-top {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 6px !important;
+    margin-bottom: 14px !important;
+    width: 100% !important;
+  }
+
+  .flz-score-chip,
+  .flz-combo-chip {
+    font-size: 0.78rem !important;
+    padding: 5px 10px !important;
+  }
+
+  .flz-word-count {
+    font-size: 0.78rem !important;
+    padding: 4px 8px !important;
+  }
+
+  /* Game Intro & Result Cards Mobile */
+  .flz-game-intro,
+  .flz-result {
+    width: 100% !important;
+    max-width: 480px !important;
+    margin: 0 auto !important;
+    padding: 20px 16px !important;
+    box-sizing: border-box !important;
+  }
+
+  .flz-intro-title,
+  .flz-result-title {
+    font-size: 1.4rem !important;
+  }
+
+  .flz-intro-icon {
+    font-size: 2.8rem !important;
+    margin-bottom: 8px !important;
+  }
+
+  .flz-rule {
+    font-size: 0.9rem !important;
+    padding: 10px 14px !important;
+  }
+
+  .flz-start-btn {
+    padding: 12px 20px !important;
+    font-size: 1rem !important;
+  }
+
+  /* 1. Word Sprint Mobile Layout */
+  .flz-sprint-game {
+    width: 100% !important;
+    max-width: 480px !important;
+    margin: 0 auto !important;
+  }
+
+  .flz-word-card {
+    padding: 36px 14px 18px !important;
+    margin-bottom: 14px !important;
+    border-radius: 16px !important;
+  }
+
+  .flz-feedback {
+    top: 8px !important;
+    right: 10px !important;
+    font-size: 0.75rem !important;
+    padding: 3px 10px !important;
+  }
+
+  .flz-word-emoji {
+    font-size: 2.6rem !important;
+    margin-bottom: 4px !important;
+  }
+
+  .flz-word-hint {
+    font-size: 1.1rem !important;
+  }
+
+  .flz-sprint-options {
+    gap: 8px !important;
+    margin-bottom: 10px !important;
+  }
+
+  .flz-sprint-option-btn {
+    padding: 12px 14px !important;
+    font-size: 0.95rem !important;
+    border-radius: 12px !important;
+  }
+
+  .flz-sprint-input {
+    padding: 12px 14px !important;
+    font-size: 0.95rem !important;
+  }
+
+  /* 2. Word Scramble Mobile Layout */
+  .flz-scramble-game {
+    width: 100% !important;
+    max-width: 480px !important;
+    margin: 0 auto !important;
+  }
+
+  .flz-scramble-info {
+    padding: 10px 14px !important;
+    margin-bottom: 14px !important;
+    gap: 8px !important;
+  }
+
+  .flz-scramble-emoji {
+    font-size: 1.8rem !important;
+  }
+
+  .flz-scramble-cat {
+    font-size: 0.88rem !important;
+  }
+
+  .flz-answer-slots {
+    gap: 6px !important;
+    margin-bottom: 14px !important;
+    min-height: 48px !important;
+  }
+
+  .flz-slot {
+    width: 42px !important;
+    height: 46px !important;
+    font-size: 1.1rem !important;
+    border-radius: 10px !important;
+  }
+
+  .flz-letter-tiles {
+    gap: 6px !important;
+    margin-bottom: 10px !important;
+  }
+
+  .flz-letter-tile {
+    width: 44px !important;
+    height: 48px !important;
+    font-size: 1.1rem !important;
+    border-radius: 10px !important;
+  }
+
+  /* 3. Memory Match Mobile Layout */
+  .flz-memory-game {
+    width: 100% !important;
+    max-width: 380px !important;
+    margin: 0 auto !important;
+  }
+
+  .flz-memory-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 8px !important;
+    max-width: 360px !important;
+    margin: 10px auto !important;
+  }
+
+  .flz-memory-card {
+    aspect-ratio: 1 / 1 !important;
+    height: auto !important;
+    width: 100% !important;
+    border-radius: 12px !important;
+  }
+
+  .flz-card-back {
+    font-size: 1.2rem !important;
+  }
+
+  .flz-card-emoji {
+    font-size: 1.4rem !important;
+  }
+
+  .flz-card-word {
+    font-size: 0.7rem !important;
+  }
+}
+
+/* Extra Small Screens (width <= 400px) */
+@media (max-width: 400px) {
+  .flz-slot {
+    width: 36px !important;
+    height: 42px !important;
+    font-size: 0.95rem !important;
+  }
+
+  .flz-letter-tile {
+    width: 38px !important;
+    height: 44px !important;
+    font-size: 0.95rem !important;
+  }
+
+  .flz-memory-grid {
+    gap: 6px !important;
   }
 }

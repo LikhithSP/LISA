@@ -177,7 +177,7 @@ const WORD_SPRINT_WORDS_BY_LANG = {
   ]
 };
 
-function WordSprintGame({ t = (key) => key, learningLanguage = "English", interfaceLanguage = "English", speakText, onXpEarned, onClose }) {
+function WordSprintGame({ t = (key) => key, learningLanguage = "English", interfaceLanguage = "English", speakText, onXpEarned, onClose, aiEnabled = true }) {
   const [loading, setLoading] = useState(false);
   const [phase, setPhase] = useState("intro");
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -200,13 +200,14 @@ function WordSprintGame({ t = (key) => key, learningLanguage = "English", interf
     generatePracticeContent({
       practiceType: "Word Sprint",
       language: learningLanguage || "English",
+      learningLanguage: learningLanguage || "English",
       literacyLevel: 5,
       literacyLevelName: "Intermediate",
       interfaceLanguage: interfaceLanguage || "English",
       useFallback: !aiEnabled
     }).then(res => {
       let list = [];
-      if (res && res.questions) {
+      if (res && res.questions && res.questions.length > 0) {
         list = res.questions;
       } else {
         list = WORD_SPRINT_WORDS_BY_LANG[learningLanguage] || WORD_SPRINT_WORDS_BY_LANG["English"];
@@ -302,6 +303,9 @@ function WordSprintGame({ t = (key) => key, learningLanguage = "English", interf
 
   const handleOptionSelect = (selectedWord) => {
     if (!currentWord || feedback) return;
+    if (window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
     if (selectedWord === currentWord.word) {
       const newCombo = combo + 1;
       setCombo(newCombo);
@@ -444,6 +448,11 @@ function WordSprintGame({ t = (key) => key, learningLanguage = "English", interf
               key={opt}
               className="flz-sprint-option-btn"
               onClick={() => handleOptionSelect(opt)}
+              onMouseEnter={() => {
+                if (speakText && opt && !feedback) {
+                  speakText(opt, 0.9, learningLanguage);
+                }
+              }}
               disabled={feedback !== null}
             >
               {opt}
@@ -539,11 +548,15 @@ function scrambleTiles(tiles) {
       break;
     }
   }
-  if (isIdentical && tiles.length > 1) return scrambleTiles(tiles);
+  if (isIdentical && tiles.length > 1) {
+    const allSame = tiles.every(t => t === tiles[0]);
+    if (allSame) return arr;
+    return scrambleTiles(tiles);
+  }
   return arr;
 }
 
-function WordScrambleGame({ t = (key) => key, learningLanguage = "English", interfaceLanguage = "English", onXpEarned, onClose }) {
+function WordScrambleGame({ t = (key) => key, learningLanguage = "English", interfaceLanguage = "English", speakText, onXpEarned, onClose, aiEnabled = true }) {
   const [loading, setLoading] = useState(false);
   const [phase, setPhase] = useState("intro");
   const [wordIdx, setWordIdx] = useState(0);
@@ -560,6 +573,9 @@ function WordScrambleGame({ t = (key) => key, learningLanguage = "English", inte
   const loadWord = useCallback((wordList, idx) => {
     const wordObj = wordList[idx];
     if (!wordObj) return;
+    if (!wordObj.tiles || !Array.isArray(wordObj.tiles)) {
+      wordObj.tiles = wordObj.word.split("");
+    }
 
     // Pick 2 random extra tiles from other words in the list to confuse the user
     const otherWords = wordList.filter(w => w.word !== wordObj.word);
@@ -662,6 +678,9 @@ function WordScrambleGame({ t = (key) => key, learningLanguage = "English", inte
 
   const handleSelect = (item) => {
     if (item.used) return;
+    if (speakText && item.letter) {
+      speakText(item.letter, 0.9, learningLanguage);
+    }
     const newSel = [...selected, item.letter];
     const newRem = remaining.map((l) => l.id === item.id ? { ...l, used: true } : l);
     setSelected(newSel);
@@ -765,7 +784,7 @@ function WordScrambleGame({ t = (key) => key, learningLanguage = "English", inte
         </div>
       )}
       <div className={`flz-answer-slots ${shake ? "flz-shake" : ""} ${feedback === "correct" ? "flz-correct-anim" : ""}`}>
-        {currentWordObj && Array.from({ length: currentWordObj.word.length }).map((_, i) => (
+        {currentWordObj && Array.from({ length: currentWordObj.tiles?.length || currentWordObj.word.length }).map((_, i) => (
           <div
             key={i}
             className={`flz-slot ${selected[i] ? "filled" : "empty"} ${feedback === "correct" ? "correct" : feedback === "wrong" ? "wrong" : ""}`}
@@ -846,7 +865,7 @@ const MEMORY_PAIRS_BY_LANG = {
   ]
 };
 
-function MemoryMatchGame({ t = (key) => key, learningLanguage = "English", speakText, onXpEarned, onClose }) {
+function MemoryMatchGame({ t = (key) => key, learningLanguage = "English", speakText, onXpEarned, onClose, aiEnabled = true }) {
   const [loading, setLoading] = useState(false);
   const [phase, setPhase] = useState("intro");
   const [cards, setCards] = useState([]);
@@ -864,13 +883,14 @@ function MemoryMatchGame({ t = (key) => key, learningLanguage = "English", speak
     generatePracticeContent({
       practiceType: "Memory Match",
       language: learningLanguage || "English",
+      learningLanguage: learningLanguage || "English",
       literacyLevel: 5,
       literacyLevelName: "Intermediate",
       interfaceLanguage: "English",
       useFallback: !aiEnabled
     }).then(res => {
       let listData = [];
-      if (res && res.questions) {
+      if (res && res.questions && res.questions.length > 0) {
         listData = res.questions;
       } else {
         listData = list;
@@ -930,12 +950,20 @@ function MemoryMatchGame({ t = (key) => key, learningLanguage = "English", speak
 
   const handleCardClick = (card) => {
     if (!canFlip) return;
-    playChime("click");
-    if (card.type === "word" && speakText) {
-      speakText(card.word, 0.9, learningLanguage);
-    }
     if (flipped.includes(card.cardId)) return;
     if (matched.includes(card.id)) return;
+
+    // Check if this card flip creates a match with the first flipped card
+    const firstCardId = flipped[0];
+    const firstCard = firstCardId ? cards.find((c) => c.cardId === firstCardId) : null;
+    const isMatch = flipped.length === 1 && firstCard && firstCard.id === card.id && firstCard.type !== card.type;
+
+    // Speak card's word unless it's a matching second card (prevent duplicate speech on match)
+    if (!isMatch && speakText && card.word) {
+      speakText(card.word, 0.9, learningLanguage);
+    }
+
+    playChime("click");
     const newFlipped = [...flipped, card.cardId];
     setFlipped(newFlipped);
     if (newFlipped.length === 2) {
@@ -1100,6 +1128,17 @@ export default function FunLearnZone({ t = (key) => key, learningLanguage = "Eng
     },
   ];
 
+  useEffect(() => {
+    if (activeGame) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [activeGame]);
+
   return (
     <div className="flz-zone">
       {xpToast && (
@@ -1109,15 +1148,9 @@ export default function FunLearnZone({ t = (key) => key, learningLanguage = "Eng
       )}
       <div className="flz-zone-header">
         <div className="flz-zone-header-left">
-          <div className="flz-zone-badge">{t("gameForYou")}</div>
           <h2 className="flz-zone-title">{t("funLearnZoneTitle")}</h2>
           <p className="flz-zone-subtitle">{t("funLearnZoneSubtitle")}</p>
         </div>
-        {activeGame && (
-          <button className="flz-back-btn" onClick={() => setActiveGame(null)}>
-            ← {t("allGamesBtn")}
-          </button>
-        )}
       </div>
 
       {!activeGame && (
@@ -1129,14 +1162,15 @@ export default function FunLearnZone({ t = (key) => key, learningLanguage = "Eng
               style={{ "--game-accent": g.accent }}
               onClick={() => setActiveGame(g.id)}
             >
-              <div className="flz-game-card-tag">{g.tag}</div>
+              <div className="flz-game-card-top-right">
+                <span className="flz-game-xp-badge" style={{ color: g.accent, borderColor: g.accent }}>
+                  {g.xp}
+                </span>
+              </div>
               <div className="flz-game-card-icon">{g.icon}</div>
               <h3 className="flz-game-card-title">{g.title}</h3>
               <p className="flz-game-card-desc">{g.desc}</p>
               <div className="flz-game-card-footer">
-                <span className="flz-game-xp-badge" style={{ color: g.accent, borderColor: g.accent }}>
-                  {g.xp}
-                </span>
                 <button className="flz-play-btn" style={{ background: g.accent }}>
                   Play Now →
                 </button>
@@ -1148,15 +1182,27 @@ export default function FunLearnZone({ t = (key) => key, learningLanguage = "Eng
 
       {activeGame && (
         <div className="flz-active-game-panel">
-          {activeGame === "sprint" && (
-            <WordSprintGame t={t} learningLanguage={learningLanguage} interfaceLanguage={interfaceLanguage} speakText={speakText} onXpEarned={handleXpEarned} onClose={() => setActiveGame(null)} />
-          )}
-          {activeGame === "scramble" && (
-            <WordScrambleGame t={t} learningLanguage={learningLanguage} interfaceLanguage={interfaceLanguage} onXpEarned={handleXpEarned} onClose={() => setActiveGame(null)} />
-          )}
-          {activeGame === "memory" && (
-            <MemoryMatchGame t={t} learningLanguage={learningLanguage} speakText={speakText} onXpEarned={handleXpEarned} onClose={() => setActiveGame(null)} />
-          )}
+          <div className="flz-full-page-nav">
+            <button className="flz-full-page-back-btn" onClick={() => setActiveGame(null)}>
+              ← {t("backToPractice") !== "backToPractice" ? t("backToPractice") : (t("allGamesBtn") !== "allGamesBtn" ? t("allGamesBtn") : "Back to Practice")}
+            </button>
+            <div className="flz-full-page-game-title">
+              {activeGame === "sprint" && "⚡ Word Sprint"}
+              {activeGame === "scramble" && "🔀 Word Scramble"}
+              {activeGame === "memory" && "🧠 Memory Match"}
+            </div>
+          </div>
+          <div className="flz-full-page-game-content">
+            {activeGame === "sprint" && (
+              <WordSprintGame t={t} learningLanguage={learningLanguage} interfaceLanguage={interfaceLanguage} speakText={speakText} onXpEarned={handleXpEarned} onClose={() => setActiveGame(null)} aiEnabled={aiEnabled} />
+            )}
+            {activeGame === "scramble" && (
+              <WordScrambleGame t={t} learningLanguage={learningLanguage} interfaceLanguage={interfaceLanguage} speakText={speakText} onXpEarned={handleXpEarned} onClose={() => setActiveGame(null)} aiEnabled={aiEnabled} />
+            )}
+            {activeGame === "memory" && (
+              <MemoryMatchGame t={t} learningLanguage={learningLanguage} speakText={speakText} onXpEarned={handleXpEarned} onClose={() => setActiveGame(null)} aiEnabled={aiEnabled} />
+            )}
+          </div>
         </div>
       )}
     </div>
