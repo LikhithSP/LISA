@@ -2397,6 +2397,36 @@ function App() {
   const [lessonSpeakError, setLessonSpeakError] = useState("");
   const [lessonSpeakIsListening, setLessonSpeakIsListening] = useState(false);
   const [lessonSpeakTranscript, setLessonSpeakTranscript] = useState("");
+  const [lessonSpeakPeek, setLessonSpeakPeek] = useState(false);
+  const [lessonSpeakHint, setLessonSpeakHint] = useState(false);
+  const [showPassageTranslation, setShowPassageTranslation] = useState(false);
+  const [activeWordMeaning, setActiveWordMeaning] = useState(null);
+  const [showFillTranslation, setShowFillTranslation] = useState(false);
+
+  useEffect(() => {
+    if (!lessonAiContent?.questions) return;
+    const currentQuestion = lessonAiContent.questions[lessonStep];
+    if (!currentQuestion) return;
+
+    if (currentQuestion.type === "listenRepeat") {
+      const sentence = currentQuestion.sentence || currentQuestion.replyText || currentQuestion.targetSentence || "";
+      if (sentence) {
+        const timer = setTimeout(() => {
+          speakText(sentence, 0.9);
+        }, 500);
+        return () => clearTimeout(timer);
+      }
+    } else if (currentQuestion.type === "speakReply") {
+      const promptText = currentQuestion.promptText || "";
+      if (promptText) {
+        const timer = setTimeout(() => {
+          speakText(promptText, 0.9);
+        }, 500);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [lessonStep, lessonAiContent]);
+
 
   // Lesson accuracy and time tracking
   const lessonTotalAnsweredRef = useRef(0);
@@ -2652,6 +2682,11 @@ function App() {
       setLessonSpeakTranscript("");
       setLessonSpeakIsListening(false);
       setLessonSpeakError("");
+      setLessonSpeakPeek(false);
+      setLessonSpeakHint(false);
+      setShowPassageTranslation(false);
+      setActiveWordMeaning(null);
+      setShowFillTranslation(false);
       setLessonListeningFeedback(null);
       setLessonListeningSelected([]);
       setLessonListenWordMCQAnswer(null);
@@ -2678,8 +2713,8 @@ function App() {
       advanceLessonStep();
     };
 
-    // OVERRIDE: Words Practice (Flashcards)
-    if (practiceType === "Words Practice") {
+    // OVERRIDE: Words Practice (Flashcards, unless question is matchingPairs)
+    if (practiceType === "Words Practice" && currentQuestion?.type !== "matchingPairs" && currentQuestion?.type !== "matching") {
       const card = currentQuestion;
       const tapToReveal = selectedLanguage === "Hindi" ? "अनुवाद देखने के लिए टैप करें" :
                           selectedLanguage === "Kannada" ? "ಅನುವಾದ ತಿಳಿಯಲು ಒತ್ತಿ" :
@@ -3423,10 +3458,89 @@ function App() {
             }
 
             if (currentQuestion.type === "passage") {
-              const questionText = currentQuestion.question || "Read the passage and choose the correct answer:";
-              const options = currentQuestion.options || [];
+              const passageQuestionMap = {
+                "In which direction does the sun rise?": { Hindi: "सूरज किस दिशा से उगता है?", Kannada: "ಸೂರ್ಯನು ಯಾವ ದಿಕ್ಕಿನಲ್ಲಿ ಉದಯಿಸುತ್ತಾನೆ?", Telugu: "సూర్యుడు ఏ దిశలో ఉదయిస్తాడు?", Tamil: "சூரியன் எந்த திசையில் உதிக்கிறது?" },
+                "Where did the lion live?": { Hindi: "शेर कहाँ रहता था?", Kannada: "ಸಿಂಹವು ಎಲ್ಲಿ ವಾಸಿಸುತ್ತಿತ್ತು?", Telugu: "సింహం ఎక్కడ నివసించేది?", Tamil: "சிங்கம் எங்கே வாழ்ந்தது?" },
+                "What is the name of Raju's dog?": { Hindi: "राजू के कुत्ते का नाम क्या है?", Kannada: "ರಾಜು ಅವರ ನಾಯಿಯ ಹೆಸರೇನು?", Telugu: "రాజు కుక్క పేరు ఏమిటి?", Tamil: "ராஜுவின் நாயின் பெயர் என்ன?" },
+                "What is the Ganga?": { Hindi: "गंगा क्या है?", Kannada: "ಗಂಗಾ ಎಂದರೇನು?", Telugu: "గంగా అంటే ఏమిటి?", Tamil: "கங்கை என்றால் என்ன?" },
+                "What is Cauvery?": { Hindi: "कावेरी क्या है?", Kannada: "ಕಾವೇರಿ ಎಂದರೇನು?", Telugu: "కావేరి అంటే ఏమిటి?", Tamil: "காவிரி என்றால் என்ன?" },
+                "What is Godavari?": { Hindi: "गोदावरी क्या है?", Kannada: "ಗೋದಾವರಿ ಎಂದರೇನು?", Telugu: "గోదావరి అంటే ఏమిటి?", Tamil: "గోదావరి అంటే ఏమిటి?" },
+                "What is the Amazon?": { Hindi: "अमेज़न क्या है?", Kannada: "ಅಮೆಜಾನ್ ಎಂದರೇನು?", Telugu: "అమెజాన్ అంటే ఏమిటి?", Tamil: "அமேசான் என்றால் என்ன?" },
+                "What do trees give us?": { Hindi: "पेड़ हमें क्या देते हैं?", Kannada: "ಮರಗಳು ನಮಗೆ ಏನು ನೀಡುತ್ತವೆ?", Telugu: "చెట్లు మనకు ఏమి ఇస్తాయి?", Tamil: "மரங்கள் நமக்கு என்ன தருகின்றன?" }
+              };
+              const rawQ = currentQuestion.question || "Read the passage and choose the correct answer:";
+              const questionText = selectedLanguage && selectedLanguage !== "English"
+                ? (passageQuestionMap[rawQ]?.[selectedLanguage] || currentQuestion.questionTranslation || rawQ)
+                : rawQ;
+               const options = currentQuestion.options || [];
               const selectedAnswer = lessonMeaningAnswer;
               const isChecked = lessonMeaningFeedback !== null;
+
+              const wordDictionary = {
+                "सूरज": { English: "Sun", Hindi: "सूरज", Kannada: "ಸೂರ್ಯ", Telugu: "సూర్యుడు", Tamil: "சூரியன்" },
+                "पूर्व": { English: "East", Hindi: "पूर्व", Kannada: "ಪೂರ್ವ", Telugu: "తూర్పు", Tamil: "கிழக்கு" },
+                "उगता": { English: "Rises", Hindi: "उगता है", Kannada: "ಉದಯಿಸುತ್ತದೆ", Telugu: "ఉదయిస్తుంది", Tamil: "உதிக்கிறது" },
+                "पश्चिम": { English: "West", Hindi: "पश्चिम", Kannada: "ಪಶ್ಚಿಮ", Telugu: "పడమర", Tamil: "மேற்கு" },
+                "डूबता": { English: "Sets", Hindi: "डूबता है", Kannada: "ಮುಳುಗುತ್ತದೆ", Telugu: "అస్తమిస్తుంది", Tamil: "மறைகிறது" },
+                "प्रकाश": { English: "Light", Hindi: "प्रकाश", Kannada: "ಬೆಳಕು", Telugu: "వెలుగు", Tamil: "வெளிச்சம்" },
+                "गर्मी": { English: "Heat / Warmth", Hindi: "गर्मी", Kannada: "ಶಾಖ", Telugu: "వేడి", Tamil: "வெப்பம்" },
+                "जंगल": { English: "Forest", Hindi: "जंगल", Kannada: "ಕಾಡು", Telugu: "అడవి", Tamil: "காடு" },
+                "शेर": { English: "Lion", Hindi: "शेर", Kannada: "ಸಿಂಹ", Telugu: "సింహం", Tamil: "சிங்கம்" },
+                "शक्तिशाली": { English: "Powerful", Hindi: "शक्तिशाली", Kannada: "ಬಲಶಾಲಿ", Telugu: "శక్తివంతమైనది", Tamil: "பலசாலி" },
+                "जानवर": { English: "Animals", Hindi: "जानवर", Kannada: "ಪ್ರಾಣಿಗಳು", Telugu: "జంతువులు", Tamil: "விலங்குகள்" },
+                "डरते": { English: "Afraid", Hindi: "डरते हैं", Kannada: "ಹೆದರುತ್ತಿದ್ದರು", Telugu: "భయపడేవి", Tamil: "அஞ்சின" },
+                "कुत्ता": { English: "Dog", Hindi: "कुत्ता", Kannada: "ನಾಯಿ", Telugu: "కుక్క", Tamil: "நாய்" },
+                "सुंदर": { English: "Beautiful", Hindi: "सुंदर", Kannada: "ಸುಂದರ", Telugu: "అందమైన", Tamil: "அழகான" },
+                "शेरू": { English: "Sheru (Name)", Hindi: "शेरू", Kannada: "ಶೇರು", Telugu: "షేరు", Tamil: "ஷேரு" },
+                "भारत": { English: "India", Hindi: "भारत", Kannada: "ಭಾರತ", Telugu: "భారతదేశం", Tamil: "இந்தியா" },
+                "नदी": { English: "River", Hindi: "नदी", Kannada: "ನದಿ", Telugu: "నది", Tamil: "நதி" },
+                "गंगा": { English: "Ganga", Hindi: "गंगा", Kannada: "ಗಂಗಾ", Telugu: "గంగా", Tamil: "கங்கை" },
+                "पवित्र": { English: "Sacred", Hindi: "पवित्र", Kannada: "ಪವಿತ್ರ", Telugu: "పవిత్రమైన", Tamil: "புனிதமான" },
+                "पेड़": { English: "Trees", Hindi: "पेड़", Kannada: "ಮರಗಳು", Telugu: "చెట్లు", Tamil: "மரங்கள்" },
+                "हवा": { English: "Air", Hindi: "हवा", Kannada: "ಗಾಳಿ", Telugu: "గాలి", Tamil: "காற்று" },
+                "फल": { English: "Fruits", Hindi: "फल", Kannada: "ಹಣ್ಣುಗಳು", Telugu: "పండ్లు", Tamil: "பழங்கள்" },
+
+                "ಸೂರ್ಯನು": { English: "Sun", Hindi: "सूरज", Kannada: "ಸೂರ್ಯ", Telugu: "సూర్యుడు", Tamil: "சூரியன்" },
+                "ಪೂರ್ವದಲ್ಲಿ": { English: "In East", Hindi: "पूर्व में", Kannada: "ಪೂರ್ವದಲ್ಲಿ", Telugu: "తూర్పున", Tamil: "கிழக்கில்" },
+                "ಉದಯಿಸುತ್ತಾನೆ": { English: "Rises", Hindi: "उगता है", Kannada: "ಉದಯಿಸುತ್ತಾನೆ", Telugu: "ఉదయిస్తాడు", Tamil: "உதிக்கிறான்" },
+                "ಪಶ್ಚಿಮದಲ್ಲಿ": { English: "In West", Hindi: "पश्चिम में", Kannada: "ಪಶ್ಚಿಮದಲ್ಲಿ", Telugu: "పడಮರన", Tamil: "மேற்கில்" },
+                "ಬೆಳಕು": { English: "Light", Hindi: "प्रकाश", Kannada: "ಬೆಳಕು", Telugu: "వెలుగు", Tamil: "வெளிச்சம்" },
+                "ಕಾಡಿನಲ್ಲಿ": { English: "In Forest", Hindi: "जंगल में", Kannada: "ಕಾಡಿನಲ್ಲಿ", Telugu: "అడవిలో", Tamil: "காட்டில்" },
+                "ಸಿಂಹವಿತ್ತು": { English: "Lion", Hindi: "शेर था", Kannada: "ಸಿಂಹ", Telugu: "సింహం", Tamil: "சிங்கம்" },
+                "ಬಲಶಾಲಿಯಾಗಿತ್ತು": { English: "Was Strong", Hindi: "शक्तिशाली था", Kannada: "ಬಲಶಾಲಿ", Telugu: "బలంగా ఉంది", Tamil: "பலசாலி" },
+                "ಪ್ರಾಣಿಗಳು": { English: "Animals", Hindi: "जानवर", Kannada: "ಪ್ರಾಣಿಗಳು", Telugu: "జంతువులు", Tamil: "விலங்குகள்" },
+                "ನಾಯಿ": { English: "Dog", Hindi: "कुत्ता", Kannada: "ನಾಯಿ", Telugu: "ಕುಕ್ಕ", Tamil: "நாய்" },
+                "ಕಾವೇರಿ": { English: "Cauvery", Hindi: "कावेरी", Kannada: "ಕಾವೇರಿ", Telugu: "కావేరి", Tamil: "காவிரி" },
+                "ಮರಗಳು": { English: "Trees", Hindi: "पेड़", Kannada: "ಮರಗಳು", Telugu: "చెట్లు", Tamil: "மரங்கள்" },
+
+                "సూర్యుడు": { English: "Sun", Hindi: "सूरज", Kannada: "ಸೂರ್ಯ", Telugu: "సూర్యుడు", Tamil: "சூரியன்" },
+                "తూర్పున": { English: "In East", Hindi: "पूर्व में", Kannada: "ಪೂರ್ವದಲ್ಲಿ", Telugu: "తూర్పున", Tamil: "கிழக்கில்" },
+                "ఉదయిస్తాడు": { English: "Rises", Hindi: "उगता है", Kannada: "ಉದಯಿಸುತ್ತಾನೆ", Telugu: "ఉదయిస్తాడు", Tamil: "உதிக்கிறான்" },
+                "వెలుగునిస్తాడు": { English: "Gives Light", Hindi: "प्रकाश देता है", Kannada: "ಬೆಳಕು ನೀಡುತ್ತಾನೆ", Telugu: "వెలుగునిస్తాడు", Tamil: "வெளிச்சம் தருகிறான்" },
+                "అడవిలో": { English: "In Forest", Hindi: "जंगल में", Kannada: "ಕಾಡಿನಲ್ಲಿ", Telugu: "అడవిలో", Tamil: "காட்டில்" },
+                "సింహం": { English: "Lion", Hindi: "शेर", Kannada: "ಸಿಂಹ", Telugu: "సింహం", Tamil: "సింగం" },
+                "కుక్క": { English: "Dog", Hindi: "कुत्ता", Kannada: "ನಾಯಿ", Telugu: "కుక్క", Tamil: "நாய்" },
+                "గోదావరి": { English: "Godavari", Hindi: "गोदावरी", Kannada: "ಗೋದಾವರಿ", Telugu: "గోదావరి", Tamil: "கோதாவரி" },
+                "చెట్లు": { English: "Trees", Hindi: "पेड़", Kannada: "ಮರಗಳು", Telugu: "చెట్లు", Tamil: "மரங்கள்" },
+
+                "சூரியன்": { English: "Sun", Hindi: "सूरज", Kannada: "ಸೂರ್ಯ", Telugu: "సూర్యుడు", Tamil: "சூரியன்" },
+                "கிழக்கில்": { English: "In East", Hindi: "पूर्व में", Kannada: "ಪೂರ್ವದಲ್ಲಿ", Telugu: "తూర్పున", Tamil: "கிழக்கில்" },
+                "உதித்து": { English: "Rises", Hindi: "उगता है", Kannada: "ಉದಯಿಸಿ", Telugu: "ఉదయించి", Tamil: "உதித்து" },
+                "வெளிச்சத்தையும்": { English: "Light", Hindi: "प्रकाश", Kannada: "ಬೆಳಕು", Telugu: "వెలుగు", Tamil: "வெளிச்சம்" },
+                "காட்டில்": { English: "In Forest", Hindi: "जंगल में", Kannada: "ಕಾಡಿನಲ್ಲಿ", Telugu: "అడవిలో", Tamil: "காட்டில்" },
+                "சிங்கம்": { English: "Lion", Hindi: "शेर", Kannada: "ಸಿಂಹ", Telugu: "సింహం", Tamil: "சிங்கம்" },
+                "நாய்": { English: "Dog", Hindi: "कुत्ता", Kannada: "ನಾಯಿ", Telugu: "కుక్క", Tamil: "நாய்" },
+                "காவிரி": { English: "Cauvery", Hindi: "कावेरी", Kannada: "ಕಾವೇರಿ", Telugu: "కావేరి", Tamil: "காவிரி" },
+                "மரங்கள்": { English: "Trees", Hindi: "पेड़", Kannada: "ಮರಗಳು", Telugu: "చెట్లు", Tamil: "மரங்கள்" },
+
+                "Sun": { English: "Sun", Hindi: "सूरज", Kannada: "ಸೂರ್ಯ", Telugu: "సూర్యుడు", Tamil: "சூரியன்" },
+                "East": { English: "East", Hindi: "पूर्व", Kannada: "ಪೂರ್ವ", Telugu: "తూర్పు", Tamil: "கிழக்கு" },
+                "Forest": { English: "Forest", Hindi: "जंगल", Kannada: "ಕಾಡು", Telugu: "అడవి", Tamil: "காடு" },
+                "Lion": { English: "Lion", Hindi: "शेर", Kannada: "ಸಿಂಹ", Telugu: "సింహం", Tamil: "சிங்கம்" },
+                "Dog": { English: "Dog", Hindi: "कुत्ता", Kannada: "ನಾಯಿ", Telugu: "కుక్క", Tamil: "நாய்" },
+                "River": { English: "River", Hindi: "नदी", Kannada: "ನದಿ", Telugu: "నది", Tamil: "நதி" },
+                "Trees": { English: "Trees", Hindi: "पेड़", Kannada: "ಮರಗಳು", Telugu: "చెట్లు", Tamil: "மரங்கள்" }
+              };
 
               return (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -3437,11 +3551,125 @@ function App() {
                     padding: '24px',
                     marginBottom: '10px'
                   }}>
-                    <h4 style={{ margin: '0 0 10px', color: '#0284c7', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      📖 Reading Passage
-                      <button type="button" className="duo-listen-btn" onClick={() => speakText(currentQuestion.passage)} style={{ padding: '6px 14px', borderRadius: '12px', fontSize: '0.9rem' }}>🔊 Listen</button>
-                    </h4>
-                    <p style={{ margin: 0, fontSize: '1.2rem', lineHeight: '1.6', fontWeight: '500', color: 'var(--text)' }}>{currentQuestion.passage}</p>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                      <h4 style={{ margin: 0, color: '#0284c7', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        📖 Reading Passage
+                        <button type="button" className="duo-listen-btn" onClick={() => speakText(currentQuestion.passage)} style={{ padding: '6px 14px', borderRadius: '12px', fontSize: '0.9rem' }}>🔊 Listen</button>
+                      </h4>
+                      <button
+                        type="button"
+                        onClick={() => setShowPassageTranslation(!showPassageTranslation)}
+                        style={{
+                          background: showPassageTranslation ? 'var(--accent)' : 'rgba(2, 132, 199, 0.1)',
+                          color: showPassageTranslation ? 'white' : 'var(--accent)',
+                          border: 'none',
+                          borderRadius: '16px',
+                          padding: '6px 16px',
+                          fontSize: '0.85rem',
+                          fontWeight: '800',
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          transition: 'all 0.2s ease'
+                        }}
+                      >
+                        🌐 {showPassageTranslation ? "Hide Help / Translation" : "Translate & Help"}
+                      </button>
+                    </div>
+
+                    {/* Interactive Passage Paragraph with Clickable Main Word Meanings */}
+                    <div style={{ fontSize: '1.25rem', lineHeight: '1.8', fontWeight: '500', color: 'var(--text)', display: 'flex', flexWrap: 'wrap', gap: '4px 6px', alignItems: 'center' }}>
+                      {(currentQuestion.passage || "").split(/(\s+)/).map((wordToken, wIdx) => {
+                        const cleanWord = wordToken.replace(/[.,\/#!$%\^&\*;:{}=\-_`()?]/g, "").trim();
+                        if (!cleanWord) return <span key={wIdx}>{wordToken}</span>;
+
+                        const wordData = wordDictionary[cleanWord] || currentQuestion.wordMeanings?.[cleanWord];
+                        const isMainWord = Boolean(wordData);
+
+                        if (!isMainWord) {
+                          return <span key={wIdx}>{wordToken}</span>;
+                        }
+
+                        const uiLang = selectedLanguage || "English";
+                        const translationText = typeof wordData === "string" ? wordData : (wordData?.[uiLang] || wordData?.English || cleanWord);
+                        const isSelected = activeWordMeaning?.word === cleanWord;
+
+                        return (
+                          <span
+                            key={wIdx}
+                            onClick={() => {
+                              speakText(cleanWord);
+                              setActiveWordMeaning(isSelected ? null : { word: cleanWord, meaning: translationText });
+                            }}
+                            style={{
+                              cursor: 'pointer',
+                              padding: '2px 6px',
+                              borderRadius: '8px',
+                              background: isSelected ? 'rgba(2, 132, 199, 0.25)' : 'rgba(2, 132, 199, 0.08)',
+                              borderBottom: '2px dotted #0284c7',
+                              color: isSelected ? '#0284c7' : 'var(--text)',
+                              fontWeight: isSelected ? 800 : 700,
+                              transition: 'all 0.15s ease',
+                              display: 'inline-block'
+                            }}
+                            title={`Tap for meaning: ${translationText}`}
+                          >
+                            {wordToken}
+                          </span>
+                        );
+                      })}
+                    </div>
+
+                    {/* Active Clicked Word Meaning Tooltip Card */}
+                    {activeWordMeaning && (
+                      <div style={{
+                        marginTop: '16px',
+                        padding: '12px 18px',
+                        background: 'var(--panel)',
+                        border: '2px solid #0284c7',
+                        borderRadius: '16px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        boxShadow: '0 6px 16px rgba(2, 132, 199, 0.15)',
+                        animation: 'fadeIn 0.2s ease'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <span style={{ fontSize: '1.4rem' }}>🔤</span>
+                          <div>
+                            <span style={{ fontWeight: 900, fontSize: '1.1rem', color: '#0284c7' }}>{activeWordMeaning.word}</span>
+                            <span style={{ margin: '0 8px', color: 'var(--muted)' }}>➔</span>
+                            <span style={{ fontWeight: 700, fontSize: '1.1rem', color: 'var(--text)' }}>{activeWordMeaning.meaning}</span>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setActiveWordMeaning(null)}
+                          style={{ background: 'none', border: 'none', fontSize: '1.1rem', cursor: 'pointer', color: 'var(--muted)' }}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    )}
+
+                    {showPassageTranslation && (
+                      <div style={{
+                        marginTop: '16px',
+                        padding: '14px 18px',
+                        background: 'var(--panel)',
+                        border: '1.5px solid var(--accent)',
+                        borderRadius: '16px',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.03)'
+                      }}>
+                        <p style={{ margin: '0 0 6px', fontSize: '0.85rem', fontWeight: 800, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                          💡 Translation & Help ({selectedLanguage || "Interface Language"}):
+                        </p>
+                        <p style={{ margin: 0, fontSize: '1.05rem', lineHeight: '1.5', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                          {currentQuestion.passageTranslation || currentQuestion.translation || currentQuestion.passage}
+                        </p>
+                      </div>
+                    )}
                   </div>
 
                   <div style={{
@@ -4025,8 +4253,8 @@ function App() {
               );
             }
 
-            // 1. Speak/Pronunciation Practice
-            if (practiceType.includes("Speak") || practiceType.includes("Pronunciation")) {
+            // 1. Speak/Pronunciation Practice (Perfect Pronunciation card)
+            if (practiceType === "Perfect Pronunciation" || practiceType === "Perfect Pronunciation Practice") {
               const sentence = currentQuestion.sentence || "";
               const startSpeaking = () => {
                 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -4494,6 +4722,23 @@ function App() {
               const userAnswer = lessonFillAnswers[lessonStep] || "";
               const isChecked = lessonFillFeedback !== null;
 
+              const fillSentenceTranslationMap = {
+                "सूरज पूर्व से ___ है।": { Hindi: "सूरज पूर्व दिशा से उगता है।", Kannada: "ಸೂರ್ಯನು ಪೂರ್ವದಲ್ಲಿ ಉದಯಿಸುತ್ತಾನೆ.", Telugu: "సూర్యుడు తూర్పున ఉదయిస్తాడు.", Tamil: "சூரியன் கிழக்கில் உதிக்கிறது.", English: "The sun rises in the east." },
+                "ಸೂರ್ಯನು ಪೂರ್ವದಲ್ಲಿ ___.": { Hindi: "सूरज पूर्व दिशा से उगता है।", Kannada: "ಸೂರ್ಯನು ಪೂರ್ವದಲ್ಲಿ ಉದಯಿಸುತ್ತಾನೆ.", Telugu: "సూర్యుడు తూర్పున ఉదయిస్తాడు.", Tamil: "சூரியன் கிழக்கில் உதிக்கிறது.", English: "The sun rises in the east." },
+                "సూర్యుడు తూర్పున ___.": { Hindi: "सूरज पूर्व दिशा से उगता है।", Kannada: "ಸೂರ್ಯನು ಪೂರ್ವದಲ್ಲಿ ಉದಯಿಸುತ್ತಾನೆ.", Telugu: "సూర్యుడు తూర్పున ఉదయిస్తాడు.", Tamil: "சூரியன் கிழக்கில் உதிக்கிறது.", English: "The sun rises in the east." },
+                "சூரியன் கிழக்கில் ___.": { Hindi: "सूरज पूर्व दिशा से उगता है।", Kannada: "ಸೂರ್ಯನು ಪೂರ್ವದಲ್ಲಿ ಉದಯಿಸುತ್ತಾನೆ.", Telugu: "సూర్యుడు తూర్పున ఉదయిస్తాడు.", Tamil: "சூரியன் கிழக்கில் உதிக்கிறது.", English: "The sun rises in the east." },
+                "The sun rises in the ___.": { Hindi: "सूरज पूर्व दिशा से उगता है।", Kannada: "ಸೂರ್ಯನು ಪೂರ್ವದಲ್ಲಿ ಉದಯಿಸುತ್ತಾನೆ.", Telugu: "సూర్యుడు తూర్పున ఉదయిస్తాడు.", Tamil: "சூரியன் கிழக்கில் உதிக்கிறது.", English: "The sun rises in the east." },
+
+                "हमें हर दिन स्वच्छ ___ पीना चाहिए।": { Hindi: "हमें हर दिन साफ पानी पीना चाहिए।", Kannada: "ನಾವು ಪ್ರತಿದಿನ ಶುದ್ಧ ನೀರು ಕುಡಿಯಬೇಕು.", Telugu: "మనం ప్రతిరోజూ శుభ్రమైన నీరు తాగాలి.", Tamil: "நாம் தினமும் சுத்தமான தண்ணீர் குடிக்க வேண்டும்.", English: "We should drink clean water every day." },
+                "ನಾವು ಪ್ರತಿದಿನ ___ ಕುಡಿಯಬೇಕು.": { Hindi: "हमें हर दिन साफ पानी पीना चाहिए।", Kannada: "ನಾವು ಪ್ರತಿದಿನ ಶುದ್ಧ ನೀರು ಕುಡಿಯಬೇಕು.", Telugu: "మనం ప్రతిరోజూ శుభ్రమైన నీరు తాగాలి.", Tamil: "நாம் தினமும் சுத்தமான தண்ணீர் குடிக்க வேண்டும்.", English: "We should drink clean water every day." },
+                "మనం ప్రతిరోజూ శుభ్రమైన ___ తాగాలి.": { Hindi: "हमें हर दिन साफ पानी पीना चाहिए।", Kannada: "ನಾವು ಪ್ರತಿದಿನ ಶುದ್ಧ ನೀರು ಕುಡಿಯಬೇಕು.", Telugu: "మనం ప్రతిరోజూ శుభ్రమైన నీరు తాగాలి.", Tamil: "நாம் தினமும் சுத்தமான தண்ணீர் குடிக்க வேண்டும்.", English: "We should drink clean water every day." },
+                "நாம் தினமும் சுத்தமான ___ குடிக்க வேண்டும்.": { Hindi: "हमें हर दिन साफ पानी पीना चाहिए।", Kannada: "ನಾವು ಪ್ರತಿದಿನ ಶುದ್ಧ ನೀರು ಕುಡಿಯಬೇಕು.", Telugu: "మనం ప్రతిరోజూ శుభ్రమైన నీరు తాగాలి.", Tamil: "நாம் தினமும் சுத்தமான தண்ணீர் குடிக்க வேண்டும்.", English: "We should drink clean water every day." },
+                "We should drink clean ___ every day.": { Hindi: "हमें हर दिन साफ पानी पीना चाहिए।", Kannada: "ನಾವು ಪ್ರತಿದಿನ ಶುದ್ಧ ನೀರು ಕುಡಿಯಬೇಕು.", Telugu: "మనం ప్రతిరోజూ శుభ్రమైన నీరు తాగాలి.", Tamil: "நாம் தினமும் சுத்தமான தண்ணீர் குடிக்க வேண்டும்.", English: "We should drink clean water every day." }
+              };
+
+              const uiLang = selectedLanguage || "English";
+              const sentenceTranslation = currentQuestion.translation || currentQuestion.sentenceTranslation || currentQuestion.englishTranslation || fillSentenceTranslationMap[sentence]?.[uiLang] || fillSentenceTranslationMap[sentence]?.English || sentence.replace("___", `[${answer}]`);
+
               return (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                   <div style={{ textAlign: 'center', marginBottom: '10px' }}>
@@ -4513,8 +4758,48 @@ function App() {
                     textAlign: 'center'
                   }}>
                     <p style={{ fontSize: '1.5rem', fontWeight: '800', margin: '0 0 10px' }}>{sentence}</p>
-                    {hint && <p style={{ fontSize: '1rem', color: '#b45309', margin: 0 }}>💡 Hint: {hint}</p>}
+                    {hint && <p style={{ fontSize: '1rem', color: '#b45309', margin: '0 0 10px' }}>💡 Hint: {hint}</p>}
                     
+                    {/* Reveal Translation Toggle Button */}
+                    <div style={{ marginTop: '10px' }}>
+                      <button
+                        type="button"
+                        onClick={() => setShowFillTranslation(!showFillTranslation)}
+                        style={{
+                          background: showFillTranslation ? 'var(--accent)' : 'rgba(2, 132, 199, 0.1)',
+                          color: showFillTranslation ? 'white' : 'var(--accent)',
+                          border: 'none',
+                          borderRadius: '16px',
+                          padding: '6px 16px',
+                          fontSize: '0.85rem',
+                          fontWeight: '800',
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          transition: 'all 0.2s ease'
+                        }}
+                      >
+                        🌐 {showFillTranslation ? "Hide Translation" : "Reveal Translation"}
+                      </button>
+                    </div>
+
+                    {showFillTranslation && (
+                      <div style={{
+                        marginTop: '14px',
+                        padding: '12px 18px',
+                        background: 'var(--bg)',
+                        border: '1.5px dashed var(--accent)',
+                        borderRadius: '16px',
+                        fontSize: '1rem',
+                        fontWeight: '700',
+                        color: 'var(--accent-dark)',
+                        animation: 'fadeIn 0.2s ease'
+                      }}>
+                        💡 Translation ({uiLang}): "{sentenceTranslation}"
+                      </div>
+                    )}
+
                     {/* Flashing Mistakes Clue/Hint Button */}
                     {lessonSession?.title === "Mistakes Practice" && mistakeAttemptsCount >= 1 && (
                       <div style={{ marginTop: '14px' }}>
@@ -4535,57 +4820,43 @@ function App() {
                     )}
                   </div>
 
-                  {currentQuestion.options && Array.isArray(currentQuestion.options) ? (
-                    <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', margin: '20px 0' }}>
-                      {currentQuestion.options.map((opt, oIdx) => {
-                        const isSelected = userAnswer.toLowerCase() === opt.toLowerCase();
-                        let extraClass = "";
-                        if (isChecked) {
-                          if (opt.toLowerCase() === answer.toLowerCase()) {
-                            extraClass = "correct";
+                  {(() => {
+                    const fillOptions = (currentQuestion.options && Array.isArray(currentQuestion.options) && currentQuestion.options.length > 0)
+                      ? currentQuestion.options
+                      : [answer].filter(Boolean);
+
+                    return (
+                      <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', margin: '20px 0' }}>
+                        {fillOptions.map((opt, oIdx) => {
+                          const isSelected = userAnswer.toLowerCase() === opt.toLowerCase();
+                          let extraClass = "";
+                          if (isChecked) {
+                            if (opt.toLowerCase() === answer.toLowerCase()) {
+                              extraClass = "correct";
+                            } else if (isSelected) {
+                              extraClass = "incorrect";
+                            }
                           } else if (isSelected) {
-                            extraClass = "incorrect";
+                            extraClass = "selected";
                           }
-                        } else if (isSelected) {
-                          extraClass = "selected";
-                        }
-                        return (
-                          <button
-                            key={oIdx}
-                            type="button"
-                            className={`duo-word-tile ${extraClass}`}
-                            onClick={() => {
-                              speakText(opt);
-                              if (!isChecked) setLessonFillAnswers(prev => ({ ...prev, [lessonStep]: opt }));
-                            }}
-                            disabled={isChecked}
-                          >
-                            {opt}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <div style={{ display: 'flex', justifyContent: 'center', margin: '20px 0' }}>
-                      <input
-                        type="text"
-                        className="ai-fill-input"
-                        placeholder="Type your answer here..."
-                        style={{
-                          maxWidth: '300px',
-                          padding: '12px 20px',
-                          borderRadius: '12px',
-                          border: '2px solid var(--line)',
-                          fontSize: '1.1rem',
-                          textAlign: 'center',
-                          background: 'var(--panel)'
-                        }}
-                        value={userAnswer}
-                        onChange={(e) => setLessonFillAnswers(prev => ({ ...prev, [lessonStep]: e.target.value }))}
-                        disabled={isChecked}
-                      />
-                    </div>
-                  )}
+                          return (
+                            <button
+                              key={oIdx}
+                              type="button"
+                              className={`duo-word-tile ${extraClass}`}
+                              onClick={() => {
+                                speakText(opt);
+                                if (!isChecked) setLessonFillAnswers(prev => ({ ...prev, [lessonStep]: opt }));
+                              }}
+                              disabled={isChecked}
+                            >
+                              {opt}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
 
                   {!isChecked && (
                     <div style={{ display: 'flex', justifyContent: 'center' }}>
@@ -5166,26 +5437,155 @@ function App() {
                 }
               };
 
+              const uiLang = selectedLanguage || "English";
+              
+              const labels = {
+                English: {
+                  listenRepeatTitle: "🎧 Listen & Repeat",
+                  listenRepeatInstruction: "Listen to the sentence first, then repeat it aloud:",
+                  listenFirstBtn: "🔊 Listen First",
+                  peekBtn: "👁️ Peek at text",
+                  speakReplyTitle: "💬 Conversational Reply",
+                  speakReplyInstruction: "Listen and reply to LISA:",
+                  sayReplyLabel: "Say this reply:",
+                  lisaLabel: "LISA",
+                  youLabel: "You",
+                  translateSpeakTitle: "🔄 Translate & Speak",
+                  translateSpeakInstruction: "Translate this sentence and speak it in " + learningLanguage + ":",
+                  hintBtn: "💡 Get Hint",
+                  hintLabel: "Hint:",
+                  expectedLabel: "Expected Translation:",
+                  clickToSpeak: "CLICK TO SPEAK",
+                  recording: "RECORDING...",
+                  excellent: "Excellent!",
+                  incorrect: "Incorrect",
+                  goodPronunciation: "Good pronunciation!",
+                  correctAnswerLabel: "Correct Answer:",
+                  continueBtn: "Continue",
+                  readAloudTitle: "🗣️ Read Aloud",
+                  readAloudInstruction: "Listen and Speak"
+                },
+                Hindi: {
+                  listenRepeatTitle: "🎧 सुनें और दोहराएं",
+                  listenRepeatInstruction: "पहले वाक्य को सुनें, फिर उसे ज़ोर से दोहराएं:",
+                  listenFirstBtn: "🔊 पहले सुनें",
+                  peekBtn: "👁️ पाठ देखें",
+                  speakReplyTitle: "💬 संवादात्मक उत्तर",
+                  speakReplyInstruction: "लीसा को सुनें और उत्तर दें:",
+                  sayReplyLabel: "यह उत्तर बोलें:",
+                  lisaLabel: "लीसा",
+                  youLabel: "आप",
+                  translateSpeakTitle: "🔄 अनुवाद करें और बोलें",
+                  translateSpeakInstruction: "इस वाक्य का अनुवाद करें और इसे " + (learningLanguage === "English" ? "अंग्रेजी" : learningLanguage) + " में बोलें:",
+                  hintBtn: "💡 संकेत प्राप्त करें",
+                  hintLabel: "संकेत:",
+                  expectedLabel: "अपेक्षित अनुवाद:",
+                  clickToSpeak: "बोलने के लिए क्लिक करें",
+                  recording: "रिकॉर्डिंग हो रही है...",
+                  excellent: "उत्कृष्ट!",
+                  incorrect: "गलत",
+                  goodPronunciation: "अच्छा उच्चारण!",
+                  correctAnswerLabel: "सही उत्तर:",
+                  continueBtn: "आगे बढ़ें",
+                  readAloudTitle: "🗣️ ज़ोर से पढ़ें",
+                  readAloudInstruction: "सुनें और बोलें"
+                },
+                Kannada: {
+                  listenRepeatTitle: "🎧 ಕೇಳಿ ಮತ್ತು ಪುನರಾವರ್ತಿಸಿ",
+                  listenRepeatInstruction: "ಮೊದಲು ವಾಕ್ಯವನ್ನು ಕೇಳಿ, ನಂತರ ಅದನ್ನು ಗಟ್ಟಿಯಾಗಿ ಪುನರಾವರ್ತಿಸಿ:",
+                  listenFirstBtn: "🔊 ಮೊದಲು ಕೇಳಿ",
+                  peekBtn: "👁️ ಪಠ್ಯವನ್ನು ನೋಡಿ",
+                  speakReplyTitle: "💬 ಸಂಭಾಷಣೆಯ ಪ್ರತಿಕ್ರಿಯೆ",
+                  speakReplyInstruction: "ಲಿಸಾ ಅವರ ಮಾತು ಕೇಳಿ ಮತ್ತು ಉತ್ತರಿಸಿ:",
+                  sayReplyLabel: "ಈ ಉತ್ತರವನ್ನು ಹೇಳಿ:",
+                  lisaLabel: "ಲಿಸಾ",
+                  youLabel: "ನೀವು",
+                  translateSpeakTitle: "🔄 ಅನುವಾದಿಸಿ ಮತ್ತು ಮಾತನಾಡಿ",
+                  translateSpeakInstruction: "ಈ ವಾಕ್ಯವನ್ನು ಅನುವಾದಿಸಿ ಮತ್ತು " + (learningLanguage === "English" ? "ಇಂಗ್ಲಿಷ್" : learningLanguage) + " ನಲ್ಲಿ ಮಾತನಾಡಿ:",
+                  hintBtn: "💡 ಸುಳಿವು ಪಡೆಯಿರಿ",
+                  hintLabel: "ಸುಳಿವು:",
+                  expectedLabel: "ನಿರೀಕ್ಷಿತ ಅನುವಾದ:",
+                  clickToSpeak: "ಮಾತನಾಡಲು ಒತ್ತಿ",
+                  recording: "ರೆಕಾರ್ಡಿಂಗ್ ಆಗುತ್ತಿದೆ...",
+                  excellent: "ಅದ್ಭುತ!",
+                  incorrect: "ತಪ್ಪು",
+                  goodPronunciation: "ಉತ್ತಮ ಉಚ್ಚಾರಣೆ!",
+                  correctAnswerLabel: "ಸರಿಯಾದ ಉತ್ತರ:",
+                  continueBtn: "ಮುಂದುವರಿಯಿರಿ",
+                  readAloudTitle: "🗣️ ಗಟ್ಟಿಯಾಗಿ ಓದಿ",
+                  readAloudInstruction: "ಕೇಳಿ ಮತ್ತು ಮಾತನಾಡಿ"
+                },
+                Telugu: {
+                  listenRepeatTitle: "🎧 వినండి & పునరావృతం చేయండి",
+                  listenRepeatInstruction: "మొదట వాక్యాన్ని వినండి, ఆపై దానిని గట్టిగా పునరావృతం చేయండి:",
+                  listenFirstBtn: "🔊 ముందు వినండి",
+                  peekBtn: "👁️ వచనాన్ని చూడండి",
+                  speakReplyTitle: "💬 సంభాషణాత్మక సమాధానం",
+                  speakReplyInstruction: "లీసా చెప్పేది విని సమాధానం ఇవ్వండి:",
+                  sayReplyLabel: "ఈ సమాధానం చెప్పండి:",
+                  lisaLabel: "లీసా",
+                  youLabel: "మీరు",
+                  translateSpeakTitle: "🔄 అనువదించండి & మాట్లాడండి",
+                  translateSpeakInstruction: "ఈ వాక్యాన్ని అనువదించి, " + (learningLanguage === "English" ? "ఇంగ్లీష్" : learningLanguage) + " లో మాట్లాడండి:",
+                  hintBtn: "💡 సూచన పొందండి",
+                  hintLabel: "సూచన:",
+                  expectedLabel: "ఆశించిన అనువాదం:",
+                  clickToSpeak: "మాట్లాడటానికి నొక్కండి",
+                  recording: "రికార్డింగ్ అవుతోంది...",
+                  excellent: "అద్భుతం!",
+                  incorrect: "తప్పు",
+                  goodPronunciation: "మంచి ఉచ్ఛారణ!",
+                  correctAnswerLabel: "సరైన సమాధానం:",
+                  continueBtn: "కొనసాగించండి",
+                  readAloudTitle: "🗣️ బిగ్గరగా చదవండి",
+                  readAloudInstruction: "వినండి మరియు మాట్లాడండి"
+                },
+                Tamil: {
+                  listenRepeatTitle: "🎧 கேட்டு மீண்டும் சொல்லவும்",
+                  listenRepeatInstruction: "முதலில் வாக்கியத்தைக் கேளுங்கள், பின்னர் அதை சத்தமாக மீண்டும் சொல்லுங்கள்:",
+                  listenFirstBtn: "🔊 முதலில் கேளுங்கள்",
+                  peekBtn: "👁️ உரையைக் காட்டு",
+                  speakReplyTitle: "💬 உரையாடல் பதில்",
+                  speakReplyInstruction: "லீசா பேசுவதைக் கேட்டு பதிலளிக்கவும்:",
+                  sayReplyLabel: "இந்த பதிலைச் சொல்லுங்கள்:",
+                  lisaLabel: "லீசா",
+                  youLabel: "நீங்கள்",
+                  translateSpeakTitle: "🔄 மொழிபெயர்த்து பேசவும்",
+                  translateSpeakInstruction: "இந்த வாக்கியத்தை மொழிபெயர்த்து " + (learningLanguage === "English" ? "ஆங்கிலம்" : learningLanguage) + "-ல் பேசவும்:",
+                  hintBtn: "💡 குறிப்பு பெறவும்",
+                  hintLabel: "குறிப்பு:",
+                  expectedLabel: "எதிர்பார்க்கப்படும் மொழிபெயர்ப்பு:",
+                  clickToSpeak: "பேச தட்டவும்",
+                  recording: "பதிவாகிறது...",
+                  excellent: "அருமை!",
+                  incorrect: "தவறு",
+                  goodPronunciation: "நல்ல உச்சரிப்பு!",
+                  correctAnswerLabel: "சரியான பதில்:",
+                  continueBtn: "தொடரவும்",
+                  readAloudTitle: "🗣️ உரக்கப் படிக்கவும்",
+                  readAloudInstruction: "கேட்டு பேசுங்கள்"
+                }
+              };
+
+              const currentLabels = labels[uiLang] || labels["English"];
+
               return (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '0' }}>
                   <div style={{ textAlign: 'center' }}>
                     <span className="ai-step-badge">
-                      {currentQuestion.type === "speak" && "🗣️ Read Aloud"}
-                      {currentQuestion.type === "listenRepeat" && "🎧 Listen & Repeat"}
-                      {currentQuestion.type === "speakReply" && "💬 Conversational Reply"}
-                      {currentQuestion.type === "translateSpeak" && "🔄 Translate & Speak"}
+                      {currentQuestion.type === "speak" && currentLabels.readAloudTitle}
+                      {currentQuestion.type === "listenRepeat" && currentLabels.listenRepeatTitle}
+                      {currentQuestion.type === "speakReply" && currentLabels.speakReplyTitle}
+                      {currentQuestion.type === "translateSpeak" && currentLabels.translateSpeakTitle}
                     </span>
                   </div>
 
+                  {/* 1. Standard Speak / Read Aloud */}
                   {currentQuestion.type === "speak" && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                       <div style={{ textAlign: 'center', marginBottom: '10px' }}>
                         <p style={{ fontSize: '1.2rem', fontWeight: '700', margin: 0 }}>
-                          {selectedLanguage === "Hindi" ? "सुनें और बोलें" : 
-                           selectedLanguage === "Kannada" ? "ಕೇಳಿ ಮತ್ತು ಮಾತನಾಡಿ" : 
-                           selectedLanguage === "Telugu" ? "వినండి మరియు మాట్లాడండి" : 
-                           selectedLanguage === "Tamil" ? "கேட்டு பேசுங்கள்" : 
-                           "Listen and Speak"}
+                          {currentLabels.readAloudInstruction}
                         </p>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '20px', margin: '10px 0' }}>
@@ -5200,67 +5600,185 @@ function App() {
                     </div>
                   )}
 
+                  {/* 2. Listen & Repeat */}
                   {currentQuestion.type === "listenRepeat" && (
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px', margin: '20px 0' }}>
-                      <p style={{ fontSize: '1.1rem', color: 'var(--text-muted)', margin: 0, fontWeight: 700 }}>Listen to the sentence and speak it back:</p>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px', margin: '10px 0' }}>
+                      <p style={{ fontSize: '1.15rem', color: 'var(--text)', margin: 0, fontWeight: 700, textAlign: 'center' }}>
+                        {currentLabels.listenRepeatInstruction}
+                      </p>
                       <button
                         type="button"
                         onClick={() => speakText(sentence)}
                         className="duo-listen-btn"
-                        style={{ width: '100px', height: '100px', borderRadius: '50%', fontSize: '3.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        style={{
+                          width: '110px',
+                          height: '110px',
+                          borderRadius: '50%',
+                          fontSize: '3.5rem',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          background: 'var(--accent)',
+                          border: 'none',
+                          boxShadow: '0 8px 16px rgba(0,0,0,0.15)',
+                          cursor: 'pointer',
+                          transition: 'transform 0.2s',
+                          animation: 'pulse 2s infinite'
+                        }}
                       >
                         🔊
                       </button>
-                      <div style={{ margin: '10px 0', filter: isChecked ? 'none' : 'blur(4px)', transition: 'filter 0.3s' }}>
-                        <p style={{ fontSize: '1.4rem', fontWeight: '800', margin: 0 }}>{sentence}</p>
+                      <div style={{ 
+                        margin: '15px 0', 
+                        filter: (isChecked || lessonSpeakPeek) ? 'none' : 'blur(7px)', 
+                        transition: 'filter 0.4s ease',
+                        background: 'var(--panel-strong)',
+                        border: '2px dashed var(--line)',
+                        padding: '16px 30px',
+                        borderRadius: '16px'
+                      }}>
+                        <p style={{ fontSize: '1.5rem', fontWeight: '800', margin: 0, textAlign: 'center' }}>{sentence}</p>
                       </div>
-                      {!isChecked && (
-                        <button type="button" className="secondary-btn" onClick={() => speakText(sentence)} style={{ fontSize: '0.85rem', padding: '6px 12px' }}>Peek at text</button>
+                      {!isChecked && !lessonSpeakPeek && (
+                        <button 
+                          type="button" 
+                          className="secondary-btn" 
+                          onClick={() => setLessonSpeakPeek(true)} 
+                          style={{ fontSize: '0.9rem', padding: '8px 16px', borderRadius: '12px', border: '2.5px solid var(--line)', fontWeight: '700' }}
+                        >
+                          {currentLabels.peekBtn}
+                        </button>
                       )}
                     </div>
                   )}
 
+                  {/* 3. Conversational Reply */}
                   {currentQuestion.type === "speakReply" && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', margin: '20px 0' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                        <img src="/as1.png" alt="LISA Character" style={{ width: '60px', height: '60px', objectFit: 'contain' }} />
-                        <div style={{ background: 'var(--accent-soft)', border: '1px solid var(--accent)', borderRadius: '16px', padding: '12px 16px', flexGrow: 1 }}>
-                          <p style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700 }}>{currentQuestion.promptText}</p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', margin: '10px 0' }}>
+                      <p style={{ fontSize: '1.15rem', color: 'var(--text)', margin: 0, fontWeight: 700, textAlign: 'center' }}>
+                        {currentLabels.speakReplyInstruction}
+                      </p>
+                      
+                      {/* Character Prompt Bubble (LISA speaking) */}
+                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px', width: '100%' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                          <img src="/as1.png" alt="LISA" style={{ width: '64px', height: '64px', objectFit: 'contain' }} />
+                          <span style={{ fontSize: '0.75rem', fontWeight: '800', color: 'var(--text-muted)' }}>{currentLabels.lisaLabel}</span>
+                        </div>
+                        <div style={{ 
+                          background: 'var(--accent-soft)', 
+                          border: '2px solid var(--accent)', 
+                          borderRadius: '20px', 
+                          padding: '16px 20px', 
+                          flexGrow: 1, 
+                          position: 'relative',
+                          boxShadow: 'var(--shadow)'
+                        }}>
+                          <div style={{ position: 'absolute', left: '-8px', top: '22px', width: '12px', height: '12px', background: 'var(--accent-soft)', borderLeft: '2px solid var(--accent)', borderBottom: '2px solid var(--accent)', transform: 'rotate(45deg)' }}></div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
+                            <p style={{ margin: 0, fontSize: '1.3rem', fontWeight: 800, color: 'var(--text)' }}>
+                              {currentQuestion.promptText}
+                            </p>
+                            <button 
+                              type="button" 
+                              onClick={() => speakText(currentQuestion.promptText)}
+                              style={{ background: 'var(--accent)', border: 'none', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '1.1rem' }}
+                            >
+                              🔊
+                            </button>
+                          </div>
                         </div>
                       </div>
+
+                      {/* User response bubble */}
                       <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
-                        <div style={{ background: 'var(--panel)', border: '2px solid var(--line)', borderRadius: '16px', padding: '14px 20px', maxWidth: '80%' }}>
-                          <span style={{ fontSize: '0.75rem', color: 'var(--accent)', fontWeight: 800, textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>Say this reply:</span>
-                          <p style={{ margin: 0, fontSize: '1.3rem', fontWeight: 800 }}>{sentence}</p>
+                        <div style={{ 
+                          background: 'var(--panel)', 
+                          border: '2.5px solid var(--line)', 
+                          borderRadius: '20px', 
+                          padding: '16px 20px', 
+                          maxWidth: '85%',
+                          boxShadow: 'var(--shadow)',
+                          position: 'relative'
+                        }}>
+                          <span style={{ fontSize: '0.8rem', color: 'var(--accent)', fontWeight: 800, textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
+                            💬 {currentLabels.sayReplyLabel}
+                          </span>
+                          <p style={{ margin: 0, fontSize: '1.45rem', fontWeight: 800, color: 'var(--text)' }}>
+                            {sentence}
+                          </p>
                           {currentQuestion.translation && (
-                            <p style={{ margin: '6px 0 0', fontSize: '0.9rem', color: 'var(--text-muted)' }}>({currentQuestion.translation})</p>
+                            <p style={{ margin: '8px 0 0', fontSize: '0.95rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                              ({currentQuestion.translation})
+                            </p>
                           )}
                         </div>
                       </div>
                     </div>
                   )}
 
+                  {/* 4. Translate & Speak */}
                   {currentQuestion.type === "translateSpeak" && (
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', margin: '20px 0' }}>
-                      <p style={{ fontSize: '1.1rem', color: 'var(--text-muted)', margin: 0, fontWeight: 700 }}>Translate this sentence and speak it in {learningLanguage}:</p>
-                      <div style={{ background: 'var(--panel)', border: '2px solid var(--line)', borderRadius: '20px', padding: '20px', width: '100%', textAlign: 'center' }}>
-                        <p style={{ fontSize: '1.5rem', fontWeight: '800', margin: 0 }}>{currentQuestion.promptText}</p>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '18px', margin: '10px 0' }}>
+                      <p style={{ fontSize: '1.15rem', color: 'var(--text)', margin: 0, fontWeight: 700, textAlign: 'center' }}>
+                        {currentLabels.translateSpeakInstruction}
+                      </p>
+                      
+                      {/* Translation Prompt Card */}
+                      <div style={{ 
+                        background: 'var(--panel)', 
+                        border: '2.5px solid var(--line)', 
+                        borderRadius: '24px', 
+                        padding: '24px', 
+                        width: '100%', 
+                        textAlign: 'center',
+                        boxShadow: 'var(--shadow)',
+                        position: 'relative'
+                      }}>
+                        <p style={{ fontSize: '1.6rem', fontWeight: '900', margin: 0, color: 'var(--text)' }}>
+                          {currentQuestion.promptText}
+                        </p>
+                        
+                        {/* Hint Section */}
                         {currentQuestion.hint && (
-                          <p style={{ margin: '8px 0 0', fontSize: '0.88rem', color: '#b45309', fontWeight: 700 }}>💡 Hint: {currentQuestion.hint}</p>
+                          <div style={{ marginTop: '16px' }}>
+                            {lessonSpeakHint ? (
+                              <p style={{ margin: 0, fontSize: '0.95rem', color: '#b45309', fontWeight: 700, background: 'rgba(245,158,11,0.08)', padding: '10px 14px', borderRadius: '12px', display: 'inline-block' }}>
+                                💡 {currentLabels.hintLabel} {currentQuestion.hint}
+                              </p>
+                            ) : (
+                              <button 
+                                type="button" 
+                                className="secondary-btn" 
+                                onClick={() => setLessonSpeakHint(true)}
+                                style={{ fontSize: '0.85rem', padding: '6px 12px', borderRadius: '10px', fontWeight: '700' }}
+                              >
+                                {currentLabels.hintBtn}
+                              </button>
+                            )}
+                          </div>
                         )}
                       </div>
+
+                      {/* Expected output displayed after checking */}
                       {isChecked && (
-                        <p style={{ fontSize: '1.1rem', color: 'var(--text-muted)', margin: 0 }}>Expected translation: <strong>{sentence}</strong></p>
+                        <div style={{ marginTop: '5px', textAlign: 'center' }}>
+                          <p style={{ fontSize: '1.1rem', color: 'var(--text-muted)', margin: 0 }}>
+                            {currentLabels.expectedLabel} <strong style={{ color: 'var(--text)', fontSize: '1.2rem' }}>{sentence}</strong>
+                          </p>
+                        </div>
                       )}
                     </div>
                   )}
 
+                  {/* Speak button for standard Read Aloud */}
                   {currentQuestion.type === "speak" && (
                     <div style={{ display: 'flex', justifyContent: 'center', gap: '16px' }}>
                       <button type="button" onClick={() => speakText(sentence)} style={{ background: '#38bdf8', border: 'none', color: 'white', borderRadius: '14px', padding: '14px 24px', fontWeight: '800', cursor: 'pointer', fontSize: '1rem' }}>🔊 Listen</button>
                     </div>
                   )}
                   
+                  {/* Common Audio Input / Speech Recognition Button */}
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', margin: '20px 0' }}>
                     <div className="mic-outer-container">
                       <button
@@ -5280,7 +5798,7 @@ function App() {
                             <path d="M17 11a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z" />
                           </svg>
                         )}
-                        <span className="mic-btn-text">{lessonSpeakIsListening ? "RECORDING..." : "CLICK TO SPEAK"}</span>
+                        <span className="mic-btn-text">{lessonSpeakIsListening ? currentLabels.recording : currentLabels.clickToSpeak}</span>
                       </button>
                     </div>
 
@@ -5295,6 +5813,7 @@ function App() {
                     )}
                   </div>
 
+                  {/* Feedback Overlay */}
                   {isChecked && (
                     <div style={{
                       position: 'absolute',
@@ -5309,13 +5828,13 @@ function App() {
                     }}>
                       <div>
                         <h4 style={{ margin: 0, color: feedback.isCorrect ? '#065f46' : '#991b1b', fontWeight: '800', fontSize: '1.2rem' }}>
-                          {feedback.isCorrect ? "Excellent!" : "Incorrect"}
+                          {feedback.isCorrect ? currentLabels.excellent : currentLabels.incorrect}
                         </h4>
                         <p style={{ margin: '4px 0 0', color: feedback.isCorrect ? '#047857' : '#b91c1c', fontSize: '0.95rem' }}>
-                          {feedback.isCorrect ? "Good pronunciation!" : `Correct Answer: "${sentence}"`}
+                          {feedback.isCorrect ? currentLabels.goodPronunciation : `${currentLabels.correctAnswerLabel} "${sentence}"`}
                         </p>
                       </div>
-                      <button type="button" className="primary-btn" onClick={handleNext}>Continue</button>
+                      <button type="button" className="primary-btn" onClick={handleNext}>{currentLabels.continueBtn}</button>
                     </div>
                   )}
                 </div>
@@ -6291,6 +6810,8 @@ function App() {
     setLessonTimeTaken(0);
     setLessonXpEarned(0);
     setLessonAccuracy(null);
+    setLessonSpeakPeek(false);
+    setLessonSpeakHint(false);
     // All lessons (regular + practice) now use the unified renderPracticeSession renderer.
     const isPractice = true;
     const isPracticeSession = lesson.id.includes("_practice") || lesson.title.includes("Practice") || lesson.title.includes("Pronunciation");
@@ -6343,6 +6864,55 @@ function App() {
           mistakesList: lesson.title === "Mistakes Practice" ? recentMistakes : [],
           useFallback: !aiEnabled
         });
+        if (aiContent && aiContent.questions && (lesson.title === "Speak Practice" || lesson.title === "Speak")) {
+          const localTranslations = {
+            "Ram goes to school.": { Hindi: "राम स्कूल जाता है।", Kannada: "ರಾಮ್ ಶಾಲೆಗೆ ಹೋಗುತ್ತಾನೆ.", Telugu: "రాము బడికి వెళతాడు.", Tamil: "ராம் பள்ளிக்குச் செல்கிறான்." },
+            "He reads a book.": { Hindi: "वह किताब पढ़ता है।", Kannada: "ಅವನು ಪುಸ್ತಕ ಓದುತ್ತಾನೆ.", Telugu: "అతడు పుస్తకం చదువుతాడు.", Tamil: "அவன் புத்தகம் படிக்கிறான்." },
+            "Sita sings a song.": { Hindi: "सीता गाना गाती है।", Kannada: "ಸೀತಾ ಹಾಡು ಹಾಡುತ್ತಾಳೆ.", Telugu: "సీత పాట పాడుతుంది.", Tamil: "சீதா பாட்டு பாடுகிறாள்." },
+            "The water is very cold.": { Hindi: "पानी बहुत ठंडा है।", Kannada: "ನೀರು ತುಂಬಾ ತಣ್ಣಗಿದೆ.", Telugu: "ನೀరు చాలా చల్లగా ఉంది.", Tamil: "தண்ணீர் மிகவும் குளிராக இருக்கிறது." },
+            "Water is very cold.": { Hindi: "पानी बहुत ठंडा है।", Kannada: "ನೀರು ತುಂಬಾ ತಣ್ಣಗಿದೆ.", Telugu: "ನೀరు చాలా చల్లగా ఉంది.", Tamil: "தண்ணீர் மிகவும் குளிராக இருக்கிறது." },
+            "I am fine, thank you.": { Hindi: "मैं ठीक हूँ, धन्यवाद।", Kannada: "ನಾನು ಚೆன்னಾಗಿದ್ದೇನೆ, ಧನ್ಯವಾದಗಳು.", Telugu: "నేను బాగున్నాను, ధన్యవాదాలు.", Tamil: "நான் நன்றாக இருக்கிறேன், நன்றி." },
+            "My name is Rahul.": { Hindi: "मेरा नाम राहुल है।", Kannada: "ನನ್ನ ಹೆಸರು ರಾಹುಲ್.", Telugu: "నా పేరు రాహుల్.", Tamil: "என் பெயர் ராகுல்." },
+            "I am going to school.": { Hindi: "मैं स्कूल जा रहा हूँ।", Kannada: "ನಾನು ಶಾಲೆಗೆ ಹೋಗುತ್ತಿದ್ದೇನೆ.", Telugu: "నేను బడికి వెళ్తున్నాను.", Tamil: "நான் பள்ளிக்குச் செல்கிறேன்." },
+            "She sings a song.": { Hindi: "वह गाना गाती है।", Kannada: "अवक गाना गाती है।", Telugu: "ఆమె పాట పాడుతుంది.", Tamil: "அவள் பாட்டு பாடுகிறாள்." },
+            "Today the weather is good.": { Hindi: "आज मौसम अच्छा है।", Kannada: "ಇಂದು ಹವಾಮಾನ ಚೆನ್ನಾಗಿದೆ.", Telugu: "ఈరోజు వాతావరణం బాగుంది.", Tamil: "இன்று வானிலை நன்றாக உள்ளது." },
+            "I like to eat fruits.": { Hindi: "मुझे फल खाना पसंद है।", Kannada: "ನನಗೆ ಹಣ್ಣು ತಿನ್ನಲು ಇಷ್ಟ.", Telugu: "నాకు పండ్లు తినడం ఇష్టం.", Tamil: "எனக்கு பழங்கள் சாப்பிட பிடிக்கும்." },
+            "Translate to Hindi": { Hindi: "हिंदी में अनुवाद करें", Kannada: "ಹಿಂದಿಗೆ ಅನುವಾದಿಸಿ", Telugu: "హిందీలోకి అనువదించండి", Tamil: "இந்தியில் மொழிபெயர்க்கவும்" },
+            "Translate to Kannada": { Hindi: "कन्नड़ में अनुवाद करें", Kannada: "ಕನ್ನಡಕ್ಕೆ ಅನುವಾದಿಸಿ", Telugu: "ಕನ್ನಡಕ್ಕೆ ಅನುವಾದಿಸಿ", Tamil: "கன்னடத்திற்கு மொழிபெயர்க்கவும்" },
+            "Translate to Telugu": { Hindi: "तेलुगु में अनुवाद करें", Kannada: "ತೆలుगु ಭಾಷೆಗೆ ಅನುವಾದಿಸಿ", Telugu: "తెలుగులోకి అనువదించండి", Tamil: "தெலுங்கிற்கு மொழிபெயர்க்கவும்" },
+            "Translate to Tamil": { Hindi: "तमिल में अनुवाद करें", Kannada: "தಮಿಳಿಗೆ ಅನುವಾದಿಸಿ", Telugu: "தమిழில் மொழிபெயர்க்கவும்", Tamil: "தமிழுக்கு மொழிபெயர்க்கவும்" },
+            "Translate to English": { Hindi: "अंग्रेजी में अनुवाद करें", Kannada: "ಇಂಗ್ಲಿಷ್‌ಗೆ ಅನುವಾದಿಸಿ", Telugu: "ಇంగ్లీషులోకి అనువదించండి", Tamil: "ஆங்கிலத்திற்கு மொழிபெயர்க்கவும்" },
+            "Express present action": { Hindi: "वर्तमान क्रिया व्यक्त करें", Kannada: "ವರ್ತಮಾನ ಕ್ರಿಯೆಯನ್ನು ವ್ಯಕ್ತಪಡಿಸಿ", Telugu: "వర్తమాన క్రియను వ్యక్తపరచండి", Tamil: "நிகழ்கால செயலை விவரிக்கவும்" },
+            "Temperature description": { Hindi: "तापमान का वर्णन करें", Kannada: "ತಾಪಮಾನದ ವಿವರಣೆ", Telugu: "ఉష్ణోగ్రత వివరణ", Tamil: "வெப்பநிலை விளக்கம்" },
+            "Polite response": { Hindi: "विनम्र उत्तर", Kannada: "ವಿನಮ್ರ ಪ್ರತಿಕ್ರಿಯೆ", Telugu: "మర్యాదపూర్వక సమాధానం", Tamil: "மரியாதையான பதில்" },
+            "Self-introduction": { Hindi: "आत्म-परिचय", Kannada: "ಸ್ವಯಂ ಪರಿಚಯ", Telugu: "స్వీయ పరిచయం", Tamil: "சுய அறிமுகம்" },
+            "Continuous action": { Hindi: "सतत क्रिया", Kannada: "ನಿರಂತರ ಕ್ರಿಯೆ", Telugu: "నిరంతర చర్య", Tamil: "தொடர் செயல்" },
+            "Weather expression": { Hindi: "मौसम अभिव्यक्ति", Kannada: "ಹವಾಮಾನದ ವಿವರಣೆ", Telugu: "వాతావరణ వివరణ", Tamil: "வானிலை விளக்கம்" },
+            "Expressing preference": { Hindi: "पसंद व्यक्त करें", Kannada: "ಆದ್ಯತೆಯನ್ನು ವ್ಯಕ್ತಪಡಿಸಿ", Telugu: "అభిరుచిని వ్యక్తపరచండి", Tamil: "விருப்பத்தை தெரிவிக்கவும்" },
+            "Possessive pronoun": { Hindi: "संबंधवाचक सर्वनाम", Kannada: "ಸ್ವಾಮ್ಯಸೂಚಕ ನಾಮಪದ", Telugu: "యాజమాన్య సర్వనామం", Tamil: "உரிமைச்சொல்" }
+          };
+          const uiLang = selectedLanguage || "English";
+          const translateStr = (str, lang) => {
+            if (!lang || lang === "English") return str;
+            return localTranslations[str]?.[lang] || str;
+          };
+          aiContent.questions = aiContent.questions.map(q => {
+            const newQ = { ...q };
+            if (newQ.englishTranslation) {
+              newQ.englishTranslation = translateStr(newQ.englishTranslation, uiLang);
+            }
+            if (newQ.translation) {
+              newQ.translation = translateStr(newQ.translation, uiLang);
+            }
+            if (newQ.type === "translateSpeak" && newQ.promptText) {
+              newQ.promptText = translateStr(newQ.promptText, uiLang);
+            }
+            if (newQ.hint) {
+              newQ.hint = translateStr(newQ.hint, uiLang);
+            }
+            return newQ;
+          });
+        }
       } else {
         aiContent = await generateLessonContent({
           age: profile?.age || 25,
