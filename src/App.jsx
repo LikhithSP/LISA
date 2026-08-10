@@ -3165,7 +3165,7 @@ function App() {
               )}
               {" "}({`Step ${lessonStep + 1} of ${ai.questions?.length || 8}`})
             </span>
-            <span style={{ 
+            <span className="lesson-hearts-container" style={{ 
               display: 'flex', 
               gap: '6px', 
               fontSize: '1.4rem', 
@@ -4867,7 +4867,7 @@ function App() {
               return (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   {/* Mascot + instruction bubble */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px', margin: '0 0 8px' }}>
+                  <div className="tracing-mascot-row" style={{ display: 'flex', alignItems: 'center', gap: '16px', margin: '0 0 8px' }}>
                     <img src="/as1.png" alt="LISA Mascot" style={{ width: '72px', height: '72px', objectFit: 'contain', flexShrink: 0 }} />
                     <div style={{ flexGrow: 1, background: 'var(--panel)', border: '2px solid var(--line)', borderRadius: '20px', padding: '14px 20px', position: 'relative' }}>
                       <div style={{ position: 'absolute', left: '-9px', top: '28px', width: '14px', height: '14px', background: 'var(--panel)', borderLeft: '2px solid var(--line)', borderBottom: '2px solid var(--line)', transform: 'rotate(45deg)' }}></div>
@@ -4935,7 +4935,7 @@ function App() {
                   </div>
 
                   {/* Controls */}
-                  <div style={{ display: 'flex', justifyContent: 'center', gap: '12px' }}>
+                  <div className="tracing-action-btns" style={{ display: 'flex', justifyContent: 'center', gap: '12px' }}>
                     <button
                       type="button"
                       onClick={() => speakText(currentQuestion.sound || currentQuestion.word || currentQuestion.letter)}
@@ -11320,7 +11320,7 @@ function App() {
 
                       {/* Duolingo-style bottom feedback bar — fixed at viewport bottom */}
                       {pronunciationScore !== null && (
-                        <div style={{
+                        <div className="pronunciation-feedback-bar" style={{
                           position: 'fixed',
                           bottom: 0,
                           left: 0,
@@ -14575,7 +14575,7 @@ function App() {
                             <span className="ai-step-badge">✏️ Draw the picture</span>
                           </div>
 
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '20px', margin: '16px 0' }}>
+                          <div className="tracing-mascot-row" style={{ display: 'flex', alignItems: 'center', gap: '20px', margin: '16px 0' }}>
                             <img src="/as1.png" alt="LISA Mascot" style={{ width: '80px', height: '80px', objectFit: 'contain' }} />
                             <div style={{ flexGrow: 1, background: 'var(--panel)', border: '2px solid var(--line)', borderRadius: '20px', padding: '16px 24px', position: 'relative' }}>
                               <div style={{ position: 'absolute', left: '-9px', top: '32px', width: '14px', height: '14px', background: 'var(--panel)', borderLeft: '2px solid var(--line)', borderBottom: '2px solid var(--line)', transform: 'rotate(45deg)' }}></div>
@@ -14596,7 +14596,7 @@ function App() {
                             />
                           </div>
 
-                          <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', margin: '16px 0' }}>
+                          <div className="tracing-action-btns" style={{ display: 'flex', justifyContent: 'center', gap: '12px', margin: '16px 0' }}>
                             <button type="button" onClick={() => speakText(item.sound)} style={{ background: '#38bdf8', border: 'none', color: 'white', borderRadius: '12px', padding: '12px 20px', fontWeight: '800', cursor: 'pointer', fontSize: '1rem' }}>🔊 Play sound</button>
                             <button type="button" onClick={clearCanvas} style={{ background: 'var(--panel-strong)', border: '2px solid var(--line)', borderRadius: '12px', padding: '12px 20px', fontWeight: '800', cursor: 'pointer', fontSize: '1rem' }}>↺ Clear</button>
                           </div>
