@@ -3551,31 +3551,33 @@ function App() {
                     padding: '24px',
                     marginBottom: '10px'
                   }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                    <div className="reading-passage-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                       <h4 style={{ margin: 0, color: '#0284c7', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '8px' }}>
                         📖 Reading Passage
-                        <button type="button" className="duo-listen-btn" onClick={() => speakText(currentQuestion.passage)} style={{ padding: '6px 14px', borderRadius: '12px', fontSize: '0.9rem' }}>🔊 Listen</button>
                       </h4>
-                      <button
-                        type="button"
-                        onClick={() => setShowPassageTranslation(!showPassageTranslation)}
-                        style={{
-                          background: showPassageTranslation ? 'var(--accent)' : 'rgba(2, 132, 199, 0.1)',
-                          color: showPassageTranslation ? 'white' : 'var(--accent)',
-                          border: 'none',
-                          borderRadius: '16px',
-                          padding: '6px 16px',
-                          fontSize: '0.85rem',
-                          fontWeight: '800',
-                          cursor: 'pointer',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          transition: 'all 0.2s ease'
-                        }}
-                      >
-                        🌐 {showPassageTranslation ? "Hide Help / Translation" : "Translate & Help"}
-                      </button>
+                      <div className="reading-passage-header-actions" style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <button type="button" className="duo-listen-btn" onClick={() => speakText(currentQuestion.passage)} style={{ padding: '6px 14px', borderRadius: '12px', fontSize: '0.85rem' }}>🔊 Listen</button>
+                        <button
+                          type="button"
+                          onClick={() => setShowPassageTranslation(!showPassageTranslation)}
+                          style={{
+                            background: showPassageTranslation ? 'var(--accent)' : 'rgba(2, 132, 199, 0.1)',
+                            color: showPassageTranslation ? 'white' : 'var(--accent)',
+                            border: 'none',
+                            borderRadius: '16px',
+                            padding: '6px 14px',
+                            fontSize: '0.85rem',
+                            fontWeight: '800',
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            transition: 'all 0.2s ease'
+                          }}
+                        >
+                          🌐 {showPassageTranslation ? "Hide Help" : "Translate & Help"}
+                        </button>
+                      </div>
                     </div>
 
                     {/* Interactive Passage Paragraph with Clickable Main Word Meanings */}
@@ -12289,7 +12291,7 @@ function App() {
                       </div>
                     </div>
 
-                    <div className="profile-badges-container">
+                    <div className="profile-badges-container profile-card-large" style={{ padding: '24px', borderRadius: '24px', width: '100%', boxSizing: 'border-box' }}>
                        <h3 className="profile-section-title">{t("profileEquippedBadges")}</h3>
                       <div className="profile-badges-grid">
                         {profileBadges.length === 0 ? (
@@ -13021,7 +13023,7 @@ function App() {
                 <div className="lesson-complete-wrapper">
                   <div className="lesson-complete-mascot-row">
                     <div className="firecracker-container">
-                      <img src="/as1.png" alt="LISA Mascot" className="lesson-complete-mascot" />
+                      <img src="/mascot_complete.png" alt="LISA Mascot" className="lesson-complete-mascot" />
                       {Array.from({ length: 8 }).map((_, i) => {
                         const angle = (i / 8) * Math.PI * 2;
                         const radius = 30 + (i % 2) * 15;
@@ -14493,7 +14495,7 @@ function App() {
                                   onClick={() => {
                                     setLessonTranslationFeedback(null);
                                     setLessonTranslationSelected([]);
-                                    setLessonStep(8);
+                                    setLessonStep(9);
                                   }}
                                 >
                                   Continue
@@ -14505,8 +14507,8 @@ function App() {
                       );
                     })()}
 
-                    {/* Step 8: Match Sentence / Pairs */}
-                    {lessonStep === 8 && (() => {
+                    {/* Step 8: Match Sentence / Pairs - Removed from Read practice */}
+                    {false && lessonStep === 8 && (() => {
                       const pairs = ai.matchingPairs || [
                         { left: "School", right: "A place where we learn" },
                         { left: "Book", right: "We read it to gain knowledge" },

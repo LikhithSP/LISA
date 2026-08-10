@@ -8877,8 +8877,8 @@ select:focus-visible {
 }
 
 .lesson-complete-mascot {
-  width: 180px;
-  height: 220px;
+  width: 450px;
+  height: 270px;
   object-fit: contain;
 }
 
@@ -18707,5 +18707,259 @@ select {
 
   .flz-memory-grid {
     gap: 6px !important;
+  }
+}
+
+/* ==========================================================================
+   MASTER MOBILE RESPONSIVE OVERRIDES & FIXES FOR ALL SCREENS & COMPONENTS
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  /* Global viewport containment & overflow fixes */
+  html, body {
+    overflow-x: hidden !important;
+    width: 100vw !important;
+  }
+
+  .app-container, .dashboard-container, .main-layout, .dashboard-main-view {
+    max-width: 100vw !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+  }
+
+  /* Lesson Complete Mascot & Stats Responsiveness */
+  .lesson-complete-wrapper {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 16px 12px !important;
+    box-sizing: border-box !important;
+  }
+
+  .lesson-complete-mascot-row {
+    width: 100% !important;
+    max-width: 100% !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    overflow: hidden !important;
+  }
+
+  .lesson-complete-mascot {
+    max-width: 100% !important;
+    width: min(450px, 90vw) !important;
+    height: auto !important;
+    aspect-ratio: 450 / 270 !important;
+    object-fit: contain !important;
+  }
+
+  .lesson-complete-stats {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 8px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .lesson-complete-stat-box {
+    padding: 12px 6px !important;
+    min-width: 0 !important;
+  }
+
+  .lesson-complete-stat-value {
+    font-size: 1.25rem !important;
+  }
+
+  .lesson-complete-stat-label {
+    font-size: 0.75rem !important;
+  }
+
+  /* Diagnostic Welcome & Initial Assessment Header */
+  .diagnostic-welcome-wrapper,
+  .assessment-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 10px auto !important;
+    padding: 14px 12px !important;
+    box-sizing: border-box !important;
+  }
+
+  .welcome-banner-mascot,
+  .assessment-card-header {
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    gap: 12px !important;
+  }
+
+  .welcome-mascot,
+  .assessment-mascot {
+    max-width: 120px !important;
+    height: auto !important;
+  }
+
+  .assessment-tours {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+
+  .tour-badge {
+    width: 100% !important;
+    text-align: center !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Duo Path Unit Tree & Side Mascots */
+  .duo-unit-block {
+    width: 100% !important;
+    padding: 12px 8px !important;
+    box-sizing: border-box !important;
+  }
+
+  .duo-path-mascot {
+    position: relative !important;
+    left: auto !important;
+    right: auto !important;
+    top: auto !important;
+    transform: none !important;
+    display: flex !important;
+    justify-content: center !important;
+    margin: 10px 0 !important;
+  }
+
+  .duo-path-mascot img {
+    width: 90px !important;
+    height: 90px !important;
+  }
+
+  /* Navigation Topbar & Sidebars */
+  .topbar, .app-topbar {
+    padding: 8px 12px !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+
+  .topbar-right, .topbar-stats {
+    gap: 6px !important;
+  }
+
+  .stat-pill {
+    padding: 4px 8px !important;
+    font-size: 0.8rem !important;
+  }
+
+  /* Practice Hub & Grid Cards */
+  .practice-row-cards {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+
+  .practice-row-card {
+    padding: 14px 12px !important;
+    min-width: 0 !important;
+  }
+
+  .practice-row-card-title {
+    font-size: 0.95rem !important;
+  }
+
+  .practice-row-card-desc {
+    font-size: 0.75rem !important;
+  }
+
+  .dashboard-dual-grid,
+  .lessons-card-grid,
+  .stats-header-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  /* Reading Passage Header & Actions Mobile Layout */
+  .reading-passage-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+  }
+
+  .reading-passage-header-actions {
+    width: 100% !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+  }
+
+  .reading-passage-header-actions button {
+    flex: 1 !important;
+    justify-content: center !important;
+    padding: 8px 12px !important;
+    font-size: 0.8rem !important;
+  }
+
+  /* Equipped Badges Responsive Grid */
+  .profile-badges-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .profile-badge-item {
+    padding: 10px 12px !important;
+    gap: 10px !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  .profile-badge-name {
+    font-size: 0.85rem !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .profile-badge-rarity {
+    font-size: 0.7rem !important;
+  }
+
+  /* Modal Dialogs & Overlays */
+  .modal-content, .popup-content, .dialog-box {
+    width: 94% !important;
+    max-width: 94% !important;
+    margin: 12px auto !important;
+    padding: 16px !important;
+    box-sizing: border-box !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .lesson-complete-title {
+    font-size: 1.5rem !important;
+    margin-bottom: 16px !important;
+  }
+
+  .lesson-complete-stats {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 8px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .lesson-complete-stat-box {
+    padding: 10px 4px !important;
+    min-width: 0 !important;
+  }
+
+  .lesson-complete-stat-value {
+    font-size: 1.1rem !important;
+  }
+
+  .lesson-complete-stat-label {
+    font-size: 0.65rem !important;
+    letter-spacing: -0.2px !important;
+  }
+
+  .lesson-complete-stat-sub {
+    font-size: 0.65rem !important;
   }
 }
