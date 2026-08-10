@@ -15578,7 +15578,7 @@ function App() {
                     <span className="lp-preview-dot lp-dot-green" />
                     <span className="lp-preview-title">{t("lisaLesson")}</span>
                   </div>
-                  <img src="/as1.png" alt="LISA mascot" className="lp-preview-mascot" />
+                  <img src="/mascot/mascot_interactive.png" alt="LISA mascot" className="lp-preview-mascot" />
                   {(() => {
                     const lettersMap = {
                       English: ["A", "B", "C", "D"],
@@ -15677,7 +15677,7 @@ function App() {
           <div className="lp-showcase-inner">
             <div className="lp-showcase-row">
               <div className="lp-showcase-img">
-                <img src="/as2.png" alt="Interactive Learning" />
+                <img src="/mascot/mascot_reading.png" alt="Interactive Reading & Storytelling" />
               </div>
               <div className="lp-showcase-text">
                 <p className="lp-eyebrow">{t("freeAccessibleTag")}</p>
@@ -15687,7 +15687,7 @@ function App() {
             </div>
             <div className="lp-showcase-row lp-showcase-row-rev">
               <div className="lp-showcase-img">
-                <img src="/as3.png" alt="Personalized Path" />
+                <img src="/mascot/mascot_path.png" alt="Personalized Learning Path" />
               </div>
               <div className="lp-showcase-text">
                 <p className="lp-eyebrow">{t("aiEngineTag")}</p>
@@ -15697,12 +15697,32 @@ function App() {
             </div>
             <div className="lp-showcase-row">
               <div className="lp-showcase-img">
-                <img src="/as4.png" alt="Speech & Canvas" />
+                <img src="/mascot/mascot_speech.png" alt="Voice Recognition & Speech Practice" />
               </div>
               <div className="lp-showcase-text">
                 <p className="lp-eyebrow">{t("speechHandwritingTag")}</p>
                 <h2>{t("showcase3Title")}</h2>
                 <p>{t("showcase3Desc")}</p>
+              </div>
+            </div>
+            <div className="lp-showcase-row lp-showcase-row-rev">
+              <div className="lp-showcase-img">
+                <img src="/mascot/mascot_writing.png" alt="Guided Canvas Writing" />
+              </div>
+              <div className="lp-showcase-text">
+                <p className="lp-eyebrow">SMART CANVAS</p>
+                <h2>Interactive Writing & Stroke Practice</h2>
+                <p>Learn script writing with step-by-step stroke guidance and immediate AI evaluation.</p>
+              </div>
+            </div>
+            <div className="lp-showcase-row">
+              <div className="lp-showcase-img">
+                <img src="/mascot/mascot_analytics.png" alt="Analytics & Deep Insights" />
+              </div>
+              <div className="lp-showcase-text">
+                <p className="lp-eyebrow">PROGRESS TRACKING</p>
+                <h2>Comprehensive Mastery & Insights</h2>
+                <p>Track learning milestones, earn badges, and watch literacy skills grow day by day.</p>
               </div>
             </div>
           </div>
