@@ -10965,9 +10965,9 @@ function App() {
           {dashboardTab === "practice" && (
             practiceCollectionPage === "mistakes" ? (
               <div className="duo-practice-page">
-                <button type="button" className="duo-practice-back" onClick={() => setPracticeCollectionPage(null)} aria-label="Back to practice">
-                  <span>←</span>
-                  <span>Practice</span>
+                <button type="button" className="analytics-back-btn" style={{ margin: "16px 0" }} onClick={() => setPracticeCollectionPage(null)} aria-label="Back">
+                  <span style={{ fontSize: "1rem", fontWeight: "900", lineHeight: 1 }}>←</span>
+                  <span className="analytics-back-btn-text">Back</span>
                 </button>
 
                 <section className="duo-practice-hero">
@@ -11056,9 +11056,9 @@ function App() {
               </div>
             ) : practiceCollectionPage === "words" ? (
               <div className="duo-practice-page">
-                <button type="button" className="duo-practice-back" onClick={() => setPracticeCollectionPage(null)} aria-label="Back to practice">
-                  <span>←</span>
-                  <span>Practice</span>
+                <button type="button" className="analytics-back-btn" style={{ margin: "16px 0" }} onClick={() => setPracticeCollectionPage(null)} aria-label="Back">
+                  <span style={{ fontSize: "1rem", fontWeight: "900", lineHeight: 1 }}>←</span>
+                  <span className="analytics-back-btn-text">Back</span>
                 </button>
 
                 <section className="duo-practice-hero">
@@ -11092,9 +11092,9 @@ function App() {
               </div>
             ) : practiceCollectionPage === "pronunciation" ? (
               <div className="duo-practice-page pronunciation-env">
-                <button type="button" className="duo-practice-back" onClick={() => { setPracticeCollectionPage(null); window.speechSynthesis?.cancel(); }} aria-label="Back to practice">
-                  <span>←</span>
-                  <span>Practice</span>
+                <button type="button" className="analytics-back-btn" style={{ margin: "16px 0" }} onClick={() => { setPracticeCollectionPage(null); window.speechSynthesis?.cancel(); }} aria-label="Back">
+                  <span style={{ fontSize: "1rem", fontWeight: "900", lineHeight: 1 }}>←</span>
+                  <span className="analytics-back-btn-text">Back</span>
                 </button>
 
                 {pronunciationLoading ? (
@@ -11144,7 +11144,7 @@ function App() {
                     : "#ef4444";
 
                   const scoreLabel = pronunciationScore === null ? null
-                    : pronunciationScore >= 80 ? "Excellent! 🎉"
+                    : pronunciationScore >= 80 ? "Excellent!"
                     : pronunciationScore >= 50 ? "Good try! 💪"
                     : "Keep practicing! 🔄";
 
@@ -11152,7 +11152,7 @@ function App() {
                     <div style={{
                       maxWidth: 600,
                       margin: "24px auto",
-                      padding: "0 16px",
+                      padding: "0 16px 120px",
                       display: "flex",
                       flexDirection: "column",
                       gap: 20
@@ -11182,6 +11182,11 @@ function App() {
                         }}>{pronunciationStep + 1} / {total}</span>
                       </div>
 
+                      {/* Instruction text */}
+                      <div style={{ textAlign: "center", fontSize: "0.95rem", color: "var(--text-muted)", fontWeight: 600 }}>
+                        Listen first, then speak the sentence
+                      </div>
+
                       {/* Main sentence card */}
                       <div style={{
                         background: "var(--panel)",
@@ -11191,22 +11196,6 @@ function App() {
                         textAlign: "center",
                         boxShadow: "0 8px 32px rgba(0,0,0,0.06)"
                       }}>
-                        {/* Language label */}
-                        <div style={{
-                          display: "inline-block",
-                          background: "var(--accent-soft)",
-                          color: "var(--accent)",
-                          fontSize: "0.72rem",
-                          fontWeight: 800,
-                          letterSpacing: 1,
-                          padding: "4px 14px",
-                          borderRadius: 99,
-                          marginBottom: 20,
-                          textTransform: "uppercase"
-                        }}>
-                          🗣️ {learningLanguage || "English"} — Sentence {pronunciationStep + 1}
-                        </div>
-
                         {/* THE SENTENCE — main display */}
                         <div style={{
                           fontSize: "clamp(1.4rem, 4vw, 2rem)",
@@ -11279,213 +11268,154 @@ function App() {
                             )}
                           </div>
                         )}
+
+                        {/* Speed buttons — inside card, emoji-only */}
+                        <div style={{ display: "flex", gap: 10, justifyContent: "center", marginTop: 16 }}>
+                          <button
+                            type="button"
+                            title="Normal Speed"
+                            onClick={() => { setSlowSpeed(false); speakText(sentence, 1.0); }}
+                            style={{
+                              background: "var(--bg, #f1f5f9)",
+                              border: "1.5px solid #cbd5e1",
+                              borderRadius: 50,
+                              width: 44,
+                              height: 44,
+                              fontSize: "1.35rem",
+                              cursor: "pointer",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              transition: "all 0.2s",
+                              boxShadow: "0 2px 6px rgba(0,0,0,0.06)"
+                            }}
+                          >
+                            🔊
+                          </button>
+                          <button
+                            type="button"
+                            title="Slow Speed"
+                            onClick={() => { setSlowSpeed(true); speakText(sentence, 0.5); }}
+                            style={{
+                              background: "var(--bg, #f1f5f9)",
+                              border: "1.5px solid #cbd5e1",
+                              borderRadius: 50,
+                              width: 44,
+                              height: 44,
+                              fontSize: "1.35rem",
+                              cursor: "pointer",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              transition: "all 0.2s",
+                              boxShadow: "0 2px 6px rgba(0,0,0,0.06)"
+                            }}
+                          >
+                            🐢
+                          </button>
+                        </div>
                       </div>
 
-                      {/* TTS buttons */}
-                      <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
-                        <button
-                          type="button"
-                          onClick={() => { setSlowSpeed(false); speakText(sentence, 1.0); }}
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 8,
-                            background: "var(--panel)",
-                            border: "2px solid var(--accent)",
-                            color: "var(--accent)",
-                            borderRadius: 16,
-                            padding: "12px 24px",
-                            fontWeight: 800,
-                            fontSize: "0.95rem",
-                            cursor: "pointer",
-                            transition: "all 0.2s"
-                          }}
-                        >
-                          🔊 Normal Speed
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => { setSlowSpeed(true); speakText(sentence, 0.5); }}
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 8,
-                            background: "var(--panel)",
-                            border: "2px solid #10b981",
-                            color: "#10b981",
-                            borderRadius: 16,
-                            padding: "12px 24px",
-                            fontWeight: 800,
-                            fontSize: "0.95rem",
-                            cursor: "pointer",
-                            transition: "all 0.2s"
-                          }}
-                        >
-                          🐢 Slow Speed
-                        </button>
-                      </div>
 
-                      {/* Score display */}
+
+                      {/* Duolingo-style bottom feedback bar — fixed at viewport bottom */}
                       {pronunciationScore !== null && (
                         <div style={{
-                          background: "var(--panel)",
-                          border: `2px solid ${scoreColor}`,
-                          borderRadius: 20,
-                          padding: "20px 24px",
-                          textAlign: "center",
-                          animation: "slideUp 0.3s ease"
+                          position: 'fixed',
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          background: pronunciationScore >= 80 ? '#d1fae5' : pronunciationScore >= 50 ? '#fef3c7' : '#fee2e2',
+                          borderTop: `3px solid ${pronunciationScore >= 80 ? '#10b981' : pronunciationScore >= 50 ? '#f59e0b' : '#ef4444'}`,
+                          padding: '16px 32px',
+                          zIndex: 9999,
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          gap: 16
                         }}>
-                          <div style={{ fontSize: "2.5rem", fontWeight: 900, color: scoreColor }}>
-                            {pronunciationScore}%
-                          </div>
-                          <div style={{ fontWeight: 800, color: scoreColor, fontSize: "1.1rem", marginBottom: 8 }}>
-                            {scoreLabel}
-                          </div>
-                          {pronunciationScore >= 80 && (
-                            <div style={{ fontSize: "0.85rem", color: "#10b981", fontWeight: 700 }}>+10 XP Awarded! ⚡</div>
-                          )}
-                          {spokenText && (
-                            <div style={{
-                              marginTop: 10,
-                              fontSize: "0.85rem",
-                              color: "var(--text-muted)",
-                              background: "var(--bg)",
-                              padding: "8px 14px",
-                              borderRadius: 12
-                            }}>
-                              You said: "<i>{spokenText}</i>"
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                            <span style={{ fontSize: '2rem' }}>
+                              {pronunciationScore >= 80 ? '🎉' : pronunciationScore >= 50 ? '💪' : '🔄'}
+                            </span>
+                            <div>
+                              <div style={{
+                                fontWeight: 800,
+                                fontSize: '1.1rem',
+                                color: pronunciationScore >= 80 ? '#065f46' : pronunciationScore >= 50 ? '#92400e' : '#991b1b'
+                              }}>
+                                {scoreLabel} &nbsp;
+                                <span style={{ fontSize: '1.3rem', fontWeight: 900 }}>{pronunciationScore}%</span>
+                              </div>
+                              {spokenText && (
+                                <div style={{ fontSize: '0.8rem', color: pronunciationScore >= 80 ? '#047857' : pronunciationScore >= 50 ? '#92400e' : '#b91c1c', marginTop: 2 }}>
+                                  You said: “{spokenText}”
+                                </div>
+                              )}
                             </div>
-                          )}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setPronunciationScore(null);
+                              setSpokenText("");
+                              setPronouncedWordsMatch([]);
+                              if (pronunciationScore !== null) {
+                                if (pronunciationStep < total - 1) {
+                                  setPronunciationStep(p => p + 1);
+                                  setShowTranslation(false);
+                                  window.speechSynthesis?.cancel();
+                                } else {
+                                  setPracticeCollectionPage(null);
+                                  window.speechSynthesis?.cancel();
+                                }
+                              }
+                            }}
+                            style={{
+                              background: pronunciationScore >= 80 ? '#10b981' : pronunciationScore >= 50 ? '#f59e0b' : '#ef4444',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: 12,
+                              padding: '12px 30px',
+                              fontWeight: 800,
+                              fontSize: '1rem',
+                              cursor: 'pointer',
+                              whiteSpace: 'nowrap'
+                            }}
+                          >
+                            {pronunciationStep < total - 1 ? 'Continue →' : '✅ Finish'}
+                          </button>
                         </div>
                       )}
 
-                      {/* Mic button */}
-                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
-                        <button
-                          type="button"
-                          onClick={() => startListeningPronunciation(sentence)}
-                          disabled={isRecordingPronunciation}
-                          style={{
-                            background: isRecordingPronunciation
-                              ? "linear-gradient(135deg, #ef4444, #dc2626)"
-                              : "linear-gradient(135deg, var(--accent), #7c3aed)",
-                            color: "white",
-                            border: "none",
-                            borderRadius: 50,
-                            padding: "18px 48px",
-                            fontSize: "1.15rem",
-                            fontWeight: 800,
-                            cursor: isRecordingPronunciation ? "not-allowed" : "pointer",
-                            boxShadow: isRecordingPronunciation
-                              ? "0 8px 24px rgba(239,68,68,0.4)"
-                              : "0 8px 24px rgba(124,58,237,0.35)",
-                            transition: "all 0.2s",
-                            transform: isRecordingPronunciation ? "scale(0.97)" : "scale(1)"
-                          }}
-                        >
-                          {isRecordingPronunciation ? "🎙️ Listening…" : "🎤 Tap to Speak"}
-                        </button>
-
-                        {isRecordingPronunciation && (
-                          <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                            {[0, 1, 2, 3, 4].map(i => (
-                              <div key={i} style={{
-                                width: 6,
-                                height: 6,
-                                background: "#ef4444",
-                                borderRadius: "50%",
-                                animation: `recordRipple 1.2s ${i * 0.15}s infinite ease-in-out`
-                              }} />
-                            ))}
+                      {/* Mic button styled like initial assessment */}
+                      <div className="voice-mic-controls" style={{ marginTop: 24 }}>
+                        {!isRecordingPronunciation ? (
+                          <div className="mic-outer-container">
+                            <button
+                              type="button"
+                              className="mic-btn"
+                              onClick={() => startListeningPronunciation(sentence)}
+                            >
+                              <svg className="mic-icon" width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                                <path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3z" />
+                                <path d="M17 11a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V21h2v-3.08A7 7 0 0 0 19 11h-2z" />
+                              </svg>
+                              <span className="mic-btn-text">CLICK TO SPEAK</span>
+                            </button>
                           </div>
-                        )}
-
-                        <div style={{ fontSize: "0.8rem", color: "var(--text-muted)", fontWeight: 600 }}>
-                          Listen first, then speak the sentence
-                        </div>
-                      </div>
-
-                      {/* Navigation buttons */}
-                      <div style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        gap: 12,
-                        borderTop: "1.5px solid var(--line)",
-                        paddingTop: 20
-                      }}>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (pronunciationStep > 0) {
-                              setPronunciationStep(p => p - 1);
-                              setPronunciationScore(null);
-                              setPronouncedWordsMatch([]);
-                              setSpokenText("");
-                              setShowTranslation(false);
-                            }
-                          }}
-                          disabled={pronunciationStep === 0}
-                          style={{
-                            background: "var(--panel)",
-                            border: "2px solid var(--line)",
-                            borderRadius: 14,
-                            padding: "12px 24px",
-                            fontWeight: 700,
-                            fontSize: "0.95rem",
-                            cursor: pronunciationStep === 0 ? "not-allowed" : "pointer",
-                            opacity: pronunciationStep === 0 ? 0.4 : 1,
-                            color: "var(--text)"
-                          }}
-                        >
-                          ← Previous
-                        </button>
-
-                        {pronunciationStep < total - 1 ? (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setPronunciationStep(p => p + 1);
-                              setPronunciationScore(null);
-                              setPronouncedWordsMatch([]);
-                              setSpokenText("");
-                              setShowTranslation(false);
-                              window.speechSynthesis?.cancel();
-                            }}
-                            style={{
-                              background: "linear-gradient(135deg, var(--accent), #7c3aed)",
-                              color: "white",
-                              border: "none",
-                              borderRadius: 14,
-                              padding: "12px 32px",
-                              fontWeight: 800,
-                              fontSize: "0.95rem",
-                              cursor: "pointer",
-                              boxShadow: "0 4px 16px rgba(124,58,237,0.3)"
-                            }}
-                          >
-                            Next →
-                          </button>
                         ) : (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setPracticeCollectionPage(null);
-                              window.speechSynthesis?.cancel();
-                            }}
-                            style={{
-                              background: "linear-gradient(135deg, #10b981, #059669)",
-                              color: "white",
-                              border: "none",
-                              borderRadius: 14,
-                              padding: "12px 32px",
-                              fontWeight: 800,
-                              fontSize: "0.95rem",
-                              cursor: "pointer",
-                              boxShadow: "0 4px 16px rgba(16,185,129,0.35)"
-                            }}
-                          >
-                            ✅ Finish Practice
-                          </button>
+                          <div className="mic-outer-container">
+                            <button
+                              type="button"
+                              className="mic-btn"
+                              style={{ cursor: "default" }}
+                            >
+                              <span className="voice-wave" aria-hidden="true">
+                                <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+                              </span>
+                            </button>
+                          </div>
                         )}
                       </div>
                     </div>
