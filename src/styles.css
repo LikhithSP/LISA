@@ -243,11 +243,12 @@ body {
   margin: 0;
   min-height: 100vh;
   color: var(--text);
-  background: url("/hero.jpg") no-repeat fixed;
+  background-color: #ffffff;
+  background-image: url("/hero.jpg");
+  background-position: 70px 40px;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
   background-size: 750px;
-  /*radial-gradient(circle at top left, rgba(198, 95, 45, 0.16), transparent 24%),
-    radial-gradient(circle at bottom right, rgba(24, 32, 43, 0.08), transparent 22%),
-    linear-gradient(135deg, #f7f3ea 0%, #f3f0e8 55%, #efe7db 100%);*/
 }
 
 .shell {
@@ -296,14 +297,15 @@ body {
 }
 
 h1 {
-  margin-top: 460px;
+  margin-top: 482px;
+  margin-bottom: 0;
   font-size: 40px;
   line-height: 1.2;
   max-width: 111ch;
 }
 
 .hero-copy {
-  margin-top: -25px;
+  margin-top: -10px;
   max-width: 58ch;
   font-size: 0.93rem;
   line-height: 1.7;
@@ -4622,7 +4624,7 @@ select:focus-visible {
    ========================================== */
 
 [data-theme="dark"] body {
-  background: #0f0f0f;
+  background: #0d0d0d;
   color: var(--text);
 }
 
@@ -4631,7 +4633,7 @@ select:focus-visible {
   content: "";
   position: fixed;
   inset: 0;
-  background: url("/hero1.png") no-repeat fixed;
+  background: url("/hero1.png") 70px 40px no-repeat fixed;
   background-size: 750px;
   filter: saturate(0.65);
   pointer-events: none;
