@@ -17098,10 +17098,10 @@ select {
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--line);
-  padding: 14px 32px;
+  padding: 14px 44px;
 }
 .lp-nav-inner {
-  max-width: 1200px;
+  max-width: 1440px;
   margin: 0 auto;
   display: flex;
   align-items: center;
@@ -17144,11 +17144,29 @@ select {
   color: var(--text);
 }
 .lp-brand-sub {
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-weight: 600;
   color: var(--muted);
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
+  white-space: nowrap;
+}
+.lp-brand-sub-full {
+  display: inline;
+}
+.lp-brand-sub-short {
+  display: none;
+}
+@media (max-width: 768px) {
+  .lp-nav {
+    padding: 12px 16px;
+  }
+  .lp-brand-sub-full {
+    display: none;
+  }
+  .lp-brand-sub-short {
+    display: inline;
+  }
 }
 .lp-nav-right {
   display: flex;
@@ -17294,30 +17312,31 @@ select {
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 100%;
 }
 .lp-hero-card-wrap {
   position: relative;
   width: 100%;
-  max-width: 360px;
+  max-width: 480px;
 }
 .lp-preview-card {
   background: var(--panel-strong);
   border: 1px solid var(--line);
-  border-radius: 24px;
-  padding: 24px;
-  box-shadow: 0 24px 60px rgba(0,0,0,0.1);
+  border-radius: 28px;
+  padding: 32px 28px;
+  box-shadow: 0 28px 70px rgba(0,0,0,0.12);
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
 }
 .lp-preview-header {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 .lp-preview-dot {
-  width: 10px;
-  height: 10px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
   display: inline-block;
 }
@@ -17325,39 +17344,40 @@ select {
 .lp-dot-yellow { background: #f59e0b; }
 .lp-dot-green { background: #10b981; }
 .lp-preview-title {
-  margin-left: 8px;
-  font-size: 0.8rem;
+  margin-left: 10px;
+  font-size: 0.92rem;
   font-weight: 700;
   color: var(--muted);
   letter-spacing: 0.04em;
 }
 .lp-preview-mascot {
   width: 100%;
-  max-width: 120px;
+  max-width: 165px;
   margin: 0 auto;
   display: block;
 }
 .lp-preview-prompt {
   text-align: center;
-  font-size: 0.95rem;
-  font-weight: 600;
+  font-size: 1.15rem;
+  font-weight: 700;
   color: var(--text);
+  line-height: 1.4;
 }
 .lp-preview-choices {
   display: flex;
   justify-content: center;
-  gap: 10px;
+  gap: 14px;
 }
 .lp-choice {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
+  width: 58px;
+  height: 58px;
+  border-radius: 14px;
   display: grid;
   place-items: center;
-  font-size: 1.4rem;
+  font-size: 1.65rem;
   font-weight: 700;
   background: var(--panel);
-  border: 1.5px solid var(--line);
+  border: 2px solid var(--line);
   cursor: default;
   transition: all 160ms ease;
 }
@@ -17365,38 +17385,40 @@ select {
   background: var(--accent-soft);
   border-color: var(--accent);
   color: var(--accent);
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.25);
 }
 .lp-preview-xp {
   text-align: center;
-  font-size: 0.8rem;
+  font-size: 0.92rem;
   font-weight: 700;
   color: var(--muted);
   background: var(--panel);
   border-radius: 999px;
-  padding: 6px 14px;
+  padding: 8px 18px;
 }
 .lp-hero-badge {
   position: absolute;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   background: var(--panel-strong);
   border: 1px solid var(--line);
-  border-radius: 16px;
-  padding: 10px 16px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-  font-size: 0.82rem;
+  border-radius: 18px;
+  padding: 12px 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  font-size: 0.9rem;
+  z-index: 2;
 }
-.lp-hero-badge span { font-size: 1.4rem; line-height: 1; }
-.lp-hero-badge strong { display: block; font-weight: 800; font-size: 0.85rem; color: var(--text); }
-.lp-hero-badge p { margin: 0; color: var(--muted); font-size: 0.75rem; }
+.lp-hero-badge span { font-size: 1.65rem; line-height: 1; }
+.lp-hero-badge strong { display: block; font-weight: 800; font-size: 0.95rem; color: var(--text); }
+.lp-hero-badge p { margin: 0; color: var(--muted); font-size: 0.8rem; }
 .lp-hbadge-1 {
-  top: -30px;
-  left: -60px;
+  top: -32px;
+  left: -75px;
 }
 .lp-hbadge-2 {
   bottom: -20px;
-  right: -50px;
+  right: -36px;
 }
 
 /* ─── Feature cards section ─── */

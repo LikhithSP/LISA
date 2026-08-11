@@ -1442,6 +1442,54 @@ function App() {
   const [isEditingCover, setIsEditingCover] = useState(false);
   const [activeTab, setActiveTab] = useState("login"); // "login", "register", "forgot"
   const [showLanding, setShowLanding] = useState(true);
+
+  const navigateToAuth = (tab = "login") => {
+    setActiveTab(tab);
+    setMessage("");
+    setShowLanding(false);
+    try {
+      window.history.pushState({ page: "auth", activeTab: tab }, "");
+    } catch (e) {
+      console.warn("Could not push state to history", e);
+    }
+  };
+
+  const navigateToLanding = () => {
+    setMessage("");
+    setShowLanding(true);
+    try {
+      if (window.history.state?.page === "auth") {
+        window.history.back();
+      } else {
+        window.history.pushState({ page: "landing" }, "");
+      }
+    } catch (e) {
+      setShowLanding(true);
+    }
+  };
+
+  useEffect(() => {
+    try {
+      if (!window.history.state) {
+        window.history.replaceState({ page: showLanding ? "landing" : "auth" }, "");
+      }
+    } catch (e) {}
+
+    const handlePopState = (event) => {
+      const state = event.state;
+      if (!state || state.page === "landing") {
+        setShowLanding(true);
+      } else if (state.page === "auth") {
+        setShowLanding(false);
+        if (state.activeTab) {
+          setActiveTab(state.activeTab);
+        }
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
   const [dashboardTab, setDashboardTab] = useState("dashboard"); // "dashboard", "learn", "practice", "profile", "shop", "leaderboard", "analytics"
   const switchDashboardTab = (tab) => {
     playChime("tab");
@@ -15514,26 +15562,29 @@ function App() {
               <div className="lp-brand-mark">L</div>
               <div className="lp-brand-text">
                 <span className="lp-brand-name">LISA</span>
-                <span className="lp-brand-sub">Literacy AI</span>
+                <span className="lp-brand-sub">
+                  <span className="lp-brand-sub-full">Literacy Intelligence Support Assistant</span>
+                  <span className="lp-brand-sub-short">Literacy AI</span>
+                </span>
               </div>
             </div>
             <div className="lp-nav-right">
-              {renderLanguageDropdown()}
-              {renderThemeToggle()}
               <button
                 type="button"
                 className="lp-btn lp-btn-ghost"
-                onClick={() => { setActiveTab("login"); setMessage(""); setShowLanding(false); }}
+                onClick={() => navigateToAuth("login")}
               >
                 {t("login")}
               </button>
               <button
                 type="button"
                 className="lp-btn lp-btn-accent"
-                onClick={() => { setActiveTab("register"); setMessage(""); setShowLanding(false); }}
+                onClick={() => navigateToAuth("register")}
               >
                 {t("register")}
               </button>
+              {renderThemeToggle()}
+              {renderLanguageDropdown()}
             </div>
           </div>
         </header>
@@ -15553,14 +15604,14 @@ function App() {
                 <button
                   type="button"
                   className="lp-btn lp-btn-accent lp-btn-lg"
-                  onClick={() => { setActiveTab("register"); setMessage(""); setShowLanding(false); }}
+                  onClick={() => navigateToAuth("register")}
                 >
                   {t("startForFree")}
                 </button>
                 <button
                   type="button"
                   className="lp-btn lp-btn-outline lp-btn-lg"
-                  onClick={() => { setActiveTab("login"); setMessage(""); setShowLanding(false); }}
+                  onClick={() => navigateToAuth("login")}
                 >
                   {t("signIn")}
                 </button>
@@ -15712,9 +15763,9 @@ function App() {
                 <img src="/mascot/mascot_writing.png" alt="Guided Canvas Writing" />
               </div>
               <div className="lp-showcase-text">
-                <p className="lp-eyebrow">SMART CANVAS</p>
-                <h2>Interactive Writing & Stroke Practice</h2>
-                <p>Learn script writing with step-by-step stroke guidance and immediate AI evaluation.</p>
+                <p className="lp-eyebrow">{t("smartCanvasTag")}</p>
+                <h2>{t("showcase4Title")}</h2>
+                <p>{t("showcase4Desc")}</p>
               </div>
             </div>
             <div className="lp-showcase-row">
@@ -15722,9 +15773,9 @@ function App() {
                 <img src="/mascot/mascot_analytics.png" alt="Analytics & Deep Insights" />
               </div>
               <div className="lp-showcase-text">
-                <p className="lp-eyebrow">PROGRESS TRACKING</p>
-                <h2>Comprehensive Mastery & Insights</h2>
-                <p>Track learning milestones, earn badges, and watch literacy skills grow day by day.</p>
+                <p className="lp-eyebrow">{t("progressTrackingTag")}</p>
+                <h2>{t("showcase5Title")}</h2>
+                <p>{t("showcase5Desc")}</p>
               </div>
             </div>
           </div>
@@ -15739,14 +15790,14 @@ function App() {
               <button
                 type="button"
                 className="lp-btn lp-btn-white lp-btn-lg"
-                onClick={() => { setActiveTab("register"); setMessage(""); setShowLanding(false); }}
+                onClick={() => navigateToAuth("register")}
               >
                 {t("createFreeAccount")}
               </button>
               <button
                 type="button"
                 className="lp-btn lp-btn-outline-white lp-btn-lg"
-                onClick={() => { setActiveTab("login"); setMessage(""); setShowLanding(false); }}
+                onClick={() => navigateToAuth("login")}
               >
                 {t("signIn")}
               </button>
@@ -16140,7 +16191,7 @@ function App() {
         <button
           type="button"
           className="duo-btn duo-btn-secondary"
-          onClick={() => setShowLanding(true)}
+          onClick={navigateToLanding}
         >
           Back to Welcome Page
         </button>
