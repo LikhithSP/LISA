@@ -6,10 +6,10 @@
   --text: #0f172a;
   --muted: #475569;
   --line: rgba(15, 23, 42, 0.08);
-  --accent: #4f46e5;
-  --accent-dark: #3730a3;
-  --accent-soft: #e0e7ff;
-  --accent-rgb: 79, 70, 229;
+  --accent: #d97706;
+  --accent-dark: #b45309;
+  --accent-soft: #fef3c7;
+  --accent-rgb: 217, 119, 6;
   --theme-bg: #f8fafc;
   --font-family: "Inter", sans-serif;
   font-family: var(--font-family);
@@ -18,8 +18,8 @@
   --flz-ok: #10b981;
   --flz-warn: #f59e0b;
   --flz-bad: #ef4444;
-  --flz-tint: rgba(79, 70, 229, 0.08);
-  --flz-tint-strong: rgba(79, 70, 229, 0.16);
+  --flz-tint: rgba(217, 119, 6, 0.08);
+  --flz-tint-strong: rgba(217, 119, 6, 0.16);
   --streak-bg: #fef2f2;
   --xp-bg: #eff6ff;
   --lessons-bg: #fffbeb;
@@ -36,17 +36,17 @@
   --muted: #9ca3af;
   --line: rgba(255, 255, 255, 0.08);
   --theme-preview-bg: rgba(255, 255, 255, 0.08);
-  --accent: #6366f1;
-  --accent-dark: #818cf8;
-  --accent-soft: #1e1b4b;
-  --accent-rgb: 99, 102, 241;
+  --accent: #f59e0b;
+  --accent-dark: #fbbf24;
+  --accent-soft: rgba(245, 158, 11, 0.12);
+  --accent-rgb: 245, 158, 11;
   --shadow: 0 28px 80px rgba(0, 0, 0, 0.55);
   /* Fun & Learn Zone shared tokens (dark) */
   --flz-ok: #34d399;
   --flz-warn: #f0a23a;
   --flz-bad: #f87171;
-  --flz-tint: rgba(129, 140, 248, 0.14);
-  --flz-tint-strong: rgba(129, 140, 248, 0.24);
+  --flz-tint: rgba(245, 158, 11, 0.14);
+  --flz-tint-strong: rgba(245, 158, 11, 0.24);
   --streak-bg: rgba(249, 115, 22, 0.12);
   --xp-bg: rgba(16, 185, 129, 0.12);
   --lessons-bg: rgba(245, 158, 11, 0.12);
@@ -244,11 +244,20 @@ body {
   min-height: 100vh;
   color: var(--text);
   background-color: #ffffff;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
   background-image: url("/hero.jpg");
   background-position: 70px 40px;
   background-repeat: no-repeat;
   background-attachment: fixed;
   background-size: 750px;
+  filter: var(--mascot-filter, none);
+  pointer-events: none;
+  z-index: -1;
 }
 
 .shell {
@@ -4635,7 +4644,7 @@ select:focus-visible {
   inset: 0;
   background: url("/hero1.png") 70px 40px no-repeat fixed;
   background-size: 750px;
-  filter: saturate(0.65);
+  filter: saturate(0.65) var(--mascot-filter, none);
   pointer-events: none;
   z-index: -1;
 }
@@ -18986,4 +18995,11 @@ select {
   .lesson-complete-stat-sub {
     font-size: 0.65rem !important;
   }
+}
+
+/* Make all mascot illustrations dynamically match the selected theme */
+img[src^="/as"],
+img[src^="/mascot"],
+body::before {
+  filter: var(--mascot-filter, none);
 }
