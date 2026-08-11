@@ -3546,6 +3546,7 @@ select:focus-visible {
   background-color: #ffffff !important;
   background-image: linear-gradient(rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.88)),
     url("https://images.rawpixel.com/image_social_landscape/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTA5L3Jhd3BpeGVsX29mZmljZV8yMl9zaW1wbGlmaWVkX2VtcHR5X2NvdW50cnlzaWRlX2hpbGxfbGFuZHNjYXBlX182NmUzNTJjMi1iZTA2LTQ3ZjAtYThmMC1kZmM4ZGM4NTg1NWFfMS5qcGc.jpg") !important;
+  padding: 10px !important;
 }
 
 [data-theme="dark"] .dashboard-main-view {
@@ -3562,6 +3563,7 @@ select:focus-visible {
   background-color: #060608 !important;
   background-image: linear-gradient(180deg, rgba(6, 6, 8, 0.95) 0%, rgba(8, 8, 11, 0.93) 50%, rgba(4, 4, 6, 0.97) 100%),
     url("https://images.rawpixel.com/image_social_landscape/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIzLTA5L3Jhd3BpeGVsX29mZmljZV8yMl9zaW1wbGlmaWVkX2VtcHR5X2NvdW50cnlzaWRlX2hpbGxfbGFuZHNjYXBlX182NmUzNTJjMi1iZTA2LTQ3ZjAtYThmMC1kZmM4ZGM4NTg1NWFfMS5qcGc.jpg") !important;
+  padding: 10px !important;
 }
 
 /* Tutor Announcement Bar */
@@ -6631,9 +6633,9 @@ select:focus-visible {
 
 /* Profile View Container */
 .profile-view-container {
-  padding: 0 40px 40px;
-  max-width: 1200px;
-  margin: 0 auto;
+  padding: 0 12px 24px;
+  max-width: 100%;
+  margin: 0;
   width: 100%;
   box-sizing: border-box;
   animation: fadeIn 0.4s ease-out;
@@ -10210,10 +10212,10 @@ select:focus-visible {
 .shop-layout {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 40px;
-  padding: 0 5px 40px;
-  max-width: 1100px;
-  margin: 0 auto;
+  gap: 20px;
+  padding: 0 12px 24px;
+  max-width: 100%;
+  margin: 0;
   width: 100%;
   box-sizing: border-box;
 }
@@ -16793,13 +16795,17 @@ select {
 
 /* Sidebar Redesign */
 .admin-dashboard-layout {
+  --accent: #0ea5e9 !important;
+  --accent-dark: #0284c7 !important;
+  --accent-soft: #e0f2fe !important;
+  --accent-rgb: 14, 165, 233 !important;
   display: flex;
   min-height: 80vh;
-  gap: 24px;
+  gap: 16px;
   width: 100%;
-  max-width: 1300px;
-  margin: 0 auto;
-  padding: 24px;
+  max-width: 100%;
+  margin: 0;
+  padding: 8px 12px;
   animation: fadeIn 0.4s ease-out;
   box-sizing: border-box;
 }
@@ -16817,7 +16823,7 @@ select {
   flex-shrink: 0;
   height: fit-content;
   position: sticky;
-  top: 24px;
+  top: 12px;
   box-sizing: border-box;
 }
 
@@ -17010,6 +17016,13 @@ select {
 @media (max-width: 768px) {
   .admin-topbar-title {
     display: none !important;
+  }
+  
+  .dashboard-topbar.admin-topbar {
+    --accent: #0ea5e9 !important;
+    --accent-dark: #0284c7 !important;
+    --accent-soft: #e0f2fe !important;
+    --accent-rgb: 14, 165, 233 !important;
   }
   
   .admin-stats-grid {
@@ -18986,4 +18999,18 @@ select {
   .lesson-complete-stat-sub {
     font-size: 0.65rem !important;
   }
+}
+
+/* Force blue theme on admin topbar (desktop and mobile) */
+.dashboard-topbar.admin-topbar {
+  --accent: #0ea5e9 !important;
+  --accent-dark: #0284c7 !important;
+  --accent-soft: #e0f2fe !important;
+  --accent-rgb: 14, 165, 233 !important;
+}
+
+/* Minimize side gaps on main view for Profile and Shop/Customize LISA tabs */
+.dashboard-main-view.profile-main-view,
+.dashboard-main-view.shop-main-view {
+  padding: 10px !important;
 }

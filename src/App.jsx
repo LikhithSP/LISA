@@ -11111,7 +11111,7 @@ function App() {
         </div>
 
         {/* Main View Area */}
-        <main className={`dashboard-main-view ${dashboardTab === "admin" ? "admin-main-view" : ""}`}>
+        <main className={`dashboard-main-view ${dashboardTab === "admin" ? "admin-main-view" : ""} ${dashboardTab === "profile" ? "profile-main-view" : ""} ${dashboardTab === "shop" ? "shop-main-view" : ""}`}>
           {/* Dashboard / Home - overview widgets */}
           {dashboardTab === "dashboard" && (
             <div className="dashboard-overview">

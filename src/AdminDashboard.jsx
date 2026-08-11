@@ -1130,14 +1130,14 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
                     display: 'inline-flex', 
                     alignItems: 'center', 
                     gap: '8px', 
-                    background: 'linear-gradient(135deg, var(--accent), #df7f3d)', 
+                    background: 'linear-gradient(135deg, var(--accent), var(--accent-dark))', 
                     color: 'white', 
                     padding: '10px 20px', 
                     borderRadius: '16px', 
                     fontWeight: 800, 
                     border: 'none', 
                     cursor: 'pointer',
-                    boxShadow: '0 4px 12px rgba(198, 95, 45, 0.2)',
+                    boxShadow: '0 4px 12px rgba(37, 99, 235, 0.25)',
                     fontFamily: 'var(--font-family)',
                     fontSize: '0.85rem'
                   }}
@@ -1148,7 +1148,7 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
             </div>
              <div className="admin-stats-grid">
               <div className="admin-stat-card" style={{ transition: 'transform 0.2s ease', cursor: 'pointer' }} onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseLeave={e => e.currentTarget.style.transform = 'none'}>
-                <span className="stat-card-icon" style={{ background: 'rgba(198, 95, 45, 0.1)', color: 'var(--accent)' }}>👥</span>
+                <span className="stat-card-icon" style={{ background: 'rgba(37, 99, 235, 0.1)', color: 'var(--accent)' }}>👥</span>
                 <div className="stat-card-info">
                   <h3>{stats.totalUsers}</h3>
                   <p>Registered Learners</p>
@@ -1168,14 +1168,6 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
                 <div className="stat-card-info">
                   <h3>{stats.avgLiteracyLevel}</h3>
                   <p>Avg Literacy Level</p>
-                </div>
-              </div>
-
-              <div className="admin-stat-card" style={{ transition: 'transform 0.2s ease', cursor: 'pointer' }} onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseLeave={e => e.currentTarget.style.transform = 'none'}>
-                <span className="stat-card-icon" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}>🔥</span>
-                <div className="stat-card-info">
-                  <h3>{stats.activeLearners}</h3>
-                  <p>Active Learners</p>
                 </div>
               </div>
 
@@ -1217,7 +1209,7 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
                             style={{ 
                               height: '100%', 
                               width: `${pct}%`, 
-                              background: 'linear-gradient(90deg, var(--accent) 0%, #df7f3d 100%)', 
+                              background: 'linear-gradient(90deg, var(--accent) 0%, var(--accent-dark) 100%)', 
                               borderRadius: '999px',
                               transition: 'width 0.5s ease-in-out'
                             }} 
@@ -1802,7 +1794,7 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
                 type="button" 
                 onClick={handleSaveCurriculum}
                 style={{
-                  background: '#d97706',
+                  background: 'var(--accent)',
                   color: 'white',
                   border: 'none',
                   padding: '12px 24px',
@@ -1810,7 +1802,7 @@ export default function AdminDashboard({ session, t = (key) => key, shopCatalog,
                   fontWeight: 900,
                   fontSize: '0.85rem',
                   cursor: 'pointer',
-                  boxShadow: '0 4px 12px rgba(217, 119, 6, 0.25)',
+                  boxShadow: '0 4px 12px rgba(37, 99, 235, 0.25)',
                   fontFamily: 'var(--font-family)',
                   transition: 'all 0.2s'
                 }}
