@@ -4,10 +4,16 @@
 ---
 
 
-![Login Screenshot](/Login.png)
-![Dashboard Screenshot](/Dashboard.png)
-![Course Path Screenshot](/Course%20Path.png)
-![Lessons Screenshot](/Lessons.png)
+![Login Page](/Preview%20Images/Login%20Page.png)
+![Assessment Questions](/Preview%20Images/Assesement%20Questions.png)
+![User Dashboard](/Preview%20Images/User%20Dashboard.png)
+![Learn Page](/Preview%20Images/Learn%20Page.png)
+![Practice Question](/Preview%20Images/Practice%20Question.png)
+![Lesson Question](/Preview%20Images/Lesson%20Question.png)
+
+
+![Profile Page](/Preview%20Images/Profile%20Page.png)
+![Admin Dashboard](/Preview%20Images/Admin%20Dashboard.png)
 
 
 LISA is an interactive, AI-driven educational portal designed to accelerate foundational literacy development for child and adult learners. By integrating speech recognition, adaptive progression algorithms, gamified reward loops, and a course administration workspace, LISA makes learning a new language accessible, engaging, and highly personalized.

@@ -133,6 +133,16 @@ export function applyTheme(themeId) {
   root.style.setProperty("--accent-soft", theme.preview.accentSoft);
   root.style.setProperty("--theme-bg", theme.preview.bg);
   
+  // Calculate and apply hue-rotate filter for mascot images matching the theme
+  let filterVal = "none";
+  if (themeId === "theme_ocean") filterVal = "hue-rotate(165deg)";
+  else if (themeId === "theme_forest") filterVal = "hue-rotate(85deg)";
+  else if (themeId === "theme_sunset") filterVal = "hue-rotate(235deg)";
+  else if (themeId === "theme_cherry") filterVal = "hue-rotate(313deg)";
+  else if (themeId === "theme_midnight") filterVal = "hue-rotate(139deg)";
+  else if (themeId === "theme_gold") filterVal = "none";
+  root.style.setProperty("--mascot-filter", filterVal);
+  
   // Also store in localStorage to persist immediately across reloads
   localStorage.setItem("lisa_current_theme", themeId);
 }
@@ -143,6 +153,7 @@ export function resetTheme() {
   root.style.removeProperty("--accent-dark");
   root.style.removeProperty("--accent-soft");
   root.style.removeProperty("--theme-bg");
+  root.style.removeProperty("--mascot-filter");
   localStorage.removeItem("lisa_current_theme");
 }
 
