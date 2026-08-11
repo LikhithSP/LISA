@@ -1440,8 +1440,18 @@ function App() {
   const [profileBg, setProfileBg] = useState("#e86b6b");
   const [profileAvatar, setProfileAvatar] = useState("/as1.png");
   const [isEditingCover, setIsEditingCover] = useState(false);
+  const isStandaloneApp = () => {
+    if (typeof window === "undefined") return false;
+    return (
+      window.matchMedia('(display-mode: standalone)').matches ||
+      window.matchMedia('(display-mode: window-controls-overlay)').matches ||
+      window.navigator.standalone === true ||
+      (document.referrer && document.referrer.includes('android-app://'))
+    );
+  };
+
   const [activeTab, setActiveTab] = useState("login"); // "login", "register", "forgot"
-  const [showLanding, setShowLanding] = useState(true);
+  const [showLanding, setShowLanding] = useState(() => !isStandaloneApp());
 
   const navigateToAuth = (tab = "login") => {
     setActiveTab(tab);
@@ -1455,6 +1465,7 @@ function App() {
   };
 
   const navigateToLanding = () => {
+    if (isStandaloneApp()) return; // Skip landing page when installed as app
     setMessage("");
     setShowLanding(true);
     try {
@@ -1469,13 +1480,21 @@ function App() {
   };
 
   useEffect(() => {
+    if (isStandaloneApp()) {
+      setShowLanding(false);
+    }
+
     try {
       if (!window.history.state) {
-        window.history.replaceState({ page: showLanding ? "landing" : "auth" }, "");
+        window.history.replaceState({ page: isStandaloneApp() ? "auth" : (showLanding ? "landing" : "auth") }, "");
       }
     } catch (e) {}
 
     const handlePopState = (event) => {
+      if (isStandaloneApp()) {
+        setShowLanding(false);
+        return;
+      }
       const state = event.state;
       if (!state || state.page === "landing") {
         setShowLanding(true);
@@ -1487,8 +1506,16 @@ function App() {
       }
     };
 
+    const handleAppInstalled = () => {
+      setShowLanding(false);
+    };
+
     window.addEventListener("popstate", handlePopState);
-    return () => window.removeEventListener("popstate", handlePopState);
+    window.addEventListener("appinstalled", handleAppInstalled);
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+      window.removeEventListener("appinstalled", handleAppInstalled);
+    };
   }, []);
   const [dashboardTab, setDashboardTab] = useState("dashboard"); // "dashboard", "learn", "practice", "profile", "shop", "leaderboard", "analytics"
   const switchDashboardTab = (tab) => {
@@ -16187,15 +16214,6 @@ function App() {
         </div>
       </section>
 
-      <div style={{ display: "flex", justifyContent: "center", marginTop: "24px" }}>
-        <button
-          type="button"
-          className="duo-btn duo-btn-secondary"
-          onClick={navigateToLanding}
-        >
-          Back to Welcome Page
-        </button>
-      </div>
 
       {!selectedLanguage && (
         <div className="lang-screen">
