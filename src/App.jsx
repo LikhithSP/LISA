@@ -7096,6 +7096,12 @@ function App() {
     document.body.setAttribute("data-theme", theme);
     localStorage.setItem("lisa_theme", theme);
 
+    // Re-apply equipped shop theme so --accent and --accent-soft update for dark/light mode
+    const currentTheme = shopTheme || localStorage.getItem("lisa_current_theme");
+    if (currentTheme) {
+      applyTheme(currentTheme);
+    }
+
     const themeColor = isDark ? "#0f172a" : "#f8fafc";
     const appleStatus = isDark ? "black-translucent" : "default";
 
@@ -7112,7 +7118,7 @@ function App() {
     }
 
     document.body.style.backgroundColor = themeColor;
-  }, [isDark]);
+  }, [isDark, shopTheme]);
 
   const toggleTheme = () => setIsDark((prev) => !prev);
 
