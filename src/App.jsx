@@ -7102,7 +7102,7 @@ function App() {
       applyTheme(currentTheme);
     }
 
-    const themeColor = isDark ? "#0f172a" : "#f8fafc";
+    const themeColor = isDark ? "#0e0e0e" : "#ffffff";
     const appleStatus = isDark ? "black-translucent" : "default";
 
     // Dynamic PWA status bar & bottom gesture bar update for mobile

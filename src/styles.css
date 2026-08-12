@@ -499,6 +499,10 @@ select:focus-visible {
     overflow: auto;
   }
 
+  body::before {
+    display: none !important;
+  }
+
   .auth-card {
     max-height: none;
   }
@@ -4704,7 +4708,7 @@ select:focus-visible {
    ========================================== */
 
 [data-theme="dark"] body {
-  background: #0d0d0d;
+  background: #0e0e0e;
   color: var(--text);
 }
 
