@@ -429,5 +429,9 @@
   "goodAfternoon": "மதிய வணக்கம்",
   "goodEvening": "மாலை வணக்கம்",
   "goodNight": "இரவு வணக்கம்",
-  "pickUpLeftOff": "நீங்கள் விட்ட இடத்திலிருந்து தொடங்குங்கள்."
+  "pickUpLeftOff": "நீங்கள் விட்ட இடத்திலிருந்து தொடங்குங்கள்.",
+  "profileFeedbackTab": "கருத்து & பிழைகள்",
+  "pwaInstallTitle": "LISA ஐ நிறுவுங்கள்",
+  "pwaInstallDesc": "ஆஃப்லைன் அணுகலுக்கு முகப்புத் திரையில் சேர்க்கவும்",
+  "pwaInstallBtn": "நிறுவுங்கள்"
 }

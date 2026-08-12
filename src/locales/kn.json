@@ -429,5 +429,9 @@
   "goodAfternoon": "ಶುಭ ಮಧ್ಯಾಹ್ನ",
   "goodEvening": "ಶುಭ ಸಂಜೆ",
   "goodNight": "ಶುಭ ರಾತ್ರಿ",
-  "pickUpLeftOff": "ನೀವು ಎಲ್ಲಿ ನಿಲ್ಲಿಸಿದ್ದೀರೋ ಅಲ್ಲಿಂದ ಮುಂದುವರಿಸಿ."
+  "pickUpLeftOff": "ನೀವು ಎಲ್ಲಿ ನಿಲ್ಲಿಸಿದ್ದೀರೋ ಅಲ್ಲಿಂದ ಮುಂದುವರಿಸಿ.",
+  "profileFeedbackTab": "ಪ್ರತಿಕ್ರಿಯೆ ಮತ್ತು ದೋಷಗಳು",
+  "pwaInstallTitle": "LISA ಸ್ಥಾಪಿಸಿ",
+  "pwaInstallDesc": "ಆಫ್‌ಲೈನ್ ಪ್ರವೇಶಕ್ಕಾಗಿ ಹೋಮ್ ಸ್ಕ್ರೀನ್‌ಗೆ ಸೇರಿಸಿ",
+  "pwaInstallBtn": "ಸ್ಥಾಪಿಸಿ"
 }

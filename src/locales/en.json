@@ -430,5 +430,8 @@
   "goodAfternoon": "Good afternoon",
   "goodEvening": "Good evening",
   "goodNight": "Good evening",
-  "pickUpLeftOff": "Pick up right where you left off."
+  "pickUpLeftOff": "Pick up right where you left off.",
+  "pwaInstallTitle": "Install LISA",
+  "pwaInstallDesc": "Add to home screen for offline access",
+  "pwaInstallBtn": "Install"
 }
