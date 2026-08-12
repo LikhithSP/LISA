@@ -425,6 +425,10 @@
   "showcase4Desc": "Learn script writing with step-by-step stroke guidance and immediate AI evaluation.",
   "progressTrackingTag": "PROGRESS TRACKING",
   "showcase5Title": "Comprehensive Mastery & Insights",
-  "showcase5Desc": "Track learning milestones, earn badges, and watch literacy skills grow day by day."
+  "showcase5Desc": "Track learning milestones, earn badges, and watch literacy skills grow day by day.",
+  "goodMorning": "Good morning",
+  "goodAfternoon": "Good afternoon",
+  "goodEvening": "Good evening",
+  "goodNight": "Good evening",
+  "pickUpLeftOff": "Pick up right where you left off."
 }
-
