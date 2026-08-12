@@ -7453,6 +7453,10 @@ function App() {
       sidebarPractice: "Practice",
       sidebarProfile: "Profile",
       sidebarAnalytics: "Analytics",
+      profileFeedbackTab: "Feedback & Bugs",
+      pwaInstallTitle: "Install LISA",
+      pwaInstallDesc: "Add to home screen for offline access",
+      pwaInstallBtn: "Install",
       goodMorning: "Good morning",
       goodAfternoon: "Good afternoon",
       goodEvening: "Good evening",
@@ -7595,6 +7599,10 @@ function App() {
       sidebarPractice: "अभ्यास",
       sidebarProfile: "प्रोफ़ाइल",
       sidebarAnalytics: "एनालिटिक्स",
+      profileFeedbackTab: "प्रतिक्रिया और बग्स",
+      pwaInstallTitle: "LISA इंस्टॉल करें",
+      pwaInstallDesc: "ऑफ़लाइन पहुँच के लिए होम स्क्रीन पर जोड़ें",
+      pwaInstallBtn: "इंस्टॉल करें",
       goodMorning: "शुभ प्रभात",
       goodAfternoon: "शुभ दोपहर",
       goodEvening: "शुभ संध्या",
@@ -7737,6 +7745,10 @@ function App() {
       sidebarPractice: "ಅಭ್ಯಾಸ",
       sidebarProfile: "ಪ್ರೊಫೈಲ್",
       sidebarAnalytics: "ವಿಶ್ಲೇಷಣೆ",
+      profileFeedbackTab: "ಪ್ರತಿಕ್ರಿಯೆ ಮತ್ತು ದೋಷಗಳು",
+      pwaInstallTitle: "LISA ಸ್ಥಾಪಿಸಿ",
+      pwaInstallDesc: "ಆಫ್‌ಲೈನ್ ಪ್ರವೇಶಕ್ಕಾಗಿ ಹೋಮ್ ಸ್ಕ್ರೀನ್‌ಗೆ ಸೇರಿಸಿ",
+      pwaInstallBtn: "ಸ್ಥಾಪಿಸಿ",
       goodMorning: "ಶುಭೋದಯ",
       goodAfternoon: "ಶುಭ ಮಧ್ಯಾಹ್ನ",
       goodEvening: "ಶುಭ ಸಂಜೆ",
@@ -7879,6 +7891,10 @@ function App() {
       sidebarPractice: "అభ్యాసం",
       sidebarProfile: "ప్రొఫైల్",
       sidebarAnalytics: "విశ్లేషణలు",
+      profileFeedbackTab: "ఫీడ్‌బ్యాక్ & బగ్స్",
+      pwaInstallTitle: "LISA ఇన్‌స్టాల్ చేయండి",
+      pwaInstallDesc: "ఆఫ్‌లైన్ యాక్సెస్ కోసం హోమ్ స్క్రీన్‌కి జోడించండి",
+      pwaInstallBtn: "ఇన్‌స్టాల్ చేయండి",
       goodMorning: "శుభోదయం",
       goodAfternoon: "శుభ మధ్యాహ్నం",
       goodEvening: "శుభ సాయంత్రం",
@@ -8021,6 +8037,10 @@ function App() {
       sidebarPractice: "பயிற்சி",
       sidebarProfile: "சுயவிவரம்",
       sidebarAnalytics: "புள்ளிவிவரங்கள்",
+      profileFeedbackTab: "கருத்து & பிழைகள்",
+      pwaInstallTitle: "LISA ஐ நிறுவுங்கள்",
+      pwaInstallDesc: "ஆஃப்லைன் அணுகலுக்கு முகப்புத் திரையில் சேர்க்கவும்",
+      pwaInstallBtn: "நிறுவுங்கள்",
       goodMorning: "காலை வணக்கம்",
       goodAfternoon: "மதிய வணக்கம்",
       goodEvening: "மாலை வணக்கம்",
@@ -9609,14 +9629,16 @@ function App() {
     return count > 0 ? Math.round(totalScore / count) : 0;
   };
 
-  // initial loading spinner
+  // initial loading splash screen
   if (initialLoading) {
     return (
-      <div className="loading-screen">
-        <div className="spinner"></div>
-        <p style={{ fontWeight: 600, color: "var(--muted)", margin: 0 }}>
-          {t("loadingMessage")}
-        </p>
+      <div className="lisa-splash-screen">
+        <div className="lisa-splash-logo-box">
+          <img src="/icon.png" alt="LISA Logo" className="lisa-splash-icon" />
+        </div>
+        <div className="lisa-splash-brand">LISA</div>
+        <div className="lisa-splash-tagline">Literacy Intelligence Support Assistant</div>
+        <div className="lisa-splash-spinner"></div>
       </div>
     );
   }
@@ -12808,22 +12830,6 @@ function App() {
                                   <span className="ai-toggle-label">{aiEnabled ? "AI ON" : "AI OFF"}</span>
                                 </button>
                               </div>
-                              <button
-                                type="button"
-                                className="secondary-btn dev-action-btn reset-assessment"
-                                style={{ width: "100%", marginBottom: "12px" }}
-                                onClick={() => handleResetAssessmentStatus()}
-                              >
-                                {t("profileResetAssessment")}
-                              </button>
-                              <button
-                                type="button"
-                                className="secondary-btn dev-action-btn reset-lessons"
-                                style={{ width: "100%" }}
-                                onClick={() => handleResetLessons()}
-                              >
-                                {t("profileResetLessons")}
-                              </button>
                             </>
                           )}
                         </div>
@@ -15632,12 +15638,12 @@ function App() {
             <div className="pwa-install-content">
               <img src="/icon.png" alt="LISA" className="pwa-install-icon" />
               <div>
-                <div className="pwa-install-title">Install LISA</div>
-                <div className="pwa-install-sub">Add to home screen for offline access</div>
+                <div className="pwa-install-title">{t("pwaInstallTitle") || "Install LISA"}</div>
+                <div className="pwa-install-sub">{t("pwaInstallDesc") || "Add to home screen for offline access"}</div>
               </div>
             </div>
             <div className="pwa-install-actions">
-              <button onClick={handleInstallApp} className="pwa-install-btn">Install</button>
+              <button onClick={handleInstallApp} className="pwa-install-btn">{t("pwaInstallBtn") || "Install"}</button>
               <button onClick={() => { setShowInstallBanner(false); localStorage.setItem("lisa_install_dismissed", "true"); }} className="pwa-banner-close" aria-label="Dismiss">✕</button>
             </div>
           </div>

@@ -429,5 +429,9 @@
   "goodAfternoon": "शुभ दोपहर",
   "goodEvening": "शुभ संध्या",
   "goodNight": "शुभ संध्या",
-  "pickUpLeftOff": "वहीं से शुरू करें जहां आपने छोड़ा था।"
+  "pickUpLeftOff": "वहीं से शुरू करें जहां आपने छोड़ा था।",
+  "profileFeedbackTab": "प्रतिक्रिया और बग्स",
+  "pwaInstallTitle": "LISA इंस्टॉल करें",
+  "pwaInstallDesc": "ऑफ़लाइन पहुँच के लिए होम स्क्रीन पर जोड़ें",
+  "pwaInstallBtn": "इंस्टॉल करें"
 }
