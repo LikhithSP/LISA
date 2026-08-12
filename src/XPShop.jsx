@@ -113,6 +113,14 @@ export const SHOP_CATALOG = {
   ],
 };
 
+function hexToRgb(hex) {
+  if (!hex) return "198, 95, 45";
+  let c = hex.replace("#", "");
+  if (c.length === 3) c = c.split("").map(x => x + x).join("");
+  const num = parseInt(c, 16);
+  return `${(num >> 16) & 255}, ${(num >> 8) & 255}, ${num & 255}`;
+}
+
 // Theme application helper
 export function applyTheme(themeId) {
   let themes = SHOP_CATALOG.themes;
@@ -128,9 +136,13 @@ export function applyTheme(themeId) {
   const theme = themes.find(t => t.id === themeId);
   if (!theme) return;
   const root = document.documentElement;
+  const isDark = root.getAttribute("data-theme") === "dark";
+  const rgb = hexToRgb(theme.preview.accent);
+
   root.style.setProperty("--accent", theme.preview.accent);
   root.style.setProperty("--accent-dark", theme.preview.accentDark);
-  root.style.setProperty("--accent-soft", theme.preview.accentSoft);
+  root.style.setProperty("--accent-rgb", rgb);
+  root.style.setProperty("--accent-soft", isDark ? `rgba(${rgb}, 0.22)` : theme.preview.accentSoft);
   root.style.setProperty("--theme-bg", theme.preview.bg);
   
   // Calculate and apply hue-rotate filter for mascot images matching the theme

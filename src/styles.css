@@ -36,20 +36,16 @@
   --muted: #9ca3af;
   --line: rgba(255, 255, 255, 0.08);
   --theme-preview-bg: rgba(255, 255, 255, 0.08);
-  --accent: #f59e0b;
-  --accent-dark: #fbbf24;
-  --accent-soft: rgba(245, 158, 11, 0.12);
-  --accent-rgb: 245, 158, 11;
   --shadow: 0 28px 80px rgba(0, 0, 0, 0.55);
   /* Fun & Learn Zone shared tokens (dark) */
   --flz-ok: #34d399;
   --flz-warn: #f0a23a;
   --flz-bad: #f87171;
-  --flz-tint: rgba(245, 158, 11, 0.14);
-  --flz-tint-strong: rgba(245, 158, 11, 0.24);
+  --flz-tint: rgba(var(--accent-rgb, 198, 95, 45), 0.14);
+  --flz-tint-strong: rgba(var(--accent-rgb, 198, 95, 45), 0.24);
   --streak-bg: rgba(249, 115, 22, 0.12);
   --xp-bg: rgba(16, 185, 129, 0.12);
-  --lessons-bg: rgba(245, 158, 11, 0.12);
+  --lessons-bg: rgba(var(--accent-rgb, 198, 95, 45), 0.12);
   --time-bg: rgba(59, 130, 246, 0.12);
 }
 
@@ -18260,8 +18256,30 @@ select {
   .lp-nav-right .lp-btn-ghost { display: none; }
   .lp-hero { padding: 48px 16px 64px; }
   .lp-hero-h1 { font-size: 2rem; }
-  .lp-features { padding: 56px 16px; }
-  .lp-cards-grid { grid-template-columns: 1fr; }
+  .lp-features { padding: 40px 14px; }
+  .lp-cards-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+  }
+  .lp-feat-card {
+    padding: 16px 12px !important;
+    border-radius: 16px !important;
+    gap: 8px !important;
+  }
+  .lp-feat-icon {
+    width: 38px !important;
+    height: 38px !important;
+    border-radius: 12px !important;
+    font-size: 1.2rem !important;
+  }
+  .lp-feat-h3 {
+    font-size: 0.95rem !important;
+    line-height: 1.25 !important;
+  }
+  .lp-feat-desc {
+    font-size: 0.78rem !important;
+    line-height: 1.35 !important;
+  }
   .lp-showcase { padding: 56px 16px; }
   .lp-cta-banner { padding: 56px 16px; }
   .lp-footer { padding: 28px 16px; }
