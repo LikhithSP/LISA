@@ -17,6 +17,7 @@ import XPShop, { applyTheme, applyFont, SHOP_CATALOG } from "./XPShop";
 import WeeklyLeaderboard from "./WeeklyLeaderboard";
 import AnalyticsReport from "./AnalyticsReport";
 import AdminDashboard from "./AdminDashboard";
+import DashboardHeaderSvg from "./DashboardHeaderSvg";
 
 const languages = ["English", "Hindi", "Kannada", "Telugu", "Tamil"];
 const educationLevels = ["No Formal Education", "Primary", "Middle School", "Secondary & Above"];
@@ -7090,8 +7091,27 @@ function App() {
   });
 
   useEffect(() => {
-    document.documentElement.setAttribute("data-theme", isDark ? "dark" : "light");
-    localStorage.setItem("lisa_theme", isDark ? "dark" : "light");
+    const theme = isDark ? "dark" : "light";
+    document.documentElement.setAttribute("data-theme", theme);
+    document.body.setAttribute("data-theme", theme);
+    localStorage.setItem("lisa_theme", theme);
+
+    const themeColor = isDark ? "#0f172a" : "#f8fafc";
+    const appleStatus = isDark ? "black-translucent" : "default";
+
+    // Dynamic PWA status bar & bottom gesture bar update for mobile
+    const metaThemeTags = document.querySelectorAll('meta[name="theme-color"]');
+    metaThemeTags.forEach((tag) => {
+      tag.removeAttribute("media");
+      tag.setAttribute("content", themeColor);
+    });
+
+    const appleMeta = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
+    if (appleMeta) {
+      appleMeta.setAttribute("content", appleStatus);
+    }
+
+    document.body.style.backgroundColor = themeColor;
   }, [isDark]);
 
   const toggleTheme = () => setIsDark((prev) => !prev);
@@ -7433,6 +7453,13 @@ function App() {
       sidebarPractice: "Practice",
       sidebarProfile: "Profile",
       sidebarAnalytics: "Analytics",
+      goodMorning: "Good morning",
+      goodAfternoon: "Good afternoon",
+      goodEvening: "Good evening",
+      goodNight: "Good evening",
+      pickUpLeftOff: "Pick up right where you left off.",
+      dashboardNeedHelp: "Need help? Tell me a little about yourself so I can make the best recommendations.",
+      dashboardSetYourGoal: "Set your goal",
       dashboardHello: "Hello, {name} 👋🏻",
       dashboardWelcomeBack: "Welcome back! Pick up right where you left off.",
       dashboardContinueLearning: "Continue learning",
@@ -7568,6 +7595,13 @@ function App() {
       sidebarPractice: "अभ्यास",
       sidebarProfile: "प्रोफ़ाइल",
       sidebarAnalytics: "एनालिटिक्स",
+      goodMorning: "शुभ प्रभात",
+      goodAfternoon: "शुभ दोपहर",
+      goodEvening: "शुभ संध्या",
+      goodNight: "शुभ संध्या",
+      pickUpLeftOff: "वहीं से शुरू करें जहां आपने छोड़ा था।",
+      dashboardNeedHelp: "क्या आपको मदद चाहिए? अपने बारे में थोड़ा बताएं ताकि मैं सर्वोत्तम सुझाव दे सकूं।",
+      dashboardSetYourGoal: "अपना लक्ष्य तय करें",
       dashboardHello: "नमस्ते, {name} 👋🏻",
       dashboardWelcomeBack: "वापस स्वागत है! वहीं से शुरू करें जहां आपने छोड़ा था।",
       dashboardContinueLearning: "सीखना जारी रखें",
@@ -7703,6 +7737,13 @@ function App() {
       sidebarPractice: "ಅಭ್ಯಾಸ",
       sidebarProfile: "ಪ್ರೊಫೈಲ್",
       sidebarAnalytics: "ವಿಶ್ಲೇಷಣೆ",
+      goodMorning: "ಶುಭೋದಯ",
+      goodAfternoon: "ಶುಭ ಮಧ್ಯಾಹ್ನ",
+      goodEvening: "ಶುಭ ಸಂಜೆ",
+      goodNight: "ಶುಭ ರಾತ್ರಿ",
+      pickUpLeftOff: "ನೀವು ಎಲ್ಲಿ ನಿಲ್ಲಿಸಿದ್ದೀರೋ ಅಲ್ಲಿಂದ ಮುಂದುವರಿಸಿ.",
+      dashboardNeedHelp: "ಸಹಾಯ ಬೇಕೇ? ಅತ್ಯುತ್ತಮ ಶಿಫಾರಸುಗಳನ್ನು ಮಾಡಲು ನಿಮ್ಮ ಬಗ್ಗೆ ತಿಳಿಸಿ.",
+      dashboardSetYourGoal: "ನಿಮ್ಮ ಗುರಿಯನ್ನು ಹೊಂದಿಸಿ",
       dashboardHello: "ನಮಸ್ಕಾರ, {name} 👋🏻",
       dashboardWelcomeBack: "ಮರಳಿ ಸುಸ್ವಾಗತ! ನೀವು ಎಲ್ಲಿ ನಿಲ್ಲಿಸಿದ್ದೀರೋ ಅಲ್ಲಿಂದ ಮುಂದುವರಿಸಿ.",
       dashboardContinueLearning: "ಕಲಿಕೆಯನ್ನು ಮುಂದುವರಿಸಿ",
@@ -7838,6 +7879,13 @@ function App() {
       sidebarPractice: "అభ్యాసం",
       sidebarProfile: "ప్రొఫైల్",
       sidebarAnalytics: "విశ్లేషణలు",
+      goodMorning: "శుభోదయం",
+      goodAfternoon: "శుభ మధ్యాహ్నం",
+      goodEvening: "శుభ సాయంత్రం",
+      goodNight: "శుభ రాత్రి",
+      pickUpLeftOff: "మీరు ఎక్కడ ఆపివేసారో అక్కడి నుండి ప్రారంభించండి.",
+      dashboardNeedHelp: "సహాయం కావాలా? ఉత్తమ సిఫార్సులు చేయడానికి మీ గురించి చెప్పండి.",
+      dashboardSetYourGoal: "మీ లక్ష్యాన్ని నిర్దేశించుకోండి",
       dashboardHello: "నమస్కారం, {name} 👋🏻",
       dashboardWelcomeBack: "మరలా సుస్వాగతం! మీరు ఎక్కడ ఆపివేసారో అక్కడి నుండి ప్రారంభించండి.",
       dashboardContinueLearning: "నేర్చుకోవడం కొనసాగించండి",
@@ -7973,6 +8021,13 @@ function App() {
       sidebarPractice: "பயிற்சி",
       sidebarProfile: "சுயவிவரம்",
       sidebarAnalytics: "புள்ளிவிவரங்கள்",
+      goodMorning: "காலை வணக்கம்",
+      goodAfternoon: "மதிய வணக்கம்",
+      goodEvening: "மாலை வணக்கம்",
+      goodNight: "இரவு வணக்கம்",
+      pickUpLeftOff: "நீங்கள் விட்ட இடத்திலிருந்து தொடங்குங்கள்.",
+      dashboardNeedHelp: "உதவி தேவையா? சிறந்த பரிந்துரைகளை வழங்க உங்களைப் பற்றி கொஞ்சம் சொல்லுங்கள்.",
+      dashboardSetYourGoal: "உங்கள் இலக்கை நிர்ணயிக்கவும்",
       dashboardHello: "வணக்கம், {name} 👋🏻",
       dashboardWelcomeBack: "நல்வரவு! நீங்கள் விட்ட இடத்திலிருந்து தொடங்குங்கள்.",
       dashboardContinueLearning: "கற்றலைத் தொடரவும்",
@@ -11117,8 +11172,46 @@ function App() {
             <div className="dashboard-overview">
               <div className="dashboard-col dashboard-col-left">
                 <div className="dashboard-greeting">
-                  <h1>{t("dashboardHello").replace("{name}", profile?.full_name || "Learner")}</h1>
-                  <p>{t("dashboardWelcomeBack")}</p>
+                  <div>
+                    <h1>
+                      {(() => {
+                        const name = profile?.full_name || "Learner";
+                        const raw = t("dashboardHello");
+                        const parts = raw.split("{name}");
+                        const prefix = parts[0]?.trim() || "Hello,";
+                        const cleanPrefix = prefix.endsWith(",") ? prefix.slice(0, -1).trim() : prefix;
+                        return (
+                          <>
+                            <span className="desktop-greeting-line">
+                              {cleanPrefix}, {name} 👋🏻
+                            </span>
+                            <span className="mobile-greeting-wrapper">
+                              <span className="greeting-hello-line">{cleanPrefix} 👋🏻</span>
+                              <br className="greeting-name-br" />
+                              <span className="greeting-name-line">{name}</span>
+                            </span>
+                          </>
+                        );
+                      })()}
+                    </h1>
+                    <p>{(() => {
+                      const hour = new Date().getHours();
+                      let greetingKey = "goodMorning";
+                      if (hour >= 12 && hour < 17) {
+                        greetingKey = "goodAfternoon";
+                      } else if (hour >= 17 && hour < 22) {
+                        greetingKey = "goodEvening";
+                      } else if (hour >= 22 || hour < 5) {
+                        greetingKey = "goodNight";
+                      }
+                      const greetingWord = t(greetingKey) || t("goodMorning") || "Good morning";
+                      const pickUpWord = t("pickUpLeftOff") || "Pick up right where you left off.";
+                      return `${greetingWord}! ${pickUpWord}`;
+                    })()}</p>
+                  </div>
+                  <div className="dashboard-greeting-svg">
+                    <DashboardHeaderSvg />
+                  </div>
                 </div>
 
                 <div className="resume-card">
