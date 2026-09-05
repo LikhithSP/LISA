@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LISA - You're Offline</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #f7f3ea 0%, #f3f0e8 100%);
+      padding: 24px;
+    }
+    .card {
+      background: white;
+      border-radius: 28px;
+      padding: 48px 40px;
+      max-width: 440px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(24,32,43,0.08);
+    }
+    .icon { font-size: 4rem; margin-bottom: 20px; }
+    h1 { font-size: 1.75rem; font-weight: 800; color: #18202b; margin-bottom: 12px; }
+    p { color: #5c6673; line-height: 1.6; font-size: 1rem; margin-bottom: 28px; }
+    .retry-btn {
+      background: linear-gradient(135deg, #c65f2d, #df7f3d);
+      color: white;
+      border: none;
+      border-radius: 16px;
+      padding: 14px 28px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 160ms ease, box-shadow 160ms ease;
+    }
+    .retry-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(198,95,45,0.28);
+    }
+    .brand {
+      margin-top: 28px;
+      font-size: 1.4rem;
+      font-weight: 900;
+      color: #c65f2d;
+      letter-spacing: 1px;
+    }
+    .brand small {
+      display: block;
+      font-size: 0.7rem;
+      font-weight: 500;
+      color: #5c6673;
+      letter-spacing: 0.2px;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon">📶</div>
+    <h1>You're Offline</h1>
+    <p>LISA needs an internet connection to load new content. Your completed lessons and progress are saved locally.</p>
+    <button class="retry-btn" onclick="window.location.reload()">Try Again</button>
+    <div class="brand">
+      LISA
+      <small>Literacy Intelligence Support Assistant</small>
+    </div>
+  </div>
+</body>
+</html>
